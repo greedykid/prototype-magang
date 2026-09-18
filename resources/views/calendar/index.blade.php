@@ -16,6 +16,17 @@
             </div>
         @endforeach
     </div>
+    <div class="mobile-calendar-agenda">
+        @foreach($weeks as $day)
+            @if($day->month === $currentMonth->month)
+                 <section class="mobile-calendar-day {{ $day->isToday() ? 'today' : '' }}">
+                     <a class="mobile-calendar-add-day" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}" aria-label="Tambah agenda pada {{ $day->translatedFormat('d F Y') }}"></a>
+                    <div class="mobile-calendar-day-heading"><div><strong>{{ ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'][$day->format('l')] }}</strong><span>{{ $day->translatedFormat('d F Y') }}</span></div><a class="button ghost" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}">Tambah</a></div>
+                    @forelse($events->get($day->toDateString(), collect()) as $event)<a class="mobile-calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }}</strong><span>{{ $event->title }}</span><small>{{ $event->lpk->name }}</small></a>@empty<span class="mobile-calendar-empty">Belum ada agenda</span>@endforelse
+                </section>
+            @endif
+        @endforeach
+    </div>
     @if($events->isEmpty())<div class="empty calendar-empty">Belum ada agenda di rentang bulan ini. <a href="{{ route('calendar.events.create') }}">Tambah agenda pertama</a>.</div>@endif
 </section>
 @endsection
