@@ -15,19 +15,11 @@
             <small>Badan Standardisasi Nasional</small>
         </div>
     </div>
-    <p class="eyebrow">RUANG KERJA INTERNAL</p>
     <h1>Masuk untuk melanjutkan.</h1>
     <p class="lede">Gunakan akun demo untuk mempelajari alur monitoring.</p>
 
     @if($errors->any())
-        <div class="alert error" role="alert" style="margin-top: 20px;">
-            <strong>Gagal masuk:</strong>
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+        <div id="flash-errors-data" data-errors='@json($errors->all())' data-title="Gagal Masuk" style="display: none;"></div>
     @endif
 
     <form method="POST" action="{{ route('login.store') }}" class="form-stack" id="login-form">

@@ -103,17 +103,13 @@
     </header>
     <div class="page-wrap" id="page-content-wrapper">
         @if(session('success'))
-            <div class="alert success" role="status">{{ session('success') }}</div>
+            <div id="flash-success-data" data-message="{{ session('success') }}" style="display: none;"></div>
+        @endif
+        @if(session('error'))
+            <div id="flash-error-data" data-message="{{ session('error') }}" style="display: none;"></div>
         @endif
         @if($errors->any())
-            <div class="alert error" role="alert">
-                <strong>Periksa kembali input.</strong>
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
+            <div id="flash-errors-data" data-errors='@json($errors->all())' data-title="Periksa kembali formulir" style="display: none;"></div>
         @endif
         @yield('content')
     </div>

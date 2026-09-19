@@ -1,3 +1,6 @@
+import Swal from 'sweetalert2';
+window.Swal = Swal;
+
 const menuToggle = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#primary-navigation');
 const sidebar = document.querySelector('.sidebar');
@@ -743,7 +746,90 @@ const initPageComponents = () => {
 
     // 4. Custom Select Dropdowns
     initCustomSelects();
+
+    // 5. Flash Notifications via SweetAlert2
+    handleFlashNotifications();
 };
+
+function handleFlashNotifications() {
+    // 1. Flash Success Notification
+    const successEl = document.getElementById('flash-success-data');
+    if (successEl) {
+        const message = successEl.dataset.message;
+        successEl.remove();
+        if (message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: message,
+                confirmButtonColor: '#5645d4',
+                confirmButtonText: 'Selesai',
+                timer: 3500,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'simasadi-swal-popup',
+                    confirmButton: 'simasadi-swal-btn',
+                    title: 'simasadi-swal-title',
+                    htmlContainer: 'simasadi-swal-text'
+                }
+            });
+        }
+    }
+
+    // 2. Flash Error Notification
+    const errorEl = document.getElementById('flash-error-data');
+    if (errorEl) {
+        const message = errorEl.dataset.message;
+        errorEl.remove();
+        if (message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan',
+                text: message,
+                confirmButtonColor: '#5645d4',
+                confirmButtonText: 'Tutup',
+                customClass: {
+                    popup: 'simasadi-swal-popup',
+                    confirmButton: 'simasadi-swal-btn',
+                    title: 'simasadi-swal-title',
+                    htmlContainer: 'simasadi-swal-text'
+                }
+            });
+        }
+    }
+
+    // 3. Validation Errors Notification
+    const errorsEl = document.getElementById('flash-errors-data');
+    if (errorsEl) {
+        const title = errorsEl.dataset.title || 'Periksa Kembali Input';
+        let errors = [];
+        try {
+            errors = JSON.parse(errorsEl.dataset.errors || '[]');
+        } catch (e) {
+            errors = [errorsEl.dataset.errors];
+        }
+        errorsEl.remove();
+        if (errors.length > 0) {
+            const listHtml = '<ul style="text-align: left; margin: 10px 0 0 0; padding-left: 20px; font-size: 13.5px; line-height: 1.6;">' +
+                errors.map(err => '<li>' + err + '</li>').join('') +
+                '</ul>';
+
+            Swal.fire({
+                icon: 'error',
+                title: title,
+                html: listHtml,
+                confirmButtonColor: '#5645d4',
+                confirmButtonText: 'Mengerti',
+                customClass: {
+                    popup: 'simasadi-swal-popup',
+                    confirmButton: 'simasadi-swal-btn',
+                    title: 'simasadi-swal-title',
+                    htmlContainer: 'simasadi-swal-text'
+                }
+            });
+        }
+    }
+}
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -1414,28 +1500,48 @@ document.addEventListener('submit', (event) => {
 });
 
 // ==========================================================================
-// Smooth Logout Curtain Exit Transition (With Active Moving Spinner)
+// Smooth Logout Curtain Exit Transition with SweetAlert2 Confirmation
 // ==========================================================================
 document.addEventListener('submit', (event) => {
     const form = event.target.closest('#logout-form, .logout-form');
     if (!form) return;
 
-    if (form.dataset.submitting === 'true') {
-        return; // Native submission in progress
+    if (form.dataset.confirmed === 'true') {
+        return; // Native submission in progress after confirmation
     }
 
     event.preventDefault();
-    form.dataset.submitting = 'true';
 
-    const curtain = document.querySelector('#logout-curtain');
-    if (curtain) {
-        curtain.classList.add('is-active');
-    }
-
-    // Allow curtain to fully fade in and spinner to rotate smoothly before unload
-    setTimeout(() => {
-        form.submit();
-    }, 550);
+    Swal.fire({
+        title: 'Keluar dari workspace?',
+        text: 'Anda akan mengakhiri sesi aktif di SIMASADI.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#5645d4',
+        cancelButtonColor: '#71717a',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        customClass: {
+            popup: 'simasadi-swal-popup',
+            confirmButton: 'simasadi-swal-btn',
+            cancelButton: 'simasadi-swal-cancel-btn',
+            title: 'simasadi-swal-title',
+            htmlContainer: 'simasadi-swal-text'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.dataset.confirmed = 'true';
+            const curtain = document.querySelector('#logout-curtain');
+            if (curtain) {
+                curtain.classList.add('is-active');
+                curtain.setAttribute('aria-hidden', 'false');
+            }
+            setTimeout(() => {
+                form.submit();
+            }, 450);
+        }
+    });
 });
 
 
