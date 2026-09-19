@@ -21,7 +21,24 @@
             @if($day->month === $currentMonth->month)
                  <section class="mobile-calendar-day {{ $day->isToday() ? 'today' : '' }}">
                      <a class="mobile-calendar-add-day" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}" aria-label="Tambah agenda pada {{ $day->translatedFormat('d F Y') }}"></a>
-                    <div class="mobile-calendar-day-heading"><div><strong>{{ ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'][$day->format('l')] }}</strong><span>{{ $day->translatedFormat('d F Y') }}</span></div><a class="button ghost" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}">Tambah</a></div>
+                    <div class="mobile-calendar-day-heading">
+                        <div class="mobile-calendar-date-wrap">
+                            <strong class="mobile-calendar-day-name">
+                                {{ ['Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'][$day->format('l')] }}
+                                @if($day->isToday())
+                                    <span class="badge-today">Hari Ini</span>
+                                @endif
+                            </strong>
+                            <span class="mobile-calendar-date-label">{{ $day->translatedFormat('d F Y') }}</span>
+                        </div>
+                        <a class="calendar-day-add-btn" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}" aria-label="Tambah agenda pada {{ $day->translatedFormat('d F Y') }}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Tambah</span>
+                        </a>
+                    </div>
                     @forelse($events->get($day->toDateString(), collect()) as $event)<a class="mobile-calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }}</strong><span>{{ $event->title }}</span><small>{{ $event->lpk->name }}</small></a>@empty<span class="mobile-calendar-empty">Belum ada agenda</span>@endforelse
                 </section>
             @endif
