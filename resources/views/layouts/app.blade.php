@@ -1,18 +1,129 @@
 <!doctype html>
 <html lang="id">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>@yield('title', 'SIMASADI Workspace')</title>@vite(['resources/css/app.css', 'resources/js/app.js'])</head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'SIMASADI Workspace')</title>
+    <script>
+        if (localStorage.getItem('simasadi_sidebar_collapsed') === 'true') {
+            document.documentElement.classList.add('sidebar-is-collapsed');
+        }
+    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
 <body>
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
 <div class="app-shell">
 <aside class="sidebar">
-    <div class="brand"><span class="brand-mark">K</span><div><strong>SIMASADI</strong><small>workspace prototype</small></div></div>
+    <div class="brand">
+        <div class="brand-info">
+            <span class="brand-mark" title="SIMASADI Workspace">K</span>
+            <div class="brand-text"><strong>SIMASADI</strong><small>workspace prototype</small></div>
+        </div>
+    </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>
     <nav id="primary-navigation" aria-label="Navigasi utama">
-        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Ringkasan</a><a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}">Layanan KANMIS</a><a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}">Backup</a><a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}">Kalender</a><a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}">Program Asesmen</a><a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}">Data LPK</a><a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}">Akreditasi</a><a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}">Masalah</a><a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}">Amandemen</a>
+        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
+            <x-icon name="dashboard" size="18" />
+            <span class="nav-label">Ringkasan</span>
+        </a>
+        <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
+            <x-icon name="services" size="18" />
+            <span class="nav-label">Layanan KANMIS</span>
+        </a>
+        <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
+            <x-icon name="backup" size="18" />
+            <span class="nav-label">Backup</span>
+        </a>
+        <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender">
+            <x-icon name="calendar" size="18" />
+            <span class="nav-label">Kalender</span>
+        </a>
+        <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Program Asesmen">
+            <x-icon name="assessments" size="18" />
+            <span class="nav-label">Program Asesmen</span>
+        </a>
+        <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data LPK">
+            <x-icon name="lpks" size="18" />
+            <span class="nav-label">Data LPK</span>
+        </a>
+        <a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}" data-tooltip="Akreditasi">
+            <x-icon name="accreditations" size="18" />
+            <span class="nav-label">Akreditasi</span>
+        </a>
+        <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Masalah">
+            <x-icon name="issues" size="18" />
+            <span class="nav-label">Masalah</span>
+        </a>
+        <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
+            <x-icon name="amendments" size="18" />
+            <span class="nav-label">Amandemen</span>
+        </a>
     </nav>
-    <div class="sidebar-foot"><div class="drawer-account"><div class="user-identity"><span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span><div><strong>{{ auth()->user()->name ?? 'Tamu' }}</strong><small>Petugas monitoring</small></div></div><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="link-button logout-icon" aria-label="Keluar" title="Keluar"><x-icon name="log-out" size="16" /></button></form></div><span class="eyebrow">MODE BELAJAR</span><p>Data contoh lokal, belum terhubung ke sistem resmi.</p></div>
+    <div class="sidebar-foot">
+        <div class="drawer-account">
+            <div class="user-identity">
+                <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
+                <div class="user-details">
+                    <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
+                    <small>Petugas monitoring</small>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" id="logout-form" class="logout-form">
+                @csrf
+                <button type="submit" class="link-button logout-icon" aria-label="Keluar" title="Keluar">
+                    <x-icon name="log-out" size="16" />
+                </button>
+            </form>
+        </div>
+        <div class="sidebar-foot-note">
+            <span class="eyebrow">MODE BELAJAR</span>
+            <p>Data contoh lokal, belum terhubung ke sistem resmi.</p>
+        </div>
+    </div>
 </aside>
 <div class="drawer-backdrop" data-drawer-close></div>
-<main id="main-content" class="main-content"><header class="topbar"><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation"><span class="sr-only">Buka navigasi</span><span class="menu-icon" aria-hidden="true"></span></button><div class="page-context"><span class="context-label">Monitoring internal</span><strong class="context-title">@php($pageTitle = match (true) { request()->routeIs('dashboard') => 'Ringkasan', request()->routeIs('monitoring.services') => 'Layanan KANMIS', request()->routeIs('monitoring.backups') => 'Riwayat Backup', request()->routeIs('calendar.*') => 'Kalender Kegiatan', request()->routeIs('assessments.*') => 'Program Asesmen', request()->routeIs('lpks.*') => 'Data LPK', request()->routeIs('accreditations.*') => 'Proses Akreditasi', request()->routeIs('issues.*') => 'Masalah', request()->routeIs('amendments.*') => 'Amandemen', default => 'Workspace' }){{ $pageTitle }}</strong></div></header><div class="page-wrap">@if(session('success'))<div class="alert success" role="status">{{ session('success') }}</div>@endif @if($errors->any())<div class="alert error" role="alert"><strong>Periksa kembali input.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif @yield('content')</div></main>
+<main id="main-content" class="main-content">
+    <header class="topbar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
+                <span class="sr-only">Buka navigasi</span>
+                <span class="menu-icon" aria-hidden="true"></span>
+            </button>
+            <button class="navbar-sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
+                <x-icon name="chevron-left" size="18" />
+            </button>
+            <div class="page-context">
+                <span class="context-label">Monitoring internal</span>
+                <strong class="context-title">@php($pageTitle = match (true) { request()->routeIs('dashboard') => 'Ringkasan', request()->routeIs('monitoring.services') => 'Layanan KANMIS', request()->routeIs('monitoring.backups') => 'Riwayat Backup', request()->routeIs('calendar.*') => 'Kalender Kegiatan', request()->routeIs('assessments.*') => 'Program Asesmen', request()->routeIs('lpks.*') => 'Data LPK', request()->routeIs('accreditations.*') => 'Proses Akreditasi', request()->routeIs('issues.*') => 'Masalah', request()->routeIs('amendments.*') => 'Amandemen', default => 'Workspace' }){{ $pageTitle }}</strong>
+            </div>
+        </div>
+    </header>
+    <div class="page-wrap" id="page-content-wrapper">
+        @if(session('success'))
+            <div class="alert success" role="status">{{ session('success') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="alert error" role="alert">
+                <strong>Periksa kembali input.</strong>
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        @yield('content')
+    </div>
+</main>
 </div>
-</body></html>
+<div id="logout-curtain" class="logout-curtain" aria-hidden="true">
+    <div class="logout-curtain-content">
+        <span class="logout-spinner">
+            <x-icon name="loader" size="34" />
+        </span>
+        <span class="logout-curtain-text">Keluar dari workspace...</span>
+    </div>
+</div>
+</body>
+</html>
