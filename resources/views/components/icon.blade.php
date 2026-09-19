@@ -11,6 +11,8 @@
         'calendar' => '<rect width="18" height="16" x="3" y="5" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
         'calendar-plus' => '<rect width="18" height="16" x="3" y="5" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v4M10 15h4"/>',
         'check' => '<path d="m5 12 4 4L19 6"/>',
+        'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
+        'chevron-up' => '<path d="m18 15-6-6-6 6"/>',
         'chevron-left' => '<path d="m15 18-6-6 6-6"/>',
         'chevron-right' => '<path d="m9 18 6-6-6-6"/>',
         'dashboard' => '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
