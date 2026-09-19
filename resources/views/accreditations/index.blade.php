@@ -3,7 +3,7 @@
 @section('title', 'Akreditasi | SIMASADI')
 
 @section('content')
-<div class="page-heading"><div><span class="eyebrow">MONITORING</span><h1>Proses akreditasi</h1><p class="lede">Lihat status proses akreditasi yang terhubung dengan LPK.</p></div></div>
+<div class="page-heading"><div><h1>Proses akreditasi</h1><p class="lede">Lihat status proses akreditasi yang terhubung dengan LPK.</p></div></div>
 <section class="panel">
     <form class="table-filters" method="GET">
         <div class="table-filter-grid"><label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label><label>Status<select name="status"><option value="">Semua status</option><option value="NOT_STARTED" @selected($status === 'NOT_STARTED')>Belum mulai</option><option value="IN_PROGRESS" @selected($status === 'IN_PROGRESS')>Berjalan</option><option value="COMPLETED" @selected($status === 'COMPLETED')>Selesai</option></select></label><label>Mulai dari<input type="date" name="start_from" value="{{ $startFrom }}"></label><label>Mulai sampai<input type="date" name="start_to" value="{{ $startTo }}"></label><label>Target dari<input type="date" name="target_from" value="{{ $targetFrom }}"></label><label>Target sampai<input type="date" name="target_to" value="{{ $targetTo }}"></label></div>

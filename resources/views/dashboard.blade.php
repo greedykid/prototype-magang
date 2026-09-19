@@ -5,7 +5,6 @@
 @section('content')
     <div class="page-heading">
         <div>
-            <span class="eyebrow">RINGKASAN KERJA</span>
             <h1>Selamat datang, {{ auth()->user()->name }}.</h1>
             <p class="lede">Pantau pekerjaan yang perlu diperhatikan sebelum masuk ke detail.</p>
         </div>

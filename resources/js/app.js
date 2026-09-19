@@ -45,11 +45,15 @@ const createViewToggle = (className, label, views, activeView, onChange) => {
     toggle.setAttribute('role', 'group');
     toggle.setAttribute('aria-label', label);
 
-    views.forEach(([value, text]) => {
+    views.forEach(([value, text, iconSvg]) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.dataset.view = value;
-        button.textContent = text;
+        if (iconSvg) {
+            button.innerHTML = `${iconSvg}<span>${text}</span>`;
+        } else {
+            button.textContent = text;
+        }
         button.setAttribute('aria-pressed', String(value === activeView));
         button.addEventListener('click', () => onChange(value, toggle));
         toggle.append(button);
@@ -654,7 +658,19 @@ const initPageComponents = () => {
             toggle.querySelectorAll('button').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
         };
 
-        const toggle = createViewToggle('view-toggle table-view-toggle', 'Tampilan data', [['table', 'Tabel'], ['grid', 'Grid']], initialView, setView);
+        const tableIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 9h18M3 15h18"/><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`;
+        const gridIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`;
+
+        const toggle = createViewToggle(
+            'view-toggle table-view-toggle',
+            'Tampilan data',
+            [
+                ['table', 'Tabel', tableIconSvg],
+                ['grid', 'Grid', gridIconSvg]
+            ],
+            initialView,
+            setView
+        );
         const toolbar = tableWrap.previousElementSibling;
         if (toolbar?.classList.contains('table-toolbar')) {
             toolbar.appendChild(toggle);
@@ -729,7 +745,7 @@ const initPageComponents = () => {
         // Ensure drawer and backdrop are mounted directly to document.body on mobile screens
         // so they are truly outside the table card / panel container (seperti side drawer sidebar)
         const syncDrawerMount = () => {
-            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            const isMobile = window.matchMedia('(max-width: 600px)').matches;
             if (isMobile) {
                 if (filter.parentElement !== document.body) {
                     document.body.appendChild(backdrop);
@@ -902,7 +918,50 @@ const initPageComponents = () => {
 
     // 5. Flash Notifications via SweetAlert2
     handleFlashNotifications();
+
+    // 6. Responsive Table View Toggle Positioning (side-by-side with filter button on mobile)
+    syncViewToggleLocation();
 };
+
+const syncViewToggleLocation = () => {
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    document.querySelectorAll('.table-wrap').forEach((tableWrap) => {
+        const parentPanel = tableWrap.closest('.panel') || tableWrap.parentElement;
+        if (!parentPanel) return;
+
+        const toggle = parentPanel.querySelector('.table-view-toggle');
+        if (!toggle) return;
+
+        let tableControls = parentPanel.querySelector('.table-controls');
+        const toolbar = parentPanel.querySelector('.table-toolbar');
+
+        if (isMobile) {
+            if (!tableControls) {
+                tableControls = document.createElement('div');
+                tableControls.className = 'table-controls';
+                const firstChild = parentPanel.querySelector('.table-filters-placeholder, .table-filters, .active-filters-bar, .table-toolbar, .table-wrap');
+                if (firstChild) {
+                    parentPanel.insertBefore(tableControls, firstChild);
+                } else {
+                    parentPanel.prepend(tableControls);
+                }
+            }
+            if (toggle.parentElement !== tableControls) {
+                tableControls.appendChild(toggle);
+            }
+        } else if (toolbar) {
+            if (toggle.parentElement !== toolbar) {
+                toolbar.appendChild(toggle);
+            }
+        }
+    });
+};
+
+let viewToggleResizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(viewToggleResizeTimer);
+    viewToggleResizeTimer = setTimeout(syncViewToggleLocation, 50);
+});
 
 function handleFlashNotifications() {
     // 1. Flash Success Notification
@@ -995,7 +1054,11 @@ document.addEventListener('keydown', (event) => {
 });
 
 // Run initial component initialization
-initPageComponents();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPageComponents);
+} else {
+    initPageComponents();
+}
 
 // ==========================================================================
 // Custom Skeleton Loading Layouts per Menu

@@ -2,7 +2,7 @@
 @section('title', 'Kalender | SIMASADI')
 @section('content')
 <div class="page-heading">
-    <div><span class="eyebrow">AGENDA KERJA</span><h1>Kalender kegiatan</h1><p class="lede">Atur agenda monitoring dan asesmen dalam satu tampilan bulanan.</p></div>
+    <div><h1>Kalender kegiatan</h1><p class="lede">Atur agenda monitoring dan asesmen dalam satu tampilan bulanan.</p></div>
     <a class="button primary" href="{{ route('calendar.events.create') }}"><x-icon name="plus" size="16" /><span>Tambah agenda</span></a>
 </div>
 <section class="panel calendar-panel">

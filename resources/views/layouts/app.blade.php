@@ -25,42 +25,57 @@
     </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>
     <nav id="primary-navigation" aria-label="Navigasi utama">
-        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
-            <x-icon name="dashboard" size="18" />
-            <span class="nav-label">Ringkasan</span>
-        </a>
-        <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
-            <x-icon name="services" size="18" />
-            <span class="nav-label">Layanan KANMIS</span>
-        </a>
-        <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
-            <x-icon name="backup" size="18" />
-            <span class="nav-label">Backup</span>
-        </a>
-        <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender">
-            <x-icon name="calendar" size="18" />
-            <span class="nav-label">Kalender</span>
-        </a>
-        <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Program Asesmen">
-            <x-icon name="assessments" size="18" />
-            <span class="nav-label">Program Asesmen</span>
-        </a>
-        <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data LPK">
-            <x-icon name="lpks" size="18" />
-            <span class="nav-label">Data LPK</span>
-        </a>
-        <a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}" data-tooltip="Akreditasi">
-            <x-icon name="accreditations" size="18" />
-            <span class="nav-label">Akreditasi</span>
-        </a>
-        <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Masalah">
-            <x-icon name="issues" size="18" />
-            <span class="nav-label">Masalah</span>
-        </a>
-        <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
-            <x-icon name="amendments" size="18" />
-            <span class="nav-label">Amandemen</span>
-        </a>
+        <div class="nav-section">
+            <span class="nav-section-title">Utama</span>
+            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
+                <x-icon name="dashboard" size="18" />
+                <span class="nav-label">Ringkasan</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Akreditasi LPK</span>
+            <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data LPK">
+                <x-icon name="lpks" size="18" />
+                <span class="nav-label">Data LPK</span>
+            </a>
+            <a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}" data-tooltip="Akreditasi">
+                <x-icon name="accreditations" size="18" />
+                <span class="nav-label">Akreditasi</span>
+            </a>
+            <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
+                <x-icon name="amendments" size="18" />
+                <span class="nav-label">Amandemen</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Asesmen & Jadwal</span>
+            <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Program Asesmen">
+                <x-icon name="assessments" size="18" />
+                <span class="nav-label">Program Asesmen</span>
+            </a>
+            <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender">
+                <x-icon name="calendar" size="18" />
+                <span class="nav-label">Kalender</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Monitoring & Sistem</span>
+            <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
+                <x-icon name="services" size="18" />
+                <span class="nav-label">Layanan KANMIS</span>
+            </a>
+            <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
+                <x-icon name="backup" size="18" />
+                <span class="nav-label">Backup</span>
+            </a>
+            <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Masalah">
+                <x-icon name="issues" size="18" />
+                <span class="nav-label">Masalah</span>
+            </a>
+        </div>
     </nav>
     <div class="sidebar-foot">
         <div class="drawer-account">
@@ -97,7 +112,14 @@
             </button>
             <div class="page-context">
                 <span class="context-label" title="Sistem Informasi dan Administrasi Akreditasi">Sistem Informasi dan Administrasi Akreditasi</span>
-                <strong class="context-title">@php($pageTitle = match (true) { request()->routeIs('dashboard') => 'Ringkasan', request()->routeIs('monitoring.services') => 'Layanan KANMIS', request()->routeIs('monitoring.backups') => 'Riwayat Backup', request()->routeIs('calendar.*') => 'Kalender Kegiatan', request()->routeIs('assessments.*') => 'Program Asesmen', request()->routeIs('lpks.*') => 'Data LPK', request()->routeIs('accreditations.*') => 'Proses Akreditasi', request()->routeIs('issues.*') => 'Masalah', request()->routeIs('amendments.*') => 'Amandemen', default => 'Workspace' }){{ $pageTitle }}</strong>
+                <strong class="context-title">@php($moduleCategory = match (true) {
+                    request()->routeIs('dashboard') => 'Ringkasan Eksekutif',
+                    request()->routeIs('lpks.*', 'accreditations.*', 'amendments.*') => 'Manajemen Akreditasi LPK',
+                    request()->routeIs('assessments.*', 'calendar.*') => 'Jadwal & Penugasan Asesmen',
+                    request()->routeIs('monitoring.*') => 'Monitoring Sistem & Infrastruktur',
+                    request()->routeIs('issues.*') => 'Pusat Kendala & Tindak Lanjut',
+                    default => 'Workspace',
+                }){{ $moduleCategory }}</strong>
             </div>
         </div>
     </header>
