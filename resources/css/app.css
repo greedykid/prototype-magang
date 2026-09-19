@@ -1699,16 +1699,16 @@ a, button, input, select, textarea, .list-row, .calendar-add-day, .calendar-even
     .mobile-calendar-empty { color: var(--muted); display: block; font-size: 13px; font-style: italic; padding: 6px 0; }
 }
 
-.page-wrap { animation: page-enter 280ms var(--ease-out-expo) both; }
+.page-wrap { animation: page-enter 240ms ease forwards; }
 @keyframes page-enter {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.page-heading { animation: heading-enter 300ms var(--ease-out-expo) both; }
+.page-heading { animation: heading-enter 240ms ease forwards; }
 @keyframes heading-enter {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* ==========================================================================
@@ -2110,10 +2110,17 @@ section.has-open-select {
 .inline-form:has(.custom-select-wrapper.is-open),
 .inline-form.has-open-select,
 .inline-form label:has(.custom-select-wrapper.is-open),
-.inline-form label.has-open-select {
+.inline-form label.has-open-select,
+.form-grid label:has(.custom-select-wrapper.is-open),
+.form-grid label.has-open-select {
     overflow: visible !important;
     position: relative !important;
-    z-index: 36 !important;
+    z-index: 60 !important;
+}
+
+.simasadi-modal-box:has(.custom-select-wrapper.is-open),
+.simasadi-modal-box.has-open-select {
+    overflow: visible !important;
 }
 
 .custom-select-wrapper {
@@ -2895,6 +2902,10 @@ section.has-open-select {
 }
 
 /* Modal Dialog Styles */
+body.modal-open {
+    overflow: hidden !important;
+}
+
 .simasadi-modal {
     background: rgba(15, 12, 28, 0.58);
     backdrop-filter: blur(4px);
@@ -2905,8 +2916,9 @@ section.has-open-select {
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
     height: 100dvh;
     z-index: 99999;
     display: none;

@@ -366,16 +366,32 @@
 
                 @forelse($sortedDates as $dateKey)
                     @php
-                        $dateObj = \Carbon\Carbon::parse($dateKey);
+                        $dateObj = \Carbon\Carbon::parse($dateKey)->locale('id');
                         $evs = $eventsByDate[$dateKey];
+                        $indonesianDays = [
+                            'Sunday' => 'Minggu',
+                            'Monday' => 'Senin',
+                            'Tuesday' => 'Selasa',
+                            'Wednesday' => 'Rabu',
+                            'Thursday' => 'Kamis',
+                            'Friday' => 'Jumat',
+                            'Saturday' => 'Sabtu',
+                        ];
+                        $indonesianMonths = [
+                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                        ];
+                        $dayName = $indonesianDays[$dateObj->format('l')] ?? $dateObj->translatedFormat('l');
+                        $monthYear = ($indonesianMonths[$dateObj->month] ?? $dateObj->translatedFormat('F')) . ' ' . $dateObj->year;
                     @endphp
                     <div class="gcal-agenda-group" data-date="{{ $dateKey }}">
                         <div class="gcal-agenda-date-head">
                             <div class="gcal-agenda-date-left">
                                 <span class="gcal-agenda-day-num">{{ $dateObj->day }}</span>
                                 <div>
-                                    <strong class="gcal-agenda-day-name">{{ $dateObj->translatedFormat('l') }}</strong>
-                                    <small>{{ $dateObj->translatedFormat('F Y') }}</small>
+                                    <strong class="gcal-agenda-day-name">{{ $dayName }}</strong>
+                                    <small>{{ $monthYear }}</small>
                                 </div>
                             </div>
                             @if($dateObj->isToday())
@@ -433,7 +449,7 @@
     <div class="gcal-popover-card">
         <div class="gcal-popover-head">
             <span class="gcal-popover-cat-pill" id="popover-cat-badge">Agenda</span>
-            <button type="button" class="gcal-popover-close" onclick="window.closeEventPopover()" aria-label="Tutup">
+            <button type="button" class="gcal-popover-close" onclick="window.closeEventPopover(this)" aria-label="Tutup">
                 <x-icon name="x" size="16" />
             </button>
         </div>
@@ -469,11 +485,11 @@
                 <span>Google Calendar</span>
             </a>
             <div class="gcal-popover-actions-right">
-                <a href="#" class="button secondary btn-sm" id="popover-edit-link">
+                <a href="#" class="button secondary btn-sm" id="popover-edit-link" onclick="window.closeEventPopover(this)">
                     <x-icon name="edit" size="14" />
                     <span>Ubah</span>
                 </a>
-                <a href="#" class="button primary btn-sm" id="popover-detail-link">
+                <a href="#" class="button primary btn-sm" id="popover-detail-link" onclick="window.closeEventPopover(this)">
                     <span>Detail Lengkap</span>
                 </a>
             </div>
@@ -489,7 +505,7 @@
                 <h4 id="quick-add-title" style="margin: 0; font-size: 18px; font-weight: 700;">Buat Agenda Kegiatan Baru</h4>
                 <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--muted);">Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.</p>
             </div>
-            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-quick-add-event')" aria-label="Tutup modal">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal(this)" aria-label="Tutup modal">&times;</button>
         </div>
 
         <form method="POST" action="{{ route('calendar.events.store') }}" style="display: grid; gap: 14px; margin-top: 14px;">
@@ -502,7 +518,7 @@
 
                 <label class="full">
                     Lembaga Terkait (LPK)
-                    <select name="lpk_id" id="quick-input-lpk" required data-no-custom="true">
+                    <select name="lpk_id" id="quick-input-lpk" required>
                         <option value="">Pilih Lembaga Penilaian Kesesuaian</option>
                         @foreach($lpks as $lpk)
                             <option value="{{ $lpk->id }}">{{ $lpk->name }}</option>
@@ -537,7 +553,7 @@
 
                 <label class="full">
                     Status
-                    <select name="status" data-no-custom="true">
+                    <select name="status" id="quick-input-status">
                         <option value="PLANNED" selected>Direncanakan</option>
                         <option value="IN_PROGRESS">Sedang Berlangsung</option>
                         <option value="COMPLETED">Selesai</option>
@@ -547,7 +563,7 @@
             </div>
 
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-quick-add-event')">
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal(this)">
                     Batal
                 </button>
                 <button type="submit" class="button primary">

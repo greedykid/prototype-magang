@@ -301,7 +301,7 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *');
         if (parentContainer) {
             parentContainer.classList.add('has-open-select');
         }
@@ -331,7 +331,7 @@ const createCustomSelect = (select) => {
         trigger.setAttribute('aria-expanded', 'false');
         optionElements.forEach((el) => el.classList.remove('is-focused'));
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *');
         if (parentContainer && !parentContainer.querySelector('.custom-select-wrapper.is-open')) {
             parentContainer.classList.remove('has-open-select');
         }
@@ -1512,6 +1512,23 @@ const navigateTo = async (url, pushState = true) => {
     if (isNavigating) return;
     isNavigating = true;
 
+    // Immediately close and clean up any active popovers and modals before navigation
+    window.closeEventPopover?.();
+    window.closeModal?.();
+    document.querySelectorAll('body > .gcal-popover, body > #gcal-event-popover').forEach((p) => {
+        returnPopoverToPlaceholder(p);
+        if (p.parentElement === document.body) {
+            p.remove();
+        }
+    });
+    document.querySelectorAll('body > .simasadi-modal').forEach((m) => {
+        returnModalToPlaceholder(m);
+        if (m.parentElement === document.body) {
+            m.remove();
+        }
+    });
+    document.body.classList.remove('modal-open');
+
     const currentUrlObj = new URL(window.location.href);
     const targetUrlObj = new URL(url, window.location.origin);
     const isCalendarToCalendar = currentUrlObj.pathname === '/calendar' &&
@@ -1531,6 +1548,12 @@ const navigateTo = async (url, pushState = true) => {
             curShell.classList.add('gcal-is-updating');
         }
         window.closeEventPopover?.();
+        document.querySelectorAll('body > .gcal-popover, body > #gcal-event-popover').forEach((p) => {
+            returnPopoverToPlaceholder(p);
+            if (p.parentElement === document.body) {
+                p.remove();
+            }
+        });
 
         try {
             const response = await fetch(url, {
@@ -1577,8 +1600,9 @@ const navigateTo = async (url, pushState = true) => {
             }
 
             // Re-initialize calendar components
+            window.closeEventPopover?.();
             initGcalComponents();
-            initCustomSelects(document.querySelector('.gcal-shell') || document);
+            initCustomSelects(document);
 
             if (pushState) {
                 window.history.pushState({ url }, '', url);
@@ -1618,9 +1642,22 @@ const navigateTo = async (url, pushState = true) => {
         link.classList.toggle('active', isActive);
     });
 
-    // Close mobile drawer if open, clean up any active/teleported modals, and scroll to top
+    // Close mobile drawer if open, clean up any active/teleported modals and popovers, and scroll to top
     setDrawerState(false);
-    document.querySelectorAll('body > .simasadi-modal').forEach((m) => m.remove());
+    window.closeEventPopover?.();
+    window.closeModal?.();
+    document.querySelectorAll('body > .gcal-popover, body > #gcal-event-popover').forEach((p) => {
+        returnPopoverToPlaceholder(p);
+        if (p.parentElement === document.body) {
+            p.remove();
+        }
+    });
+    document.querySelectorAll('body > .simasadi-modal').forEach((m) => {
+        returnModalToPlaceholder(m);
+        if (m.parentElement === document.body) {
+            m.remove();
+        }
+    });
     document.body.classList.remove('modal-open');
     window.scrollTo({ top: 0, behavior: 'instant' });
 
@@ -1730,6 +1767,8 @@ document.addEventListener('submit', (event) => {
 
 // Support browser Back and Forward buttons
 window.addEventListener('popstate', () => {
+    window.closeEventPopover?.();
+    window.closeModal?.();
     navigateTo(window.location.href, false);
 });
 
@@ -1874,17 +1913,48 @@ document.addEventListener('submit', (event) => {
 // SIMASADI Viewport-Centric Modal Dialog System
 // Teleports modals to <body> and manages viewport centering & scroll lock
 // ==========================================================================
+function returnModalToPlaceholder(modal) {
+    if (!modal) return;
+    if (modal._simasadiPlaceholder && modal._simasadiPlaceholder.parentNode) {
+        modal._simasadiPlaceholder.parentNode.insertBefore(modal, modal._simasadiPlaceholder);
+        modal._simasadiPlaceholder.remove();
+        modal._simasadiPlaceholder = null;
+    }
+}
+window.returnModalToPlaceholder = returnModalToPlaceholder;
+
 function openModal(modalId) {
-    const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+    let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) {
         console.warn('Modal element not found:', modalId);
         return;
     }
 
-    // Teleport modal directly to <body> so no parent container transforms/clipping can trap it
-    if (modal.parentElement !== document.body) {
+    // Clean up any duplicate modals with same ID if present
+    if (typeof modalId === 'string') {
+        const modals = document.querySelectorAll(`#${modalId}`);
+        if (modals.length > 1) {
+            for (let i = 0; i < modals.length - 1; i++) {
+                modals[i].remove();
+            }
+            modal = document.getElementById(modalId);
+        }
+    }
+
+    // Teleport to document.body so modal escapes any ancestor containing block,
+    // positioning relative to the entire viewport (covering sidebar, topbar, and centered).
+    // A placeholder comment node is left behind so the modal can be restored to its exact place in the DOM upon closing.
+    if (modal.parentElement && modal.parentElement !== document.body) {
+        if (!modal._simasadiPlaceholder) {
+            const placeholder = document.createComment(`simasadi-modal-placeholder-${modal.id || 'dialog'}`);
+            modal.parentElement.insertBefore(placeholder, modal);
+            modal._simasadiPlaceholder = placeholder;
+        }
         document.body.appendChild(modal);
     }
+
+    // Initialize any custom selects inside this modal if not yet initialized
+    initCustomSelects(modal);
 
     modal.classList.add('is-active');
     document.body.classList.add('modal-open');
@@ -1900,11 +1970,32 @@ function openModal(modalId) {
 }
 window.openModal = openModal;
 
-function closeModal(modalId) {
-    const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
-    if (!modal) return;
+function closeModal(modalIdOrEl) {
+    if (!modalIdOrEl) {
+        document.querySelectorAll('.simasadi-modal').forEach((m) => {
+            m.classList.remove('is-active');
+            returnModalToPlaceholder(m);
+        });
+        document.body.classList.remove('modal-open');
+        return;
+    }
 
-    modal.classList.remove('is-active');
+    let modal;
+    if (typeof modalIdOrEl === 'string') {
+        modal = document.getElementById(modalIdOrEl);
+    } else if (modalIdOrEl instanceof Element) {
+        modal = modalIdOrEl.classList.contains('simasadi-modal') ? modalIdOrEl : modalIdOrEl.closest('.simasadi-modal');
+    }
+
+    if (modal) {
+        modal.classList.remove('is-active');
+        returnModalToPlaceholder(modal);
+    } else {
+        document.querySelectorAll('.simasadi-modal').forEach((m) => {
+            m.classList.remove('is-active');
+            returnModalToPlaceholder(m);
+        });
+    }
 
     // Remove body.modal-open only if no other modal is currently active
     if (!document.querySelector('.simasadi-modal.is-active')) {
@@ -1992,6 +2083,8 @@ document.addEventListener('submit', (event) => {
 
 // Restore button states if page is restored from back-forward cache (bfcache)
 window.addEventListener('pageshow', () => {
+    window.closeEventPopover?.();
+    window.closeModal?.();
     document.querySelectorAll('.button.is-loading, button.is-loading').forEach((btn) => {
         btn.classList.remove('is-loading');
         btn.removeAttribute('aria-busy');
@@ -2036,13 +2129,25 @@ const toGoogleCalendarUtc = (date) => {
 };
 
 function showEventPopover(triggerEl, eventData) {
-    const popover = document.getElementById('gcal-event-popover');
-    if (!popover || !eventData) return;
+    if (!eventData) return;
 
-    // Teleport popover directly to body to ensure no parent transform clipping
-    if (popover.parentElement !== document.body) {
-        document.body.appendChild(popover);
+    // Deduplicate: If any duplicate popovers exist from prior transitions, keep only the latest one
+    const allPopovers = document.querySelectorAll('#gcal-event-popover');
+    if (allPopovers.length > 1) {
+        let kept = false;
+        allPopovers.forEach((p) => {
+            if (!kept && p.closest('#page-content-wrapper, .page-wrap')) {
+                kept = true;
+            } else if (kept) {
+                p.remove();
+            } else {
+                p.remove();
+            }
+        });
     }
+
+    const popover = document.getElementById('gcal-event-popover');
+    if (!popover) return;
 
     const startDate = new Date(eventData.start_at);
     const endDate = new Date(eventData.end_at);
@@ -2113,6 +2218,17 @@ function showEventPopover(triggerEl, eventData) {
         }
     }
 
+    // Teleport popover to document.body so it escapes any ancestor containing block,
+    // ensuring getBoundingClientRect coordinates align 1-to-1 with the browser viewport.
+    if (popover.parentElement && popover.parentElement !== document.body) {
+        if (!popover._simasadiPlaceholder) {
+            const placeholder = document.createComment('gcal-popover-placeholder');
+            popover.parentElement.insertBefore(placeholder, popover);
+            popover._simasadiPlaceholder = placeholder;
+        }
+        document.body.appendChild(popover);
+    }
+
     // 8. Display & Positioning
     popover.style.display = 'block';
     popover.setAttribute('aria-hidden', 'false');
@@ -2129,40 +2245,49 @@ function showEventPopover(triggerEl, eventData) {
     if (card) {
         if (triggerEl && window.innerWidth > 768) {
             const rect = triggerEl.getBoundingClientRect();
-            const cardWidth = 380;
+            const cardWidth = Math.min(380, window.innerWidth - 32);
             const cardHeight = card.offsetHeight || 320;
+            const gap = 10;
+            const margin = 16;
+            const topbarOffset = 70;
 
-            const spaceRight = window.innerWidth - rect.right;
-            const spaceLeft = rect.left;
+            // Space available to the right and left of the clicked element relative to viewport
+            const spaceRight = window.innerWidth - rect.right - gap - margin;
+            const spaceLeft = rect.left - gap - margin;
 
             let left;
-            // If the chip is in the right half of the screen or doesn't fit on right, flip to left of chip
-            if (spaceRight < cardWidth + 16 || rect.left > window.innerWidth * 0.52) {
-                if (spaceLeft >= cardWidth + 16) {
-                    left = rect.left - cardWidth - 10;
-                } else {
-                    left = Math.max(16, window.innerWidth - cardWidth - 16);
-                }
+            if (spaceRight >= cardWidth) {
+                // Fits comfortably to the right of the chip
+                left = rect.right + gap;
+            } else if (spaceLeft >= cardWidth) {
+                // Fits comfortably to the left of the chip
+                left = rect.left - cardWidth - gap;
             } else {
-                left = rect.right + 10;
+                // If neither side fits fully, place on the side with more available space
+                if (spaceRight >= spaceLeft) {
+                    left = Math.min(rect.right + gap, window.innerWidth - cardWidth - margin);
+                } else {
+                    left = Math.max(margin, rect.left - cardWidth - gap);
+                }
             }
 
-            if (left < 16) left = 16;
+            // Keep left strictly within viewport margins
+            left = Math.max(margin, Math.min(window.innerWidth - cardWidth - margin, left));
 
-            // Vertical positioning: align near top of the clicked chip
+            // Align top near top of clicked element (with subtle 8px lift for visual balance)
             let top = rect.top - 8;
-            const maxTop = window.innerHeight - cardHeight - 16;
+            const maxTop = window.innerHeight - cardHeight - margin;
             if (top > maxTop) {
                 top = maxTop;
             }
-            if (top < 70) {
-                top = 70; // Stay below top navigation bar
+            if (top < topbarOffset) {
+                top = topbarOffset;
             }
 
             card.style.position = 'fixed';
             card.style.left = `${Math.round(left)}px`;
             card.style.top = `${Math.round(top)}px`;
-            card.style.zIndex = '1051';
+            card.style.zIndex = '9999';
         } else {
             card.style.position = '';
             card.style.left = '';
@@ -2173,9 +2298,35 @@ function showEventPopover(triggerEl, eventData) {
 }
 window.showEventPopover = showEventPopover;
 
-function closeEventPopover() {
-    const popover = document.getElementById('gcal-event-popover');
-    if (popover) {
+function returnPopoverToPlaceholder(popover) {
+    if (!popover) return;
+    if (popover._simasadiPlaceholder && popover._simasadiPlaceholder.parentNode) {
+        popover._simasadiPlaceholder.parentNode.insertBefore(popover, popover._simasadiPlaceholder);
+        popover._simasadiPlaceholder.remove();
+        popover._simasadiPlaceholder = null;
+    }
+}
+window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
+
+function closeEventPopover(triggerEl) {
+    if (triggerEl && triggerEl.closest) {
+        const specific = triggerEl.closest('.gcal-popover');
+        if (specific) {
+            specific.style.display = 'none';
+            specific.setAttribute('aria-hidden', 'true');
+            const c = specific.querySelector('.gcal-popover-card');
+            if (c) {
+                c.style.position = '';
+                c.style.left = '';
+                c.style.top = '';
+                c.style.zIndex = '';
+            }
+            returnPopoverToPlaceholder(specific);
+        }
+    }
+
+    // Close and reset ALL popovers in the DOM to guarantee zero stray cards
+    document.querySelectorAll('.gcal-popover, #gcal-event-popover').forEach((popover) => {
         popover.style.display = 'none';
         popover.setAttribute('aria-hidden', 'true');
         const card = popover.querySelector('.gcal-popover-card');
@@ -2185,7 +2336,8 @@ function closeEventPopover() {
             card.style.top = '';
             card.style.zIndex = '';
         }
-    }
+        returnPopoverToPlaceholder(popover);
+    });
 }
 window.closeEventPopover = closeEventPopover;
 
@@ -2213,18 +2365,33 @@ window.quickAddAt = quickAddAt;
 
 // Global click & Escape handlers for popover closing
 document.addEventListener('click', (e) => {
-    const popover = document.getElementById('gcal-event-popover');
-    if (!popover || popover.style.display === 'none') return;
+    const activePopovers = Array.from(document.querySelectorAll('.gcal-popover')).filter(
+        (p) => p.style.display !== 'none' && p.getAttribute('aria-hidden') !== 'true'
+    );
+    if (!activePopovers.length) return;
 
     // Mobile: clicking backdrop
-    if (window.innerWidth <= 768 && e.target === popover) {
-        closeEventPopover();
+    if (window.innerWidth <= 768) {
+        for (const popover of activePopovers) {
+            if (e.target === popover) {
+                closeEventPopover(popover);
+                return;
+            }
+        }
+    }
+
+    // Ignore clicks on event trigger elements (let showEventPopover handle opening/switching)
+    if (e.target.closest('.gcal-event-chip, .gcal-timed-card, .gcal-agenda-row, [onclick*="showEventPopover"]')) {
         return;
     }
 
-    const card = popover.querySelector('.gcal-popover-card');
-    // Desktop: clicking outside card and not on an event trigger
-    if (card && !card.contains(e.target) && !e.target.closest('.gcal-event-chip, .gcal-timed-card, .gcal-agenda-row, [onclick*="showEventPopover"]')) {
+    // Check if click was inside any popover card
+    const clickedInsideCard = activePopovers.some((popover) => {
+        const card = popover.querySelector('.gcal-popover-card');
+        return card && card.contains(e.target);
+    });
+
+    if (!clickedInsideCard) {
         closeEventPopover();
     }
 });
@@ -2236,15 +2403,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('scroll', () => {
-    const popover = document.getElementById('gcal-event-popover');
-    if (popover && popover.style.display !== 'none' && window.innerWidth > 768) {
+    const activePopovers = document.querySelectorAll('.gcal-popover:not([style*="display: none"])');
+    if (activePopovers.length && window.innerWidth > 768) {
         closeEventPopover();
     }
 }, { passive: true });
 
 window.addEventListener('resize', () => {
-    const popover = document.getElementById('gcal-event-popover');
-    if (popover && popover.style.display !== 'none') {
+    const activePopovers = document.querySelectorAll('.gcal-popover:not([style*="display: none"])');
+    if (activePopovers.length) {
         closeEventPopover();
     }
 });
