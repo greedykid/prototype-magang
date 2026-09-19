@@ -28,7 +28,7 @@
     </div>
     <div>
         <dt>Waktu</dt>
-        <dd>{{ $assessment->start_at->format('d M Y, H:i') }} sampai {{ $assessment->end_at->format('d M Y, H:i') }}</dd>
+        <dd>{{ $assessment->start_at->format('d M Y, H:i') }} sampai {{ $assessment->end_at->format('d M Y, H:i') }} WIB</dd>
     </div>
     <div>
         <dt>Lokasi</dt>
@@ -114,7 +114,7 @@
                 </span>
                 @if($expense?->verified_at)
                     <small style="display: block; font-size: 11px; color: var(--muted); margin-top: 2px;">
-                        Diverifikasi pada {{ $expense->verified_at->format('d M Y H:i') }}
+                        Diverifikasi pada {{ $expense->verified_at->format('d M Y, H:i') }} WIB
                     </small>
                 @endif
             </div>

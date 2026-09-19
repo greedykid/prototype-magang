@@ -146,7 +146,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <span style="font-size: 12.5px; color: var(--muted); font-weight: 600; text-transform: uppercase;">Kode Billing SIMPONI (15 Digit)</span>
                 <span style="font-size: 12.5px; color: var(--muted);">
-                    Berlaku s.d. <strong>{{ $latestBilling->expired_at->format('d M Y H:i') }}</strong>
+                    Berlaku s.d. <strong>{{ $latestBilling->expired_at->format('d M Y, H:i') }} WIB</strong>
                 </span>
             </div>
 
@@ -177,18 +177,14 @@
                     </div>
                     <div>
                         <span style="color: var(--muted); display: block;">Waktu Pembayaran:</span>
-                        <strong>{{ $latestBilling->paid_at?->format('d M Y H:i') }}</strong>
+                        <strong>{{ $latestBilling->paid_at?->format('d M Y, H:i') }} WIB</strong>
                     </div>
                 @endif
             </div>
         </div>
     @else
         <div style="background: #faf9f6; border: 1px dashed var(--line); border-radius: 8px; padding: 24px; text-align: center;">
-            <p style="color: var(--muted); margin: 0 0 14px;">Belum ada kode billing SIMPONI yang diterbitkan untuk proses akreditasi ini.</p>
-            <button type="button" class="button primary" onclick="window.openModal('modal-create-billing')">
-                <x-icon name="plus" size="16" />
-                Terbitkan Kode Billing SIMPONI Sekarang
-            </button>
+            <p style="color: var(--muted); margin: 0;">Belum ada kode billing SIMPONI yang diterbitkan untuk proses akreditasi ini.</p>
         </div>
     @endif
 </section>
@@ -219,7 +215,7 @@
                 <x-status value="UNSIGNED" />
                 <button type="button" class="button primary" onclick="window.openModal('modal-sign-doc')">
                     <x-icon name="check" size="14" />
-                    <span>Tandatangani SK Secara Digital</span>
+                    <span>Tandatangani SK Secara Digital (BSrE)</span>
                 </button>
             @endif
         </div>
@@ -267,14 +263,10 @@
         </div>
     @else
         <div style="background: #fafaf9; border: 1px dashed var(--line); border-radius: 8px; padding: 24px; text-align: center;">
-            <p style="color: var(--muted); margin: 0 0 14px;">
+            <p style="color: var(--muted); margin: 0;">
                 Dokumen SK Akreditasi belum ditandatangani secara elektronik.
                 Pastikan realisasi billing PNBP dan biaya asesor telah terverifikasi sebelum membubuhkan TTE.
             </p>
-            <button type="button" class="button primary" onclick="window.openModal('modal-sign-doc')">
-                <x-icon name="check" size="16" />
-                Tandatangani SK Secara Digital (BSrE)
-            </button>
         </div>
     @endif
 </section>

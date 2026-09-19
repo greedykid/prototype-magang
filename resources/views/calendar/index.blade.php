@@ -12,7 +12,7 @@
         @foreach($weeks as $day)
             <div class="calendar-day {{ $day->month !== $currentMonth->month ? 'outside' : '' }} {{ $day->isToday() ? 'today' : '' }}">
                 <a class="calendar-add-day" href="{{ route('calendar.events.create', ['date' => $day->toDateString()]) }}" aria-label="Tambah agenda pada {{ $day->translatedFormat('d F Y') }}"><span class="day-number">{{ $day->day }}</span><span class="calendar-add-label">Tambah</span></a>
-                @foreach($events->get($day->toDateString(), collect()) as $event)<a class="calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }}</strong> {{ $event->title }}</a>@endforeach
+                @foreach($events->get($day->toDateString(), collect()) as $event)<a class="calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }} WIB</strong> {{ $event->title }}</a>@endforeach
             </div>
         @endforeach
     </div>
@@ -39,7 +39,7 @@
                             <span>Tambah</span>
                         </a>
                     </div>
-                    @forelse($events->get($day->toDateString(), collect()) as $event)<a class="mobile-calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }}</strong><span>{{ $event->title }}</span><small>{{ $event->lpk->name }}</small></a>@empty<span class="mobile-calendar-empty">Belum ada agenda</span>@endforelse
+                    @forelse($events->get($day->toDateString(), collect()) as $event)<a class="mobile-calendar-event status-{{ strtolower($event->status) }}" href="{{ route('calendar.events.show', $event) }}"><strong>{{ $event->start_at->format('H:i') }} WIB</strong><span>{{ $event->title }}</span><small>{{ $event->lpk->name }}</small></a>@empty<span class="mobile-calendar-empty">Belum ada agenda</span>@endforelse
                 </section>
             @endif
         @endforeach
