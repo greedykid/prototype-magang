@@ -196,8 +196,13 @@ h2 { font-size: 1.55rem; margin: .2rem 0; }
 @keyframes grow-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .panel-head { align-items: start; display: flex; justify-content: space-between; margin-bottom: 17px; }.panel-head a { font-size: 13px; }
 .list-row { align-items: center; border-top: 1px solid var(--line); display: flex; gap: 15px; justify-content: space-between; min-height: 68px; padding: 12px 0; text-decoration: none; transition: all 180ms var(--ease-out-expo); }.list-row > div { min-width: 0; }.list-row strong, .list-row span { display: block; }.list-row strong { overflow-wrap: anywhere; }.list-row span { color: var(--muted); font-size: 13px; margin-top: 2px; }
-.note-row { border-top: 1px solid var(--line); padding: 13px 0; }.note-row strong, .note-row span { display: block; }.note-row span { color: var(--muted); font-size: 12px; }.note-row p { margin: 8px 0 0; }
-.status, .priority { border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; letter-spacing: .01em; max-width: max-content; padding: 4px 9px; transition: transform 180ms var(--ease-out-expo), box-shadow 180ms ease; white-space: nowrap; width: fit-content; }.status:hover, .priority:hover { transform: scale(1.05); }.status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }.status-completed, .status-resolved, .status-active { background: var(--mint); border-color: #9bcda8; color: var(--green); }.status-not_started, .status-inactive { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }.priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
+.status, .priority { border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; letter-spacing: .01em; max-width: max-content; padding: 4px 9px; transition: transform 180ms var(--ease-out-expo), box-shadow 180ms ease; white-space: nowrap; width: fit-content; }.status:hover, .priority:hover { transform: scale(1.05); }
+.status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }
+.status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released { background: var(--mint); border-color: #9bcda8; color: var(--green); }
+.status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }
+.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review { background: #fff8e6; border-color: #f3d18c; color: #925400; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+.priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
 /* Table Toolbar - "Show [ 10 ] entries" */
 .table-toolbar {
     align-items: center;
@@ -2536,6 +2541,343 @@ section.has-open-select {
     background: var(--maroon) !important;
 }
 
+/* ==========================================================================
+   SIMASADI Domain Features: Cost Reporting, PNBP Billing, BSrE e-Sign, Quality Gate
+   ========================================================================== */
 
+/* Subcards and Sections */
+.simasadi-subcard {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
+    margin-top: 20px;
+    padding: 22px 24px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+}
 
+.simasadi-subcard:hover {
+    border-color: #d6d2cb;
+    box-shadow: 0 4px 14px rgba(26, 26, 26, 0.05);
+}
 
+.simasadi-subcard-header {
+    align-items: center;
+    border-bottom: 1px solid #f0ede8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+}
+
+.simasadi-subcard-header h3 {
+    align-items: center;
+    color: var(--ink);
+    display: inline-flex;
+    font-size: 17px;
+    font-weight: 700;
+    gap: 10px;
+    margin: 0;
+}
+
+.simasadi-subcard-header .header-actions {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+/* Cost Reporting Breakdown Grid */
+.cost-breakdown-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-bottom: 18px;
+}
+
+.cost-item {
+    background: #faf9f6;
+    border: 1px solid #edebe6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.cost-item:hover {
+    background: #f5f3ee;
+    border-color: #dfdcd5;
+}
+
+.cost-item.total-cost-item {
+    background: var(--lavender);
+    border-color: #d8d0ff;
+}
+
+.cost-item small {
+    color: var(--muted);
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.cost-item strong {
+    color: var(--ink);
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.cost-item.total-cost-item strong {
+    color: var(--maroon-dark);
+    font-size: 20px;
+}
+
+/* SBM Callout Box */
+.sbm-callout {
+    align-items: flex-start;
+    background: #fdfaf3;
+    border: 1px solid #f6e6be;
+    border-radius: 8px;
+    color: #795200;
+    display: flex;
+    font-size: 13px;
+    gap: 12px;
+    line-height: 1.45;
+    padding: 12px 16px;
+}
+
+.sbm-callout svg {
+    color: #b7791f;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* PNBP Billing Display Box */
+.pnbp-box {
+    background: #f9f8f6;
+    border: 1px solid #e7e4dc;
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+
+.pnbp-code-strip {
+    align-items: center;
+    background: #ffffff;
+    border: 1px dashed #c8c4be;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: space-between;
+    margin: 14px 0;
+    padding: 12px 18px;
+}
+
+.pnbp-code-val {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+/* BSrE Digital Seal Badge */
+.bsre-seal-badge {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f6ff 100%);
+    border: 1px solid #d4cbff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(86, 69, 212, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 22px;
+    position: relative;
+}
+
+.bsre-seal-top {
+    align-items: center;
+    display: flex;
+    gap: 14px;
+}
+
+.bsre-logo-pill {
+    align-items: center;
+    background: #5645d4;
+    border-radius: 8px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 6px 10px;
+    text-transform: uppercase;
+}
+
+.bsre-seal-meta {
+    display: grid;
+    gap: 8px 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 6px;
+}
+
+.bsre-meta-row {
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.bsre-meta-row strong {
+    color: var(--ink);
+    display: block;
+    font-size: 13.5px;
+}
+
+.bsre-meta-row span {
+    color: var(--muted);
+    font-size: 11.5px;
+}
+
+.hash-pill {
+    background: #eeebf8;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+    padding: 3px 6px;
+    word-break: break-all;
+}
+
+/* Quality Gate / Release Readiness Card */
+.readiness-gate-card {
+    background: #fafaf9;
+    border: 1px solid #e3e0d8;
+    border-radius: 10px;
+    margin-top: 20px;
+    padding: 20px 24px;
+}
+
+.readiness-checklist {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin: 16px 0;
+}
+
+.readiness-item {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #edebe6;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    padding: 12px 14px;
+    transition: all 160ms ease;
+}
+
+.readiness-item.is-done {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.readiness-item.is-pending {
+    background: #fffdf5;
+    border-color: #fde68a;
+}
+
+.readiness-icon {
+    align-items: center;
+    border-radius: 50%;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    height: 24px;
+    justify-content: center;
+    width: 24px;
+}
+
+.readiness-item.is-done .readiness-icon {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+.readiness-item.is-pending .readiness-icon {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+/* Modal Dialog Styles */
+.simasadi-modal {
+    background: rgba(26, 26, 26, 0.45);
+    backdrop-filter: blur(2px);
+    inset: 0;
+    position: fixed;
+    z-index: 9990;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.simasadi-modal.is-active {
+    display: flex;
+    animation: modal-backdrop-enter 200ms ease both;
+}
+
+.simasadi-modal-box {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+    max-width: 520px;
+    padding: 24px 28px;
+    width: 100%;
+    animation: modal-content-enter 240ms var(--ease-out-expo) both;
+}
+
+@keyframes modal-backdrop-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-content-enter {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.simasadi-modal-head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.simasadi-modal-head h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.simasadi-modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px;
+}
+
+.simasadi-modal-close:hover {
+    color: var(--ink);
+}
+
+.modal-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 22px;
+}

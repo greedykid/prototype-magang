@@ -17,7 +17,7 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 * 📅 **[Bagian 2: Tahap Perencanaan (Planning)](docs/02-tahap-perencanaan.md)** — Metodologi Iterative Agile Prototyping, linimasa pengembangan fase 1–6, studi kelayakan teknis/operasional, serta analisis risiko & mitigasi.
 * 🔍 **[Bagian 3: Tahap Analisis (Analysis)](docs/03-tahap-analisis.md)** — Analisis masalah dengan PIECES Framework & Fishbone Diagram, spesifikasi Kebutuhan Fungsional (`REQ-F-01` s/d `REQ-F-24`), dan Kebutuhan Non-Fungsional (`REQ-NF-01` s/d `REQ-NF-09`).
 * 📐 **[Bagian 4: Tahap Perancangan (Design)](docs/04-tahap-perancangan.md)** — Struktur Navigasi (Sitemap), Use Case Diagram, Activity Diagrams, Sequence Diagrams, Entity Relationship Diagram (ERD 11 tabel), Class Diagram, dan Wireframes antarmuka desktop & mobile.
-* 🧪 **[Bagian 5: Implementasi dan Pengujian](docs/05-implementasi-dan-pengujian.md)** — Spesifikasi teknologi, struktur direktori, detail implementasi komponen UI, matriks kasus uji otomatis PHPUnit (12 feature tests), uji responsivitas antarmuka manual, dan bukti hasil eksekusi uji.
+* 🧪 **[Bagian 5: Implementasi dan Pengujian](docs/05-implementasi-dan-pengujian.md)** — Spesifikasi teknologi, struktur direktori, detail implementasi komponen UI, matriks kasus uji otomatis PHPUnit (16 feature tests), uji responsivitas antarmuka manual, dan bukti hasil eksekusi uji.
 
 ---
 
@@ -45,7 +45,21 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 7. **Monitoring Layanan KANMIS & Histori Backup:**
    * Pencatatan status ketersediaan sistem KANMIS internal (*Up, Degraded, Down*).
    * Histori pencadangan data manual (*Success, Failed, Unknown*) beserta staf pencatat dan ukuran berkas.
-8. **Pengalaman Pengguna (UX) Modern & Bebas Slop:**
+8. **Pelaporan Biaya Perjalanan Dinas Asesor (*Cost Reporting* - Kepatuhan SBM):**
+   * Pelaporan rincian biaya: Uang Harian, Transportasi (Tiket/Tol/BBM), Akomodasi/Hotel, dan Paket Data/Komunikasi per asesmen.
+   * Status verifikasi kepatuhan: `Belum Dilaporkan`, `Menunggu Verifikasi SBM`, `Terverifikasi SBM`, dan `Perlu Revisi`.
+   * Form input biaya dan modal verifikasi persetujuan oleh Sekretariat KAN mengacu pada Standar Biaya Masukan (SBM) Peraturan Menteri Keuangan.
+9. **Realisasi Billing PNBP (SIMPONI Kemenkeu):**
+   * Penerbitan Kode Billing SIMPONI 15 digit dan tarif PNBP jasa akreditasi sesuai PP PNBP BSN.
+   * Masa berlaku pembayaran, status tagihan (`Belum Bayar`, `Terbayar`, `Kadaluarsa`).
+   * Formulir simulasi pelunasan kas negara dengan pencatatan Nomor Transaksi Penerimaan Negara (NTPN 16-karakter) dan kanal perbankan.
+10. **Tanda Tangan Elektronik Dokumen SK (e-Sign BSrE):**
+   * Pembubuhan tanda tangan elektronik tersertifikasi Balai Sertifikasi Elektronik (BSrE - BSSN) atas nama Ketua Komite Akreditasi Nasional.
+   * Visualisasi Segel Digital (*Digital Seal Badge*), NIP, nomor seri sertifikat, serta nilai hash SHA-256 integritas dokumen.
+   * Pratinjau QR Code simulasi dan rute publik verifikasi keaslian dokumen SK (`/verify-sk/{hash}`).
+11. **Quality Gate Kesiapan Terbit Output Akreditasi (*Release Readiness Gate*):**
+   * Verifikasi otomatis kepatuhan administratif dan finansial: SK Akreditasi hanya dapat dirilis (`OUTPUT_RELEASED`) jika realisasi billing PNBP telah terbayar (`PAID`) dan seluruh biaya asesmen telah berstatus `TERVERIFIKASI`.
+12. **Pengalaman Pengguna (UX) Modern & Bebas Slop:**
    * **Dual-Mode Tampilan:** Bebas beralih antara mode **Tabel** (padat dan tabular) dan mode **Grid Cards** (kartu visual 2-kolom terstruktur) dengan preferensi tersimpan di `localStorage`.
    * **Penataan Sejajar di Mobile:** Tombol filter dan toggle mode tabel/grid berdampingan rapi (sejajar) di layar ponsel (`<= 600px`).
    * **Mobile Filter Drawer:** Panel filter meluncur dari sisi kanan layar (*slide-out drawer*) mirip aplikasi native.

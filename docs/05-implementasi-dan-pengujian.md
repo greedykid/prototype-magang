@@ -93,6 +93,10 @@ Semua kasus uji berikut tercakup dalam berkas pengujian di `tests/Feature/`:
 | **TEST-10** | `CalendarEventTest` | Validasi penolakan jam selesai lebih awal dari jam mulai agenda. | POST `/calendar/events` dengan jam selesai < jam mulai. | Sistem menolak submission dengan error validasi waktu. | **PASSED** |
 | **TEST-11** | `CalendarEventTest` | Pengguna dapat memperbarui agenda kegiatan yang sudah ada. | PUT `/calendar/events/{id}` dengan status `COMPLETED`. | Data agenda terbarui di basis data. | **PASSED** |
 | **TEST-12** | `ExampleTest` | Verifikasi dasar responsivitas lingkungan pengujian. | Akses halaman publik root. | Redirect berjalan normal tanpa exception. | **PASSED** |
+| **TEST-13** | `SimasadiFeaturesTest` | Pelaporan rincian biaya perjalanan dinas asesor dan verifikasi kepatuhan SBM Kementerian Keuangan. | POST `/assessments/{id}/expenses` dilanjutkan POST `/assessments/{id}/expenses/verify` (status: `TERVERIFIKASI`). | Total biaya Rp 2.910.000 terhitung otomatis, status berubah menjadi `Terverifikasi SBM`, nama verifikator tercatat. | **PASSED** |
+| **TEST-14** | `SimasadiFeaturesTest` | Penerbitan kode billing SIMPONI 15 digit dan simulasi pelunasan kas negara. | POST `/accreditations/{id}/billings` lalu POST `/accreditations/{id}/billings/{billing}/pay`. | Kode 15 digit berawalan '8' terbit, status `UNPAID` $\rightarrow$ `PAID` dengan nomor transaksi NTPN sah tercatat. | **PASSED** |
+| **TEST-15** | `SimasadiFeaturesTest` | Pembubuhan tanda tangan elektronik SK Akreditasi bersertifikat BSrE dan verifikasi integritas publik. | POST `/accreditations/{id}/esign` dengan passphrase, lalu akses `GET /verify-sk/{hash}`. | Hash SHA-256 dan nomor seri BSrE terbentuk, status akreditasi `COMPLETED`, halaman publik memvalidasi keaslian dokumen. | **PASSED** |
+| **TEST-16** | `SimasadiFeaturesTest` | Logika audit kesiapan rilis output akreditasi (*Release Readiness Quality Gate*). | Evaluasi `$accreditation->isReleaseReady()`. | Mengembalikan `false` jika billing belum bayar atau belum TTE, dan `true` saat PNBP lunas & dokumen bertanda tangan digital. | **PASSED** |
 
 #### 5.2.3 Bukti Hasil Eksekusi Uji Otomatis
 Perintah eksekusi:
@@ -119,8 +123,14 @@ Hasil eksekusi:
   ✓ table filters work across all six index pages                        0.28s  
   ✓ table filter query string is preserved by pagination                 0.12s  
 
-  Tests:    12 passed (42 assertions)
-  Duration: 1.62s
+  PASS  Tests\Feature\SimasadiFeaturesTest
+  ✓ can report and verify assessment expenses                            0.18s  
+  ✓ can generate and pay pnbp billing                                    0.14s  
+  ✓ can sign accreditation with bsre esign and verify publicly           0.16s  
+  ✓ accreditation release readiness gate logic                           0.11s  
+
+  Tests:    16 passed (73 assertions)
+  Duration: 2.03s
 ```
 
 #### 5.2.4 Matriks Pengujian Antarmuka & Responsivitas Manual

@@ -306,23 +306,74 @@ sequenceDiagram
     View-->>User: Riwayat follow-up baru muncul di urutan teratas
 ```
 
+#### 4.4.4 Sequence Diagram: Alur Kepatuhan SIMASADI (Biaya Asesor, Billing PNBP, dan e-Sign BSrE)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Asesor / Petugas KAN
+    participant View as Detail Page (Blade)
+    participant Ctrl as Controller
+    participant Model as Eloquent Model
+    participant DB as SQLite Database
+
+    Note over User,DB: 1. Pelaporan & Verifikasi Biaya Perjalanan Dinas Asesor
+    User->>View: Input Uang Harian, Transport, Akomodasi, Paket Data
+    View->>Ctrl: POST /assessments/{id}/expenses
+    Ctrl->>Model: AssessmentExpense::updateOrCreate([...])
+    Model->>DB: INSERT/UPDATE assessment_expenses (status: MENUNGGU_VERIFIKASI)
+    DB-->>Ctrl: Saved
+    User->>View: Verifikator KAN klik [ Verifikasi SBM ]
+    View->>Ctrl: POST /assessments/{id}/expenses/verify (status: TERVERIFIKASI)
+    Ctrl->>Model: Expense->update(['status' => 'TERVERIFIKASI', 'verified_by' => user_id])
+    Model->>DB: UPDATE assessment_expenses
+    DB-->>Ctrl: Saved
+
+    Note over User,DB: 2. Realisasi Billing PNBP (SIMPONI Kemenkeu)
+    User->>View: Klik [ Terbitkan Kode Billing SIMPONI ]
+    View->>Ctrl: POST /accreditations/{id}/billings
+    Ctrl->>Model: AccreditationBilling::create([...])
+    Model->>DB: INSERT INTO accreditation_billings (status: UNPAID, 15-digit code)
+    DB-->>Ctrl: Saved
+    User->>View: Konfirmasi Setoran Kas Negara (Input Channel & NTPN)
+    View->>Ctrl: POST /accreditations/{id}/billings/{billing}/pay
+    Ctrl->>Model: Billing->update(['status' => 'PAID', 'ntpn' => 'NTPN...', 'paid_at' => now()])
+    Model->>DB: UPDATE accreditation_billings
+    DB-->>Ctrl: Saved
+
+    Note over User,DB: 3. Pembubuhan Tanda Tangan Elektronik SK (BSrE)
+    User->>View: Klik [ Tandatangani SK Secara Digital ]
+    View->>Ctrl: POST /accreditations/{id}/esign (Passphrase Token)
+    Ctrl->>Ctrl: Generate SHA-256 Hash Integritas Dokumen & Nomor Seri BSrE
+    Ctrl->>Model: AccreditationSignature::create([...])
+    Model->>DB: INSERT INTO accreditation_signatures (is_signed: true, verify_hash)
+    Ctrl->>Model: Accreditation->update(['status' => 'COMPLETED', 'output_released_at' => now()])
+    Model->>DB: UPDATE accreditations
+    DB-->>Ctrl: Release Output Success
+    Ctrl-->>View: Redirect back() dengan Cap Segel Digital BSrE Aktif
+```
+
 ---
 
 ### 4.5 Rancangan Basis Data (Entity Relationship Diagram - ERD)
 
-SIMASADI menggunakan skema relasional dengan 11 tabel yang saling terintegrasi:
+SIMASADI menggunakan skema relasional dengan 14 tabel yang saling terintegrasi mencakup master data, agenda kerja, log kendala, hingga administrasi finansial dan sertifikasi digital:
 
 ```mermaid
 erDiagram
     USERS ||--o{ CALENDAR_EVENTS : "creates"
     USERS ||--o{ ISSUE_FOLLOWUPS : "records"
     USERS ||--o{ BACKUPS : "logs"
+    USERS ||--o{ ASSESSMENT_EXPENSES : "reports/verifies"
     
     LPKS ||--o{ ACCREDITATIONS : "possesses"
     LPKS ||--o{ ASSESSMENTS : "undergoes"
     LPKS ||--o{ AMENDMENTS : "applies"
     LPKS ||--o{ ISSUES : "has"
     LPKS ||--o{ CALENDAR_EVENTS : "associated_with"
+
+    ASSESSMENTS ||--o| ASSESSMENT_EXPENSES : "incurs"
+    ACCREDITATIONS ||--o{ ACCREDITATION_BILLINGS : "billed_by"
+    ACCREDITATIONS ||--o| ACCREDITATION_SIGNATURES : "certified_by"
 
     ISSUES ||--o{ ISSUE_FOLLOWUPS : "followed_up_by"
     SERVICES ||--o{ SERVICE_CHECKS : "checked_by"
@@ -350,25 +401,76 @@ erDiagram
     ACCREDITATIONS {
         int id PK
         int lpk_id FK
-        string standard
-        string sk_number
         date start_date
+        date pantek_at
         date target_date
-        date valid_until
+        date target_output_at
+        date output_released_at
+        string pic
         string status
-        string current_stage
+        text notes
         datetime created_at
     }
 
     ASSESSMENTS {
         int id PK
         int lpk_id FK
+        int created_by FK
         string title
         string assessment_type
         datetime start_at
         datetime end_at
+        string location
         string lead_assessor
         string status
+        text notes
+        datetime created_at
+    }
+
+    ASSESSMENT_EXPENSES {
+        int id PK
+        int assessment_id FK
+        int reported_by FK
+        int transport_cost
+        int accommodation_cost
+        int daily_allowance
+        int package_data_cost
+        int total_cost
+        string receipt_note
+        string status
+        text verification_notes
+        int verified_by FK
+        datetime verified_at
+        datetime created_at
+    }
+
+    ACCREDITATION_BILLINGS {
+        int id PK
+        int accreditation_id FK
+        string billing_code
+        string tariff_name
+        int amount
+        datetime issued_at
+        datetime expired_at
+        string status
+        string ntpn
+        string ntb
+        string payment_channel
+        datetime paid_at
+        datetime created_at
+    }
+
+    ACCREDITATION_SIGNATURES {
+        int id PK
+        int accreditation_id FK
+        string sk_number
+        string signer_name
+        string signer_title
+        string signer_nip
+        boolean is_signed
+        datetime signed_at
+        string certificate_series
+        string verify_hash
         datetime created_at
     }
 
@@ -527,6 +629,41 @@ classDiagram
         +user() BelongsTo
     }
 
+    class AssessmentExpense {
+        +int id
+        +int assessment_id
+        +int daily_allowance
+        +int transport_cost
+        +int accommodation_cost
+        +int package_data_cost
+        +int total_cost
+        +string status
+        +string receipt_note
+        +assessment() BelongsTo
+        +isVerified() bool
+    }
+
+    class AccreditationBilling {
+        +int id
+        +int accreditation_id
+        +string billing_code
+        +int amount
+        +string status
+        +string ntpn
+        +accreditation() BelongsTo
+        +isPaid() bool
+    }
+
+    class AccreditationSignature {
+        +int id
+        +int accreditation_id
+        +string sk_number
+        +string signer_name
+        +boolean is_signed
+        +string verify_hash
+        +accreditation() BelongsTo
+    }
+
     class LpkController {
         +index(Request) View
         +create() View
@@ -543,6 +680,21 @@ classDiagram
         +show(Assessment) View
         +edit(Assessment) View
         +update(Request, Assessment) Redirect
+    }
+
+    class AssessmentExpenseController {
+        +storeOrUpdate(Request, Assessment) Redirect
+        +verify(Request, Assessment) Redirect
+    }
+
+    class AccreditationBillingController {
+        +store(Request, Accreditation) Redirect
+        +pay(Request, Accreditation, AccreditationBilling) Redirect
+    }
+
+    class AccreditationSignatureController {
+        +sign(Request, Accreditation) Redirect
+        +verifyPublic(string) View
     }
 
     class CalendarEventController {
@@ -567,12 +719,18 @@ classDiagram
     Lpk "1" -- "*" Assessment : undergoes
     Lpk "1" -- "*" CalendarEvent : scheduled
     Lpk "1" -- "*" Issue : reports
+    Assessment "1" -- "0..1" AssessmentExpense : incurs
+    Accreditation "1" -- "*" AccreditationBilling : billed
+    Accreditation "1" -- "0..1" AccreditationSignature : signed
     Issue "1" -- "*" IssueFollowup : contains
     User "1" -- "*" IssueFollowup : writes
     User "1" -- "*" CalendarEvent : creates
 
     LpkController ..> Lpk : uses
     AssessmentController ..> Assessment : uses
+    AssessmentExpenseController ..> AssessmentExpense : uses
+    AccreditationBillingController ..> AccreditationBilling : uses
+    AccreditationSignatureController ..> AccreditationSignature : uses
     CalendarEventController ..> CalendarEvent : uses
     IssueController ..> Issue : uses
     IssueController ..> IssueFollowup : uses

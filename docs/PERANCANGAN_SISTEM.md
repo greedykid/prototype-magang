@@ -26,22 +26,22 @@
 
 3. **[Bagian 3: Tahap Analisis (Analysis)](03-tahap-analisis.md)**
    * 3.1 Analisis Masalah (PIECES Framework & Fishbone Diagram)
-   * 3.2 Analisis Kebutuhan Fungsional (REQ-F-01 s/d REQ-F-24)
+   * 3.2 Analisis Kebutuhan Fungsional (REQ-F-01 s/d REQ-F-28)
    * 3.3 Analisis Kebutuhan Non-Fungsional (REQ-NF-01 s/d REQ-NF-09)
 
 4. **[Bagian 4: Tahap Perancangan (Design)](04-tahap-perancangan.md)**
    * 4.1 Struktur Navigasi (Sitemap & Hierarki Menu)
    * 4.2 Use Case Diagram (Aktor & Batasan Sistem)
    * 4.3 Activity Diagram (Autentikasi, Kalender Interaktif, Issue Tracking)
-   * 4.4 Sequence Diagram (Filter Server-side, Follow-up Masalah)
-   * 4.5 Rancangan Basis Data (Entity Relationship Diagram - ERD)
+   * 4.4 Sequence Diagram (Filter Server-side, Follow-up Masalah, Kepatuhan SIMASADI)
+   * 4.5 Rancangan Basis Data (Entity Relationship Diagram - ERD 14 Tabel)
    * 4.6 Class Diagram (Model Eloquent, Controller, dan Relasi)
    * 4.7 Rancangan Antarmuka Pengguna (Wireframe Desktop & Mobile)
 
 5. **[Bagian 5: Implementasi dan Pengujian (Implementation & Testing)](05-implementasi-dan-pengujian.md)**
    * 5.1 Implementasi Sistem (Teknologi, Struktur Folder, Fitur Kunci UI)
    * 5.2 Pengujian Sistem (Matriks Feature Test Otomatis PHPUnit & Uji Manual)
-   * 5.3 Bukti Eksekusi Test Suite (12 Tests Passed, 42 Assertions)
+   * 5.3 Bukti Eksekusi Test Suite (16 Tests Passed, 73 Assertions)
 
 ---
 
@@ -49,8 +49,9 @@
 
 SIMASADI dibangun untuk menjawab tantangan pengelolaan administratif akreditasi Lembaga Penilaian Kesesuaian (LPK) di lingkungan KAN-BSN. Melalui implementasi arsitektur modern berbasis Laravel 13 dan sistem desain antarmuka responsif tanpa framework CSS yang memberatkan, sistem ini berhasil mewujudkan:
 * **Monitoring Terpusat:** Akses satu pintu untuk data LPK, siklus akreditasi, dan jadwal asesmen.
-* **Efisiensi Alur Lapangan:** Penjadwalan langsung dari grid kalender dan pemantauan kendala dengan log tindak lanjut berantai.
+* **Kepatuhan Regulasi Penuh:** Pencatatan biaya perjalanan dinas asesor sesuai SBM Kemenkeu, realisasi billing PNBP SIMPONI dengan nomor NTPN sah, serta sertifikasi tanda tangan digital resmi BSrE BSSN.
+* **Quality Gate Terpadu:** Validasi otomatis kesiapan rilis SK Akreditasi sebelum diterbitkan ke pihak LPK pemohon.
 * **Antarmuka Adaptif & Ramah Sentuh:** Tampilan data fleksibel (mode Tabel padat untuk desktop dan mode Grid Card 2-kolom terstruktur untuk tablet/mobile), drawer filter samping yang nyaman, dan tombol aksi yang jelas.
-* **Kualitas Teruji:** Diverifikasi dengan 12 skenario pengujian otomatis end-to-end dengan tingkat keberhasilan 100%.
+* **Kualitas Teruji:** Diverifikasi dengan 16 skenario pengujian otomatis end-to-end dengan tingkat keberhasilan 100% (73 assertions).
 
 Seluruh dokumen perancangan di atas dapat dibuka dan ditelaah secara mendalam melalui tautan masing-masing berkas di atas.

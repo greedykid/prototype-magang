@@ -77,6 +77,10 @@ Kebutuhan fungsional mendefinisikan kapabilitas dan fitur yang wajib disediakan 
 | **REQ-F-22** | Antarmuka Pengguna | Sistem harus menyediakan kontrol *toggle* tampilan data instan: mode **Tabel** dan mode **Grid Cards** di seluruh halaman berdata master. | Semua Pengguna |
 | **REQ-F-23** | Antarmuka Pengguna | Pada layar mobile (lebar <= 600px), sistem harus menyusun tombol filter dan toggle view secara berdampingan (sejajar) serta menampilkan filter dalam bentuk drawer geser. | Pengguna Mobile |
 | **REQ-F-24** | Antarmuka Pengguna | Sistem harus menampilkan *active filter chips* di bawah toolbar saat ada filter aktif dan menyediakan tautan *Reset Filter*. | Semua Pengguna |
+| **REQ-F-25** | Biaya Asesor (SBM) | Sistem harus mengelola pelaporan biaya perjalanan dinas asesor (uang harian, transportasi, akomodasi, paket data) dan status verifikasi kepatuhan SBM Kementerian Keuangan (*Belum Dilaporkan, Menunggu Verifikasi, Terverifikasi SBM, Perlu Revisi*). | Asesor / Staf KAN |
+| **REQ-F-26** | Billing PNBP | Sistem harus mencatat kode billing SIMPONI 15 digit, tarif nominal PNBP jasa akreditasi, masa berlaku pembayaran, dan status realisasi pelunasan dengan nomor NTPN kas negara yang sah. | Bendahara / Staf KAN |
+| **REQ-F-27** | e-Sign BSrE | Sistem harus mengelola status sertifikasi tanda tangan digital resmi BSrE (BSSN) untuk SK Akreditasi, mencatat nama penandatangan, NIP, seri sertifikat, serta nilai hash SHA-256 untuk verifikasi publik via QR Code. | Pejabat KAN / Publik |
+| **REQ-F-28** | Quality Gate Terbit SK | Sistem harus memvalidasi kesiapan rilis dokumen akreditasi (*Accreditation Release Readiness Gate*) di mana SK hanya dapat ditandatangani dan dirilis ke LPK bila realisasi billing PNBP telah terbayar (`PAID`) dan seluruh biaya asesmen telah berstatus `TERVERIFIKASI`. | Semua Pengguna |
 
 ---
 

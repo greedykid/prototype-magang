@@ -27,6 +27,18 @@
         'SUCCESS' => 'Berhasil',
         'FAILED' => 'Gagal',
         'RUNNING' => 'Sedang Berjalan',
+        // Biaya Asesor (SBM)
+        'BELUM_DILAPORKAN' => 'Belum Dilaporkan',
+        'MENUNGGU_VERIFIKASI' => 'Menunggu Verifikasi SBM',
+        'TERVERIFIKASI' => 'Terverifikasi SBM',
+        'PERLU_REVISI' => 'Perlu Revisi Biaya',
+        // Realisasi PNBP SIMPONI
+        'UNPAID' => 'Belum Bayar',
+        'PAID' => 'Terbayar (NTPN Sah)',
+        'EXPIRED' => 'Kadaluarsa',
+        // Tanda Tangan Elektronik BSrE
+        'SIGNED' => 'Tersertifikasi BSrE',
+        'UNSIGNED' => 'Belum TTE',
     ];
     $label = $labels[$value] ?? str_replace('_', ' ', $value);
 @endphp
