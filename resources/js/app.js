@@ -672,24 +672,17 @@ const initPageComponents = () => {
         const grid = filter.querySelector('.table-filter-grid');
         if (!grid) return;
 
-        const toggle = document.createElement('button');
-        const hasValues = [...grid.querySelectorAll('input, select')].some((field) => Boolean(field.value));
-        const isMobile = window.matchMedia('(max-width: 600px)').matches;
-        const initialOpen = isMobile ? false : hasValues;
+        // Create placeholder in panel so we can restore on desktop
+        const placeholder = document.createElement('div');
+        placeholder.className = 'table-filters-placeholder';
+        placeholder.style.display = 'none';
+        filter.parentElement?.insertBefore(placeholder, filter);
 
+        const toggle = document.createElement('button');
         toggle.className = 'filter-toggle';
         toggle.type = 'button';
-        toggle.setAttribute('aria-expanded', String(initialOpen));
+        toggle.setAttribute('aria-expanded', 'false');
         toggle.innerHTML = '<span class="filter-toggle-icon" aria-hidden="true"></span><span>Filter data</span>';
-        filter.classList.toggle('filters-open', initialOpen);
-        filter.classList.add('filter-drawer');
-        filter.insertBefore(toggle, grid);
-
-        toggle.addEventListener('click', () => {
-            const isOpen = filter.classList.toggle('filters-open');
-            toggle.setAttribute('aria-expanded', String(isOpen));
-            document.body.classList.toggle('filter-drawer-open', isOpen);
-        });
 
         const closeButton = document.createElement('button');
         closeButton.className = 'filter-drawer-close';
@@ -697,24 +690,184 @@ const initPageComponents = () => {
         closeButton.setAttribute('aria-label', 'Tutup filter');
         closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
         filter.prepend(closeButton);
-        closeButton.addEventListener('click', () => {
-            filter.classList.remove('filters-open');
-            toggle.setAttribute('aria-expanded', 'false');
-            document.body.classList.remove('filter-drawer-open');
-        });
 
         const backdrop = document.createElement('div');
         backdrop.className = 'filter-drawer-backdrop';
-        filter.parentElement?.insertBefore(backdrop, filter.nextSibling);
-        backdrop.addEventListener('click', () => closeButton.click());
 
-        const tableWrap = filter.parentElement?.querySelector('.table-wrap');
-        if (tableWrap && !filter.parentElement.querySelector('.table-controls')) {
+        filter.classList.add('filter-drawer');
+
+        const closeDrawer = () => {
+            filter.classList.remove('filters-open');
+            toggle.setAttribute('aria-expanded', 'false');
+            document.body.classList.remove('filter-drawer-open');
+        };
+
+        const openDrawer = () => {
+            filter.classList.add('filters-open');
+            toggle.setAttribute('aria-expanded', 'true');
+            document.body.classList.add('filter-drawer-open');
+        };
+
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (filter.classList.contains('filters-open')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+        });
+
+        closeButton.addEventListener('click', closeDrawer);
+        backdrop.addEventListener('click', closeDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && filter.classList.contains('filters-open')) {
+                closeDrawer();
+            }
+        });
+
+        // Ensure drawer and backdrop are mounted directly to document.body on mobile screens
+        // so they are truly outside the table card / panel container (seperti side drawer sidebar)
+        const syncDrawerMount = () => {
+            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            if (isMobile) {
+                if (filter.parentElement !== document.body) {
+                    document.body.appendChild(backdrop);
+                    document.body.appendChild(filter);
+                }
+            } else {
+                if (filter.parentElement === document.body && placeholder.parentElement) {
+                    placeholder.parentElement.insertBefore(filter, placeholder);
+                    closeDrawer();
+                }
+            }
+        };
+
+        syncDrawerMount();
+        window.addEventListener('resize', syncDrawerMount);
+
+        // Calculate and display badges for active filters
+        const updateFilterBadges = () => {
+            const activeFilters = [];
+            grid.querySelectorAll('input, select').forEach((field) => {
+                if (field.type === 'hidden' || field.name === 'per_page' || field.name === '_token') return;
+                const val = field.value ? field.value.trim() : '';
+                const parentLabel = field.closest('label');
+
+                // Remove previous badge if any
+                parentLabel?.querySelector('.filter-field-badge')?.remove();
+
+                if (val) {
+                    let fieldTitle = '';
+                    if (parentLabel) {
+                        fieldTitle = Array.from(parentLabel.childNodes)
+                            .filter(n => n.nodeType === Node.TEXT_NODE)
+                            .map(n => n.textContent.trim())
+                            .filter(Boolean)
+                            .join(' ');
+                    }
+                    if (!fieldTitle) fieldTitle = field.name;
+                    fieldTitle = fieldTitle.replace(/^(Cari\s+)/i, '').trim() || fieldTitle;
+
+                    let displayVal = val;
+                    if (field.tagName === 'SELECT') {
+                        const opt = field.options[field.selectedIndex];
+                        if (opt && opt.value) displayVal = opt.textContent.trim();
+                    } else if (field.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+                        const parts = val.split('-');
+                        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                        if (!isNaN(d.getTime())) {
+                            displayVal = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                        }
+                    }
+
+                    activeFilters.push({
+                        name: field.name,
+                        title: fieldTitle,
+                        displayValue: displayVal,
+                        field: field
+                    });
+                }
+            });
+
+            // Update badge on "Filter data" button
+            let countBadge = toggle.querySelector('.filter-count-badge');
+            if (activeFilters.length > 0) {
+                if (!countBadge) {
+                    countBadge = document.createElement('span');
+                    countBadge.className = 'filter-count-badge';
+                    toggle.appendChild(countBadge);
+                }
+                countBadge.textContent = String(activeFilters.length);
+                toggle.classList.add('has-active-filters');
+            } else {
+                countBadge?.remove();
+                toggle.classList.remove('has-active-filters');
+            }
+
+            // Render active filter chips bar (matches user reference image)
+            const parentPanel = placeholder.closest('.panel') || filter.closest('.panel');
+            if (parentPanel) {
+                let bar = parentPanel.querySelector('.active-filters-bar');
+                if (activeFilters.length > 0) {
+                    if (!bar) {
+                        bar = document.createElement('div');
+                        bar.className = 'active-filters-bar';
+                        const tableTarget = parentPanel.querySelector('.table-wrap, .empty');
+                        if (tableTarget) {
+                            parentPanel.insertBefore(bar, tableTarget);
+                        } else {
+                            parentPanel.appendChild(bar);
+                        }
+                    }
+
+                    const resetUrl = filter.getAttribute('action') || window.location.pathname;
+
+                    bar.innerHTML = `
+                        <span class="active-filters-heading">FILTER AKTIF</span>
+                        <div class="active-filters-chips">
+                            ${activeFilters.map((af) => `
+                                <span class="filter-chip" data-field="${af.name}">
+                                    <span class="filter-chip-text">${af.title}: ${af.displayValue}</span>
+                                    <button type="button" class="filter-chip-remove" aria-label="Hapus filter ${af.title}">&times;</button>
+                                </span>
+                            `).join('')}
+                            <a href="${resetUrl}" class="filter-reset-link">Reset Filter</a>
+                        </div>
+                    `;
+
+                    bar.querySelectorAll('.filter-chip-remove').forEach((btn) => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const chip = btn.closest('.filter-chip');
+                            const fieldName = chip?.dataset.field;
+                            const targetField = filter.querySelector(`[name="${fieldName}"]`);
+                            if (targetField) {
+                                targetField.value = '';
+                                if (targetField.tagName === 'SELECT') {
+                                    targetField.selectedIndex = 0;
+                                }
+                                targetField.dispatchEvent(new Event('change', { bubbles: true }));
+                                filter.submit();
+                            }
+                        });
+                    });
+                } else {
+                    bar?.remove();
+                }
+            }
+        };
+
+        const parentPanel = placeholder.closest('.panel') || filter.closest('.panel');
+        const tableWrap = parentPanel?.querySelector('.table-wrap');
+        if (tableWrap && !parentPanel.querySelector('.table-controls')) {
             const controls = document.createElement('div');
             controls.className = 'table-controls';
-            filter.parentElement.insertBefore(controls, filter);
+            parentPanel.insertBefore(controls, placeholder);
             controls.append(toggle);
         }
+
+        updateFilterBadges();
     });
 
     // 3. Calendar View Toggle

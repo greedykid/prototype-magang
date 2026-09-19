@@ -3,7 +3,7 @@
 @section('title', 'Data LPK | SIMASADI')
 
 @section('content')
-<div class="page-heading"><div><span class="eyebrow">DATA LPK</span><h1>Daftar LPK</h1><p class="lede">Kelola catatan dasar lembaga pengujian yang digunakan di prototype.</p></div><a class="button primary" href="{{ route('lpks.create') }}">Tambah LPK</a></div>
+<div class="page-heading"><div><span class="eyebrow">DATA LPK</span><h1>Daftar LPK</h1><p class="lede">Kelola catatan dasar lembaga pengujian yang digunakan di prototype.</p></div><a class="button primary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a></div>
 <section class="panel">
     <form class="table-filters" method="GET">
         <div class="table-filter-grid"><label>Cari LPK<input name="search" value="{{ $search }}" placeholder="Nama atau nomor registrasi"></label><label>Status<select name="status"><option value="">Semua status</option><option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option><option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option></select></label></div>

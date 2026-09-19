@@ -3,7 +3,7 @@
 @section('content')
 <div class="page-heading">
     <div><span class="eyebrow">AGENDA KERJA</span><h1>Kalender kegiatan</h1><p class="lede">Atur agenda monitoring dan asesmen dalam satu tampilan bulanan.</p></div>
-    <a class="button primary" href="{{ route('calendar.events.create') }}">Tambah agenda</a>
+    <a class="button primary" href="{{ route('calendar.events.create') }}"><x-icon name="plus" size="16" /><span>Tambah agenda</span></a>
 </div>
 <section class="panel calendar-panel">
     <div class="calendar-toolbar"><div><h2>{{ $currentMonth->translatedFormat('F Y') }}</h2><span class="calendar-note">Klik tanggal untuk menambah agenda</span></div><div class="calendar-actions"><a class="button ghost" href="{{ route('calendar.index', ['month' => $currentMonth->subMonth()->format('Y-m')]) }}" aria-label="Bulan sebelumnya">Sebelumnya</a><a class="button secondary" href="{{ route('calendar.index', ['month' => now()->format('Y-m')]) }}">Hari ini</a><a class="button ghost" href="{{ route('calendar.index', ['month' => $currentMonth->addMonth()->format('Y-m')]) }}" aria-label="Bulan berikutnya">Berikutnya</a></div></div>

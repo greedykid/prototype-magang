@@ -96,7 +96,7 @@
                 <x-icon name="chevron-left" size="18" />
             </button>
             <div class="page-context">
-                <span class="context-label">Monitoring internal</span>
+                <span class="context-label" title="Sistem Informasi dan Administrasi Akreditasi">Sistem Informasi dan Administrasi Akreditasi</span>
                 <strong class="context-title">@php($pageTitle = match (true) { request()->routeIs('dashboard') => 'Ringkasan', request()->routeIs('monitoring.services') => 'Layanan KANMIS', request()->routeIs('monitoring.backups') => 'Riwayat Backup', request()->routeIs('calendar.*') => 'Kalender Kegiatan', request()->routeIs('assessments.*') => 'Program Asesmen', request()->routeIs('lpks.*') => 'Data LPK', request()->routeIs('accreditations.*') => 'Proses Akreditasi', request()->routeIs('issues.*') => 'Masalah', request()->routeIs('amendments.*') => 'Amandemen', default => 'Workspace' }){{ $pageTitle }}</strong>
             </div>
         </div>

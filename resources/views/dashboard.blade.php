@@ -9,7 +9,7 @@
             <h1>Selamat datang, {{ auth()->user()->name }}.</h1>
             <p class="lede">Pantau pekerjaan yang perlu diperhatikan sebelum masuk ke detail.</p>
         </div>
-        <a class="button primary" href="{{ route('issues.create') }}">Buat laporan masalah</a>
+        <a class="button primary" href="{{ route('issues.create') }}"><x-icon name="plus" size="16" /><span>Buat laporan masalah</span></a>
     </div>
 
     <section class="metric-grid" aria-label="Ringkasan angka">
