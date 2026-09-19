@@ -72,7 +72,21 @@
         <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">CATATAN TERBARU</span><h2>Tindak lanjut</h2></div></div>
             @forelse($recentFollowups as $followup)
-                <div class="note-row"><strong>{{ $followup->issue->title }}</strong><span>{{ $followup->user->name }} · {{ $followup->created_at->diffForHumans() }}</span><p>{{ $followup->note }}</p></div>
+                <div class="note-row">
+                    <div class="note-row-header">
+                        <a href="{{ route('issues.show', $followup->issue) }}" class="note-row-title">
+                            {{ $followup->issue->title }}
+                        </a>
+                        <div class="note-row-meta">
+                            <span class="note-row-author">{{ $followup->user->name }}</span>
+                            <span class="note-row-dot" aria-hidden="true">&bull;</span>
+                            <span class="note-row-time">{{ $followup->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                    <div class="note-row-body">
+                        <p>{{ $followup->note }}</p>
+                    </div>
+                </div>
             @empty
                 <div class="empty">Belum ada catatan tindak lanjut.</div>
             @endforelse

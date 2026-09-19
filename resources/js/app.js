@@ -80,6 +80,7 @@ const closeAllCustomSelects = (exceptWrapper = null) => {
 };
 
 let globalSelectListenersAdded = false;
+let lastWindowWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
 const setupGlobalSelectListeners = () => {
     if (globalSelectListenersAdded) return;
     globalSelectListenersAdded = true;
@@ -97,6 +98,19 @@ const setupGlobalSelectListeners = () => {
     });
 
     window.addEventListener('resize', () => {
+        // Mobile soft keyboards resize window.innerHeight without altering window.innerWidth.
+        // Only close custom selects if the viewport width actually changed significantly (e.g. orientation change).
+        const currentWidth = window.innerWidth;
+        if (Math.abs(currentWidth - lastWindowWidth) <= 35) {
+            return;
+        }
+        lastWindowWidth = currentWidth;
+
+        // If user is currently typing inside a custom select search field, do not close it
+        if (document.activeElement && document.activeElement.closest('.custom-select-wrapper')) {
+            return;
+        }
+
         closeAllCustomSelects();
     });
 };
@@ -296,10 +310,14 @@ const createCustomSelect = (select) => {
             parentForm.classList.add('has-open-select');
         }
 
+        const isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
         if (searchInput) {
             searchInput.value = '';
             filterOptions('');
-            setTimeout(() => searchInput.focus(), 30);
+            // Do not auto-focus on touch/mobile devices to prevent the soft keyboard from immediately covering the dropdown
+            if (!isTouchDevice) {
+                setTimeout(() => searchInput.focus(), 30);
+            }
         } else {
             const selectedOption = optionsList.querySelector('.custom-select-option.is-selected');
             if (selectedOption) {
@@ -1510,8 +1528,10 @@ const navigateTo = async (url, pushState = true) => {
         link.classList.toggle('active', isActive);
     });
 
-    // Close mobile drawer if open and scroll to top
+    // Close mobile drawer if open, clean up any active/teleported modals, and scroll to top
     setDrawerState(false);
+    document.querySelectorAll('body > .simasadi-modal').forEach((m) => m.remove());
+    document.body.classList.remove('modal-open');
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     // 3. Minimum delay for a pleasant, visible skeleton transition (200ms)
@@ -1759,5 +1779,81 @@ document.addEventListener('submit', (event) => {
         }
     });
 });
+
+// ==========================================================================
+// SIMASADI Viewport-Centric Modal Dialog System
+// Teleports modals to <body> and manages viewport centering & scroll lock
+// ==========================================================================
+window.openModal = (modalId) => {
+    const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+    if (!modal) return;
+
+    // Teleport modal directly to <body> so no parent container transforms/clipping can trap it
+    if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+
+    modal.classList.add('is-active');
+    document.body.classList.add('modal-open');
+
+    // Auto-focus first input on non-touch devices
+    const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
+    if (!isTouch) {
+        const focusable = modal.querySelector('input:not([type="hidden"]), select, textarea, button.primary');
+        if (focusable) {
+            setTimeout(() => focusable.focus(), 60);
+        }
+    }
+};
+
+window.closeModal = (modalId) => {
+    const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+    if (!modal) return;
+
+    modal.classList.remove('is-active');
+
+    // Remove body.modal-open only if no other modal is currently active
+    if (!document.querySelector('.simasadi-modal.is-active')) {
+        document.body.classList.remove('modal-open');
+    }
+};
+
+// Global event delegation for modal closing (backdrop click, close buttons, Escape key)
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('simasadi-modal')) {
+        window.closeModal(e.target);
+    }
+    const closeBtn = e.target.closest('[data-modal-close], .simasadi-modal-close');
+    if (closeBtn) {
+        const modal = closeBtn.closest('.simasadi-modal');
+        if (modal) {
+            window.closeModal(modal);
+        }
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const activeModal = document.querySelector('.simasadi-modal.is-active');
+        if (activeModal) {
+            window.closeModal(activeModal);
+        }
+    }
+});
+
+// Prevent wheel and touch scroll on the backdrop from bubbling to the background page
+document.addEventListener('wheel', (e) => {
+    const activeModal = document.querySelector('.simasadi-modal.is-active');
+    if (activeModal && e.target === activeModal) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+    const activeModal = document.querySelector('.simasadi-modal.is-active');
+    if (activeModal && e.target === activeModal) {
+        e.preventDefault();
+    }
+}, { passive: false });
 
 

@@ -63,13 +63,13 @@
 
 {{-- REKOMENDASI OPSIONAL: Quality Gate Kesiapan Terbit Output Akreditasi --}}
 <section class="readiness-gate-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
-        <div>
-            <h3 style="font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <x-icon name="check" size="18" />
-                Audit Kesiapan Terbit SK & Sertifikat Akreditasi (Quality Gate)
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+        <div class="subcard-title-group">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--ink); margin: 0; display: flex; align-items: flex-start; gap: 8px; line-height: 1.35;">
+                <x-icon name="check" size="18" style="flex-shrink: 0; margin-top: 2px;" />
+                <span>Audit Kesiapan Terbit SK & Sertifikat Akreditasi (Quality Gate)</span>
             </h3>
-            <span style="font-size: 12.5px; color: var(--muted);">
+            <span class="subcard-subtitle">
                 Verifikasi kepatuhan administratif & finansial sebelum penyerahan SK resmi KAN ke LPK
             </span>
         </div>
@@ -114,12 +114,12 @@
 {{-- FITUR 3: Realisasi Billing PNBP (SIMPONI Kemenkeu) --}}
 <section class="simasadi-subcard" id="pnbp-billing-section">
     <div class="simasadi-subcard-header">
-        <div>
+        <div class="subcard-title-group">
             <h3>
                 <x-icon name="services" size="20" />
-                Realisasi Billing PNBP (SIMPONI Kemenkeu)
+                <span>Realisasi Billing PNBP (SIMPONI Kemenkeu)</span>
             </h3>
-            <span style="display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px;">
+            <span class="subcard-subtitle">
                 Penerimaan Negara Bukan Pajak jasa akreditasi berdasarkan PP Tarif BSN & Sistem SIMPONI Kemenkeu
             </span>
         </div>
@@ -127,15 +127,15 @@
             @if($latestBilling)
                 <x-status :value="$latestBilling->status" />
                 @if($latestBilling->status === 'UNPAID')
-                    <button type="button" class="button primary" onclick="document.getElementById('modal-pay-billing').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+                    <button type="button" class="button primary" onclick="window.openModal('modal-pay-billing')">
                         <x-icon name="check" size="14" />
-                        Konfirmasi Pembayaran
+                        <span>Konfirmasi Pembayaran</span>
                     </button>
                 @endif
             @else
-                <button type="button" class="button primary" onclick="document.getElementById('modal-create-billing').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+                <button type="button" class="button primary" onclick="window.openModal('modal-create-billing')">
                     <x-icon name="plus" size="14" />
-                    Terbitkan Kode Billing SIMPONI
+                    <span>Terbitkan Kode Billing SIMPONI</span>
                 </button>
             @endif
         </div>
@@ -185,7 +185,7 @@
     @else
         <div style="background: #faf9f6; border: 1px dashed var(--line); border-radius: 8px; padding: 24px; text-align: center;">
             <p style="color: var(--muted); margin: 0 0 14px;">Belum ada kode billing SIMPONI yang diterbitkan untuk proses akreditasi ini.</p>
-            <button type="button" class="button primary" onclick="document.getElementById('modal-create-billing').classList.add('is-active')">
+            <button type="button" class="button primary" onclick="window.openModal('modal-create-billing')">
                 <x-icon name="plus" size="16" />
                 Terbitkan Kode Billing SIMPONI Sekarang
             </button>
@@ -196,30 +196,30 @@
 {{-- FITUR 2: Tanda Tangan Elektronik Dokumen SK (e-Sign BSrE) --}}
 <section class="simasadi-subcard" id="esign-section">
     <div class="simasadi-subcard-header">
-        <div>
+        <div class="subcard-title-group">
             <h3>
                 <x-icon name="accreditations" size="20" />
-                Tanda Tangan Elektronik Dokumen SK & Sertifikat (e-Sign BSrE)
+                <span>Tanda Tangan Elektronik Dokumen SK & Sertifikat (e-Sign BSrE)</span>
             </h3>
-            <span style="display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px;">
+            <span class="subcard-subtitle">
                 Sertifikasi keabsahan dokumen SK Akreditasi berbasis Balai Sertifikasi Elektronik (BSrE - BSSN)
             </span>
         </div>
         <div class="header-actions">
             @if($signature && $signature->is_signed)
                 <x-status value="SIGNED" />
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-qr-preview').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+                <button type="button" class="button secondary" onclick="window.openModal('modal-qr-preview')">
                     <x-icon name="eye" size="14" />
-                    Pratinjau QR & Sertifikat
+                    <span>Pratinjau QR & Sertifikat</span>
                 </button>
-                <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button ghost" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
-                    Verifikasi Publik &rarr;
+                <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button ghost">
+                    <span>Verifikasi Publik &rarr;</span>
                 </a>
             @else
                 <x-status value="UNSIGNED" />
-                <button type="button" class="button primary" onclick="document.getElementById('modal-sign-doc').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+                <button type="button" class="button primary" onclick="window.openModal('modal-sign-doc')">
                     <x-icon name="check" size="14" />
-                    Tandatangani SK Secara Digital
+                    <span>Tandatangani SK Secara Digital</span>
                 </button>
             @endif
         </div>
@@ -271,7 +271,7 @@
                 Dokumen SK Akreditasi belum ditandatangani secara elektronik.
                 Pastikan realisasi billing PNBP dan biaya asesor telah terverifikasi sebelum membubuhkan TTE.
             </p>
-            <button type="button" class="button primary" onclick="document.getElementById('modal-sign-doc').classList.add('is-active')">
+            <button type="button" class="button primary" onclick="window.openModal('modal-sign-doc')">
                 <x-icon name="check" size="16" />
                 Tandatangani SK Secara Digital (BSrE)
             </button>
@@ -286,7 +286,7 @@
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">
             <h4>Penerbitan Kode Billing PNBP (SIMPONI)</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-create-billing').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-create-billing')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('accreditations.billings.store', $accreditation) }}">
             @csrf
@@ -302,7 +302,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-create-billing').classList.remove('is-active')">Batal</button>
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-create-billing')">Batal</button>
                 <button type="submit" class="button primary">Terbitkan Kode Billing</button>
             </div>
         </form>
@@ -315,7 +315,7 @@
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">
             <h4>Konfirmasi Setoran PNBP ke Kas Negara</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-pay-billing').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-pay-billing')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('accreditations.billings.pay', [$accreditation, $latestBilling]) }}">
             @csrf
@@ -344,7 +344,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-pay-billing').classList.remove('is-active')">Batal</button>
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-pay-billing')">Batal</button>
                 <button type="submit" class="button primary">Konfirmasi Setoran Sah</button>
             </div>
         </form>
@@ -357,7 +357,7 @@
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">
             <h4>Tanda Tangan Elektronik Dokumen SK KAN (BSrE)</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-sign-doc').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-sign-doc')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('accreditations.esign.sign', $accreditation) }}">
             @csrf
@@ -380,7 +380,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-sign-doc').classList.remove('is-active')">Batal</button>
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-sign-doc')">Batal</button>
                 <button type="submit" class="button primary">Tandatangani & Rilis SK</button>
             </div>
         </form>
@@ -393,7 +393,7 @@
     <div class="simasadi-modal-box" style="text-align: center;">
         <div class="simasadi-modal-head">
             <h4>Segel Sertifikat Digital BSrE</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-qr-preview').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-qr-preview')" aria-label="Tutup modal">&times;</button>
         </div>
         <div style="margin: 16px 0;">
             <div style="background: #ffffff; border: 2px solid var(--maroon); border-radius: 12px; display: inline-block; padding: 18px; box-shadow: 0 4px 14px rgba(86, 69, 212, 0.15);">
@@ -430,7 +430,7 @@
             <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button primary">
                 Buka Halaman Verifikasi Publik &rarr;
             </a>
-            <button type="button" class="button secondary" onclick="document.getElementById('modal-qr-preview').classList.remove('is-active')">
+            <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-qr-preview')">
                 Tutup
             </button>
         </div>

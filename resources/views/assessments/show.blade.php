@@ -10,7 +10,10 @@
         <p class="lede">{{ $assessment->lpk->name }}</p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">Ubah asesmen</a>
+        <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
+            <x-icon name="edit" size="16" />
+            <span>Ubah asesmen</span>
+        </a>
     </div>
 </div>
 
@@ -49,25 +52,25 @@
 
 <section class="simasadi-subcard" id="biaya-asesor-section">
     <div class="simasadi-subcard-header">
-        <div>
+        <div class="subcard-title-group">
             <h3>
                 <x-icon name="assessments" size="20" />
-                Pelaporan Biaya Perjalanan Dinas Asesor (Cost Reporting)
+                <span>Pelaporan Biaya Perjalanan Dinas Asesor (Cost Reporting)</span>
             </h3>
-            <span style="display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px;">
+            <span class="subcard-subtitle">
                 Penggantian biaya transport, akomodasi, dan uang harian sesuai Standar Biaya Masukan (SBM) Kemenkeu
             </span>
         </div>
         <div class="header-actions">
             <x-status :value="$expenseStatus" />
-            <button type="button" class="button secondary" onclick="document.getElementById('modal-report-expense').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+            <button type="button" class="button secondary" onclick="window.openModal('modal-report-expense')">
                 <x-icon name="edit" size="14" />
-                {{ $expense ? 'Perbarui Biaya' : 'Input Biaya Asesor' }}
+                <span>{{ $expense ? 'Perbarui Biaya' : 'Input Biaya Asesor' }}</span>
             </button>
             @if($expense && $expense->total_cost > 0)
-                <button type="button" class="button primary" onclick="document.getElementById('modal-verify-expense').classList.add('is-active')" style="min-height: 36px; padding: 6px 14px; font-size: 13px;">
+                <button type="button" class="button primary" onclick="window.openModal('modal-verify-expense')">
                     <x-icon name="check" size="14" />
-                    Verifikasi SBM
+                    <span>Verifikasi SBM</span>
                 </button>
             @endif
         </div>
@@ -131,7 +134,7 @@
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">
             <h4>Laporan Biaya Perjalanan Dinas Asesor</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-report-expense').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-report-expense')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('assessments.expenses.store', $assessment) }}">
             @csrf
@@ -162,7 +165,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-report-expense').classList.remove('is-active')">Batal</button>
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-report-expense')">Batal</button>
                 <button type="submit" class="button primary">Simpan & Ajukan Verifikasi</button>
             </div>
         </form>
@@ -175,7 +178,7 @@
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">
             <h4>Verifikasi Kepatuhan SBM (Sekretariat KAN)</h4>
-            <button type="button" class="simasadi-modal-close" onclick="document.getElementById('modal-verify-expense').classList.remove('is-active')">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-verify-expense')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('assessments.expenses.verify', $assessment) }}">
             @csrf
@@ -196,7 +199,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" onclick="document.getElementById('modal-verify-expense').classList.remove('is-active')">Batal</button>
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-verify-expense')">Batal</button>
                 <button type="submit" class="button primary">Simpan Keputusan</button>
             </div>
         </form>
