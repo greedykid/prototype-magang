@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assessment;
 use App\Models\CalendarEvent;
 use App\Models\Lpk;
 use Carbon\CarbonImmutable;
@@ -13,18 +14,137 @@ class CalendarEventController extends Controller
 {
     public function index(Request $request): View
     {
-        $month = $request->string('month')->toString();
-        $currentMonth = preg_match('/^\d{4}-\d{2}$/', $month) ? CarbonImmutable::createFromFormat('!Y-m', $month) : CarbonImmutable::now()->startOfMonth();
-        $firstDay = $currentMonth->startOfMonth();
-        $gridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
-        $gridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
-        $events = CalendarEvent::with('lpk')->whereBetween('start_at', [$gridStart->startOfDay(), $gridEnd->endOfDay()])->orderBy('start_at')->get()->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
-        $weeks = [];
-        for ($day = $gridStart; $day <= $gridEnd; $day = $day->addDay()) {
-            $weeks[] = $day;
+        $viewMode = $request->string('view')->trim()->toString() ?: 'month';
+        if (!in_array($viewMode, ['month', 'week', 'day', 'agenda'], true)) {
+            $viewMode = 'month';
         }
 
-        return view('calendar.index', compact('currentMonth', 'weeks', 'events'));
+        $dateParam = $request->string('date')->trim()->toString();
+        $monthParam = $request->string('month')->trim()->toString();
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateParam)) {
+            $activeDate = CarbonImmutable::createFromFormat('!Y-m-d', $dateParam);
+        } elseif (preg_match('/^\d{4}-\d{2}$/', $monthParam)) {
+            $activeDate = CarbonImmutable::createFromFormat('!Y-m', $monthParam)->startOfMonth();
+        } else {
+            $activeDate = CarbonImmutable::now()->startOfDay();
+        }
+
+        $currentMonth = $activeDate->startOfMonth();
+        $firstDay = $currentMonth;
+        $gridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
+        $gridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
+
+        // Month grid days (all cells in month grid)
+        $monthWeeks = [];
+        for ($day = $gridStart; $day <= $gridEnd; $day = $day->addDay()) {
+            $monthWeeks[] = $day;
+        }
+
+        // Mini calendar grid (always shows month of activeDate)
+        $miniGridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
+        $miniGridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
+        $miniWeeks = [];
+        for ($day = $miniGridStart; $day <= $miniGridEnd; $day = $day->addDay()) {
+            $miniWeeks[] = $day;
+        }
+
+        // Week view days (7 days of active week: Monday to Sunday)
+        $weekStart = $activeDate->startOfWeek(CarbonImmutable::MONDAY);
+        $weekEnd = $activeDate->endOfWeek(CarbonImmutable::SUNDAY);
+        $weekDays = [];
+        for ($day = $weekStart; $day <= $weekEnd; $day = $day->addDay()) {
+            $weekDays[] = $day;
+        }
+
+        // Query date range spanning all needed dates
+        $queryStart = min($gridStart, $weekStart, $activeDate)->startOfDay();
+        $queryEnd = max($gridEnd, $weekEnd, $activeDate->addDays(35))->endOfDay();
+
+        // 1. Fetch CalendarEvent
+        $calendarEvents = CalendarEvent::with('lpk')
+            ->whereBetween('start_at', [$queryStart, $queryEnd])
+            ->orderBy('start_at')
+            ->get();
+
+        // 2. Fetch Assessment (Integrated Calendar)
+        $assessments = Assessment::with('lpk')
+            ->whereBetween('start_at', [$queryStart, $queryEnd])
+            ->orderBy('start_at')
+            ->get();
+
+        // Standardize into unified items
+        $unifiedEvents = collect();
+
+        foreach ($calendarEvents as $item) {
+            $unifiedEvents->push([
+                'id' => $item->id,
+                'source' => 'calendar_event',
+                'category' => 'AGENDA_INTERNAL',
+                'category_label' => 'Agenda Internal',
+                'color_theme' => 'indigo',
+                'title' => $item->title,
+                'lpk_id' => $item->lpk_id,
+                'lpk_name' => $item->lpk?->name ?? 'Internal SIMASADI',
+                'start_at' => $item->start_at,
+                'end_at' => $item->end_at,
+                'location' => $item->location ?: 'Ruang Rapat / Daring',
+                'status' => $item->status,
+                'notes' => $item->notes,
+                'description' => $item->description,
+                'lead' => null,
+                'url' => route('calendar.events.show', $item),
+                'edit_url' => route('calendar.events.edit', $item),
+            ]);
+        }
+
+        foreach ($assessments as $item) {
+            $unifiedEvents->push([
+                'id' => $item->id,
+                'source' => 'assessment',
+                'category' => 'ASESMEN_LAPANGAN',
+                'category_label' => 'Asesmen Lapangan',
+                'color_theme' => 'purple',
+                'title' => $item->title . ($item->assessment_type ? ' (' . $item->assessment_type . ')' : ''),
+                'lpk_id' => $item->lpk_id,
+                'lpk_name' => $item->lpk?->name ?? 'LPK Terakreditasi',
+                'start_at' => $item->start_at,
+                'end_at' => $item->end_at,
+                'location' => $item->location ?: 'Lokasi Lapangan LPK',
+                'status' => $item->status,
+                'notes' => $item->notes,
+                'description' => 'Program asesmen akreditasi ' . ($item->assessment_type ?: ''),
+                'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                'url' => route('assessments.show', $item),
+                'edit_url' => route('assessments.edit', $item),
+            ]);
+        }
+
+        $eventsByDate = $unifiedEvents->sortBy('start_at')->groupBy(fn ($ev) => $ev['start_at']->toDateString());
+
+        // For backwards-compatibility with tests that check $events or $weeks
+        $events = $calendarEvents->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
+        $weeks = $monthWeeks;
+
+        $lpks = Lpk::orderBy('name')->get(['id', 'name']);
+        $hoursRange = range(7, 19);
+
+        return view('calendar.index', compact(
+            'currentMonth',
+            'activeDate',
+            'viewMode',
+            'monthWeeks',
+            'miniWeeks',
+            'weekDays',
+            'weekStart',
+            'weekEnd',
+            'eventsByDate',
+            'unifiedEvents',
+            'lpks',
+            'hoursRange',
+            'weeks',
+            'events'
+        ));
     }
 
     public function create(Request $request): View

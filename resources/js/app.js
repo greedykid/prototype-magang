@@ -939,9 +939,14 @@ const initPageComponents = () => {
 
     // 6. Responsive Table View Toggle Positioning (side-by-side with filter button on mobile)
     syncViewToggleLocation();
+
+    // 7. Google Calendar Components (live time line & filters)
+    if (document.querySelector('.gcal-shell')) {
+        initGcalComponents();
+    }
 };
 
-const syncViewToggleLocation = () => {
+function syncViewToggleLocation() {
     const isMobile = window.matchMedia('(max-width: 600px)').matches;
     document.querySelectorAll('.table-wrap').forEach((tableWrap) => {
         const parentPanel = tableWrap.closest('.panel') || tableWrap.parentElement;
@@ -1507,6 +1512,91 @@ const navigateTo = async (url, pushState = true) => {
     if (isNavigating) return;
     isNavigating = true;
 
+    const currentUrlObj = new URL(window.location.href);
+    const targetUrlObj = new URL(url, window.location.origin);
+    const isCalendarToCalendar = currentUrlObj.pathname === '/calendar' &&
+                                 targetUrlObj.pathname === '/calendar' &&
+                                 !targetUrlObj.pathname.includes('/create') &&
+                                 !targetUrlObj.pathname.includes('/edit') &&
+                                 !targetUrlObj.pathname.match(/\/calendar\/events\/\d+/);
+
+    // =========================================================================
+    // IN-CALENDAR SEAMLESS TRANSITION (Tanpa Reload & Tanpa Skeleton)
+    // Sesuai instruksi user: Skeleton hanya muncul di awal pertama kali buka kalender,
+    // setelah itu perpindahan bulan/hari/mode kalender dilakukan tanpa reload.
+    // =========================================================================
+    if (isCalendarToCalendar) {
+        const curShell = document.querySelector('.gcal-shell');
+        if (curShell) {
+            curShell.classList.add('gcal-is-updating');
+        }
+        window.closeEventPopover?.();
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok || response.redirected) {
+                window.location.href = response.url || url;
+                return;
+            }
+
+            const htmlText = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+
+            const newShell = doc.querySelector('.gcal-shell');
+            const activeShell = document.querySelector('.gcal-shell');
+            if (newShell && activeShell) {
+                activeShell.replaceWith(newShell);
+            } else {
+                const newContent = doc.querySelector('#page-content-wrapper') || doc.querySelector('.page-wrap');
+                if (newContent) {
+                    pageWrap.innerHTML = newContent.innerHTML;
+                }
+            }
+
+            // Sync date in quick-add modal
+            const newStartDate = doc.querySelector('#quick-input-start-date');
+            const curStartDate = document.getElementById('quick-input-start-date');
+            if (newStartDate && curStartDate) {
+                curStartDate.value = newStartDate.value;
+            }
+            const newEndDate = doc.querySelector('#quick-input-end-date');
+            const curEndDate = document.getElementById('quick-input-end-date');
+            if (newEndDate && curEndDate) {
+                curEndDate.value = newEndDate.value;
+            }
+
+            // Update document title
+            if (doc.title) {
+                document.title = doc.title;
+            }
+
+            // Re-initialize calendar components
+            initGcalComponents();
+            initCustomSelects(document.querySelector('.gcal-shell') || document);
+
+            if (pushState) {
+                window.history.pushState({ url }, '', url);
+            }
+        } catch (err) {
+            console.error('Calendar transition error, falling back:', err);
+            window.location.href = url;
+        } finally {
+            document.querySelector('.gcal-shell')?.classList.remove('gcal-is-updating');
+            isNavigating = false;
+        }
+        return;
+    }
+
+    // =========================================================================
+    // MENU TRANSITIONS ACROSS APPLICATION (Dengan Skeleton Loading)
+    // Termasuk saat pertama kali membuka menu Kalender dari menu lain.
+    // =========================================================================
     const { type, title } = getPageTypeAndTitle(url);
 
     // 1. Immediately render matching skeleton layout
@@ -1519,7 +1609,7 @@ const navigateTo = async (url, pushState = true) => {
     }
 
     const navLinks = document.querySelectorAll('#primary-navigation a');
-    const targetPath = new URL(url, window.location.origin).pathname;
+    const targetPath = targetUrlObj.pathname;
     navLinks.forEach((link) => {
         const linkPath = new URL(link.href, window.location.origin).pathname;
         const isActive = (linkPath === '/' || linkPath === '/dashboard')
@@ -1784,9 +1874,12 @@ document.addEventListener('submit', (event) => {
 // SIMASADI Viewport-Centric Modal Dialog System
 // Teleports modals to <body> and manages viewport centering & scroll lock
 // ==========================================================================
-window.openModal = (modalId) => {
+function openModal(modalId) {
     const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
-    if (!modal) return;
+    if (!modal) {
+        console.warn('Modal element not found:', modalId);
+        return;
+    }
 
     // Teleport modal directly to <body> so no parent container transforms/clipping can trap it
     if (modal.parentElement !== document.body) {
@@ -1804,9 +1897,10 @@ window.openModal = (modalId) => {
             setTimeout(() => focusable.focus(), 60);
         }
     }
-};
+}
+window.openModal = openModal;
 
-window.closeModal = (modalId) => {
+function closeModal(modalId) {
     const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) return;
 
@@ -1816,7 +1910,8 @@ window.closeModal = (modalId) => {
     if (!document.querySelector('.simasadi-modal.is-active')) {
         document.body.classList.remove('modal-open');
     }
-};
+}
+window.closeModal = closeModal;
 
 // Global event delegation for modal closing (backdrop click, close buttons, Escape key)
 document.addEventListener('click', (e) => {
@@ -1902,5 +1997,343 @@ window.addEventListener('pageshow', () => {
         btn.removeAttribute('aria-busy');
     });
 });
+
+// ==========================================================================
+// SIMASADI Google Calendar Experience & Interactivity Engine
+// Multi-view navigation, quick popovers, real-time live WIB time line,
+// instant category & LPK filtering, and direct Google Calendar export
+// ==========================================================================
+
+const formatIndonesianDateTimeRange = (start, end) => {
+    try {
+        const dtfDate = new Intl.DateTimeFormat('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const dtfTime = new Intl.DateTimeFormat('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+
+        const dateStr = dtfDate.format(start);
+        const startTimeStr = dtfTime.format(start);
+        const endTimeStr = dtfTime.format(end);
+
+        return `${dateStr} • ${startTimeStr} - ${endTimeStr} WIB`;
+    } catch {
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${pad(start.getDate())}/${pad(start.getMonth() + 1)}/${start.getFullYear()} • ${pad(start.getHours())}:${pad(start.getMinutes())} - ${pad(end.getHours())}:${pad(end.getMinutes())} WIB`;
+    }
+};
+
+const toGoogleCalendarUtc = (date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+};
+
+function showEventPopover(triggerEl, eventData) {
+    const popover = document.getElementById('gcal-event-popover');
+    if (!popover || !eventData) return;
+
+    // Teleport popover directly to body to ensure no parent transform clipping
+    if (popover.parentElement !== document.body) {
+        document.body.appendChild(popover);
+    }
+
+    const startDate = new Date(eventData.start_at);
+    const endDate = new Date(eventData.end_at);
+
+    // 1. Badge & Header
+    const catBadge = popover.querySelector('#popover-cat-badge');
+    if (catBadge) {
+        catBadge.textContent = eventData.category_label || 'Agenda';
+        catBadge.className = `gcal-popover-cat-pill theme-${eventData.color_theme || 'indigo'}`;
+    }
+
+    // 2. Title & Date/Time
+    const titleEl = popover.querySelector('#popover-title');
+    if (titleEl) titleEl.textContent = eventData.title;
+
+    const timeEl = popover.querySelector('#popover-time');
+    if (timeEl) timeEl.textContent = formatIndonesianDateTimeRange(startDate, endDate);
+
+    // 3. LPK Name
+    const lpkEl = popover.querySelector('#popover-lpk');
+    if (lpkEl) lpkEl.textContent = eventData.lpk_name || 'Lembaga Penilaian Kesesuaian';
+
+    // 4. Location
+    const locWrap = popover.querySelector('#popover-location-wrap');
+    const locEl = popover.querySelector('#popover-location');
+    if (locWrap && locEl) {
+        if (eventData.location && eventData.location.trim()) {
+            locEl.textContent = eventData.location;
+            locWrap.style.display = 'flex';
+        } else {
+            locWrap.style.display = 'none';
+        }
+    }
+
+    // 5. Notes / Description
+    const notesWrap = popover.querySelector('#popover-notes-wrap');
+    const notesEl = popover.querySelector('#popover-notes');
+    if (notesWrap && notesEl) {
+        if (eventData.notes && eventData.notes.trim()) {
+            notesEl.textContent = eventData.notes;
+            notesWrap.style.display = 'block';
+        } else {
+            notesWrap.style.display = 'none';
+        }
+    }
+
+    // 6. Direct Google Calendar Add Link
+    const gcalLink = popover.querySelector('#popover-gcal-link');
+    if (gcalLink) {
+        const detailsText = `Kategori: ${eventData.category_label || 'Agenda'}\nLPK: ${eventData.lpk_name || '-'}\nLokasi: ${eventData.location || '-'}\nCatatan: ${eventData.notes || '-'}\n\nDisinkronkan dari Kalender SIMASADI KAN`;
+        const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventData.title)}&dates=${toGoogleCalendarUtc(startDate)}/${toGoogleCalendarUtc(endDate)}&details=${encodeURIComponent(detailsText)}&location=${encodeURIComponent(eventData.location || '')}`;
+        gcalLink.href = gcalUrl;
+    }
+
+    // 7. Action Links: Detail & Edit
+    const detailLink = popover.querySelector('#popover-detail-link');
+    if (detailLink) {
+        detailLink.href = eventData.url || '#';
+    }
+
+    const editLink = popover.querySelector('#popover-edit-link');
+    if (editLink) {
+        if (eventData.edit_url) {
+            editLink.href = eventData.edit_url;
+            editLink.style.display = 'inline-flex';
+        } else {
+            editLink.style.display = 'none';
+        }
+    }
+
+    // 8. Display & Positioning
+    popover.style.display = 'block';
+    popover.setAttribute('aria-hidden', 'false');
+
+    // Never position the popover container itself
+    popover.style.position = '';
+    popover.style.left = '';
+    popover.style.top = '';
+    popover.style.right = '';
+    popover.style.bottom = '';
+    popover.style.zIndex = '';
+
+    const card = popover.querySelector('.gcal-popover-card');
+    if (card) {
+        if (triggerEl && window.innerWidth > 768) {
+            const rect = triggerEl.getBoundingClientRect();
+            const cardWidth = 380;
+            const cardHeight = card.offsetHeight || 320;
+
+            const spaceRight = window.innerWidth - rect.right;
+            const spaceLeft = rect.left;
+
+            let left;
+            // If the chip is in the right half of the screen or doesn't fit on right, flip to left of chip
+            if (spaceRight < cardWidth + 16 || rect.left > window.innerWidth * 0.52) {
+                if (spaceLeft >= cardWidth + 16) {
+                    left = rect.left - cardWidth - 10;
+                } else {
+                    left = Math.max(16, window.innerWidth - cardWidth - 16);
+                }
+            } else {
+                left = rect.right + 10;
+            }
+
+            if (left < 16) left = 16;
+
+            // Vertical positioning: align near top of the clicked chip
+            let top = rect.top - 8;
+            const maxTop = window.innerHeight - cardHeight - 16;
+            if (top > maxTop) {
+                top = maxTop;
+            }
+            if (top < 70) {
+                top = 70; // Stay below top navigation bar
+            }
+
+            card.style.position = 'fixed';
+            card.style.left = `${Math.round(left)}px`;
+            card.style.top = `${Math.round(top)}px`;
+            card.style.zIndex = '1051';
+        } else {
+            card.style.position = '';
+            card.style.left = '';
+            card.style.top = '';
+            card.style.zIndex = '';
+        }
+    }
+}
+window.showEventPopover = showEventPopover;
+
+function closeEventPopover() {
+    const popover = document.getElementById('gcal-event-popover');
+    if (popover) {
+        popover.style.display = 'none';
+        popover.setAttribute('aria-hidden', 'true');
+        const card = popover.querySelector('.gcal-popover-card');
+        if (card) {
+            card.style.position = '';
+            card.style.left = '';
+            card.style.top = '';
+            card.style.zIndex = '';
+        }
+    }
+}
+window.closeEventPopover = closeEventPopover;
+
+function quickAddAt(dateStr, timeStr = '09:00') {
+    const startDateInput = document.getElementById('quick-input-start-date');
+    const endDateInput = document.getElementById('quick-input-end-date');
+    const startTimeInput = document.getElementById('quick-input-start-time');
+    const endTimeInput = document.getElementById('quick-input-end-time');
+
+    if (startDateInput) startDateInput.value = dateStr;
+    if (endDateInput) endDateInput.value = dateStr;
+
+    if (timeStr && startTimeInput) {
+        startTimeInput.value = timeStr;
+        if (endTimeInput) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const endH = Math.min(23, (h || 9) + 2);
+            endTimeInput.value = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+        }
+    }
+
+    openModal('modal-quick-add-event');
+}
+window.quickAddAt = quickAddAt;
+
+// Global click & Escape handlers for popover closing
+document.addEventListener('click', (e) => {
+    const popover = document.getElementById('gcal-event-popover');
+    if (!popover || popover.style.display === 'none') return;
+
+    // Mobile: clicking backdrop
+    if (window.innerWidth <= 768 && e.target === popover) {
+        closeEventPopover();
+        return;
+    }
+
+    const card = popover.querySelector('.gcal-popover-card');
+    // Desktop: clicking outside card and not on an event trigger
+    if (card && !card.contains(e.target) && !e.target.closest('.gcal-event-chip, .gcal-timed-card, .gcal-agenda-row, [onclick*="showEventPopover"]')) {
+        closeEventPopover();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeEventPopover();
+    }
+});
+
+window.addEventListener('scroll', () => {
+    const popover = document.getElementById('gcal-event-popover');
+    if (popover && popover.style.display !== 'none' && window.innerWidth > 768) {
+        closeEventPopover();
+    }
+}, { passive: true });
+
+window.addEventListener('resize', () => {
+    const popover = document.getElementById('gcal-event-popover');
+    if (popover && popover.style.display !== 'none') {
+        closeEventPopover();
+    }
+});
+
+// Real-time Live WIB Red Line Time Indicator for Week & Day grids
+function initGcalLiveTimeLine() {
+    function updateTimeLine() {
+        const lines = document.querySelectorAll('.gcal-current-time-line');
+        if (!lines.length) return;
+
+        // Current time in WIB (UTC+7)
+        const now = new Date();
+        const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+        const wibMinutes = (utcMinutes + 7 * 60) % (24 * 60);
+
+        const startMinutes = 7 * 60; // 07:00 WIB
+        const totalMinutes = 12 * 60; // 07:00 to 19:00 WIB (720 min)
+
+        if (wibMinutes < startMinutes || wibMinutes > startMinutes + totalMinutes) {
+            lines.forEach((l) => { l.style.display = 'none'; });
+            return;
+        }
+
+        const pct = ((wibMinutes - startMinutes) / totalMinutes) * 100;
+        lines.forEach((l) => {
+            l.style.display = 'flex';
+            l.style.top = `${pct}%`;
+        });
+    }
+
+    updateTimeLine();
+    if (!window.__gcalLiveTimer) {
+        window.__gcalLiveTimer = setInterval(updateTimeLine, 30000);
+    }
+}
+
+// Client-side Instant Filter for Calendar Categories & LPK
+function initGcalFilters() {
+    const catAssessment = document.getElementById('filter-cat-assessment');
+    const catAgenda = document.getElementById('filter-cat-agenda');
+    const lpkSelect = document.getElementById('gcal-filter-lpk');
+
+    if (!catAssessment && !catAgenda && !lpkSelect) return;
+
+    function applyGcalFilters() {
+        const showAssessment = catAssessment ? catAssessment.checked : true;
+        const showAgenda = catAgenda ? catAgenda.checked : true;
+        const selectedLpk = lpkSelect ? lpkSelect.value.trim() : '';
+
+        // Filter event chips in Month view, cards in Week/Day views, and rows in Agenda view
+        const eventElements = document.querySelectorAll('[data-cat]');
+        eventElements.forEach((el) => {
+            const cat = el.dataset.cat;
+            const lpk = el.dataset.lpkId ? String(el.dataset.lpkId) : '';
+
+            let visible = true;
+            if (cat === 'ASESMEN_LAPANGAN' && !showAssessment) visible = false;
+            if (cat === 'AGENDA_INTERNAL' && !showAgenda) visible = false;
+            if (selectedLpk && lpk !== selectedLpk) visible = false;
+
+            el.style.display = visible ? '' : 'none';
+        });
+
+        // Hide empty Agenda date groups if all items within are filtered out
+        document.querySelectorAll('.gcal-agenda-group').forEach((group) => {
+            const rows = group.querySelectorAll('.gcal-agenda-row');
+            const hasVisibleRow = Array.from(rows).some((r) => r.style.display !== 'none');
+            group.style.display = hasVisibleRow ? '' : 'none';
+        });
+    }
+
+    if (catAssessment && !catAssessment.dataset.gcalFilterInit) {
+        catAssessment.dataset.gcalFilterInit = 'true';
+        catAssessment.addEventListener('change', applyGcalFilters);
+    }
+    if (catAgenda && !catAgenda.dataset.gcalFilterInit) {
+        catAgenda.dataset.gcalFilterInit = 'true';
+        catAgenda.addEventListener('change', applyGcalFilters);
+    }
+    if (lpkSelect && !lpkSelect.dataset.gcalFilterInit) {
+        lpkSelect.dataset.gcalFilterInit = 'true';
+        lpkSelect.addEventListener('change', applyGcalFilters);
+    }
+}
+
+function initGcalComponents() {
+    initGcalLiveTimeLine();
+    initGcalFilters();
+}
+
 
 
