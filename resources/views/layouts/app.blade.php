@@ -17,8 +17,10 @@
 <aside class="sidebar">
     <div class="brand">
         <div class="brand-info">
-            <span class="brand-mark" title="SIMASADI Workspace">K</span>
-            <div class="brand-text"><strong>SIMASADI</strong><small>workspace prototype</small></div>
+            <a href="{{ route('dashboard') }}" class="brand-mark" title="SIMASADI - Badan Standardisasi Nasional">
+                <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img">
+            </a>
+            <div class="brand-text"><strong>SIMASADI</strong><small>Badan Standardisasi Nasional</small></div>
         </div>
     </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>

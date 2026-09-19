@@ -65,6 +65,11 @@ const closeAllCustomSelects = (exceptWrapper = null) => {
             w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
         }
     });
+    document.querySelectorAll('.has-open-select').forEach((el) => {
+        if (!el.querySelector('.custom-select-wrapper.is-open')) {
+            el.classList.remove('has-open-select');
+        }
+    });
 };
 
 let globalSelectListenersAdded = false;
@@ -275,6 +280,15 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *');
+        if (parentContainer) {
+            parentContainer.classList.add('has-open-select');
+        }
+        const parentForm = wrapper.closest('.inline-form, form');
+        if (parentForm) {
+            parentForm.classList.add('has-open-select');
+        }
+
         if (searchInput) {
             searchInput.value = '';
             filterOptions('');
@@ -291,6 +305,15 @@ const createCustomSelect = (select) => {
         wrapper.classList.remove('is-open', 'dropup');
         trigger.setAttribute('aria-expanded', 'false');
         optionElements.forEach((el) => el.classList.remove('is-focused'));
+
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *');
+        if (parentContainer && !parentContainer.querySelector('.custom-select-wrapper.is-open')) {
+            parentContainer.classList.remove('has-open-select');
+        }
+        const parentForm = wrapper.closest('.inline-form, form');
+        if (parentForm && !parentForm.querySelector('.custom-select-wrapper.is-open')) {
+            parentForm.classList.remove('has-open-select');
+        }
     };
 
     const toggleMenu = () => {
@@ -395,18 +418,220 @@ const initCustomSelects = (container = document) => {
 };
 
 // ==========================================================================
+// Data Table Sorting & Toolbar Controls ("Show [ 10 ] entries")
+// ==========================================================================
+const parseCellValue = (rawText) => {
+    if (!rawText) return '';
+    const text = rawText.trim();
+    if (!text || text === '-' || text.toLowerCase() === 'tanpa target' || text.toLowerCase() === 'belum diisi' || text.toLowerCase() === 'belum dicatat') {
+        return '';
+    }
+
+    // 1. Currency & Numbers (e.g., "Rp. 5.000.000", "Rp 14.000.000", "11992", "42")
+    const cleanedNum = text.replace(/^rp\.?\s*/i, '').replace(/\s+/g, '');
+    if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(cleanedNum)) {
+        const normalized = cleanedNum.replace(/\./g, '').replace(',', '.');
+        const num = parseFloat(normalized);
+        if (!isNaN(num)) return num;
+    }
+    if (/^-?\d+(\.\d+)?$/.test(cleanedNum)) {
+        const num = parseFloat(cleanedNum);
+        if (!isNaN(num)) return num;
+    }
+
+    // 2. Dates (ISO or standard timestamps)
+    if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+        const d = Date.parse(text);
+        if (!isNaN(d)) return d;
+    }
+
+    // Indonesian / English dates: "DD Mmm YYYY" or "DD Mmm YYYY, HH:mm"
+    const months = {
+        jan: 0, feb: 1, mar: 2, apr: 3, mei: 4, may: 4, jun: 5,
+        jul: 6, agu: 7, aug: 7, sep: 8, okt: 9, oct: 9, nov: 10, des: 11, dec: 11
+    };
+    const dateMatch = text.match(/^(\d{1,2})\s+([a-zA-Z]{3,})\s+(\d{4})(?:[,\s]+(\d{1,2}):(\d{2}))?/i);
+    if (dateMatch) {
+        const day = parseInt(dateMatch[1], 10);
+        const monKey = dateMatch[2].toLowerCase().substring(0, 3);
+        const month = months[monKey];
+        const year = parseInt(dateMatch[3], 10);
+        const hours = dateMatch[4] ? parseInt(dateMatch[4], 10) : 0;
+        const mins = dateMatch[5] ? parseInt(dateMatch[5], 10) : 0;
+        if (month !== undefined) {
+            return new Date(year, month, day, hours, mins).getTime();
+        }
+    }
+
+    return text.toLowerCase();
+};
+
+const sortTableByColumn = (table, colIndex, targetTh) => {
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const currentSort = targetTh.getAttribute('aria-sort') || 'none';
+    const nextSort = currentSort === 'ascending' ? 'descending' : 'ascending';
+
+    // Update all sortable headers in this table
+    table.querySelectorAll('thead th.is-sortable').forEach((th) => {
+        th.setAttribute('aria-sort', 'none');
+    });
+    targetTh.setAttribute('aria-sort', nextSort);
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if (!rows.length) return;
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.children[colIndex];
+        const cellB = rowB.children[colIndex];
+        if (!cellA || !cellB) return 0;
+
+        const textA = (cellA.querySelector('strong')?.textContent || cellA.textContent).trim();
+        const textB = (cellB.querySelector('strong')?.textContent || cellB.textContent).trim();
+
+        const valA = parseCellValue(textA);
+        const valB = parseCellValue(textB);
+
+        let result = 0;
+        if (typeof valA === 'number' && typeof valB === 'number') {
+            result = valA - valB;
+        } else {
+            result = String(valA).localeCompare(String(valB), 'id', { numeric: true, sensitivity: 'base' });
+        }
+
+        return nextSort === 'ascending' ? result : -result;
+    });
+
+    // Reorder rows in DOM
+    rows.forEach((row) => tbody.appendChild(row));
+};
+
+const initSortableHeaders = (table) => {
+    const theadThs = table.querySelectorAll('thead th');
+    if (!theadThs.length) return;
+
+    const sortSvg = `
+        <span class="table-sort-icon" aria-hidden="true">
+            <svg class="sort-arrows-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path class="sort-arrow-up" d="M7 20V4m0 0l-3 3m3-3l3 3" />
+                <path class="sort-arrow-down" d="M17 4v16m0 0l-3-3m3 3l3-3" />
+            </svg>
+        </span>
+    `;
+
+    theadThs.forEach((th, colIndex) => {
+        if (th.dataset.sortInit === 'true') return;
+        th.dataset.sortInit = 'true';
+
+        const text = th.textContent.trim();
+        const isActionCol = !text ||
+            th.querySelector('.sr-only') ||
+            /^(aksi|action|buka|detail)$/i.test(text);
+
+        if (isActionCol) return;
+
+        th.classList.add('is-sortable');
+        th.setAttribute('tabindex', '0');
+        th.setAttribute('role', 'columnheader');
+        th.setAttribute('aria-sort', 'none');
+
+        const label = document.createElement('span');
+        label.className = 'th-label';
+        while (th.firstChild) {
+            label.appendChild(th.firstChild);
+        }
+
+        const wrap = document.createElement('div');
+        wrap.className = 'th-content';
+        wrap.appendChild(label);
+        wrap.insertAdjacentHTML('beforeend', sortSvg);
+
+        th.appendChild(wrap);
+
+        th.addEventListener('click', () => {
+            sortTableByColumn(table, colIndex, th);
+        });
+
+        th.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                sortTableByColumn(table, colIndex, th);
+            }
+        });
+    });
+};
+
+const initTableToolbar = (tableWrap) => {
+    if (tableWrap.previousElementSibling?.classList.contains('table-toolbar')) return;
+
+    const url = new URL(window.location.href);
+    const currentPerPage = url.searchParams.get('per_page') || '10';
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'table-toolbar';
+
+    const lengthControl = document.createElement('div');
+    lengthControl.className = 'table-length-control';
+    lengthControl.innerHTML = `
+        <span>Show</span>
+        <select class="table-length-select" aria-label="Tampilkan baris per halaman">
+            <option value="10" ${currentPerPage === '10' ? 'selected' : ''}>10</option>
+            <option value="25" ${currentPerPage === '25' ? 'selected' : ''}>25</option>
+            <option value="50" ${currentPerPage === '50' ? 'selected' : ''}>50</option>
+            <option value="100" ${currentPerPage === '100' ? 'selected' : ''}>100</option>
+        </select>
+        <span>entries</span>
+    `;
+
+    const select = lengthControl.querySelector('select');
+    select.addEventListener('change', () => {
+        const val = select.value;
+
+        // Ensure active table filters maintain the chosen per_page value
+        const filterForm = tableWrap.parentElement?.querySelector('.table-filters') || document.querySelector('.table-filters');
+        if (filterForm) {
+            let hiddenPerPage = filterForm.querySelector('input[name="per_page"]');
+            if (!hiddenPerPage) {
+                hiddenPerPage = document.createElement('input');
+                hiddenPerPage.type = 'hidden';
+                hiddenPerPage.name = 'per_page';
+                filterForm.appendChild(hiddenPerPage);
+            }
+            hiddenPerPage.value = val;
+        }
+
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('per_page', val);
+        newUrl.searchParams.delete('page');
+        window.location.href = newUrl.toString();
+    });
+
+    toolbar.appendChild(lengthControl);
+    tableWrap.parentElement?.insertBefore(toolbar, tableWrap);
+};
+
+// ==========================================================================
 // Page Components Initializer (Idempotent for Initial Load & SPA Transitions)
 // ==========================================================================
 const initPageComponents = () => {
-    // 1. Table view mode toggles (Table vs Grid)
+    // 1. Table view mode toggles, Table sorting, and Table length controls
     document.querySelectorAll('.table-wrap').forEach((tableWrap, index) => {
-        if (tableWrap.dataset.initialized === 'true') return;
-        tableWrap.dataset.initialized = 'true';
-
         const table = tableWrap.querySelector('table');
         if (!table) return;
 
-        const headers = [...table.querySelectorAll('thead th')].map((header) => header.textContent.trim());
+        // Initialize sortable column headers
+        initSortableHeaders(table);
+
+        // Initialize "Show [ 10 ] entries" toolbar
+        initTableToolbar(tableWrap);
+
+        if (tableWrap.dataset.initialized === 'true') return;
+        tableWrap.dataset.initialized = 'true';
+
+        const headers = [...table.querySelectorAll('thead th')].map((header) => {
+            return header.querySelector('.th-label')?.textContent.trim() || header.textContent.trim();
+        });
         const storageKey = `simasadi-table-view-${window.location.pathname}-${index}`;
         const isMobile = window.matchMedia('(max-width: 600px)').matches;
         const savedView = localStorage.getItem(storageKey);
@@ -427,7 +652,12 @@ const initPageComponents = () => {
         };
 
         const toggle = createViewToggle('view-toggle table-view-toggle', 'Tampilan data', [['table', 'Tabel'], ['grid', 'Grid']], initialView, setView);
-        tableWrap.parentElement?.insertBefore(toggle, tableWrap);
+        const toolbar = tableWrap.previousElementSibling;
+        if (toolbar?.classList.contains('table-toolbar')) {
+            toolbar.appendChild(toggle);
+        } else {
+            tableWrap.parentElement?.insertBefore(toggle, tableWrap);
+        }
         setView(initialView, toggle);
     });
 
@@ -440,13 +670,15 @@ const initPageComponents = () => {
         if (!grid) return;
 
         const toggle = document.createElement('button');
-        const hasValues = [...grid.querySelectorAll('input, select')].some((field) => field.value);
+        const hasValues = [...grid.querySelectorAll('input, select')].some((field) => Boolean(field.value));
+        const isMobile = window.matchMedia('(max-width: 600px)').matches;
+        const initialOpen = isMobile ? false : hasValues;
 
         toggle.className = 'filter-toggle';
         toggle.type = 'button';
-        toggle.setAttribute('aria-expanded', String(hasValues));
+        toggle.setAttribute('aria-expanded', String(initialOpen));
         toggle.innerHTML = '<span class="filter-toggle-icon" aria-hidden="true"></span><span>Filter data</span>';
-        filter.classList.toggle('filters-open', hasValues);
+        filter.classList.toggle('filters-open', initialOpen);
         filter.classList.add('filter-drawer');
         filter.insertBefore(toggle, grid);
 
@@ -474,12 +706,11 @@ const initPageComponents = () => {
         backdrop.addEventListener('click', () => closeButton.click());
 
         const tableWrap = filter.parentElement?.querySelector('.table-wrap');
-        const viewToggle = tableWrap?.previousElementSibling;
-        if (tableWrap && viewToggle?.classList.contains('table-view-toggle')) {
+        if (tableWrap && !filter.parentElement.querySelector('.table-controls')) {
             const controls = document.createElement('div');
             controls.className = 'table-controls';
             filter.parentElement.insertBefore(controls, filter);
-            controls.append(toggle, viewToggle);
+            controls.append(toggle);
         }
     });
 

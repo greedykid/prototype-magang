@@ -1,4 +1,8 @@
 *.log
+.agents
+.github
+/docs
+/templates
 .DS_Store
 .env
 .env.backup

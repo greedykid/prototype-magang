@@ -18,9 +18,13 @@ class IssueController extends Controller
         $status = $request->string('status')->toString();
         $dueFrom = $request->date('due_from')?->format('Y-m-d');
         $dueTo = $request->date('due_to')?->format('Y-m-d');
-        $issues = Issue::query()->with('lpk')->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when(in_array($priority, ['LOW', 'MEDIUM', 'HIGH'], true), fn ($query) => $query->where('priority', $priority))->when(in_array($status, ['OPEN', 'IN_PROGRESS', 'RESOLVED'], true), fn ($query) => $query->where('status', $status))->when($dueFrom, fn ($query) => $query->whereDate('due_date', '>=', $dueFrom))->when($dueTo, fn ($query) => $query->whereDate('due_date', '<=', $dueTo))->latest()->paginate(10)->withQueryString();
+        $perPage = $request->integer('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+        $issues = Issue::query()->with('lpk')->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when(in_array($priority, ['LOW', 'MEDIUM', 'HIGH'], true), fn ($query) => $query->where('priority', $priority))->when(in_array($status, ['OPEN', 'IN_PROGRESS', 'RESOLVED'], true), fn ($query) => $query->where('status', $status))->when($dueFrom, fn ($query) => $query->whereDate('due_date', '>=', $dueFrom))->when($dueTo, fn ($query) => $query->whereDate('due_date', '<=', $dueTo))->latest()->paginate($perPage)->withQueryString();
 
-        return view('issues.index', array_merge(['issues' => $issues, 'lpks' => Lpk::orderBy('name')->get(['id', 'name'])], compact('search', 'lpkId', 'priority', 'status', 'dueFrom', 'dueTo')));
+        return view('issues.index', array_merge(['issues' => $issues, 'lpks' => Lpk::orderBy('name')->get(['id', 'name'])], compact('search', 'lpkId', 'priority', 'status', 'dueFrom', 'dueTo', 'perPage')));
     }
 
     public function create(): View

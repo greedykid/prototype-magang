@@ -8,11 +8,11 @@
 </head>
 <body class="auth-page">
 <main class="login-card" id="login-card">
-    <div class="brand">
-        <span class="brand-mark">K</span>
-        <div>
+    <div class="brand login-brand">
+        <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="login-brand-logo">
+        <div class="login-brand-text">
             <strong>SIMASADI</strong>
-            <small>workspace prototype</small>
+            <small>Badan Standardisasi Nasional</small>
         </div>
     </div>
     <p class="eyebrow">RUANG KERJA INTERNAL</p>

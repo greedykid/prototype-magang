@@ -20,9 +20,13 @@ class AmendmentController extends Controller
         $submittedTo = $request->date('submitted_to')?->format('Y-m-d');
         $targetFrom = $request->date('target_from')?->format('Y-m-d');
         $targetTo = $request->date('target_to')?->format('Y-m-d');
-        $amendments = Amendment::query()->with('lpk')->when($search, fn ($query) => $query->where('submission_number', 'like', "%{$search}%"))->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when($amendmentType, fn ($query) => $query->where('amendment_type', $amendmentType))->when($status, fn ($query) => $query->where('status', $status))->when($submittedFrom, fn ($query) => $query->whereDate('submitted_at', '>=', $submittedFrom))->when($submittedTo, fn ($query) => $query->whereDate('submitted_at', '<=', $submittedTo))->when($targetFrom, fn ($query) => $query->whereDate('target_date', '>=', $targetFrom))->when($targetTo, fn ($query) => $query->whereDate('target_date', '<=', $targetTo))->latest()->paginate(12)->withQueryString();
+        $perPage = $request->integer('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+        $amendments = Amendment::query()->with('lpk')->when($search, fn ($query) => $query->where('submission_number', 'like', "%{$search}%"))->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when($amendmentType, fn ($query) => $query->where('amendment_type', $amendmentType))->when($status, fn ($query) => $query->where('status', $status))->when($submittedFrom, fn ($query) => $query->whereDate('submitted_at', '>=', $submittedFrom))->when($submittedTo, fn ($query) => $query->whereDate('submitted_at', '<=', $submittedTo))->when($targetFrom, fn ($query) => $query->whereDate('target_date', '>=', $targetFrom))->when($targetTo, fn ($query) => $query->whereDate('target_date', '<=', $targetTo))->latest()->paginate($perPage)->withQueryString();
 
-        return view('amendments.index', array_merge(['amendments' => $amendments, 'lpks' => Lpk::orderBy('name')->get(['id', 'name']), 'amendmentTypes' => Amendment::query()->whereNotNull('amendment_type')->distinct()->orderBy('amendment_type')->pluck('amendment_type')], compact('search', 'lpkId', 'amendmentType', 'status', 'submittedFrom', 'submittedTo', 'targetFrom', 'targetTo')));
+        return view('amendments.index', array_merge(['amendments' => $amendments, 'lpks' => Lpk::orderBy('name')->get(['id', 'name']), 'amendmentTypes' => Amendment::query()->whereNotNull('amendment_type')->distinct()->orderBy('amendment_type')->pluck('amendment_type')], compact('search', 'lpkId', 'amendmentType', 'status', 'submittedFrom', 'submittedTo', 'targetFrom', 'targetTo', 'perPage')));
     }
 
     public function create(): View
