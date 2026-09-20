@@ -64,7 +64,7 @@ class RoleAccessControlTest extends TestCase
             ->assertDontSee('<span class="nav-label">Backup</span>', false);
     }
 
-    public function test_assessor_can_view_assessments_and_report_expenses_but_cannot_access_monitoring_or_manage_lpks(): void
+    public function test_assessor_can_manage_assessments_and_report_expenses_but_cannot_manage_lpks(): void
     {
         $assessor = User::factory()->assessor()->create();
         $lpk = Lpk::factory()->create();
@@ -73,11 +73,30 @@ class RoleAccessControlTest extends TestCase
             'created_by' => $assessor->id,
         ]);
 
-        // Asesor dapat melihat asesmen dan kalender
+        // 1. Asesor DAPAT melihat, membuat, dan mengubah agenda asesmen
         $this->actingAs($assessor)->get(route('assessments.index'))->assertOk();
-        $this->actingAs($assessor)->get(route('calendar.index'))->assertOk();
+        $this->actingAs($assessor)->get(route('assessments.create'))->assertOk();
 
-        // Asesor dapat melaporkan biaya perjalanan dinas
+        $storeResponse = $this->actingAs($assessor)->post(route('assessments.store'), [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Lapangan Khusus Asesor',
+            'assessment_type' => 'SURVEILLANCE',
+            'status' => 'PLANNED',
+            'start_at' => now()->addDays(3)->format('Y-m-d\TH:i'),
+            'end_at' => now()->addDays(3)->addHours(4)->format('Y-m-d\TH:i'),
+            'location' => 'Laboratorium Pengujian Bandung',
+            'lead_assessor' => $assessor->name,
+        ]);
+        $storeResponse->assertRedirect();
+        $this->assertDatabaseHas('assessments', [
+            'title' => 'Asesmen Lapangan Khusus Asesor',
+            'created_by' => $assessor->id,
+        ]);
+
+        $this->actingAs($assessor)->get(route('assessments.edit', $assessment))->assertOk();
+
+        // 2. Asesor DAPAT melihat kalender dan melaporkan biaya perjalanan dinas
+        $this->actingAs($assessor)->get(route('calendar.index'))->assertOk();
         $expenseResponse = $this->actingAs($assessor)->post(route('assessments.expenses.store', $assessment), [
             'daily_allowance' => 500000,
             'transport_cost' => 800000,
@@ -87,18 +106,28 @@ class RoleAccessControlTest extends TestCase
         ]);
         $expenseResponse->assertRedirect();
 
-        // Asesor DITOLAK (403) memverifikasi biaya SBM (hanya boleh staf/admin)
+        // 3. Asesor DITOLAK (403) memverifikasi biaya SBM (hanya boleh staf/admin)
         $this->actingAs($assessor)->post(route('assessments.expenses.verify', $assessment), [
             'status' => 'TERVERIFIKASI',
         ])->assertForbidden();
 
-        // Asesor DITOLAK (403) membuat master LPK
+        // 4. Asesor DITOLAK (403) membuat atau mengedit master LPK
         $this->actingAs($assessor)->get(route('lpks.create'))->assertForbidden();
+        $this->actingAs($assessor)->get(route('lpks.edit', $lpk))->assertForbidden();
 
-        // Asesor DITOLAK (403) mengakses proses akreditasi (billing & esign)
+        // Tombol Tambah LPK dan Ubah data tidak muncul di antarmuka Asesor
+        $lpkIndexResponse = $this->actingAs($assessor)->get(route('lpks.index'));
+        $lpkIndexResponse->assertOk()
+            ->assertDontSee('Tambah LPK');
+
+        $lpkShowResponse = $this->actingAs($assessor)->get(route('lpks.show', $lpk));
+        $lpkShowResponse->assertOk()
+            ->assertDontSee('Ubah data');
+
+        // 5. Asesor DITOLAK (403) mengakses proses akreditasi (billing & esign)
         $this->actingAs($assessor)->get(route('accreditations.index'))->assertForbidden();
 
-        // Asesor DITOLAK (403) mengakses monitoring server
+        // 6. Asesor DITOLAK (403) mengakses monitoring server
         $this->actingAs($assessor)->get(route('monitoring.services'))->assertForbidden();
 
         // Sidebar Asesor menampilkan menu audit dan menyembunyikan administrasi akreditasi

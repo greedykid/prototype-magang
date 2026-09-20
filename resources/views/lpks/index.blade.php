@@ -7,10 +7,12 @@
     title="Daftar LPK"
     subtitle="Kelola catatan dasar lembaga pengujian yang digunakan di prototype."
 >
-    <a class="button primary" href="{{ route('lpks.create') }}">
-        <x-icon name="plus" size="16" />
-        <span>Tambah LPK</span>
-    </a>
+    @if(auth()->user()?->hasRole(['admin', 'staf']))
+        <a class="button primary" href="{{ route('lpks.create') }}">
+            <x-icon name="plus" size="16" />
+            <span>Tambah LPK</span>
+        </a>
+    @endif
 </x-page-header>
 
 <section class="panel">
@@ -71,7 +73,7 @@
             {{ $search || $status ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
             @if($search || $status)
                 <a class="button ghost empty-action" href="{{ route('lpks.index') }}">Reset filter</a>
-            @else
+            @elseif(auth()->user()?->hasRole(['admin', 'staf']))
                 <a href="{{ route('lpks.create') }}">Tambah LPK pertama</a>.
             @endif
         </div>

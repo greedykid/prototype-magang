@@ -9,10 +9,12 @@
         <h1>{{ $lpk->name }}</h1>
         <p class="lede">{{ $lpk->registration_number }} &middot; data contoh lokal</p>
     </div>
-    <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}">
-        <x-icon name="edit" size="16" />
-        <span>Ubah data</span>
-    </a>
+    @if(auth()->user()?->hasRole(['admin', 'staf']))
+        <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}">
+            <x-icon name="edit" size="16" />
+            <span>Ubah data</span>
+        </a>
+    @endif
 </div>
 
 <div class="detail-grid">
