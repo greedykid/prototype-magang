@@ -9,6 +9,7 @@ use App\Http\Controllers\AssessmentExpenseController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\MonitoringController;
@@ -23,6 +24,11 @@ Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->
 
 // Public verification for digital signature (BSrE QR Code simulation)
 Route::get('/verify-sk/{hash}', [AccreditationSignatureController::class, 'verifyPublic'])->name('accreditations.esign.verify');
+
+// Public live CSV feeds for Google Sheets =IMPORTDATA formula (protected by ?key= query)
+Route::get('/feeds/expenses.csv', [GoogleSheetsReportController::class, 'feedExpenses'])->name('feeds.expenses');
+Route::get('/feeds/lpks.csv', [GoogleSheetsReportController::class, 'feedLpks'])->name('feeds.lpks');
+Route::get('/feeds/assessments.csv', [GoogleSheetsReportController::class, 'feedAssessments'])->name('feeds.assessments');
 
 Route::middleware('auth')->group(function (): void {
     // 1. Fitur bersama (Admin, Staf, Asesor)
@@ -41,6 +47,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
     Route::post('/assessments/{assessment}/expenses', [AssessmentExpenseController::class, 'storeOrUpdate'])->name('assessments.expenses.store');
+
+    // Ekspor CSV Terotentikasi & Integrasi Google Sheets
+    Route::get('/reports/expenses/export', [GoogleSheetsReportController::class, 'exportExpenses'])->name('reports.expenses.export');
+    Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
+    Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
     // 2. Monitoring Sistem & Infrastruktur (Hanya Administrator Sistem)
     Route::middleware('role:admin')->group(function (): void {

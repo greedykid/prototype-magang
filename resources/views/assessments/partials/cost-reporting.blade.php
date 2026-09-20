@@ -17,6 +17,10 @@
         </div>
         <div class="header-actions">
             <x-status :value="$expenseStatus" />
+            <button type="button" class="button ghost" onclick="window.openModal('modal-sheets-sync-expenses')" title="Sinkronkan rekap biaya ke Google Sheets" style="display: inline-flex; align-items: center; gap: 6px;">
+                <x-icon name="sheets" size="14" style="color: #0f9d58;" />
+                <span>Google Sheets</span>
+            </button>
             <button type="button" class="button secondary" onclick="window.openModal('modal-report-expense')">
                 <x-icon name="edit" size="14" />
                 <span>{{ $expense ? 'Perbarui Biaya' : 'Input Biaya Asesor' }}</span>
@@ -82,3 +86,18 @@
         </div>
     </div>
 </section>
+
+@include('partials.sheets-modal', [
+    'modalId' => 'modal-sheets-sync-expenses',
+    'title' => 'Integrasi Google Sheets: Rekapitulasi Biaya SBM Asesor',
+    'subtitle' => 'Sinkronkan data biaya perjalanan dinas asesor (SBM Kemenkeu) untuk asesmen ini dan seluruh asesmen lainnya secara live ke Google Sheets.',
+    'exportUrl' => route('reports.expenses.export'),
+    'feedUrl' => route('feeds.expenses', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')]),
+    'fileName' => 'rekap-biaya-sbm-simasadi.csv',
+    'columns' => [
+        'ID Asesmen', 'Judul Agenda', 'Nama LPK', 'Nomor Registrasi LPK', 'Jenis Asesmen',
+        'Waktu Pelaksanaan', 'Status Asesmen', 'Uang Harian (Rp)', 'Transportasi (Rp)',
+        'Akomodasi (Rp)', 'Paket Data (Rp)', 'Total Biaya (Rp)', 'Status SBM', 'Bukti Kwitansi / SPPD',
+        'Catatan Verifikator KAN', 'Waktu Verifikasi'
+    ]
+])

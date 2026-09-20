@@ -7,12 +7,18 @@
     title="Daftar LPK"
     subtitle="Kelola catatan dasar lembaga pengujian yang digunakan di prototype."
 >
-    @if(auth()->user()?->hasRole(['admin', 'staf']))
-        <a class="button primary" href="{{ route('lpks.create') }}">
-            <x-icon name="plus" size="16" />
-            <span>Tambah LPK</span>
-        </a>
-    @endif
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
+            <x-icon name="sheets" size="16" style="color: #0f9d58;" />
+            <span>Google Sheets & Ekspor</span>
+        </button>
+        @if(auth()->user()?->hasRole(['admin', 'staf']))
+            <a class="button primary" href="{{ route('lpks.create') }}">
+                <x-icon name="plus" size="16" />
+                <span>Tambah LPK</span>
+            </a>
+        @endif
+    </div>
 </x-page-header>
 
 <section class="panel">
@@ -79,4 +85,14 @@
         </div>
     @endif
 </section>
+
+@include('partials.sheets-modal', [
+    'modalId' => 'modal-sheets-sync-lpks',
+    'title' => 'Integrasi Google Sheets: Data Master LPK',
+    'subtitle' => 'Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung.',
+    'exportUrl' => route('reports.lpks.export'),
+    'feedUrl' => route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')]),
+    'fileName' => 'data-master-lpk-simasadi.csv',
+    'columns' => ['ID LPK', 'Nomor Registrasi', 'Nama Lembaga Penilaian Kesesuaian', 'Status Operasional', 'Total Akreditasi', 'Total Isu', 'Tanggal Terdaftar']
+])
 @endsection
