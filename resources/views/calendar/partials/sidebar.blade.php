@@ -4,15 +4,6 @@
             <span>Buat Agenda Baru</span>
         </button>
 
-        {{-- Mobile-only collapsible trigger button --}}
-        <button type="button" class="gcal-sidebar-toggle-btn" id="gcal-sidebar-toggle-btn" aria-expanded="false" aria-controls="gcal-sidebar-content">
-            <span class="gcal-toggle-label">
-                <x-icon name="calendar" size="16" />
-                <span>Filter & Mini Kalender</span>
-            </span>
-            <x-icon name="chevron-down" size="16" class="gcal-toggle-chevron" />
-        </button>
-
         <div class="gcal-sidebar-content" id="gcal-sidebar-content">
             {{-- Mini Month Calendar --}}
             @php

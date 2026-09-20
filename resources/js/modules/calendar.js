@@ -271,19 +271,6 @@ function quickAddAt(dateStr, timeStr = '09:00') {
 }
 window.quickAddAt = quickAddAt;
 
-// Mobile collapsible sidebar toggle (Filter & Mini Kalender)
-document.addEventListener('click', (e) => {
-    const btn = e.target.closest('#gcal-sidebar-toggle-btn');
-    if (btn) {
-        const content = document.getElementById('gcal-sidebar-content');
-        if (content) {
-            const isOpen = content.classList.toggle('is-open');
-            btn.classList.toggle('is-open', isOpen);
-            btn.setAttribute('aria-expanded', String(isOpen));
-        }
-    }
-});
-
 // Mini-calendar date cell click: highlight selected date
 document.addEventListener('click', (e) => {
     const miniCell = e.target.closest('.gcal-mini-cell');

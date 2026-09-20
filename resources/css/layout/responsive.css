@@ -471,58 +471,19 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     }
 
     .gcal-sidebar-toggle-btn {
-        align-items: center !important;
-        background: #ffffff !important;
-        border: 1px solid var(--line) !important;
-        border-radius: 8px !important;
-        color: var(--ink) !important;
-        cursor: pointer !important;
-        display: flex !important;
-        font: 600 13.5px 'Instrument Sans', sans-serif !important;
-        justify-content: space-between !important;
-        min-height: 44px !important;
-        padding: 10px 14px !important;
-        transition: background-color 150ms ease, border-color 150ms ease !important;
-        user-select: none !important;
-        width: 100% !important;
-    }
-
-    .gcal-sidebar-toggle-btn:hover,
-    .gcal-sidebar-toggle-btn:focus-visible {
-        background: var(--lavender) !important;
-        border-color: #cfc6ff !important;
-        color: var(--maroon-dark) !important;
-    }
-
-    .gcal-toggle-label {
-        align-items: center;
-        display: inline-flex;
-        gap: 8px;
-    }
-
-    .gcal-toggle-chevron {
-        transition: transform 200ms ease;
-    }
-
-    .gcal-sidebar-toggle-btn[aria-expanded="true"] .gcal-toggle-chevron,
-    .gcal-sidebar-toggle-btn.is-open .gcal-toggle-chevron {
-        transform: rotate(180deg);
+        display: none !important;
     }
 
     .gcal-sidebar-content {
-        background: #ffffff !important;
-        border: 1px solid var(--line) !important;
-        border-radius: 8px !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
         box-sizing: border-box !important;
-        display: none !important;
+        display: flex !important;
         flex-direction: column !important;
         gap: 18px !important;
-        padding: 16px 14px !important;
+        padding: 0 !important;
         width: 100% !important;
-    }
-
-    .gcal-sidebar-content.is-open {
-        display: flex !important;
     }
 
     .gcal-main {
