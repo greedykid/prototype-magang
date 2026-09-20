@@ -9,10 +9,12 @@
     :title="$assessment->title"
     :subtitle="$assessment->lpk->name"
 >
-    <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
-        <x-icon name="edit" size="16" />
-        <span>Ubah asesmen</span>
-    </a>
+    @if(auth()->user()?->hasRole(['admin', 'staf']))
+        <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
+            <x-icon name="edit" size="16" />
+            <span>Ubah asesmen</span>
+        </a>
+    @endif
 </x-page-header>
 
 <section class="panel detail-list">

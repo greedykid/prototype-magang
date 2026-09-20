@@ -39,11 +39,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/lpks', [LpkController::class, 'index'])->name('lpks.index');
     Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
-    Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
-    Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
-    Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
-    Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
     Route::post('/assessments/{assessment}/expenses', [AssessmentExpenseController::class, 'storeOrUpdate'])->name('assessments.expenses.store');
 
     // 2. Monitoring Sistem & Infrastruktur (Hanya Administrator Sistem)
@@ -67,6 +63,13 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/accreditations/{accreditation}/billings/{billing}/pay', [AccreditationBillingController::class, 'pay'])->name('accreditations.billings.pay');
         Route::post('/accreditations/{accreditation}/esign', [AccreditationSignatureController::class, 'sign'])->name('accreditations.esign.sign');
 
+        // Penjadwalan & Pengelolaan Asesmen (Wewenang Sekretariat KAN)
+        Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
+        Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
+        Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
+        Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
+
+        // Verifikasi Biaya Perjalanan Dinas SBM Asesor
         Route::post('/assessments/{assessment}/expenses/verify', [AssessmentExpenseController::class, 'verify'])->name('assessments.expenses.verify');
     });
 
