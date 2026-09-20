@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\LpkController;
+use App\Http\Controllers\LpkImportController;
 use App\Http\Controllers\MonitoringController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +64,8 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('role:admin,staf')->group(function (): void {
         Route::get('/lpks/create', [LpkController::class, 'create'])->name('lpks.create');
         Route::post('/lpks', [LpkController::class, 'store'])->name('lpks.store');
+        Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
+        Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
         Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
         Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
 

@@ -13,6 +13,10 @@
             <span>Google Sheets & Ekspor</span>
         </button>
         @if(auth()->user()?->hasRole(['admin', 'staf']))
+            <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
+                <x-icon name="upload" size="16" />
+                <span>Impor LPK</span>
+            </button>
             <a class="button primary" href="{{ route('lpks.create') }}">
                 <x-icon name="plus" size="16" />
                 <span>Tambah LPK</span>
@@ -95,4 +99,8 @@
     'fileName' => 'data-master-lpk-simasadi.csv',
     'columns' => ['ID LPK', 'Nomor Registrasi', 'Nama Lembaga Penilaian Kesesuaian', 'Status Operasional', 'Total Akreditasi', 'Total Isu', 'Tanggal Terdaftar']
 ])
+
+@if(auth()->user()?->hasRole(['admin', 'staf']))
+    @include('lpks.partials.import-modal')
+@endif
 @endsection

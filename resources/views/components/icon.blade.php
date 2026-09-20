@@ -31,6 +31,7 @@
         'refresh' => '<path d="M20 11a8 8 0 0 0-14.9-3L3 11"/><path d="M3 4v7h7M4 13a8 8 0 0 0 14.9 3L21 13"/><path d="M21 20v-7h-7"/>',
         'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
         'services' => '<rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>',
+        'upload' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
         'x' => '<path d="m6 6 12 12M18 6 6 18"/>',
     ];
 @endphp
