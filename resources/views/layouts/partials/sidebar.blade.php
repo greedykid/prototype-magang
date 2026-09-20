@@ -27,10 +27,12 @@
                 <x-icon name="accreditations" size="18" />
                 <span class="nav-label">Akreditasi</span>
             </a>
-            <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
-                <x-icon name="amendments" size="18" />
-                <span class="nav-label">Amandemen</span>
-            </a>
+            @if(auth()->user()?->hasRole(['admin', 'staf']))
+                <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
+                    <x-icon name="amendments" size="18" />
+                    <span class="nav-label">Amandemen</span>
+                </a>
+            @endif
         </div>
 
         <div class="nav-section">
@@ -47,14 +49,16 @@
 
         <div class="nav-section">
             <span class="nav-section-title">Monitoring & Sistem</span>
-            <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
-                <x-icon name="services" size="18" />
-                <span class="nav-label">Layanan KANMIS</span>
-            </a>
-            <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
-                <x-icon name="backup" size="18" />
-                <span class="nav-label">Backup</span>
-            </a>
+            @if(auth()->user()?->isAdmin())
+                <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
+                    <x-icon name="services" size="18" />
+                    <span class="nav-label">Layanan KANMIS</span>
+                </a>
+                <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
+                    <x-icon name="backup" size="18" />
+                    <span class="nav-label">Backup</span>
+                </a>
+            @endif
             <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Masalah">
                 <x-icon name="issues" size="18" />
                 <span class="nav-label">Masalah</span>
@@ -67,7 +71,9 @@
                 <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
                 <div class="user-details">
                     <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
-                    <small>Petugas monitoring</small>
+                    <span class="badge-role {{ auth()->user()->role_badge_class ?? 'badge-role-default' }}" style="margin-top: 3px;">
+                        {{ auth()->user()->role_label ?? 'Petugas' }}
+                    </span>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}" id="logout-form" class="logout-form">

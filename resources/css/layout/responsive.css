@@ -248,6 +248,8 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         backdrop-filter: blur(2px) !important;
         -webkit-backdrop-filter: blur(2px) !important;
         bottom: 0 !important;
+        cursor: pointer !important;
+        display: block !important;
         height: 100vh !important;
         height: 100dvh !important;
         inset: 0 !important;
@@ -261,6 +263,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .sidebar.is-open + .drawer-backdrop,
     body.drawer-open .drawer-backdrop {
+        display: block !important;
         opacity: 1 !important;
         pointer-events: auto !important;
     }

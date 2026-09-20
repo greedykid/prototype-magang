@@ -16,7 +16,6 @@
 
 <div class="app-shell">
     @include('layouts.partials.sidebar')
-    <div class="drawer-backdrop" data-drawer-close></div>
 
     <main id="main-content" class="main-content">
         @include('layouts.partials.topbar')
@@ -36,6 +35,8 @@
         </div>
     </main>
 </div>
+
+<div class="drawer-backdrop" data-drawer-close></div>
 
 @include('layouts.partials.logout-curtain')
 </body>

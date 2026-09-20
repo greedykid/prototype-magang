@@ -19,4 +19,11 @@
             }){{ $moduleCategory }}</strong>
         </div>
     </div>
+    @if(auth()->check())
+        <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge-role {{ auth()->user()->role_badge_class }}">
+                {{ auth()->user()->role_label }}
+            </span>
+        </div>
+    @endif
 </header>

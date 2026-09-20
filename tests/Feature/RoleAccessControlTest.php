@@ -1,0 +1,112 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Accreditation;
+use App\Models\Assessment;
+use App\Models\Lpk;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class RoleAccessControlTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_quick_login_page_renders_all_role_options(): void
+    {
+        $response = $this->get(route('login'));
+
+        $response->assertOk()
+            ->assertSee('Administrator')
+            ->assertSee('Staf Administrasi')
+            ->assertSee('Asesor / Auditor')
+            ->assertSee('admin@kanmis.local')
+            ->assertSee('staf@kanmis.local')
+            ->assertSee('asesor@kanmis.local');
+    }
+
+    public function test_admin_has_full_access_to_monitoring_and_administration(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // Dapat mengakses monitoring
+        $this->actingAs($admin)->get(route('monitoring.services'))->assertOk();
+        $this->actingAs($admin)->get(route('monitoring.backups'))->assertOk();
+
+        // Dapat mengakses form tambah LPK
+        $this->actingAs($admin)->get(route('lpks.create'))->assertOk();
+
+        // Dapat mengakses dashboard
+        $this->actingAs($admin)->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_staff_can_manage_lpks_but_cannot_access_technical_monitoring(): void
+    {
+        $staff = User::factory()->staff()->create();
+
+        // Staf dapat membuka pembuatan LPK dan asesmen
+        $this->actingAs($staff)->get(route('lpks.create'))->assertOk();
+        $this->actingAs($staff)->get(route('assessments.create'))->assertOk();
+
+        // Staf DITOLAK (403) saat mencoba mengakses monitoring server/backup internal
+        $this->actingAs($staff)->get(route('monitoring.services'))->assertForbidden();
+        $this->actingAs($staff)->get(route('monitoring.backups'))->assertForbidden();
+    }
+
+    public function test_assessor_can_view_assessments_and_report_expenses_but_cannot_access_monitoring_or_manage_lpks(): void
+    {
+        $assessor = User::factory()->assessor()->create();
+        $lpk = Lpk::factory()->create();
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $assessor->id,
+        ]);
+
+        // Asesor dapat melihat asesmen dan kalender
+        $this->actingAs($assessor)->get(route('assessments.index'))->assertOk();
+        $this->actingAs($assessor)->get(route('calendar.index'))->assertOk();
+
+        // Asesor dapat melaporkan biaya perjalanan dinas
+        $expenseResponse = $this->actingAs($assessor)->post(route('assessments.expenses.store', $assessment), [
+            'daily_allowance' => 500000,
+            'transport_cost' => 800000,
+            'accommodation_cost' => 600000,
+            'package_data_cost' => 100000,
+            'receipt_note' => 'Kwitansi Perjalanan Dinas',
+        ]);
+        $expenseResponse->assertRedirect();
+
+        // Asesor DITOLAK (403) memverifikasi biaya SBM (hanya boleh staf/admin)
+        $this->actingAs($assessor)->post(route('assessments.expenses.verify', $assessment), [
+            'status' => 'TERVERIFIKASI',
+        ])->assertForbidden();
+
+        // Asesor DITOLAK (403) membuat master LPK
+        $this->actingAs($assessor)->get(route('lpks.create'))->assertForbidden();
+
+        // Asesor DITOLAK (403) mengakses monitoring
+        $this->actingAs($assessor)->get(route('monitoring.services'))->assertForbidden();
+    }
+
+    public function test_role_helpers_and_attributes_work_correctly(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $staff = User::factory()->staff()->create();
+        $assessor = User::factory()->assessor()->create();
+
+        $this->assertTrue($admin->isAdmin());
+        $this->assertFalse($admin->isStaff());
+        $this->assertEquals('Administrator Sistem', $admin->role_label);
+        $this->assertEquals('badge-role-admin', $admin->role_badge_class);
+
+        $this->assertTrue($staff->isStaff());
+        $this->assertFalse($staff->isAdmin());
+        $this->assertEquals('Staf Administrasi', $staff->role_label);
+        $this->assertEquals('badge-role-staff', $staff->role_badge_class);
+
+        $this->assertTrue($assessor->isAssessor());
+        $this->assertEquals('Auditor / Asesor KAN', $assessor->role_label);
+        $this->assertEquals('badge-role-assessor', $assessor->role_badge_class);
+    }
+}

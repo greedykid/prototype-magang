@@ -20,25 +20,54 @@ if (typeof window !== 'undefined') {
 
 export const initMobileDrawer = () => {
     const menuToggle = document.querySelector('.menu-toggle');
-    const navigation = document.querySelector('#primary-navigation');
     const sidebar = document.querySelector('.sidebar');
     const drawerBackdrop = document.querySelector('[data-drawer-close]');
     const drawerClose = document.querySelector('.drawer-close');
 
-    if (menuToggle && navigation && sidebar) {
-        menuToggle.addEventListener('click', () => {
+    if (sidebar) {
+        menuToggle?.addEventListener('click', (event) => {
+            event.stopPropagation();
             const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
             setDrawerState(!isOpen);
         });
 
-        navigation.addEventListener('click', (event) => {
+        sidebar.addEventListener('click', (event) => {
             if (event.target.closest('a')) {
                 setDrawerState(false);
             }
         });
 
-        drawerClose?.addEventListener('click', () => setDrawerState(false));
-        drawerBackdrop?.addEventListener('click', () => setDrawerState(false));
+        drawerClose?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            setDrawerState(false);
+        });
+
+        drawerBackdrop?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            setDrawerState(false);
+        });
+
+        drawerBackdrop?.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            setDrawerState(false);
+        }, { passive: true });
+
+        // Close sidebar if user clicks or taps anywhere outside the sidebar
+        const handleOutsideInteraction = (event) => {
+            if (!sidebar.classList.contains('is-open') && !document.body.classList.contains('drawer-open')) {
+                return;
+            }
+
+            // Ignore clicks or touches inside sidebar or on the menu toggle button
+            if (event.target.closest('.sidebar') || event.target.closest('.menu-toggle')) {
+                return;
+            }
+
+            setDrawerState(false);
+        };
+
+        document.addEventListener('click', handleOutsideInteraction);
+        document.addEventListener('touchstart', handleOutsideInteraction, { passive: true });
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
