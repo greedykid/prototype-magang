@@ -25,28 +25,28 @@
     <div class="role-selector-wrap" aria-label="Pemilih peran cepat">
         <span class="role-selector-title">Pilih Akun Peran (1-Klik)</span>
         <div class="role-pills-grid" role="group" aria-label="Pilihan peran">
-            <button type="button" class="role-pill-btn" data-email="admin@kanmis.local" data-pass="password">
+            <button type="button" class="role-pill-btn" data-email="admin@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
                     <span class="role-pill-name">Administrator</span>
                     <span class="badge-role badge-role-admin">Admin</span>
                 </div>
                 <span class="role-pill-desc">Akses penuh & server</span>
             </button>
-            <button type="button" class="role-pill-btn" data-email="staf@kanmis.local" data-pass="password">
+            <button type="button" class="role-pill-btn" data-email="staf@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
                     <span class="role-pill-name">Staf Administrasi</span>
                     <span class="badge-role badge-role-staff">Staf</span>
                 </div>
                 <span class="role-pill-desc">LPK, Billing, SBM</span>
             </button>
-            <button type="button" class="role-pill-btn" data-email="asesor@kanmis.local" data-pass="password">
+            <button type="button" class="role-pill-btn" data-email="asesor@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
                     <span class="role-pill-name">Asesor / Auditor</span>
                     <span class="badge-role badge-role-assessor">Asesor</span>
                 </div>
                 <span class="role-pill-desc">Asesmen & Biaya SBM</span>
             </button>
-            <button type="button" class="role-pill-btn is-active" data-email="demo@kanmis.local" data-pass="password">
+            <button type="button" class="role-pill-btn is-active" data-email="demo@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
                     <span class="role-pill-name">Akun Demo</span>
                     <span class="badge-role badge-role-default">All</span>
@@ -60,7 +60,7 @@
         @csrf
         <label>
             Email
-            <input type="email" name="email" id="login-email-input" value="{{ old('email', 'demo@kanmis.local') }}" required autofocus>
+            <input type="email" name="email" id="login-email-input" value="{{ old('email', 'demo@simasadi.local') }}" required autofocus>
         </label>
         <label>
             Password

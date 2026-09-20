@@ -21,9 +21,9 @@ class RoleAccessControlTest extends TestCase
             ->assertSee('Administrator')
             ->assertSee('Staf Administrasi')
             ->assertSee('Asesor / Auditor')
-            ->assertSee('admin@kanmis.local')
-            ->assertSee('staf@kanmis.local')
-            ->assertSee('asesor@kanmis.local');
+            ->assertSee('admin@simasadi.local')
+            ->assertSee('staf@simasadi.local')
+            ->assertSee('asesor@simasadi.local');
     }
 
     public function test_admin_has_full_access_to_monitoring_and_administration(): void

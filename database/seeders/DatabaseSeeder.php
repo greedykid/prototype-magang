@@ -25,28 +25,28 @@ class DatabaseSeeder extends Seeder
     {
         $admin = User::factory()->create([
             'name' => 'Budi Administrator',
-            'email' => 'admin@kanmis.local',
+            'email' => 'admin@simasadi.local',
             'password' => 'password',
             'role' => User::ROLE_ADMIN,
         ]);
 
         $staff = User::factory()->create([
             'name' => 'Siti Sekretariat',
-            'email' => 'staf@kanmis.local',
+            'email' => 'staf@simasadi.local',
             'password' => 'password',
             'role' => User::ROLE_STAFF,
         ]);
 
         $assessor = User::factory()->create([
             'name' => 'Dr. Hendra Asesor',
-            'email' => 'asesor@kanmis.local',
+            'email' => 'asesor@simasadi.local',
             'password' => 'password',
             'role' => User::ROLE_ASSESSOR,
         ]);
 
         $user = User::factory()->create([
             'name' => 'Petugas Demo',
-            'email' => 'demo@kanmis.local',
+            'email' => 'demo@simasadi.local',
             'password' => 'password',
             'role' => User::ROLE_ADMIN,
         ]);
