@@ -45,13 +45,23 @@ class RoleAccessControlTest extends TestCase
     {
         $staff = User::factory()->staff()->create();
 
-        // Staf dapat membuka pembuatan LPK dan asesmen
+        // Staf dapat membuka pembuatan LPK, asesmen, dan proses akreditasi
         $this->actingAs($staff)->get(route('lpks.create'))->assertOk();
         $this->actingAs($staff)->get(route('assessments.create'))->assertOk();
+        $this->actingAs($staff)->get(route('accreditations.index'))->assertOk();
 
         // Staf DITOLAK (403) saat mencoba mengakses monitoring server/backup internal
         $this->actingAs($staff)->get(route('monitoring.services'))->assertForbidden();
         $this->actingAs($staff)->get(route('monitoring.backups'))->assertForbidden();
+
+        // Sidebar Staf menampilkan modul akreditasi tetapi menyembunyikan monitoring server
+        $staffDashboard = $this->actingAs($staff)->get(route('dashboard'));
+        $staffDashboard->assertOk()
+            ->assertSee('Administrasi LPK')
+            ->assertSee('<span class="nav-label">Akreditasi</span>', false)
+            ->assertSee('<span class="nav-label">Amandemen</span>', false)
+            ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
+            ->assertDontSee('<span class="nav-label">Backup</span>', false);
     }
 
     public function test_assessor_can_view_assessments_and_report_expenses_but_cannot_access_monitoring_or_manage_lpks(): void
@@ -85,8 +95,20 @@ class RoleAccessControlTest extends TestCase
         // Asesor DITOLAK (403) membuat master LPK
         $this->actingAs($assessor)->get(route('lpks.create'))->assertForbidden();
 
-        // Asesor DITOLAK (403) mengakses monitoring
+        // Asesor DITOLAK (403) mengakses proses akreditasi (billing & esign)
+        $this->actingAs($assessor)->get(route('accreditations.index'))->assertForbidden();
+
+        // Asesor DITOLAK (403) mengakses monitoring server
         $this->actingAs($assessor)->get(route('monitoring.services'))->assertForbidden();
+
+        // Sidebar Asesor menampilkan menu audit dan menyembunyikan administrasi akreditasi
+        $dashboardResponse = $this->actingAs($assessor)->get(route('dashboard'));
+        $dashboardResponse->assertOk()
+            ->assertSee('Penugasan Asesmen')
+            ->assertSee('Kalender Kerja')
+            ->assertSee('Data Lembaga (LPK)')
+            ->assertDontSee('<span class="nav-label">Akreditasi</span>', false)
+            ->assertDontSee('<span class="nav-label">Amandemen</span>', false);
     }
 
     public function test_role_helpers_and_attributes_work_correctly(): void

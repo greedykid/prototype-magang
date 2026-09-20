@@ -38,8 +38,6 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/issues/{issue}/follow-ups', [IssueController::class, 'storeFollowup'])->name('issues.followups.store');
 
     Route::get('/lpks', [LpkController::class, 'index'])->name('lpks.index');
-    Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');
-    Route::get('/accreditations/{accreditation}', [AccreditationController::class, 'show'])->name('accreditations.show');
     Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
     Route::post('/assessments/{assessment}/expenses', [AssessmentExpenseController::class, 'storeOrUpdate'])->name('assessments.expenses.store');
@@ -59,16 +57,18 @@ Route::middleware('auth')->group(function (): void {
 
         Route::resource('amendments', AmendmentController::class)->except(['destroy']);
 
+        Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');
+        Route::get('/accreditations/{accreditation}', [AccreditationController::class, 'show'])->name('accreditations.show');
+        Route::post('/accreditations/{accreditation}/billings', [AccreditationBillingController::class, 'store'])->name('accreditations.billings.store');
+        Route::post('/accreditations/{accreditation}/billings/{billing}/pay', [AccreditationBillingController::class, 'pay'])->name('accreditations.billings.pay');
+        Route::post('/accreditations/{accreditation}/esign', [AccreditationSignatureController::class, 'sign'])->name('accreditations.esign.sign');
+
         Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
         Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
         Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
         Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
 
         Route::post('/assessments/{assessment}/expenses/verify', [AssessmentExpenseController::class, 'verify'])->name('assessments.expenses.verify');
-
-        Route::post('/accreditations/{accreditation}/billings', [AccreditationBillingController::class, 'store'])->name('accreditations.billings.store');
-        Route::post('/accreditations/{accreditation}/billings/{billing}/pay', [AccreditationBillingController::class, 'pay'])->name('accreditations.billings.pay');
-        Route::post('/accreditations/{accreditation}/esign', [AccreditationSignatureController::class, 'sign'])->name('accreditations.esign.sign');
     });
 
     // Detail LPK (ditempatkan setelah lpks/create agar tidak membentur wildcard)

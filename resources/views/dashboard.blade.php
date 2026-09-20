@@ -19,10 +19,38 @@
     </section>
 
     <section class="metric-grid secondary-metrics" aria-label="Monitoring layanan">
-        <div class="metric"><span>Amandemen aktif</span><strong>{{ $amendmentCount }}</strong><small><a href="{{ route('amendments.index') }}">Buka daftar</a></small></div>
-        <div class="metric"><span>Asesmen bulan ini</span><strong>{{ $assessmentCount }}</strong><small><a href="{{ route('assessments.index') }}">Lihat program</a></small></div>
-        <div class="metric {{ $serviceIssueCount ? 'warn' : '' }}"><span>Layanan perlu perhatian</span><strong>{{ $serviceIssueCount }}</strong><small><a href="{{ route('monitoring.services') }}">Status layanan</a></small></div>
-        <div class="metric"><span>Backup terakhir</span><strong>{{ $lastBackup?->finished_at?->format('d/m') ?: '-' }}</strong><small>{{ $lastBackup?->status ? str_replace(['SUCCESS', 'FAILED', 'RUNNING', 'SCHEDULED', 'UNKNOWN'], ['Berhasil', 'Gagal', 'Sedang Berjalan', 'Terjadwal', 'Tidak Diketahui'], $lastBackup->status) : 'Belum dicatat' }}</small></div>
+        <div class="metric">
+            <span>Amandemen aktif</span>
+            <strong>{{ $amendmentCount }}</strong>
+            <small>
+                @if(auth()->user()?->hasRole(['admin', 'staf']))
+                    <a href="{{ route('amendments.index') }}">Buka daftar</a>
+                @else
+                    <span>Pengajuan lingkup</span>
+                @endif
+            </small>
+        </div>
+        <div class="metric">
+            <span>Asesmen bulan ini</span>
+            <strong>{{ $assessmentCount }}</strong>
+            <small><a href="{{ route('assessments.index') }}">Lihat program</a></small>
+        </div>
+        <div class="metric {{ $serviceIssueCount ? 'warn' : '' }}">
+            <span>Layanan perlu perhatian</span>
+            <strong>{{ $serviceIssueCount }}</strong>
+            <small>
+                @if(auth()->user()?->isAdmin())
+                    <a href="{{ route('monitoring.services') }}">Status layanan</a>
+                @else
+                    <span>Sistem KANMIS</span>
+                @endif
+            </small>
+        </div>
+        <div class="metric">
+            <span>Backup terakhir</span>
+            <strong>{{ $lastBackup?->finished_at?->format('d/m') ?: '-' }}</strong>
+            <small>{{ $lastBackup?->status ? str_replace(['SUCCESS', 'FAILED', 'RUNNING', 'SCHEDULED', 'UNKNOWN'], ['Berhasil', 'Gagal', 'Sedang Berjalan', 'Terjadwal', 'Tidak Diketahui'], $lastBackup->status) : 'Belum dicatat' }}</small>
+        </div>
     </section>
 
     @php
@@ -36,7 +64,9 @@
                     <span class="eyebrow">ANALISIS PROSES</span>
                     <h2 id="accreditation-chart-title">Distribusi proses akreditasi</h2>
                 </div>
-                <a href="{{ route('accreditations.index') }}">Lihat proses</a>
+                @if(auth()->user()?->hasRole(['admin', 'staf']))
+                    <a href="{{ route('accreditations.index') }}">Lihat proses</a>
+                @endif
             </div>
             @if($accreditationTotal)
                 <div class="chart-bars" role="img" aria-label="Distribusi proses akreditasi berdasarkan status">
