@@ -1,0 +1,98 @@
+/* Modal Dialog Styles */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+.simasadi-modal {
+    background: rgba(15, 12, 28, 0.58);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    inset: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    height: 100dvh;
+    z-index: 99999;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: clamp(16px, 4vh, 36px) 16px;
+    box-sizing: border-box;
+}
+
+.simasadi-modal.is-active {
+    display: flex !important;
+    animation: modal-backdrop-enter 200ms ease both;
+}
+
+.simasadi-modal-box {
+    margin: auto;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+    max-width: 520px;
+    width: 100%;
+    padding: 24px 28px;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: relative;
+    animation: modal-content-enter 240ms var(--ease-out-expo) both;
+}
+
+@keyframes modal-backdrop-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-content-enter {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.simasadi-modal-head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.simasadi-modal-head h4 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.simasadi-modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px;
+}
+
+.simasadi-modal-close:hover {
+    color: var(--ink);
+}
+
+.modal-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+/* ==========================================================================

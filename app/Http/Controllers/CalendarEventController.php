@@ -21,16 +21,22 @@ class CalendarEventController extends Controller
 
         $dateParam = $request->string('date')->trim()->toString();
         $monthParam = $request->string('month')->trim()->toString();
+        $isSelected = $request->boolean('selected') || ($request->has('date') && $viewMode === 'day');
 
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateParam)) {
             $activeDate = CarbonImmutable::createFromFormat('!Y-m-d', $dateParam);
+            $currentMonth = $activeDate->startOfMonth();
+            $selectedDate = $isSelected ? $activeDate : null;
         } elseif (preg_match('/^\d{4}-\d{2}$/', $monthParam)) {
-            $activeDate = CarbonImmutable::createFromFormat('!Y-m', $monthParam)->startOfMonth();
+            $currentMonth = CarbonImmutable::createFromFormat('!Y-m', $monthParam)->startOfMonth();
+            $activeDate = $currentMonth;
+            $selectedDate = null;
         } else {
             $activeDate = CarbonImmutable::now()->startOfDay();
+            $currentMonth = $activeDate->startOfMonth();
+            $selectedDate = null;
         }
 
-        $currentMonth = $activeDate->startOfMonth();
         $firstDay = $currentMonth;
         $gridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
         $gridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
@@ -132,6 +138,7 @@ class CalendarEventController extends Controller
         return view('calendar.index', compact(
             'currentMonth',
             'activeDate',
+            'selectedDate',
             'viewMode',
             'monthWeeks',
             'miniWeeks',

@@ -1,0 +1,98 @@
+/* SweetAlert2 Custom Theme */
+/*    ========================================================================== */
+.swal2-container {
+    box-sizing: border-box !important;
+    padding: 16px !important;
+}
+
+.swal2-popup.simasadi-swal-popup,
+.swal2-container .swal2-popup {
+    background: #ffffff !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 24px 48px -12px rgba(26, 26, 26, 0.22) !important;
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    padding: 24px 24px 22px !important;
+    width: min(440px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    box-sizing: border-box !important;
+    margin: auto !important;
+}
+
+.simasadi-swal-popup .swal2-timer-progress-bar-container {
+    border-bottom-right-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
+    overflow: hidden !important;
+}
+
+.simasadi-swal-title {
+    color: var(--ink) !important;
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    margin: 12px 0 6px !important;
+    padding: 0 !important;
+}
+
+.simasadi-swal-text {
+    color: var(--muted) !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+    margin: 8px 0 16px !important;
+    padding: 0 !important;
+}
+
+.simasadi-swal-btn {
+    align-items: center !important;
+    background: var(--maroon) !important;
+    border: 1px solid var(--maroon) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(86, 69, 212, 0.24) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    font-family: inherit !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+    padding: 9px 22px !important;
+    transition: all 160ms var(--ease-out-expo) !important;
+}
+
+.simasadi-swal-btn:hover {
+    background: var(--maroon-dark) !important;
+    border-color: var(--maroon-dark) !important;
+    box-shadow: 0 4px 14px rgba(86, 69, 212, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
+.simasadi-swal-cancel-btn {
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #c8c4be !important;
+    border-radius: 8px !important;
+    color: var(--ink) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    font-family: inherit !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+    min-height: 40px !important;
+    padding: 9px 20px !important;
+    transition: all 160ms var(--ease-out-expo) !important;
+}
+
+.simasadi-swal-cancel-btn:hover {
+    background: #f7fafc !important;
+    border-color: #a8a29e !important;
+    color: var(--ink) !important;
+}
+
+.swal2-timer-progress-bar {
+    background: var(--maroon) !important;
+}
+
+/* ==========================================================================

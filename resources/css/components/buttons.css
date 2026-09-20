@@ -1,0 +1,162 @@
+.button { align-items: center; border: 1px solid transparent; border-radius: 8px; cursor: pointer; display: inline-flex; font: 500 14px 'Instrument Sans', sans-serif; gap: 8px; justify-content: center; min-height: 44px; padding: 10px 18px; text-decoration: none; transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--ease-out-expo); }
+.button svg { flex-shrink: 0; }
+.button.primary { background: var(--maroon); color: white; }.button.primary:hover { background: var(--maroon-dark); color: white; box-shadow: 0 4px 14px rgba(86, 69, 212, 0.28); }
+.button.secondary { background: #fff; border-color: #c8c4be; color: var(--ink); }.button.secondary:hover { background: #fff; border-color: #b0aba3; box-shadow: 0 2px 8px rgba(26, 26, 26, 0.07); }
+.button.ghost { background: transparent; border-color: var(--line); color: var(--ink); }.button.ghost:hover { background: var(--surface); border-color: #c8c4be; }
+
+/* Global Button Loading State & Spinner */
+.button.is-loading,
+button.is-loading {
+    cursor: wait !important;
+    pointer-events: none !important;
+    position: relative;
+    opacity: 0.88;
+}
+
+.button .btn-spinner,
+button .btn-spinner {
+    align-items: center;
+    display: none;
+    flex-shrink: 0;
+    justify-content: center;
+    line-height: 1;
+}
+
+.button.is-loading .btn-spinner,
+button.is-loading .btn-spinner {
+    display: inline-flex !important;
+}
+
+.button.is-loading .btn-spinner svg,
+button.is-loading .btn-spinner svg {
+    animation: spin-smooth 650ms linear infinite !important;
+    display: block;
+    transform-origin: 50% 50%;
+}
+
+.button.is-loading > svg:not(.btn-spinner svg),
+button.is-loading > svg:not(.btn-spinner svg),
+.button.is-loading > .btn-icon {
+    display: none !important;
+}
+
+@keyframes spin-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Smooth Spin Keyframes */
+/*    ========================================================================== */
+@keyframes spin-smooth {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   Login Button Motion & Submitting State
+/*    ========================================================================== */
+.login-card {
+    box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    transition: transform 260ms var(--ease-out-expo), box-shadow 260ms var(--ease-out-expo), opacity 260ms ease;
+}
+
+.login-card.is-submitting {
+    opacity: 0.95;
+    transform: scale(0.985);
+}
+
+.login-submit-btn {
+    position: relative;
+    overflow: hidden;
+    gap: 8px;
+    transition: all 180ms var(--ease-smooth);
+}
+
+.login-submit-btn .btn-spinner {
+    align-items: center;
+    display: none;
+    justify-content: center;
+}
+
+.login-submit-btn.is-loading {
+    cursor: wait;
+    opacity: 0.94;
+    pointer-events: none;
+}
+
+.login-submit-btn.is-loading .btn-text {
+    display: none;
+}
+
+.login-submit-btn.is-loading .btn-spinner {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+}
+
+.login-submit-btn.is-loading .btn-spinner svg {
+    animation: spin-smooth 650ms linear infinite;
+    display: block;
+    transform-origin: 50% 50%;
+}
+
+/* ==========================================================================
+   Logout Curtain & Exit Transition
+/*    ========================================================================== */
+.logout-curtain {
+    align-items: center;
+    background: rgba(23, 20, 36, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 260ms var(--ease-smooth);
+    z-index: 9999;
+}
+
+.logout-curtain.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.logout-curtain-content {
+    align-items: center;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    font-size: 15px;
+    font-weight: 500;
+    gap: 16px;
+    letter-spacing: 0.01em;
+    transform: translateY(8px) scale(0.98);
+    transition: transform 260ms var(--ease-out-expo);
+}
+
+.logout-curtain.is-active .logout-curtain-content {
+    transform: translateY(0) scale(1);
+}
+
+.logout-spinner {
+    align-items: center;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+}
+
+.logout-spinner svg {
+    animation: spin-smooth 650ms linear infinite;
+    display: block;
+    stroke-width: 2.2;
+    transform-origin: 50% 50%;
+}
+
+/* ==========================================================================
