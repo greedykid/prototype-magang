@@ -27,8 +27,22 @@
         <input name="title" value="{{ old('title', $assessment->title) }}" required>
     </label>
     <label>
-        Jenis asesmen
-        <input name="assessment_type" value="{{ old('assessment_type', $assessment->assessment_type ?: 'INITIAL') }}" required>
+        Jenis asesmen (Standar KAN U-01)
+        <select name="assessment_type" required>
+            <option value="">Pilih jenis asesmen</option>
+            @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
+                <option value="{{ $typeKey }}" @selected(
+                    old('assessment_type', $assessment->assessment_type) === $typeKey ||
+                    (old('assessment_type') === null && (
+                        ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
+                        ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
+                        ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
+                    ))
+                )>
+                    {{ $typeLabel }}
+                </option>
+            @endforeach
+        </select>
     </label>
     <label>
         Status

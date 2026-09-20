@@ -23,8 +23,8 @@
         <dd><x-status :value="$assessment->status" /></dd>
     </div>
     <div>
-        <dt>Jenis</dt>
-        <dd>{{ $assessment->assessment_type }}</dd>
+        <dt>Jenis (KAN U-01)</dt>
+        <dd>{{ $assessment->assessment_type_label }}</dd>
     </div>
     <div>
         <dt>Waktu</dt>

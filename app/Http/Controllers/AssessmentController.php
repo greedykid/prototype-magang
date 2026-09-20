@@ -22,9 +22,33 @@ class AssessmentController extends Controller
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
-        $assessments = Assessment::query()->with(['lpk', 'expense'])->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when($assessmentType, fn ($query) => $query->where('assessment_type', $assessmentType))->when($status, fn ($query) => $query->where('status', $status))->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo))->orderBy('start_at')->paginate($perPage)->withQueryString();
+        $assessments = Assessment::query()
+            ->with(['lpk', 'expense'])
+            ->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
+            ->when($assessmentType, function ($query) use ($assessmentType) {
+                if ($assessmentType === 'Asesmen Awal') {
+                    $query->whereIn('assessment_type', ['Asesmen Awal', 'INITIAL']);
+                } elseif ($assessmentType === 'Surveilen') {
+                    $query->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE']);
+                } elseif ($assessmentType === 'Re-asesmen') {
+                    $query->whereIn('assessment_type', ['Re-asesmen', 'REASSESSMENT']);
+                } else {
+                    $query->where('assessment_type', $assessmentType);
+                }
+            })
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))
+            ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo))
+            ->orderBy('start_at')
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return view('assessments.index', array_merge(['assessments' => $assessments, 'lpks' => Lpk::orderBy('name')->get(['id', 'name']), 'assessmentTypes' => Assessment::query()->whereNotNull('assessment_type')->distinct()->orderBy('assessment_type')->pluck('assessment_type')], compact('search', 'lpkId', 'assessmentType', 'status', 'startFrom', 'startTo', 'perPage')));
+        return view('assessments.index', array_merge([
+            'assessments' => $assessments,
+            'lpks' => Lpk::orderBy('name')->get(['id', 'name']),
+            'assessmentTypes' => Assessment::TYPES,
+        ], compact('search', 'lpkId', 'assessmentType', 'status', 'startFrom', 'startTo', 'perPage')));
     }
 
     public function create(): View
