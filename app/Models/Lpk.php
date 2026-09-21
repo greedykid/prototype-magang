@@ -52,7 +52,7 @@ class Lpk extends Model
      * Hitung jadwal acuan siklus pengawasan KAN (S1, S2, dan Re-Akreditasi).
      * S1: Notif bulan 14, kunjungan bulan 15.
      * S2: Notif bulan 35, kunjungan bulan 36.
-     * RA: Notif 1 tahun (12 bulan) sebelum masa berlaku sertifikat habis.
+     * RA: Notif 1 bulan sebelum masa berlaku sertifikat habis.
      */
     public function getSurveillanceMilestonesAttribute(): array
     {
@@ -79,9 +79,9 @@ class Lpk extends Model
             'ra' => [
                 'code' => 'RA',
                 'name' => 'Re-Akreditasi (RA)',
-                'notice_date' => $expDate ? $expDate->copy()->subYear() : ($certDate ? $certDate->copy()->addYears(4) : null),
+                'notice_date' => $expDate ? $expDate->copy()->subMonth() : ($certDate ? $certDate->copy()->addYears(5)->subMonth() : null),
                 'target_date' => $expDate,
-                'description' => 'Akreditasi ulang (notifikasi 1 tahun sebelum masa berlaku sertifikat habis)',
+                'description' => 'Akreditasi ulang (notifikasi 1 bulan sebelum masa berlaku sertifikat habis)',
                 'status' => 'PENDING',
             ],
         ];

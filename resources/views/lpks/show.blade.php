@@ -6,7 +6,7 @@
 <div class="page-heading" style="display: block; margin-bottom: 24px;">
     <div>
         <a class="back-link" href="{{ route('lpks.index') }}">Semua LPK</a>
-        <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 20px; line-height: 1.4; font-weight: 700; word-break: break-word; max-width: 950px;">{{ $lpk->name }}</h1>
+        <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 23px; line-height: 1.35; font-weight: 700; word-break: break-word; max-width: 950px;">{{ $lpk->name }}</h1>
         <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; data contoh lokal</p>
     </div>
     @if(auth()->user()?->isAdmin())
@@ -173,7 +173,7 @@
                     @elseif($ra['status'] === 'EXPIRED')
                         <span class="status status-danger" style="font-size: 11px; font-weight: 700;">Sertifikat Kedaluwarsa</span>
                     @elseif($ra['status'] === 'DUE')
-                        <span class="status status-warn" style="font-size: 11px; font-weight: 700;">Notif Aktif (1 Thn Sebelum Habis)</span>
+                        <span class="status status-warn" style="font-size: 11px; font-weight: 700;">Notif Aktif (1 Bulan Sebelum Habis)</span>
                     @else
                         <span class="status" style="font-size: 11px; background: #e2e8f0; color: #475569;">Akan Datang</span>
                     @endif

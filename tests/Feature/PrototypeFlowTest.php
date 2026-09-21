@@ -185,13 +185,13 @@ class PrototypeFlowTest extends TestCase
         $milestonesS2 = $lpkS2->surveillance_milestones;
         $this->assertEquals('DUE', $milestonesS2['s2']['status']);
 
-        // LPK 11 bulan sebelum habis (memasuki masa notif Re-Akreditasi, < 12 bulan)
+        // LPK kurang dari 1 bulan sebelum habis (memasuki masa notif Re-Akreditasi, < 1 bulan)
         $lpkRA = Lpk::create([
             'registration_number' => 'LP-SURV-03',
             'name' => 'Lab Uji RA Due',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subMonths(49)->toDateString(),
-            'expired_at' => now()->addMonths(11)->toDateString(),
+            'certificate_date' => now()->subYears(5)->addDays(20)->toDateString(),
+            'expired_at' => now()->addDays(20)->toDateString(),
             'email' => 'pic.ra@labuji.id',
         ]);
 
@@ -376,6 +376,148 @@ class PrototypeFlowTest extends TestCase
         ]);
         $this->assertFalse($expiredLpk->isExpiringSoon());
         $this->assertTrue($expiredLpk->isExpired());
+    }
+
+    public function test_lpk_index_filters_by_expiry_status(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $validLpk = Lpk::create([
+            'registration_number' => 'LP-VAL-01',
+            'name' => 'Lab Sertifikat Valid',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subYear()->toDateString(),
+            'expired_at' => now()->addYears(4)->toDateString(),
+        ]);
+
+        $soonLpk = Lpk::create([
+            'registration_number' => 'LP-SOON-01',
+            'name' => 'Lab Mendekati Expired',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subYears(4)->toDateString(),
+            'expired_at' => now()->addDays(30)->toDateString(),
+        ]);
+
+        $expiredLpk = Lpk::create([
+            'registration_number' => 'LP-EXP-01',
+            'name' => 'Lab Sudah Expired',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subYears(5)->subMonth()->toDateString(),
+            'expired_at' => now()->subDays(10)->toDateString(),
+        ]);
+
+        // Test filter EXPIRED
+        $responseExp = $this->actingAs($admin)->get(route('lpks.index', ['expiry' => 'EXPIRED']));
+        $responseExp->assertOk();
+        $responseExp->assertSee('LP-EXP-01');
+        $responseExp->assertDontSee('LP-VAL-01');
+        $responseExp->assertDontSee('LP-SOON-01');
+
+        // Test filter EXPIRING_SOON
+        $responseSoon = $this->actingAs($admin)->get(route('lpks.index', ['expiry' => 'EXPIRING_SOON']));
+        $responseSoon->assertOk();
+        $responseSoon->assertSee('LP-SOON-01');
+        $responseSoon->assertDontSee('LP-EXP-01');
+        $responseSoon->assertDontSee('LP-VAL-01');
+
+        // Test filter VALID
+        $responseVal = $this->actingAs($admin)->get(route('lpks.index', ['expiry' => 'VALID']));
+        $responseVal->assertOk();
+        $responseVal->assertSee('LP-VAL-01');
+        $responseVal->assertDontSee('LP-EXP-01');
+        $responseVal->assertDontSee('LP-SOON-01');
+    }
+
+    public function test_lpk_index_filters_by_surveillance_status(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // S1 due: cert date 14 months ago
+        $s1DueLpk = Lpk::create([
+            'registration_number' => 'LP-S1-01',
+            'name' => 'Lab Jatuh Tempo S1',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+        ]);
+
+        // Fresh cert: cert date 1 month ago (no alerts)
+        $freshLpk = Lpk::create([
+            'registration_number' => 'LP-FRESH-01',
+            'name' => 'Lab Baru Terakreditasi',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonth()->toDateString(),
+            'expired_at' => now()->addMonths(59)->toDateString(),
+        ]);
+
+        // Test filter NEEDS_ACTION
+        $responseAlert = $this->actingAs($admin)->get(route('lpks.index', ['surveillance' => 'NEEDS_ACTION']));
+        $responseAlert->assertOk();
+        $responseAlert->assertSee('LP-S1-01');
+        $responseAlert->assertDontSee('LP-FRESH-01');
+
+        // Test filter DUE_S1
+        $responseS1 = $this->actingAs($admin)->get(route('lpks.index', ['surveillance' => 'DUE_S1']));
+        $responseS1->assertOk();
+        $responseS1->assertSee('LP-S1-01');
+        $responseS1->assertDontSee('LP-FRESH-01');
+    }
+
+    public function test_surveillance_notification_buttons_link_to_filtered_lpk_index(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // Create LPKs: 6 with active alerts so dashboard shows "Lihat seluruh X LPK yang jatuh tempo"
+        for ($i = 1; $i <= 6; $i++) {
+            Lpk::create([
+                'registration_number' => "LP-ALERT-0{$i}",
+                'name' => "Lab Jatuh Tempo {$i}",
+                'status' => 'ACTIVE',
+                'certificate_date' => now()->subMonths(14)->toDateString(),
+                'expired_at' => now()->addMonths(46)->toDateString(),
+            ]);
+        }
+
+        $expectedUrl = route('lpks.index', ['surveillance' => 'NEEDS_ACTION']);
+
+        // 1. Dashboard contains filtered link
+        $dashboardResponse = $this->actingAs($admin)->get(route('dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee($expectedUrl, false);
+        $dashboardResponse->assertSee('Tinjau LPK Jatuh Tempo');
+        $dashboardResponse->assertSee('Lihat seluruh');
+
+        // 2. Visiting the filtered URL pre-selects the NEEDS_ACTION filter and displays LPKs needing action
+        $filteredResponse = $this->actingAs($admin)->get($expectedUrl);
+        $filteredResponse->assertOk();
+        $filteredResponse->assertSee('selected', false);
+        $filteredResponse->assertSee('Perlu Tindak Lanjut');
+        $filteredResponse->assertSee('LP-ALERT-01');
+    }
+
+    public function test_surveillance_reminder_simulation_email_sends_successfully(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-EMAIL-TEST',
+            'name' => 'Lab Pengujian Simulasi Email',
+            'status' => 'ACTIVE',
+            'email' => 'pic.lab@example.com',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk), [
+            'is_simulation' => true,
+            'code' => 'S1',
+        ]);
+
+        $response->assertSessionHas('success');
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
+            return $mail->hasTo('pic.lab@example.com') && $mail->lpk->id === $lpk->id;
+        });
     }
 }
 

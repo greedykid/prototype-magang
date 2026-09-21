@@ -33,17 +33,37 @@
                 <input name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat...">
             </label>
             <label>
-                Status
+                Status LPK
                 <select name="status">
                     <option value="">Semua status</option>
                     <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
                     <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
                 </select>
             </label>
+            <label>
+                Status Pengawasan
+                <select name="surveillance">
+                    <option value="">Semua pengawasan</option>
+                    <option value="NEEDS_ACTION" @selected($surveillance === 'NEEDS_ACTION')>Perlu Tindak Lanjut</option>
+                    <option value="DUE_S1" @selected($surveillance === 'DUE_S1')>Jatuh Tempo S1 (Bulan 14)</option>
+                    <option value="DUE_S2" @selected($surveillance === 'DUE_S2')>Jatuh Tempo S2 (Bulan 35)</option>
+                    <option value="DUE_RA" @selected($surveillance === 'DUE_RA')>Jatuh Tempo Re-Akreditasi (Bulan 1 Sebelum Habis)</option>
+                    <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Melewati Jadwal</option>
+                </select>
+            </label>
+            <label>
+                Masa Berlaku
+                <select name="expiry">
+                    <option value="">Semua masa berlaku</option>
+                    <option value="VALID" @selected($expiry === 'VALID')>Masih berlaku</option>
+                    <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati expired (&le; 90 hari)</option>
+                    <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
+                </select>
+            </label>
         </div>
         <div class="table-filter-actions">
             <button class="button secondary" type="submit">Terapkan filter</button>
-            @if($search || $status)
+            @if($search || $status || $surveillance || $expiry)
                 <a class="button ghost" href="{{ route('lpks.index') }}">Reset</a>
             @endif
         </div>
@@ -155,7 +175,6 @@
                             <td style="vertical-align: top; text-align: center; white-space: nowrap; padding: 12px 14px;">
                                 @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
                                     <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary btn-table-drive" style="font-size: 11.5px; padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive">
-                                        <x-icon name="sheets" size="13" />
                                         <span>Drive</span>
                                     </a>
                                 @else
@@ -170,8 +189,8 @@
         {{ $lpks->links() }}
     @else
         <div class="empty">
-            {{ $search || $status ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
-            @if($search || $status)
+            {{ $search || $status || $surveillance || $expiry ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
+            @if($search || $status || $surveillance || $expiry)
                 <a class="button ghost empty-action" href="{{ route('lpks.index') }}">Reset filter</a>
             @elseif(auth()->user()?->isAdmin())
                 <a href="{{ route('lpks.create') }}">Tambah LPK pertama</a>.

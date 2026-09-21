@@ -106,6 +106,6 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     }
 
     $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
-})->purpose('Memeriksa jadwal jatuh tempo Surveilen 1 (Bulan 14), Surveilen 2 (Bulan 35), dan Re-Akreditasi (1 Tahun sebelum habis), serta mengirim email ke PIC Lab.');
+})->purpose('Memeriksa jadwal jatuh tempo Surveilen 1 (Bulan 14), Surveilen 2 (Bulan 35), dan Re-Akreditasi (1 Bulan sebelum habis), serta mengirim email ke PIC Lab.');
 
 

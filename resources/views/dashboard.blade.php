@@ -52,7 +52,7 @@
                 @endforeach
                 @if(count($globalSurveillanceAlerts) > 5)
                     <div style="text-align: center; margin-top: 6px;">
-                        <a href="{{ route('lpks.index') }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">
+                        <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">
                             Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo &rarr;
                         </a>
                     </div>
