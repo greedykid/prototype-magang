@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
         Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
         Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
+        Route::delete('/lpks/{lpk}', [LpkController::class, 'destroy'])->name('lpks.destroy')->whereNumber('lpk');
 
         Route::resource('amendments', AmendmentController::class)->except(['destroy']);
 

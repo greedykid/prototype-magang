@@ -157,4 +157,28 @@ class RoleAccessControlTest extends TestCase
         $this->assertEquals('Auditor / Asesor KAN', $assessor->role_label);
         $this->assertEquals('badge-role-assessor', $assessor->role_badge_class);
     }
+
+    public function test_staff_and_admin_can_delete_lpk(): void
+    {
+        $staff = User::factory()->staff()->create();
+        $lpk = Lpk::factory()->create();
+
+        $response = $this->actingAs($staff)->delete(route('lpks.destroy', $lpk));
+
+        $response->assertRedirect(route('lpks.index'))
+            ->assertSessionHas('success');
+        $this->assertDatabaseMissing('lpks', ['id' => $lpk->id]);
+    }
+
+    public function test_assessor_is_forbidden_from_deleting_lpk(): void
+    {
+        $assessor = User::factory()->assessor()->create();
+        $lpk = Lpk::factory()->create();
+
+        $response = $this->actingAs($assessor)->delete(route('lpks.destroy', $lpk));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('lpks', ['id' => $lpk->id]);
+    }
 }
+

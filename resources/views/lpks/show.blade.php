@@ -10,10 +10,20 @@
         <p class="lede">{{ $lpk->registration_number }} &middot; data contoh lokal</p>
     </div>
     @if(auth()->user()?->hasRole(['admin', 'staf']))
-        <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}">
-            <x-icon name="edit" size="16" />
-            <span>Ubah data</span>
-        </a>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}">
+                <x-icon name="edit" size="16" />
+                <span>Ubah data</span>
+            </a>
+            <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data LPK {{ addslashes($lpk->name) }} ({{ $lpk->registration_number }})? Seluruh data proses terkait akan ikut terhapus.');" style="margin: 0; display: inline-block;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="button danger" style="background: #e53e3e; border-color: #c53030; color: #ffffff;">
+                    <x-icon name="trash" size="16" />
+                    <span>Hapus LPK</span>
+                </button>
+            </form>
+        </div>
     @endif
 </div>
 

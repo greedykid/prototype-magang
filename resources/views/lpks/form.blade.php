@@ -53,4 +53,21 @@
         </button>
     </div>
 </form>
+
+@if($lpk->exists && auth()->user()?->hasRole(['admin', 'staf']))
+    <div class="panel" style="margin-top: 24px; border: 1px solid #feb2b2; background: #fff5f5; border-radius: 8px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <strong style="color: #9b2c2c; font-size: 14.5px; display: block;">Zona Bahaya: Hapus Data Lembaga (LPK)</strong>
+            <p style="margin: 4px 0 0; color: #742a2a; font-size: 13px;">Menghapus lembaga ini akan menghapus seluruh data proses akreditasi, agenda asesmen, dan rekam jejak terkait.</p>
+        </div>
+        <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data LPK {{ addslashes($lpk->name) }} secara permanen?');" style="margin: 0;">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="button danger" style="background: #e53e3e; border-color: #c53030; color: #ffffff;">
+                <x-icon name="trash" size="16" />
+                <span>Hapus LPK ini</span>
+            </button>
+        </form>
+    </div>
+@endif
 @endsection
