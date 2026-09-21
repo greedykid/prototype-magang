@@ -18,12 +18,10 @@ class RoleAccessControlTest extends TestCase
         $response = $this->get(route('login'));
 
         $response->assertOk()
-            ->assertSee('Administrator')
-            ->assertSee('Staf Administrasi')
-            ->assertSee('Asesor / Auditor')
+            ->assertSee('Admin Unit Lab')
+            ->assertSee('PIC Laboratorium')
             ->assertSee('admin@simasadi.local')
-            ->assertSee('staf@simasadi.local')
-            ->assertSee('asesor@simasadi.local');
+            ->assertSee('pic@simasadi.local');
     }
 
     public function test_admin_has_full_access_to_monitoring_and_administration(): void
@@ -41,141 +39,93 @@ class RoleAccessControlTest extends TestCase
         $this->actingAs($admin)->get(route('dashboard'))->assertOk();
     }
 
-    public function test_staff_can_manage_lpks_but_cannot_access_technical_monitoring(): void
+    public function test_pic_role_can_view_dashboard_and_labs_but_forbidden_from_administrative_write(): void
     {
-        $staff = User::factory()->staff()->create();
-
-        // Staf dapat membuka pembuatan LPK, asesmen, dan proses akreditasi
-        $this->actingAs($staff)->get(route('lpks.create'))->assertOk();
-        $this->actingAs($staff)->get(route('assessments.create'))->assertOk();
-        $this->actingAs($staff)->get(route('accreditations.index'))->assertOk();
-
-        // Staf DITOLAK (403) saat mencoba mengakses monitoring server/backup internal
-        $this->actingAs($staff)->get(route('monitoring.services'))->assertForbidden();
-        $this->actingAs($staff)->get(route('monitoring.backups'))->assertForbidden();
-
-        // Sidebar Staf menampilkan modul akreditasi tetapi menyembunyikan monitoring server
-        $staffDashboard = $this->actingAs($staff)->get(route('dashboard'));
-        $staffDashboard->assertOk()
-            ->assertSee('Administrasi LPK')
-            ->assertSee('<span class="nav-label">Akreditasi</span>', false)
-            ->assertSee('<span class="nav-label">Amandemen</span>', false)
-            ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
-            ->assertDontSee('<span class="nav-label">Backup</span>', false);
-    }
-
-    public function test_assessor_pure_kan_flow_cannot_schedule_assessments_or_manage_lpks_but_can_report_expenses(): void
-    {
-        $assessor = User::factory()->assessor()->create();
+        $pic = User::factory()->pic()->create();
         $lpk = Lpk::factory()->create();
         $assessment = Assessment::factory()->create([
             'lpk_id' => $lpk->id,
-            'created_by' => $assessor->id,
+            'created_by' => $pic->id,
         ]);
 
-        // 1. Asesor DAPAT melihat daftar asesmen dan detail asesmen yang ditugaskan
-        $this->actingAs($assessor)->get(route('assessments.index'))->assertOk();
-        $this->actingAs($assessor)->get(route('assessments.show', $assessment))->assertOk();
+        // 1. PIC DAPAT melihat dashboard, daftar lab, dan detail lab
+        $this->actingAs($pic)->get(route('dashboard'))->assertOk();
+        $this->actingAs($pic)->get(route('lpks.index'))->assertOk();
+        $this->actingAs($pic)->get(route('lpks.show', $lpk))->assertOk();
+        $this->actingAs($pic)->get(route('assessments.index'))->assertOk();
+        $this->actingAs($pic)->get(route('calendar.index'))->assertOk();
 
-        // 2. Sesuai alur asli KAN: Asesor DITOLAK (403) menjadwalkan atau mengubah asesmen (wewenang Sekretariat KAN)
-        $this->actingAs($assessor)->get(route('assessments.create'))->assertForbidden();
-        $this->actingAs($assessor)->post(route('assessments.store'), [
-            'lpk_id' => $lpk->id,
-            'title' => 'Asesmen Tanpa Izin Sekretariat',
-        ])->assertForbidden();
-        $this->actingAs($assessor)->get(route('assessments.edit', $assessment))->assertForbidden();
-
-        // Tombol Tambah asesmen dan Ubah asesmen TIDAK MUNCUL pada antarmuka Asesor
-        $asmIndexResponse = $this->actingAs($assessor)->get(route('assessments.index'));
-        $asmIndexResponse->assertOk()->assertDontSee('Tambah asesmen');
-
-        $asmShowResponse = $this->actingAs($assessor)->get(route('assessments.show', $assessment));
-        $asmShowResponse->assertOk()
-            ->assertDontSee('Ubah asesmen')
-            ->assertDontSee('Verifikasi SBM');
-
-        // 3. Asesor DAPAT melihat kalender dan melaporkan biaya perjalanan dinas mandiri
-        $this->actingAs($assessor)->get(route('calendar.index'))->assertOk();
-        $expenseResponse = $this->actingAs($assessor)->post(route('assessments.expenses.store', $assessment), [
-            'daily_allowance' => 500000,
-            'transport_cost' => 800000,
-            'accommodation_cost' => 600000,
-            'package_data_cost' => 100000,
-            'receipt_note' => 'Kwitansi Perjalanan Dinas',
-        ]);
-        $expenseResponse->assertRedirect();
-
-        // 4. Asesor DITOLAK (403) memverifikasi biaya SBM (hanya boleh staf/admin)
-        $this->actingAs($assessor)->post(route('assessments.expenses.verify', $assessment), [
-            'status' => 'TERVERIFIKASI',
+        // 2. PIC DITOLAK (403) membuat atau mengubah LPK (wewenang Admin Unit)
+        $this->actingAs($pic)->get(route('lpks.create'))->assertForbidden();
+        $this->actingAs($pic)->get(route('lpks.edit', $lpk))->assertForbidden();
+        $this->actingAs($pic)->post(route('lpks.store'), [
+            'registration_number' => 'LP-UNAUTH-01',
+            'name' => 'Lab Ilegal',
+            'status' => 'ACTIVE',
         ])->assertForbidden();
 
-        // 5. Asesor DITOLAK (403) membuat atau mengedit master LPK
-        $this->actingAs($assessor)->get(route('lpks.create'))->assertForbidden();
-        $this->actingAs($assessor)->get(route('lpks.edit', $lpk))->assertForbidden();
-
-        // Tombol Tambah LPK dan Ubah data tidak muncul di antarmuka Asesor
-        $lpkIndexResponse = $this->actingAs($assessor)->get(route('lpks.index'));
+        // Tombol Tambah LPK dan Ubah data TIDAK MUNCUL pada antarmuka PIC
+        $lpkIndexResponse = $this->actingAs($pic)->get(route('lpks.index'));
         $lpkIndexResponse->assertOk()->assertDontSee('Tambah LPK');
 
-        $lpkShowResponse = $this->actingAs($assessor)->get(route('lpks.show', $lpk));
+        $lpkShowResponse = $this->actingAs($pic)->get(route('lpks.show', $lpk));
         $lpkShowResponse->assertOk()->assertDontSee('Ubah data');
 
-        // 6. Asesor DITOLAK (403) mengakses proses akreditasi (billing & esign)
-        $this->actingAs($assessor)->get(route('accreditations.index'))->assertForbidden();
+        // 3. PIC DITOLAK (403) mengakses manajemen asesmen resmi (create/edit)
+        $this->actingAs($pic)->get(route('assessments.create'))->assertForbidden();
+        $this->actingAs($pic)->get(route('assessments.edit', $assessment))->assertForbidden();
 
-        // 7. Asesor DITOLAK (403) mengakses monitoring server
-        $this->actingAs($assessor)->get(route('monitoring.services'))->assertForbidden();
+        // 4. PIC DITOLAK (403) mengakses monitoring server teknis
+        $this->actingAs($pic)->get(route('monitoring.services'))->assertForbidden();
+        $this->actingAs($pic)->get(route('monitoring.backups'))->assertForbidden();
 
-        // Sidebar Asesor menampilkan menu audit dan menyembunyikan administrasi akreditasi
-        $dashboardResponse = $this->actingAs($assessor)->get(route('dashboard'));
-        $dashboardResponse->assertOk()
-            ->assertSee('Penugasan Asesmen')
-            ->assertSee('Kalender Kerja')
-            ->assertSee('Data Lembaga (LPK)')
-            ->assertDontSee('<span class="nav-label">Akreditasi</span>', false)
-            ->assertDontSee('<span class="nav-label">Amandemen</span>', false);
+        // 5. PIC DITOLAK (403) mengakses proses akreditasi internal
+        $this->actingAs($pic)->get(route('accreditations.index'))->assertForbidden();
+
+        // Sidebar PIC menampilkan navigasi khusus lab terakreditasi
+        $picDashboard = $this->actingAs($pic)->get(route('dashboard'));
+        $picDashboard->assertOk()
+            ->assertSee('Laboratorium Terakreditasi')
+            ->assertSee('Data Laboratorium')
+            ->assertDontSee('<span class="nav-label">Administrasi Laboratorium</span>', false)
+            ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
+            ->assertDontSee('<span class="nav-label">Backup</span>', false);
     }
 
     public function test_role_helpers_and_attributes_work_correctly(): void
     {
         $admin = User::factory()->admin()->create();
-        $staff = User::factory()->staff()->create();
-        $assessor = User::factory()->assessor()->create();
+        $pic = User::factory()->pic()->create();
 
         $this->assertTrue($admin->isAdmin());
-        $this->assertFalse($admin->isStaff());
-        $this->assertEquals('Administrator Sistem', $admin->role_label);
+        $this->assertFalse($admin->isPic());
+        $this->assertEquals('Admin Unit Akreditasi Lab', $admin->role_label);
         $this->assertEquals('badge-role-admin', $admin->role_badge_class);
 
-        $this->assertTrue($staff->isStaff());
-        $this->assertFalse($staff->isAdmin());
-        $this->assertEquals('Staf Administrasi', $staff->role_label);
-        $this->assertEquals('badge-role-staff', $staff->role_badge_class);
-
-        $this->assertTrue($assessor->isAssessor());
-        $this->assertEquals('Auditor / Asesor KAN', $assessor->role_label);
-        $this->assertEquals('badge-role-assessor', $assessor->role_badge_class);
+        $this->assertTrue($pic->isPic());
+        $this->assertFalse($pic->isAdmin());
+        $this->assertEquals('PIC Laboratorium', $pic->role_label);
+        $this->assertEquals('badge-role-pic', $pic->role_badge_class);
     }
 
-    public function test_staff_and_admin_can_delete_lpk(): void
+    public function test_admin_can_delete_lpk(): void
     {
-        $staff = User::factory()->staff()->create();
+        $admin = User::factory()->admin()->create();
         $lpk = Lpk::factory()->create();
 
-        $response = $this->actingAs($staff)->delete(route('lpks.destroy', $lpk));
+        $response = $this->actingAs($admin)->delete(route('lpks.destroy', $lpk));
 
         $response->assertRedirect(route('lpks.index'))
             ->assertSessionHas('success');
         $this->assertDatabaseMissing('lpks', ['id' => $lpk->id]);
     }
 
-    public function test_assessor_is_forbidden_from_deleting_lpk(): void
+    public function test_pic_is_forbidden_from_deleting_lpk(): void
     {
-        $assessor = User::factory()->assessor()->create();
+        $pic = User::factory()->pic()->create();
         $lpk = Lpk::factory()->create();
 
-        $response = $this->actingAs($assessor)->delete(route('lpks.destroy', $lpk));
+        $response = $this->actingAs($pic)->delete(route('lpks.destroy', $lpk));
 
         $response->assertForbidden();
         $this->assertDatabaseHas('lpks', ['id' => $lpk->id]);

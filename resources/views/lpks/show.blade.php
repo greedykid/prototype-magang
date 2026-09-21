@@ -9,7 +9,7 @@
         <h1>{{ $lpk->name }}</h1>
         <p class="lede">{{ $lpk->registration_number }} &middot; data contoh lokal</p>
     </div>
-    @if(auth()->user()?->hasRole(['admin', 'staf']))
+    @if(auth()->user()?->isAdmin())
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}">
                 <x-icon name="edit" size="16" />
@@ -35,11 +35,11 @@
                 <dt>Status</dt>
                 <dd><x-status :value="$lpk->status" /></dd>
             </div>
-            <div>
-                <dt>Ruang Lingkup</dt>
+            <div style="grid-column: 1 / -1;">
+                <dt>Ruang Lingkup Akreditasi</dt>
                 <dd>
                     @if($lpk->scope)
-                        <strong>{{ $lpk->scope }}</strong>
+                        <div style="white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line, #e2e8f0); border-radius: 6px; padding: 12px 16px; max-height: 280px; overflow-y: auto;">{{ $lpk->scope }}</div>
                     @else
                         <span style="color: var(--muted);">Belum diisi</span>
                     @endif
@@ -126,7 +126,7 @@
                         </small>
                     @endif
                 </div>
-                @if(auth()->user()?->hasRole(['admin', 'staf']))
+                @if(auth()->user()?->isAdmin())
                     <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin: 0;">
                         @csrf
                         <button type="submit" class="button primary" style="background-color: #e11d48; border-color: #e11d48; font-size: 12.5px; padding: 6px 14px; min-height: 36px; display: inline-flex; align-items: center; gap: 6px;">
@@ -145,7 +145,7 @@
                 <span class="eyebrow">SIKLUS KAN U-01</span>
                 <h2 style="margin: 0; font-size: 16px;">Roadmap Pengawasan & Re-Akreditasi (Surveillance Roadmap)</h2>
             </div>
-            @if(auth()->user()?->hasRole(['admin', 'staf']))
+            @if(auth()->user()?->isAdmin())
                 <a href="{{ route('assessments.index') }}" class="button secondary" style="font-size: 12.5px; padding: 4px 12px; min-height: 32px;">
                     Jadwalkan Asesmen Kunjungan &rarr;
                 </a>

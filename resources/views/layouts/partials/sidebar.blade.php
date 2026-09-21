@@ -4,13 +4,13 @@
             <a href="{{ route('dashboard') }}" class="brand-mark" title="SIMASADI - Badan Standardisasi Nasional">
                 <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img">
             </a>
-            <div class="brand-text"><strong>SIMASADI</strong><small>Badan Standardisasi Nasional</small></div>
+            <div class="brand-text"><strong>SIMASADI</strong><small>Unit Akreditasi Lab KAN</small></div>
         </div>
     </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>
     <nav id="primary-navigation" aria-label="Navigasi utama">
-        @if(auth()->user()?->isAssessor())
-            {{-- Menu Khusus Auditor / Asesor KAN --}}
+        @if(auth()->user()?->isPic())
+            {{-- Menu Khusus PIC Laboratorium Terakreditasi --}}
             <div class="nav-section">
                 <span class="nav-section-title">Utama</span>
                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
@@ -20,18 +20,18 @@
             </div>
 
             <div class="nav-section">
-                <span class="nav-section-title">Penugasan Asesmen</span>
-                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Program Asesmen">
-                    <x-icon name="assessments" size="18" />
-                    <span class="nav-label">Program Asesmen</span>
-                </a>
-                <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender Kerja">
-                    <x-icon name="calendar" size="18" />
-                    <span class="nav-label">Kalender Kerja</span>
-                </a>
-                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data Lembaga (LPK)">
+                <span class="nav-section-title">Laboratorium Terakreditasi</span>
+                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data Laboratorium">
                     <x-icon name="lpks" size="18" />
-                    <span class="nav-label">Data Lembaga (LPK)</span>
+                    <span class="nav-label">Data Laboratorium</span>
+                </a>
+                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Jadwal Asesmen">
+                    <x-icon name="assessments" size="18" />
+                    <span class="nav-label">Jadwal Asesmen</span>
+                </a>
+                <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender Pengawasan">
+                    <x-icon name="calendar" size="18" />
+                    <span class="nav-label">Kalender Pengawasan</span>
                 </a>
             </div>
 
@@ -43,7 +43,7 @@
                 </a>
             </div>
         @else
-            {{-- Menu Staf Administrasi & Administrator Sistem --}}
+            {{-- Menu Administrator Unit Akreditasi Laboratorium --}}
             <div class="nav-section">
                 <span class="nav-section-title">Utama</span>
                 <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
@@ -53,10 +53,10 @@
             </div>
 
             <div class="nav-section">
-                <span class="nav-section-title">Administrasi LPK</span>
-                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data LPK">
+                <span class="nav-section-title">Administrasi Laboratorium</span>
+                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data Lab (LPK)">
                     <x-icon name="lpks" size="18" />
-                    <span class="nav-label">Data LPK</span>
+                    <span class="nav-label">Data Lab (LPK)</span>
                 </a>
                 <a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}" data-tooltip="Akreditasi">
                     <x-icon name="accreditations" size="18" />

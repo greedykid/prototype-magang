@@ -12,7 +12,7 @@
             <x-icon name="sheets" size="16" style="color: #0f9d58;" />
             <span>Google Sheets & Ekspor</span>
         </button>
-        @if(auth()->user()?->hasRole(['admin', 'staf']))
+        @if(auth()->user()?->isAdmin())
             <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
                 <x-icon name="upload" size="16" />
                 <span>Impor LPK</span>
@@ -112,7 +112,7 @@
             {{ $search || $status ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
             @if($search || $status)
                 <a class="button ghost empty-action" href="{{ route('lpks.index') }}">Reset filter</a>
-            @elseif(auth()->user()?->hasRole(['admin', 'staf']))
+            @elseif(auth()->user()?->isAdmin())
                 <a href="{{ route('lpks.create') }}">Tambah LPK pertama</a>.
             @endif
         </div>
@@ -129,7 +129,7 @@
     'columns' => ['ID LPK', 'Nomor Registrasi', 'Nama Lembaga Penilaian Kesesuaian', 'Status Operasional', 'Total Akreditasi', 'Total Isu', 'Tanggal Terdaftar']
 ])
 
-@if(auth()->user()?->hasRole(['admin', 'staf']))
+@if(auth()->user()?->isAdmin())
     @include('lpks.partials.import-modal')
 @endif
 @endsection

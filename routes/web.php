@@ -54,14 +54,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
     Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
-    // 2. Monitoring Sistem & Infrastruktur (Hanya Administrator Sistem)
+    // 2. Administrasi & Monitoring Sistem (Hanya Administrator Unit)
     Route::middleware('role:admin')->group(function (): void {
         Route::get('/monitoring/services', [MonitoringController::class, 'services'])->name('monitoring.services');
         Route::get('/monitoring/backups', [MonitoringController::class, 'backups'])->name('monitoring.backups');
-    });
 
-    // 3. Operasional Administrasi & Finansial (Administrator Sistem & Staf Administrasi)
-    Route::middleware('role:admin,staf')->group(function (): void {
         Route::get('/lpks/create', [LpkController::class, 'create'])->name('lpks.create');
         Route::post('/lpks', [LpkController::class, 'store'])->name('lpks.store');
         Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
@@ -79,7 +76,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/accreditations/{accreditation}/billings/{billing}/pay', [AccreditationBillingController::class, 'pay'])->name('accreditations.billings.pay');
         Route::post('/accreditations/{accreditation}/esign', [AccreditationSignatureController::class, 'sign'])->name('accreditations.esign.sign');
 
-        // Penjadwalan & Pengelolaan Asesmen (Wewenang Sekretariat KAN)
+        // Penjadwalan & Pengelolaan Asesmen (Wewenang Admin Unit)
         Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
         Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
         Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');

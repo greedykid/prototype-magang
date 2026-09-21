@@ -98,7 +98,7 @@ class LpkController extends Controller
         $data = $request->validate([
             'registration_number' => ['required', 'string', 'max:50', 'unique:lpks,registration_number,'.($lpk?->id ?? 'NULL')],
             'name' => ['required', 'string', 'max:255'],
-            'scope' => ['nullable', 'string', 'max:1000'],
+            'scope' => ['nullable', 'string', 'max:50000'],
             'certificate_date' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
             'email' => ['nullable', 'email', 'max:255'],

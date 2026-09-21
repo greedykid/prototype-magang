@@ -14,8 +14,7 @@ class LpkImportTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
-    protected User $staff;
-    protected User $assessor;
+    protected User $pic;
 
     protected function setUp(): void
     {
@@ -26,20 +25,15 @@ class LpkImportTest extends TestCase
             'role' => User::ROLE_ADMIN,
         ]);
 
-        $this->staff = User::factory()->create([
-            'email' => 'staf@simasadi.local',
-            'role' => User::ROLE_STAFF,
-        ]);
-
-        $this->assessor = User::factory()->create([
-            'email' => 'asesor@simasadi.local',
-            'role' => User::ROLE_ASSESSOR,
+        $this->pic = User::factory()->create([
+            'email' => 'pic@simasadi.local',
+            'role' => User::ROLE_PIC,
         ]);
     }
 
-    public function test_staff_can_download_import_template(): void
+    public function test_admin_can_download_import_template(): void
     {
-        $response = $this->actingAs($this->staff)->get(route('lpks.import.template'));
+        $response = $this->actingAs($this->admin)->get(route('lpks.import.template'));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
@@ -51,16 +45,16 @@ class LpkImportTest extends TestCase
         $this->assertStringContainsString('LP-101-IDN', $content);
     }
 
-    public function test_assessor_is_forbidden_from_importing_or_downloading_template(): void
+    public function test_pic_is_forbidden_from_importing_or_downloading_template(): void
     {
-        $templateResponse = $this->actingAs($this->assessor)->get(route('lpks.import.template'));
+        $templateResponse = $this->actingAs($this->pic)->get(route('lpks.import.template'));
         $templateResponse->assertForbidden();
 
-        $importResponse = $this->actingAs($this->assessor)->post(route('lpks.import'), []);
+        $importResponse = $this->actingAs($this->pic)->post(route('lpks.import'), []);
         $importResponse->assertForbidden();
     }
 
-    public function test_staff_can_import_lpks_from_csv_file(): void
+    public function test_admin_can_import_lpks_from_csv_file(): void
     {
         $csvData = "nomor_registrasi,nama_lpk,alamat,email,telepon,status,catatan\n" .
             "LP-901-IDN,\"Lab Kalibrasi Sentosa\",\"Jl. Merdeka 10, Jakarta\",\"info@sentosa.id\",\"021-123456\",ACTIVE,\"Lab modern\"\n" .
@@ -68,7 +62,7 @@ class LpkImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent('lpk-batch.csv', $csvData);
 
-        $response = $this->actingAs($this->staff)->post(route('lpks.import'), [
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
             'csv_file' => $file,
         ]);
 
@@ -129,7 +123,7 @@ class LpkImportTest extends TestCase
         $invalidCsv = "alamat,telepon,status\n\"Jl. Sudirman\",\"021-123\",ACTIVE\n";
         $file = UploadedFile::fake()->createWithContent('invalid-columns.csv', $invalidCsv);
 
-        $response = $this->actingAs($this->staff)->post(route('lpks.import'), [
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
             'csv_file' => $file,
         ]);
 
@@ -146,7 +140,7 @@ class LpkImportTest extends TestCase
             'https://docs.google.com/spreadsheets/d/test12345/export*' => Http::response($csvBody, 200),
         ]);
 
-        $response = $this->actingAs($this->staff)->post(route('lpks.import'), [
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
             'sheets_url' => 'https://docs.google.com/spreadsheets/d/test12345/edit#gid=0',
         ]);
 
@@ -159,17 +153,17 @@ class LpkImportTest extends TestCase
         ]);
     }
 
-    public function test_ui_renders_import_button_for_staff_and_hides_for_assessor(): void
+    public function test_ui_renders_import_button_for_admin_and_hides_for_pic(): void
     {
-        // Staff should see Impor LPK button and modal
-        $staffResponse = $this->actingAs($this->staff)->get(route('lpks.index'));
-        $staffResponse->assertOk();
-        $staffResponse->assertSee('Impor LPK');
-        $staffResponse->assertSee('modal-import-lpk');
+        // Admin should see Impor LPK button and modal
+        $adminResponse = $this->actingAs($this->admin)->get(route('lpks.index'));
+        $adminResponse->assertOk();
+        $adminResponse->assertSee('Impor LPK');
+        $adminResponse->assertSee('modal-import-lpk');
 
-        // Assessor should NOT see Impor LPK button or modal
-        $assessorResponse = $this->actingAs($this->assessor)->get(route('lpks.index'));
-        $assessorResponse->assertOk();
-        $assessorResponse->assertDontSee('modal-import-lpk');
+        // PIC should NOT see Impor LPK button or modal
+        $picResponse = $this->actingAs($this->pic)->get(route('lpks.index'));
+        $picResponse->assertOk();
+        $picResponse->assertDontSee('modal-import-lpk');
     }
 }

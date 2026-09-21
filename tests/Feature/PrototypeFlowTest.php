@@ -229,7 +229,7 @@ class PrototypeFlowTest extends TestCase
 
     public function test_persistent_notification_renders_on_ui_and_cannot_be_dismissed(): void
     {
-        $user = User::factory()->create(['role' => 'staf']);
+        $user = User::factory()->create(['role' => User::ROLE_ADMIN]);
 
         $lpk = Lpk::create([
             'registration_number' => 'LP-BANNER-01',

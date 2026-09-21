@@ -24,8 +24,8 @@
     </label>
     <label class="full">
         Ruang Lingkup Akreditasi (Scope)
-        <textarea name="scope" rows="2" placeholder="Contoh: Laboratorium Pengujian Kimia, Fisika, Air Minum, dan Mikrobiologi Lingkungan">{{ old('scope', $lpk->scope) }}</textarea>
-        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tuliskan bidang pengujian, kalibrasi, inspeksi, atau skema sertifikasi yang diakreditasi KAN.</small>
+        <textarea name="scope" rows="7" style="min-height: 160px; font-family: inherit; font-size: 13.5px; line-height: 1.6;" placeholder="Masukkan ruang lingkup akreditasi laboratorium secara lengkap (bidang pengujian/kalibrasi, bahan/produk yang diuji, parameter/spesifikasi pengujian, metode uji standar SNI/ISO/IEC/ASTM, dsb.)...">{{ old('scope', $lpk->scope) }}</textarea>
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tuliskan ruang lingkup kompetensi laboratorium secara rinci (bidang pengujian/kalibrasi, bahan/matriks, metode standar, dan spesifikasi pengukuran). Kapasitas karakter telah diperbesar.</small>
     </label>
     <label>
         Email
@@ -70,7 +70,7 @@
     </div>
 </form>
 
-@if($lpk->exists && auth()->user()?->hasRole(['admin', 'staf']))
+@if($lpk->exists && auth()->user()?->isAdmin())
     <div class="panel" style="margin-top: 24px; border: 1px solid #feb2b2; background: #fff5f5; border-radius: 8px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
             <strong style="color: #9b2c2c; font-size: 14.5px; display: block;">Zona Bahaya: Hapus Data Lembaga (LPK)</strong>

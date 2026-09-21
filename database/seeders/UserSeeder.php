@@ -8,41 +8,32 @@ use Illuminate\Database\Seeder;
 class UserSeeder extends Seeder
 {
     /**
-     * Menyiapkan 4 akun pengguna resmi SIMASADI untuk masing-masing peran RBAC.
+     * Menyiapkan 2 akun pengguna resmi SIMASADI untuk peran admin dan pic.
      */
     public function run(): void
     {
         User::updateOrCreate(
             ['email' => 'admin@simasadi.local'],
             [
-                'name' => 'Budi Administrator',
+                'name' => 'Budi Administrator Unit',
                 'password' => 'password',
                 'role' => User::ROLE_ADMIN,
             ]
         );
 
         User::updateOrCreate(
-            ['email' => 'staf@simasadi.local'],
+            ['email' => 'pic@simasadi.local'],
             [
-                'name' => 'Siti Sekretariat',
+                'name' => 'PIC Laboratorium Penguji & Kalibrasi',
                 'password' => 'password',
-                'role' => User::ROLE_STAFF,
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'asesor@simasadi.local'],
-            [
-                'name' => 'Dr. Hendra Asesor',
-                'password' => 'password',
-                'role' => User::ROLE_ASSESSOR,
+                'role' => User::ROLE_PIC,
             ]
         );
 
         User::updateOrCreate(
             ['email' => 'demo@simasadi.local'],
             [
-                'name' => 'Petugas Demo',
+                'name' => 'Petugas Demo Unit Lab',
                 'password' => 'password',
                 'role' => User::ROLE_ADMIN,
             ]

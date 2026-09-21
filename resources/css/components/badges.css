@@ -7,6 +7,7 @@
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
 .badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; }
 .badge-role-admin { background: #fef3f2; border-color: #fecdca; color: #b42318; }
+.badge-role-pic { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .badge-role-staff { background: var(--lavender); border-color: #d6ccff; color: var(--maroon); }
 .badge-role-assessor { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }

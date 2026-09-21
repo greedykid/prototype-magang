@@ -19,22 +19,30 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     public const ROLE_ADMIN = 'admin';
-    public const ROLE_STAFF = 'staf';
-    public const ROLE_ASSESSOR = 'asesor';
+    public const ROLE_PIC = 'pic';
+
+    // Aliases untuk kompatibilitas ke belakang
+    public const ROLE_STAFF = 'admin';
+    public const ROLE_ASSESSOR = 'pic';
 
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
     }
 
+    public function isPic(): bool
+    {
+        return $this->role === self::ROLE_PIC;
+    }
+
     public function isStaff(): bool
     {
-        return $this->role === self::ROLE_STAFF;
+        return $this->role === self::ROLE_ADMIN;
     }
 
     public function isAssessor(): bool
     {
-        return $this->role === self::ROLE_ASSESSOR;
+        return $this->role === self::ROLE_PIC;
     }
 
     public function hasRole(string|array $roles): bool
@@ -49,9 +57,8 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
-            self::ROLE_ADMIN => 'Administrator Sistem',
-            self::ROLE_STAFF => 'Staf Administrasi',
-            self::ROLE_ASSESSOR => 'Auditor / Asesor KAN',
+            self::ROLE_ADMIN => 'Admin Unit Akreditasi Lab',
+            self::ROLE_PIC => 'PIC Laboratorium',
             default => ucfirst((string) ($this->role ?? 'Pengguna')),
         };
     }
@@ -60,8 +67,7 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             self::ROLE_ADMIN => 'badge-role-admin',
-            self::ROLE_STAFF => 'badge-role-staff',
-            self::ROLE_ASSESSOR => 'badge-role-assessor',
+            self::ROLE_PIC => 'badge-role-pic',
             default => 'badge-role-default',
         };
     }

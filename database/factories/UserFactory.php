@@ -51,17 +51,24 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function pic(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_PIC,
+        ]);
+    }
+
     public function staff(): static
     {
         return $this->state(fn (array $attributes) => [
-            'role' => User::ROLE_STAFF,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
     public function assessor(): static
     {
         return $this->state(fn (array $attributes) => [
-            'role' => User::ROLE_ASSESSOR,
+            'role' => User::ROLE_PIC,
         ]);
     }
 }
