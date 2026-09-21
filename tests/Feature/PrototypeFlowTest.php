@@ -275,5 +275,46 @@ class PrototypeFlowTest extends TestCase
 
         \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class);
     }
+
+    public function test_lpk_index_table_headers_and_columns(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-TABEL-99',
+            'name' => 'Laboratorium Kalibrasi Uji KAN',
+            'address' => 'Jl. Pengujian Presisi No. 99, Jakarta',
+            'phone' => '021-99887766',
+            'email' => 'lab.uji99@kan.or.id',
+            'scope' => 'Pengujian Kimia, Fisika, dan Lingkungan Air Bersih',
+            'status' => 'ACTIVE',
+            'certificate_date' => '2025-01-15',
+            'expired_at' => '2030-01-15',
+            'drive_url' => 'https://drive.google.com/drive/folders/test-folder-lpk-99',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('lpks.index'));
+
+        $response->assertOk();
+        // Assert exactly matching headers as requested
+        $response->assertSee('NO. AKREDITASI');
+        $response->assertSee('NAMA LPK');
+        $response->assertSee('ALAMAT');
+        $response->assertSee('TELEPON / FAX');
+        $response->assertSee('EMAIL');
+        $response->assertSee('LINGKUP');
+        $response->assertSee('MASA BERLAKU AKREDITASI (EXPIRED)');
+        $response->assertSee('LINK');
+
+        // Assert cell data rendered
+        $response->assertSee('LP-TABEL-99');
+        $response->assertSee('Laboratorium Kalibrasi Uji KAN');
+        $response->assertSee('Jl. Pengujian Presisi No. 99, Jakarta');
+        $response->assertSee('021-99887766');
+        $response->assertSee('lab.uji99@kan.or.id');
+        $response->assertSee('Pengujian Kimia, Fisika, dan Lingkungan Air Bersih');
+        $response->assertSee('15/01/2030');
+        $response->assertSee('https://drive.google.com/drive/folders/test-folder-lpk-99', false);
+    }
 }
 

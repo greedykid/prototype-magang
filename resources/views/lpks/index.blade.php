@@ -30,7 +30,7 @@
         <div class="table-filter-grid">
             <label>
                 Cari LPK
-                <input name="search" value="{{ $search }}" placeholder="Nama atau nomor registrasi">
+                <input name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat...">
             </label>
             <label>
                 Status
@@ -51,56 +51,119 @@
 
     @if($lpks->count())
         <div class="table-wrap">
-            <table>
+            <table class="table-lpks-custom">
                 <thead>
-                    <tr>
-                        <th>LPK</th>
-                        <th>Status</th>
-                        <th>Masa Berlaku</th>
-                        <th>Akreditasi</th>
-                        <th>Masalah</th>
-                        <th><span class="sr-only">Buka</span></th>
+                    <tr style="background-color: #eef4fc;">
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NO. AKREDITASI</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NAMA LPK</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">ALAMAT</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">TELEPON / FAX</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">EMAIL</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">LINGKUP</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">MASA BERLAKU AKREDITASI (EXPIRED)</th>
+                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap; text-align: center;">LINK</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($lpks as $lpk)
                         <tr>
-                            <td>
-                                <strong>{{ $lpk->name }}</strong>
-                                <span>{{ $lpk->registration_number }}</span>
-                                @if($lpk->scope)
-                                    <small style="display: block; color: var(--muted); font-size: 12px; margin-top: 2px;">{{ Str::limit($lpk->scope, 60) }}</small>
-                                @endif
+                            <!-- 1. NO. AKREDITASI -->
+                            <td style="white-space: nowrap; vertical-align: top; padding: 12px 14px;">
+                                <div>
+                                    <a href="{{ route('lpks.show', $lpk) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; color: #1e293b; text-decoration: none;" class="hover-underline" title="Buka rincian LPK">
+                                        {{ $lpk->registration_number }}
+                                    </a>
+                                </div>
                                 @php($lpkAlerts = $lpk->getActiveSurveillanceAlerts())
                                 @if(!empty($lpkAlerts))
                                     <div style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
                                         @foreach($lpkAlerts as $alt)
-                                            <span class="badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;" title="{{ $alt['description'] }}">
+                                            <span class="badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;" title="{{ $alt['description'] }}">
                                                 ⚠ {{ $alt['name'] }}
                                             </span>
                                         @endforeach
                                     </div>
                                 @endif
                             </td>
-                            <td><x-status :value="$lpk->status" /></td>
-                            <td>
-                                @if($lpk->certificate_date)
-                                    <small style="display: block; color: var(--muted); font-size: 11px;">Terbit: {{ $lpk->certificate_date->format('d/m/Y') }}</small>
+
+                            <!-- 2. NAMA LPK -->
+                            <td style="vertical-align: top; min-width: 220px; padding: 12px 14px;">
+                                <a href="{{ route('lpks.show', $lpk) }}" style="font-weight: 600; color: #1d4ed8; text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;" class="hover-underline" title="Buka rincian LPK">
+                                    {{ $lpk->name }}
+                                </a>
+                                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                    <x-status :value="$lpk->status" />
+                                </div>
+                            </td>
+
+                            <!-- 3. ALAMAT -->
+                            <td style="vertical-align: top; min-width: 180px; max-width: 260px; font-size: 12.5px; color: #334155; line-height: 1.4; padding: 12px 14px;">
+                                {{ $lpk->address ?: '-' }}
+                            </td>
+
+                            <!-- 4. TELEPON / FAX -->
+                            <td style="vertical-align: top; white-space: nowrap; font-size: 12.5px; color: #334155; padding: 12px 14px;">
+                                @if($lpk->phone)
+                                    <a href="tel:{{ $lpk->phone }}" style="color: inherit; text-decoration: none;" title="Hubungi telepon">
+                                        {{ $lpk->phone }}
+                                    </a>
+                                @else
+                                    <span style="color: var(--muted);">-</span>
                                 @endif
+                            </td>
+
+                            <!-- 5. EMAIL -->
+                            <td style="vertical-align: top; white-space: nowrap; font-size: 12.5px; padding: 12px 14px;">
+                                @if($lpk->email)
+                                    <a href="mailto:{{ $lpk->email }}" style="color: #2563eb; text-decoration: none;" class="hover-underline" title="Kirim email">
+                                        {{ $lpk->email }}
+                                    </a>
+                                @else
+                                    <span style="color: var(--muted);">-</span>
+                                @endif
+                            </td>
+
+                            <!-- 6. LINGKUP -->
+                            <td style="vertical-align: top; min-width: 220px; max-width: 320px; font-size: 12px; line-height: 1.4; padding: 12px 14px;">
+                                @if($lpk->scope)
+                                    <div style="max-height: 80px; overflow-y: auto; white-space: pre-line; color: #334155; padding-right: 4px;" title="{{ $lpk->scope }}">
+                                        {{ Str::limit($lpk->scope, 160) }}
+                                    </div>
+                                @else
+                                    <span style="color: var(--muted);">-</span>
+                                @endif
+                            </td>
+
+                            <!-- 7. MASA BERLAKU AKREDITASI (EXPIRED) -->
+                            <td style="vertical-align: top; white-space: nowrap; padding: 12px 14px;">
                                 @if($lpk->expired_at)
-                                    <span style="font-size: 13px; font-weight: 500; {{ $lpk->isExpired() ? 'color: #c53030;' : '' }}">
+                                    <div style="font-weight: 600; font-size: 13px; {{ $lpk->isExpired() ? 'color: #dc2626;' : 'color: #0f172a;' }}">
                                         {{ $lpk->expired_at->format('d/m/Y') }}
-                                    </span>
+                                    </div>
+                                    @if($lpk->certificate_date)
+                                        <small style="display: block; color: var(--muted); font-size: 11px; margin-top: 1px;">Terbit: {{ $lpk->certificate_date->format('d/m/Y') }}</small>
+                                    @endif
                                     @if($lpk->isExpired())
-                                        <small style="display: block; color: #c53030; font-size: 11px; font-weight: 600;">Kedaluwarsa</small>
+                                        <span class="status status-danger" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Kedaluwarsa</span>
+                                    @elseif($lpk->isExpiringSoon())
+                                        <span class="status status-warn" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Mendekati Expired</span>
                                     @endif
                                 @else
                                     <span style="color: var(--muted); font-size: 12px;">-</span>
                                 @endif
                             </td>
-                            <td>{{ $lpk->accreditations_count }}</td>
-                            <td>{{ $lpk->issues_count }}</td>
-                            <td><a href="{{ route('lpks.show', $lpk) }}">Detail</a></td>
+
+                            <!-- 8. LINK -->
+                            <td style="vertical-align: top; text-align: center; white-space: nowrap; padding: 12px 14px;">
+                                @if($lpk->drive_url)
+                                    <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="font-size: 11.5px; padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive">
+                                        <x-icon name="sheets" size="13" style="color: #0f9d58;" />
+                                        <span>Drive &rarr;</span>
+                                    </a>
+                                @else
+                                    <span style="color: var(--muted); font-size: 12px;">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -126,7 +189,7 @@
     'exportUrl' => route('reports.lpks.export'),
     'feedUrl' => route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')]),
     'fileName' => 'data-master-lpk-simasadi.csv',
-    'columns' => ['ID LPK', 'Nomor Registrasi', 'Nama Lembaga Penilaian Kesesuaian', 'Status Operasional', 'Total Akreditasi', 'Total Isu', 'Tanggal Terdaftar']
+    'columns' => ['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']
 ])
 
 @if(auth()->user()?->isAdmin())

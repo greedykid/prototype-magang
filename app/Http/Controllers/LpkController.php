@@ -17,7 +17,7 @@ class LpkController extends Controller
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
-        $lpks = Lpk::query()->when($search, fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$search}%")->orWhere('registration_number', 'like', "%{$search}%")->orWhere('scope', 'like', "%{$search}%")))->when(in_array($status, ['ACTIVE', 'INACTIVE'], true), fn ($query) => $query->where('status', $status))->withCount(['accreditations', 'issues'])->latest()->paginate($perPage)->withQueryString();
+        $lpks = Lpk::query()->when($search, fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$search}%")->orWhere('registration_number', 'like', "%{$search}%")->orWhere('scope', 'like', "%{$search}%")->orWhere('address', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")->orWhere('phone', 'like', "%{$search}%")))->when(in_array($status, ['ACTIVE', 'INACTIVE'], true), fn ($query) => $query->where('status', $status))->withCount(['accreditations', 'issues'])->latest()->paginate($perPage)->withQueryString();
 
         return view('lpks.index', compact('lpks', 'search', 'status', 'perPage'));
     }
