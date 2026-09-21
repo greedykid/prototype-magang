@@ -124,10 +124,10 @@
                             </td>
 
                             <!-- 6. LINGKUP -->
-                            <td style="vertical-align: top; min-width: 220px; max-width: 320px; font-size: 12px; line-height: 1.4; padding: 12px 14px;">
+                            <td style="vertical-align: top; min-width: 260px; max-width: 400px; font-size: 12px; line-height: 1.5; padding: 12px 14px;">
                                 @if($lpk->scope)
-                                    <div style="max-height: 80px; overflow-y: auto; white-space: pre-line; color: #334155; padding-right: 4px;" title="{{ $lpk->scope }}">
-                                        {{ Str::limit($lpk->scope, 160) }}
+                                    <div style="white-space: pre-line; color: #334155; word-break: break-word;">
+                                        {{ $lpk->scope }}
                                     </div>
                                 @else
                                     <span style="color: var(--muted);">-</span>
