@@ -166,4 +166,39 @@ class LpkImportTest extends TestCase
         $picResponse->assertOk();
         $picResponse->assertDontSee('modal-import-lpk');
     }
+
+    public function test_import_with_custom_spreadsheet_headers_and_numeric_numbers(): void
+    {
+        $csvData = "\"NO. AKREDITASI\",\"NAMA LPK\",\"ALAMAT\",\"TELEPON / FAX\",\"EMAIL\",\"LINGKUP\",\"MASA BERLAKU AKREDITASI (EXPIRED)\",\"LINK\"\n" .
+            "\"077\",\"Laboratorium Kekuatan Struktur BRIN\",\"Kawasan Puspiptek Serpong\",\"021-7560562\",\"b2tks@brin.go.id\",\"Pengujian Material dan Struktur\",\"24/05/2027\",\"https://drive.google.com/drive/folders/demo-077\"\n" .
+            "\"LP-186-IDN\",\"UPT Lab Konstruksi PU Jatim\",\"Jl. Gayung Kebonsari Surabaya\",\"031-8290123\",\"lab.jatim@pu.go.id\",\"Pengujian Beton dan Aspal\",\"25 Mei 2028\",\"https://drive.google.com/drive/folders/demo-186\"\n";
+
+        $file = UploadedFile::fake()->createWithContent('custom-labs.csv', $csvData);
+
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
+            'csv_file' => $file,
+        ]);
+
+        $response->assertRedirect(route('lpks.index'));
+        $response->assertSessionHas('success');
+
+        // Verify numeric '077' automatically converted to 'LP-077-IDN'
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-077-IDN',
+            'name' => 'Laboratorium Kekuatan Struktur BRIN',
+            'address' => 'Kawasan Puspiptek Serpong',
+            'phone' => '021-7560562',
+            'email' => 'b2tks@brin.go.id',
+            'expired_at' => '2027-05-24 00:00:00',
+            'drive_url' => 'https://drive.google.com/drive/folders/demo-077',
+        ]);
+
+        // Verify LP-186-IDN with Indonesian month parsing
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-186-IDN',
+            'name' => 'UPT Lab Konstruksi PU Jatim',
+            'expired_at' => '2028-05-25 00:00:00',
+            'drive_url' => 'https://drive.google.com/drive/folders/demo-186',
+        ]);
+    }
 }

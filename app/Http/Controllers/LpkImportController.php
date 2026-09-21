@@ -134,27 +134,27 @@ class LpkImportController extends Controller
 
         $headerRaw = str_getcsv(array_shift($lines), $delimiter);
         $headers = array_map(function ($col) {
-            $clean = strtolower(trim($col));
-            $clean = str_replace([' ', '-', '_'], '', $clean);
+            $clean = strtolower(trim((string) $col));
+            $clean = str_replace([' ', '-', '_', '.', '/', '(', ')', ':', ',', '\\'], '', $clean);
 
             return match ($clean) {
-                'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg' => 'registration_number',
-                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian' => 'name',
-                'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi' => 'scope',
-                'alamat', 'address' => 'address',
-                'email', 'surel' => 'email',
-                'telepon', 'telp', 'phone', 'notelp', 'teleponhp' => 'phone',
+                'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg', 'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor', 'no' => 'registration_number',
+                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk' => 'name',
+                'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi', 'ruanglingkupuji' => 'scope',
+                'alamat', 'address', 'lokasi' => 'address',
+                'email', 'surel', 'mail' => 'email',
+                'telepon', 'telp', 'phone', 'notelp', 'teleponhp', 'teleponfax', 'telfax', 'fax', 'telpfax' => 'phone',
                 'status', 'statusoperasional' => 'status',
                 'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat' => 'certificate_date',
-                'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi' => 'expired_at',
-                'linkdrivedokumen', 'linkdrive', 'driveurl', 'tautandrive', 'linkdrivesertifikat', 'linkdriveamandemen' => 'drive_url',
+                'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi', 'masaberlakuakreditasiexpired', 'expiredakreditasi', 'tanggalkadaluarsa', 'exp' => 'expired_at',
+                'link', 'linkdrive', 'linkdrivedokumen', 'driveurl', 'tautandrive', 'tautan', 'linkdrivesertifikat', 'linkdriveamandemen', 'url', 'googledrive', 'linkberkas' => 'drive_url',
                 'catatan', 'keterangan', 'notes' => 'notes',
                 default => $clean,
             };
         }, $headerRaw);
 
         if (! in_array('registration_number', $headers, true) || ! in_array('name', $headers, true)) {
-            return back()->with('error', 'Format kolom tidak sesuai. Kolom "nomor_registrasi" dan "nama_lpk" wajib ada. Silakan unduh template contoh.');
+            return back()->with('error', 'Format kolom tidak sesuai. Kolom "nomor_registrasi" (atau "NO. AKREDITASI") dan "nama_lpk" wajib ada. Silakan periksa kembali judul kolom spreadsheet.');
         }
 
         $createdCount = 0;
@@ -174,7 +174,7 @@ class LpkImportController extends Controller
 
             $data = [];
             foreach ($headers as $index => $key) {
-                $data[$key] = isset($row[$index]) ? trim($row[$index]) : null;
+                $data[$key] = isset($row[$index]) ? trim((string) $row[$index]) : null;
             }
 
             $regNo = $data['registration_number'] ?? null;
@@ -185,18 +185,23 @@ class LpkImportController extends Controller
                 continue;
             }
 
+            // Normalisasi otomatis nomor akreditasi numerik murni (misal: 077 -> LP-077-IDN)
+            if (preg_match('/^\d+$/', $regNo)) {
+                $regNo = 'LP-' . str_pad($regNo, 3, '0', STR_PAD_LEFT) . '-IDN';
+            }
+
             $status = strtoupper($data['status'] ?? 'ACTIVE');
             if (! in_array($status, ['ACTIVE', 'INACTIVE'], true)) {
                 $status = 'ACTIVE';
             }
 
-            $certificateDate = ! empty($data['certificate_date']) ? date('Y-m-d', strtotime($data['certificate_date'])) : null;
-            $expiredAt = ! empty($data['expired_at']) ? date('Y-m-d', strtotime($data['expired_at'])) : null;
+            $certificateDate = $this->parseDateString($data['certificate_date'] ?? null);
+            $expiredAt = $this->parseDateString($data['expired_at'] ?? null);
             if (! $expiredAt && $certificateDate) {
                 $expiredAt = date('Y-m-d', strtotime('+5 years', strtotime($certificateDate)));
             }
 
-            $driveUrl = ! empty($data['drive_url']) ? $data['drive_url'] : null;
+            $driveUrl = ! empty($data['drive_url']) && filter_var($data['drive_url'], FILTER_VALIDATE_URL) ? $data['drive_url'] : ($data['drive_url'] ?? null);
 
             $existing = Lpk::where('registration_number', $regNo)->first();
 
@@ -240,6 +245,46 @@ class LpkImportController extends Controller
         }
 
         return redirect()->route('lpks.index')->with('success', $msg);
+    }
+
+    /**
+     * Parsing fleksibel format tanggal (ISO, d/m/Y, teks bulan Indonesia, dsb.)
+     */
+    protected function parseDateString(?string $date): ?string
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        $date = trim($date);
+
+        // Jika berupa 4 digit angka tahun (misal: 2027)
+        if (preg_match('/^\d{4}$/', $date)) {
+            return "{$date}-12-31";
+        }
+
+        // Terjemahkan nama bulan Indonesia ke Inggris
+        $idMonths = [
+            'januari' => 'january', 'februari' => 'february', 'maret' => 'march',
+            'april' => 'april', 'mei' => 'may', 'juni' => 'june',
+            'juli' => 'july', 'agustus' => 'august', 'september' => 'september',
+            'oktober' => 'october', 'november' => 'november', 'desember' => 'december',
+            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
+        ];
+        $dateLower = strtolower($date);
+        foreach ($idMonths as $id => $en) {
+            $dateLower = str_replace($id, $en, $dateLower);
+        }
+
+        // Ganti '/' dengan '-' agar strtotime mengenali pola hari-bulan-tahun
+        $dateNormalized = str_replace('/', '-', $dateLower);
+
+        $timestamp = strtotime($dateNormalized);
+        if ($timestamp !== false && $timestamp > 0) {
+            return date('Y-m-d', $timestamp);
+        }
+
+        return null;
     }
 
     /**
