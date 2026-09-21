@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
         Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
         Route::delete('/lpks/{lpk}', [LpkController::class, 'destroy'])->name('lpks.destroy')->whereNumber('lpk');
+        Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
 
         Route::resource('amendments', AmendmentController::class)->except(['destroy']);
 

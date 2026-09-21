@@ -29,6 +29,7 @@ class LpkImportController extends Controller
             'email',
             'telepon',
             'status',
+            'tanggal_terbit_sertifikat',
             'masa_berlaku',
             'link_drive_dokumen',
         ];
@@ -42,6 +43,7 @@ class LpkImportController extends Controller
                 'kontak@lablingkungan.id',
                 '021-3141234',
                 'ACTIVE',
+                date('Y-m-d', strtotime('-2 years')),
                 date('Y-m-d', strtotime('+3 years')),
                 'https://drive.google.com/drive/folders/1demo-berkas-lp101',
             ],
@@ -53,6 +55,7 @@ class LpkImportController extends Controller
                 'layanan@kalibrasipresisi.co.id',
                 '022-2508899',
                 'ACTIVE',
+                date('Y-m-d', strtotime('-1 year')),
                 date('Y-m-d', strtotime('+4 years')),
                 'https://drive.google.com/drive/folders/1demo-berkas-lk202',
             ],
@@ -64,6 +67,7 @@ class LpkImportController extends Controller
                 'sekretariat@inspeksiteknik.id',
                 '031-5345678',
                 'ACTIVE',
+                date('Y-m-d', strtotime('-3 years')),
                 date('Y-m-d', strtotime('+2 years')),
                 'https://drive.google.com/drive/folders/1demo-berkas-li303',
             ],
@@ -141,6 +145,7 @@ class LpkImportController extends Controller
                 'email', 'surel' => 'email',
                 'telepon', 'telp', 'phone', 'notelp', 'teleponhp' => 'phone',
                 'status', 'statusoperasional' => 'status',
+                'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat' => 'certificate_date',
                 'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi' => 'expired_at',
                 'linkdrivedokumen', 'linkdrive', 'driveurl', 'tautandrive', 'linkdrivesertifikat', 'linkdriveamandemen' => 'drive_url',
                 'catatan', 'keterangan', 'notes' => 'notes',
@@ -185,7 +190,12 @@ class LpkImportController extends Controller
                 $status = 'ACTIVE';
             }
 
+            $certificateDate = ! empty($data['certificate_date']) ? date('Y-m-d', strtotime($data['certificate_date'])) : null;
             $expiredAt = ! empty($data['expired_at']) ? date('Y-m-d', strtotime($data['expired_at'])) : null;
+            if (! $expiredAt && $certificateDate) {
+                $expiredAt = date('Y-m-d', strtotime('+5 years', strtotime($certificateDate)));
+            }
+
             $driveUrl = ! empty($data['drive_url']) ? $data['drive_url'] : null;
 
             $existing = Lpk::where('registration_number', $regNo)->first();
@@ -194,6 +204,7 @@ class LpkImportController extends Controller
                 $existing->update([
                     'name' => $name,
                     'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
+                    'certificate_date' => $certificateDate ?: $existing->certificate_date,
                     'address' => ! empty($data['address']) ? $data['address'] : $existing->address,
                     'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
                     'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
@@ -208,6 +219,7 @@ class LpkImportController extends Controller
                     'registration_number' => $regNo,
                     'name' => $name,
                     'scope' => $data['scope'] ?? null,
+                    'certificate_date' => $certificateDate,
                     'address' => $data['address'] ?? null,
                     'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,

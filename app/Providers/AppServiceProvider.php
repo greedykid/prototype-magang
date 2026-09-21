@@ -51,5 +51,32 @@ class AppServiceProvider extends ServiceProvider
                 Log::warning('Auto migration and seeding skipped: '.$e->getMessage());
             }
         }
+
+        view()->composer(['layouts.app', 'layouts.partials.topbar', 'dashboard'], function ($view) {
+            if (Schema::hasTable('lpks')) {
+                try {
+                    $activeLpks = \App\Models\Lpk::with('assessments')
+                        ->where('status', 'ACTIVE')
+                        ->where(function ($q) {
+                            $q->whereNotNull('certificate_date')
+                              ->orWhereNotNull('expired_at');
+                        })
+                        ->get();
+
+                    $alerts = [];
+                    foreach ($activeLpks as $lpk) {
+                        foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
+                            $alerts[] = $alert;
+                        }
+                    }
+
+                    $view->with('globalSurveillanceAlerts', $alerts);
+                } catch (\Throwable $e) {
+                    $view->with('globalSurveillanceAlerts', []);
+                }
+            } else {
+                $view->with('globalSurveillanceAlerts', []);
+            }
+        });
     }
 }

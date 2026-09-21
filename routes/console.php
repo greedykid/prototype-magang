@@ -65,3 +65,47 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     $this->info('Seluruh data operasional berhasil dikosongkan!');
 })->purpose('Mengosongkan seluruh data operasional SIMASADI (LPK, Akreditasi, Asesmen, Biaya, dll.)');
 
+Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru saja dikirim hari ini}', function () {
+    $force = (bool) $this->option('force');
+    $this->info('Memeriksa status siklus pengawasan KAN (S1, S2, Re-Akreditasi)...');
+
+    $lpks = \App\Models\Lpk::where('status', 'ACTIVE')->get();
+    $notifiedCount = 0;
+    $activeNoticeCount = 0;
+
+    foreach ($lpks as $lpk) {
+        $alerts = $lpk->getActiveSurveillanceAlerts();
+        if (empty($alerts)) {
+            continue;
+        }
+
+        $activeNoticeCount += count($alerts);
+
+        foreach ($alerts as $alert) {
+            $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
+
+            if (! $lpk->email) {
+                $this->line("    ⚠ Dilewati: Email PIC Lab tidak terdaftar.");
+                continue;
+            }
+
+            if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
+                $this->line("    ℹ Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
+                continue;
+            }
+
+            try {
+                \Illuminate\Support\Facades\Mail::to($lpk->email)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
+                $lpk->update(['last_surveillance_notified_at' => now()]);
+                $notifiedCount++;
+                $this->info("    ✓ Email pemberitahuan berhasil dikirim ke {$lpk->email} via Mailtrap.");
+            } catch (\Throwable $e) {
+                $this->error("    ✗ Gagal mengirim email ke {$lpk->email}: " . $e->getMessage());
+            }
+        }
+    }
+
+    $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
+})->purpose('Memeriksa jadwal jatuh tempo Surveilen 1 (Bulan 14), Surveilen 2 (Bulan 35), dan Re-Akreditasi (1 Tahun sebelum habis), serta mengirim email ke PIC Lab.');
+
+

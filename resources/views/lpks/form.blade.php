@@ -47,8 +47,14 @@
         <textarea name="address" rows="3">{{ old('address', $lpk->address) }}</textarea>
     </label>
     <label>
+        Tanggal Terbit Sertifikat Akreditasi
+        <input type="date" name="certificate_date" value="{{ old('certificate_date', $lpk->certificate_date?->format('Y-m-d')) }}">
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Acuan siklus KAN: S1 (Bulan 14), S2 (Bulan 35), dan RA (1 Thn sebelum habis).</small>
+    </label>
+    <label>
         Masa berlaku akreditasi (Expired)
         <input type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}">
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Otomatis +5 tahun jika dikosongkan dan tanggal terbit diisi.</small>
     </label>
     <label class="full">
         Link Google Drive Dokumen (Sertifikat Akreditasi, Amandemen & Lampiran)

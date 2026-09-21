@@ -11,6 +11,56 @@
         <a class="button primary" href="{{ route('issues.create') }}"><x-icon name="plus" size="16" /><span>Buat laporan masalah</span></a>
     </div>
 
+    @if(!empty($globalSurveillanceAlerts))
+        <section class="panel" style="border-left: 5px solid #e11d48; margin-bottom: 24px; padding: 18px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line, #e2e8f0); padding-bottom: 12px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="font-size: 15.5px; margin: 0 0 4px 0; color: #9f1239; display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Peringatan Jatuh Tempo Siklus Pengawasan KAN (Surveilen 1, 2 & Re-Akreditasi)
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ count($globalSurveillanceAlerts) }} LPK yang memerlukan penjadwalan kunjungan asesmen penilikan atau re-akreditasi KAN.</p>
+                </div>
+                <span class="badge" style="background-color: #fee2e2; color: #991b1b; font-weight: 700; font-size: 11.5px; padding: 4px 10px; border-radius: 6px;">Wajib Tindak Lanjut</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                @foreach(array_slice($globalSurveillanceAlerts, 0, 5) as $alert)
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line, #e2e8f0); border-radius: 6px; padding: 10px 14px; gap: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">
+                                {{ $alert['code'] }}
+                            </span>
+                            <div>
+                                <a href="{{ route('lpks.show', $alert['lpk_id']) }}" style="font-weight: 600; color: var(--text, #0f172a); text-decoration: none;">
+                                    {{ $alert['lpk_name'] }}
+                                </a>
+                                <span style="font-size: 12px; color: var(--muted, #64748b); margin-left: 6px;">({{ $alert['lpk_reg'] }})</span>
+                                <div style="font-size: 12px; color: {{ $alert['is_urgent'] ? '#b91c1c' : '#b45309' }};">
+                                    {{ $alert['description'] }} &bull; Target Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary" style="font-size: 12px; padding: 4px 10px; min-height: 28px;">
+                                Roadmap Siklus
+                            </a>
+                            <a href="{{ route('assessments.index') }}" class="button primary" style="font-size: 12px; padding: 4px 10px; min-height: 28px;">
+                                Jadwalkan Kunjungan
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+                @if(count($globalSurveillanceAlerts) > 5)
+                    <div style="text-align: center; margin-top: 6px;">
+                        <a href="{{ route('lpks.index') }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">
+                            Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo &rarr;
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </section>
+    @endif
+
     <section class="metric-grid" aria-label="Ringkasan angka">
         <div class="metric"><span>LPK terdaftar</span><strong>{{ $lpkCount }}</strong><small>Data contoh yang tersimpan</small></div>
         <div class="metric"><span>Akreditasi berjalan</span><strong>{{ $activeAccreditationCount }}</strong><small>Status sedang berlangsung</small></div>

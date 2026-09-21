@@ -71,9 +71,22 @@
                                 @if($lpk->scope)
                                     <small style="display: block; color: var(--muted); font-size: 12px; margin-top: 2px;">{{ Str::limit($lpk->scope, 60) }}</small>
                                 @endif
+                                @php($lpkAlerts = $lpk->getActiveSurveillanceAlerts())
+                                @if(!empty($lpkAlerts))
+                                    <div style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
+                                        @foreach($lpkAlerts as $alt)
+                                            <span class="badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;" title="{{ $alt['description'] }}">
+                                                ⚠ {{ $alt['name'] }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td><x-status :value="$lpk->status" /></td>
                             <td>
+                                @if($lpk->certificate_date)
+                                    <small style="display: block; color: var(--muted); font-size: 11px;">Terbit: {{ $lpk->certificate_date->format('d/m/Y') }}</small>
+                                @endif
                                 @if($lpk->expired_at)
                                     <span style="font-size: 13px; font-weight: 500; {{ $lpk->isExpired() ? 'color: #c53030;' : '' }}">
                                         {{ $lpk->expired_at->format('d/m/Y') }}

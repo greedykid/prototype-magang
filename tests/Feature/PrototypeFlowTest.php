@@ -151,5 +151,129 @@ class PrototypeFlowTest extends TestCase
         $this->assertStringContainsString('Ruang Lingkup Akreditasi', $content);
         $this->assertStringContainsString('Laboratorium Kalibrasi Akustik dan Vibrasi', $content);
     }
+
+    public function test_lpk_calculates_correct_surveillance_and_reaccreditation_milestones(): void
+    {
+        // LPK terbit 14 bulan yang lalu (memasuki masa notif S1)
+        $lpkS1 = Lpk::create([
+            'registration_number' => 'LP-SURV-01',
+            'name' => 'Lab Uji S1 Due',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+            'email' => 'pic.s1@labuji.id',
+        ]);
+
+        $milestonesS1 = $lpkS1->surveillance_milestones;
+        $this->assertEquals('DUE', $milestonesS1['s1']['status']);
+        $this->assertTrue($lpkS1->hasActiveSurveillanceAlert());
+
+        $alertsS1 = $lpkS1->getActiveSurveillanceAlerts();
+        $this->assertCount(1, $alertsS1);
+        $this->assertEquals('S1', $alertsS1[0]['code']);
+
+        // LPK terbit 35 bulan yang lalu (memasuki masa notif S2)
+        $lpkS2 = Lpk::create([
+            'registration_number' => 'LP-SURV-02',
+            'name' => 'Lab Uji S2 Due',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(35)->toDateString(),
+            'expired_at' => now()->addMonths(25)->toDateString(),
+            'email' => 'pic.s2@labuji.id',
+        ]);
+
+        $milestonesS2 = $lpkS2->surveillance_milestones;
+        $this->assertEquals('DUE', $milestonesS2['s2']['status']);
+
+        // LPK 11 bulan sebelum habis (memasuki masa notif Re-Akreditasi, < 12 bulan)
+        $lpkRA = Lpk::create([
+            'registration_number' => 'LP-SURV-03',
+            'name' => 'Lab Uji RA Due',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(49)->toDateString(),
+            'expired_at' => now()->addMonths(11)->toDateString(),
+            'email' => 'pic.ra@labuji.id',
+        ]);
+
+        $milestonesRA = $lpkRA->surveillance_milestones;
+        $this->assertEquals('DUE', $milestonesRA['ra']['status']);
+    }
+
+    public function test_surveillance_reminder_email_can_be_sent_to_lab_pic(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-MAIL-01',
+            'name' => 'Lab Uji Mailtrap',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+            'email' => 'pic.lab@mailtrap-test.id',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk));
+        $response->assertRedirect()->assertSessionHas('success');
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
+            return $mail->hasTo('pic.lab@mailtrap-test.id')
+                && $mail->lpk->id === $lpk->id
+                && $mail->alert['code'] === 'S1';
+        });
+
+        $lpk->refresh();
+        $this->assertNotNull($lpk->last_surveillance_notified_at);
+    }
+
+    public function test_persistent_notification_renders_on_ui_and_cannot_be_dismissed(): void
+    {
+        $user = User::factory()->create(['role' => 'staf']);
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-BANNER-01',
+            'name' => 'Lab Banner Test',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+            'email' => 'pic.banner@test.id',
+        ]);
+
+        // Tampilan dashboard memuat banner persisten dan section peringatan
+        $dashboardRes = $this->actingAs($user)->get(route('dashboard'));
+        $dashboardRes->assertOk()
+            ->assertSee('Peringatan Siklus Pengawasan Akreditasi')
+            ->assertSee('Peringatan Jatuh Tempo Siklus Pengawasan KAN')
+            ->assertSee('Lab Banner Test');
+
+        // Halaman show memuat Roadmap Siklus
+        $showRes = $this->actingAs($user)->get(route('lpks.show', $lpk));
+        $showRes->assertOk()
+            ->assertSee('Roadmap Pengawasan', false)
+            ->assertSee('Surveilen 1 (S1)')
+            ->assertSee('Kirim Notifikasi Email PIC Lab');
+    }
+
+    public function test_artisan_check_surveillance_command(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-CMD-01',
+            'name' => 'Lab Artisan Command Test',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+            'email' => 'artisan.pic@test.id',
+        ]);
+
+        $this->artisan('lpk:check-surveillance', ['--force' => true])
+            ->expectsOutputToContain('Memeriksa status siklus pengawasan KAN')
+            ->expectsOutputToContain('Email pemberitahuan berhasil dikirim')
+            ->assertExitCode(0);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class);
+    }
 }
 
