@@ -57,6 +57,9 @@ class LpkFactory extends Factory
             'email' => $item['email'],
             'phone' => $item['phone'],
             'status' => 'ACTIVE',
+            'expired_at' => now()->addYears(3)->addMonths(random_int(1, 12))->toDateString(),
+            'certificate_drive_url' => 'https://drive.google.com/file/d/1demo-certificate-' . strtolower(str_replace(['-', ' '], '', $item['reg'])) . '/view',
+            'amendment_drive_url' => 'https://drive.google.com/drive/folders/1demo-amendment-' . strtolower(str_replace(['-', ' '], '', $item['reg'])),
             'notes' => 'Lembaga Penilaian Kesesuaian terakreditasi KAN (Komite Akreditasi Nasional).',
         ];
     }

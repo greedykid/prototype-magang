@@ -62,6 +62,16 @@ class LpkController extends Controller
 
     private function validated(Request $request, ?Lpk $lpk = null): array
     {
-        return $request->validate(['registration_number' => ['required', 'string', 'max:50', 'unique:lpks,registration_number,'.($lpk?->id ?? 'NULL')], 'name' => ['required', 'string', 'max:255'], 'address' => ['nullable', 'string'], 'email' => ['nullable', 'email', 'max:255'], 'phone' => ['nullable', 'string', 'max:50'], 'status' => ['required', 'in:ACTIVE,INACTIVE'], 'notes' => ['nullable', 'string']]);
+        return $request->validate([
+            'registration_number' => ['required', 'string', 'max:50', 'unique:lpks,registration_number,'.($lpk?->id ?? 'NULL')],
+            'name' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'string'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'status' => ['required', 'in:ACTIVE,INACTIVE'],
+            'expired_at' => ['nullable', 'date'],
+            'certificate_drive_url' => ['nullable', 'url', 'max:1000'],
+            'amendment_drive_url' => ['nullable', 'url', 'max:1000'],
+        ]);
     }
 }

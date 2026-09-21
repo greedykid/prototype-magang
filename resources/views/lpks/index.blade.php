@@ -56,6 +56,7 @@
                     <tr>
                         <th>LPK</th>
                         <th>Status</th>
+                        <th>Masa Berlaku</th>
                         <th>Akreditasi</th>
                         <th>Masalah</th>
                         <th><span class="sr-only">Buka</span></th>
@@ -69,6 +70,18 @@
                                 <span>{{ $lpk->registration_number }}</span>
                             </td>
                             <td><x-status :value="$lpk->status" /></td>
+                            <td>
+                                @if($lpk->expired_at)
+                                    <span style="font-size: 13px; font-weight: 500; {{ $lpk->isExpired() ? 'color: #c53030;' : '' }}">
+                                        {{ $lpk->expired_at->format('d/m/Y') }}
+                                    </span>
+                                    @if($lpk->isExpired())
+                                        <small style="display: block; color: #c53030; font-size: 11px; font-weight: 600;">Kedaluwarsa</small>
+                                    @endif
+                                @else
+                                    <span style="color: var(--muted); font-size: 12px;">-</span>
+                                @endif
+                            </td>
                             <td>{{ $lpk->accreditations_count }}</td>
                             <td>{{ $lpk->issues_count }}</td>
                             <td><a href="{{ route('lpks.show', $lpk) }}">Detail</a></td>

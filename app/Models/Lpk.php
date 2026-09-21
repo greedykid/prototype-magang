@@ -10,7 +10,39 @@ class Lpk extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['registration_number', 'name', 'address', 'email', 'phone', 'status', 'notes'];
+    protected $fillable = [
+        'registration_number',
+        'name',
+        'address',
+        'email',
+        'phone',
+        'status',
+        'notes',
+        'expired_at',
+        'certificate_drive_url',
+        'amendment_drive_url',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'expired_at' => 'date',
+        ];
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expired_at && $this->expired_at->isPast();
+    }
+
+    public function isExpiringSoon(int $days = 90): bool
+    {
+        if (! $this->expired_at || $this->isExpired()) {
+            return false;
+        }
+
+        return $this->expired_at->diffInDays(now()) <= $days;
+    }
 
     public function accreditations(): HasMany
     {
