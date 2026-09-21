@@ -100,10 +100,34 @@ class LpkImportController extends Controller
             $file = $request->file('csv_file');
             $csvContent = file_get_contents($file->getRealPath());
         } elseif ($request->filled('sheets_url')) {
-            $url = $this->normalizeGoogleSheetsUrl($request->input('sheets_url'));
+            $inputUrl = $request->input('sheets_url');
+            $url = $this->normalizeGoogleSheetsUrl($inputUrl);
 
             try {
-                $response = Http::timeout(15)->get($url);
+                $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
+                $response = Http::withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept' => 'text/csv,text/plain,*/*',
+                ])->withOptions([
+                    'cookies' => $cookieJar,
+                    'allow_redirects' => [
+                        'max' => 10,
+                        'strict' => false,
+                        'referer' => true,
+                        'protocols' => ['http', 'https'],
+                        'track_redirects' => true,
+                    ],
+                ])->timeout(20)->get($url);
+
+                // Fallback ke GViz CSV endpoint jika endpoint ekspor standar gagal
+                if (! $response->successful() && preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $inputUrl, $sheetMatches)) {
+                    $sheetId = $sheetMatches[1];
+                    $gvizUrl = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:csv";
+                    $response = Http::withHeaders([
+                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    ])->timeout(20)->get($gvizUrl);
+                }
+
                 if (! $response->successful()) {
                     return back()->with('error', 'Gagal mengunduh spreadsheet dari URL yang diberikan. Pastikan tautan dapat diakses publik (Anyone with the link).');
                 }
@@ -132,7 +156,7 @@ class LpkImportController extends Controller
         $firstLine = $lines[0];
         $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
 
-        $headerRaw = str_getcsv(array_shift($lines), $delimiter);
+        $headerRaw = str_getcsv(array_shift($lines), $delimiter, '"', '\\');
         $headers = array_map(function ($col) {
             $clean = strtolower(trim((string) $col));
             $clean = str_replace([' ', '-', '_', '.', '/', '(', ')', ':', ',', '\\'], '', $clean);
@@ -166,7 +190,7 @@ class LpkImportController extends Controller
                 continue;
             }
 
-            $row = str_getcsv($line, $delimiter);
+            $row = str_getcsv($line, $delimiter, '"', '\\');
             if (count($row) < 2) {
                 $skippedCount++;
                 continue;
