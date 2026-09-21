@@ -124,9 +124,9 @@
                             </td>
 
                             <!-- 6. LINGKUP -->
-                            <td style="vertical-align: top; min-width: 260px; max-width: 400px; font-size: 12px; line-height: 1.5; padding: 12px 14px;">
+                            <td style="vertical-align: top; min-width: 260px; max-width: 380px; font-size: 12px; line-height: 1.45; padding: 12px 14px;">
                                 @if($lpk->scope)
-                                    <div style="white-space: pre-line; color: #334155; word-break: break-word;">
+                                    <div style="max-height: 120px; overflow-y: auto; white-space: pre-line; color: #334155; word-break: break-word; padding-right: 6px;" title="{{ $lpk->scope }}">
                                         {{ $lpk->scope }}
                                     </div>
                                 @else
