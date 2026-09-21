@@ -136,7 +136,8 @@
 }
 
 .user-details {
-    max-width: 140px;
+    max-width: 175px;
+    min-width: 0;
     opacity: 1;
     overflow: hidden;
     transform: translateX(0);

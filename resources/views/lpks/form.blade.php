@@ -7,7 +7,7 @@
     <div>
         <a class="back-link" href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}">Kembali ke daftar LPK</a>
         <h1>{{ $formTitle }}</h1>
-        <p class="lede">Gunakan data contoh terlebih dahulu saat mempelajari alur.</p>
+        <p class="lede">Lengkapi data legalitas, profil, ruang lingkup, dan masa berlaku akreditasi LPK.</p>
     </div>
 </div>
 

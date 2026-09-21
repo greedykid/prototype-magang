@@ -60,6 +60,16 @@
                     <span class="gcal-cat-indicator indigo"></span>
                     <span class="gcal-cat-text">Agenda Internal SIMASADI</span>
                 </label>
+                <label class="gcal-checkbox-row">
+                    <input type="checkbox" id="filter-cat-surveillance" checked data-filter-cat="SURVEILEN">
+                    <span class="gcal-cat-indicator amber"></span>
+                    <span class="gcal-cat-text">Jatuh Tempo Surveilen (S1/S2)</span>
+                </label>
+                <label class="gcal-checkbox-row">
+                    <input type="checkbox" id="filter-cat-expiry" checked data-filter-cat="KEDALUWARSA">
+                    <span class="gcal-cat-indicator rose"></span>
+                    <span class="gcal-cat-text">Kedaluwarsa Akreditasi</span>
+                </label>
             </div>
 
             {{-- Filter LPK --}}

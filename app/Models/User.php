@@ -63,6 +63,15 @@ class User extends Authenticatable
         };
     }
 
+    public function getRoleShortLabelAttribute(): string
+    {
+        return match ($this->role) {
+            self::ROLE_ADMIN => 'Admin Unit Lab',
+            self::ROLE_PIC => 'PIC Lab',
+            default => ucfirst((string) ($this->role ?? 'Pengguna')),
+        };
+    }
+
     public function getRoleBadgeClassAttribute(): string
     {
         return match ($this->role) {

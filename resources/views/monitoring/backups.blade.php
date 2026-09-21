@@ -3,7 +3,7 @@
 @section('title', 'Backup | SIMASADI')
 
 @section('content')
-<div class="page-heading"><div><h1>Riwayat backup</h1><p class="lede">Catatan status backup manual. Halaman ini tidak menjalankan backup nyata.</p></div></div>
+<div class="page-heading"><div><h1>Riwayat backup</h1><p class="lede">Log riwayat pencadangan data dan integritas basis data sistem SIMASADI.</p></div></div>
 <section class="panel">
     <form class="table-filters" method="GET">
         <div class="table-filter-grid"><label>Sistem<input name="system" value="{{ $system }}" placeholder="Nama sistem"></label><label>Status<select name="status"><option value="">Semua status</option><option value="SUCCESS" @selected($status === 'SUCCESS')>Berhasil</option><option value="FAILED" @selected($status === 'FAILED')>Gagal</option><option value="UNKNOWN" @selected($status === 'UNKNOWN')>Tidak diketahui</option></select></label><label>Dicatat oleh<select name="recorded_by"><option value="">Semua pencatat</option>@foreach($users as $user)<option value="{{ $user->id }}" @selected($recordedBy === $user->id)>{{ $user->name }}</option>@endforeach</select></label><label>Selesai dari<input type="date" name="finished_from" value="{{ $finishedFrom }}"></label><label>Selesai sampai<input type="date" name="finished_to" value="{{ $finishedTo }}"></label></div>

@@ -7,7 +7,7 @@
     <div>
         <a class="back-link" href="{{ route('lpks.index') }}">Semua LPK</a>
         <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 23px; line-height: 1.35; font-weight: 700; word-break: break-word; max-width: 950px;">{{ $lpk->name }}</h1>
-        <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; data contoh lokal</p>
+        <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; Lembaga Penilaian Kesesuaian Terakreditasi</p>
     </div>
     @if(auth()->user()?->isAdmin())
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px;">
@@ -55,7 +55,7 @@
                     @foreach($activeAlerts as $a)
                         <span style="display: inline-block; background: rgba(225, 29, 72, 0.12); color: #9f1239; font-weight: 700; padding: 1px 8px; border-radius: 4px; font-size: 12px; margin: 1px 2px;">{{ $a['name'] }} ({{ $a['status_label'] }})</span>@if(!$loop->last) @endif
                     @endforeach
-                    &mdash; Peringatan ini muncul terus menerus dan tidak dapat diabaikan sampai kunjungan asesmen diagendakan.
+                    . Peringatan ini aktif sampai agenda kunjungan asesmen tercatat.
                 </p>
                 @if($lpk->last_surveillance_notified_at)
                     <div style="margin-top: 8px; color: #9f1239; font-size: 11.5px; display: flex; align-items: center; gap: 6px;">
@@ -69,7 +69,7 @@
                     @csrf
                     <button type="submit" class="button primary" style="background-color: #e11d48; border-color: #e11d48; font-size: 12.5px; padding: 7px 16px; min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>Kirim Notifikasi Email PIC Lab (Mailtrap)</span>
+                        <span>Kirim Notifikasi Email PIC Lab</span>
                     </button>
                 </form>
             @endif
@@ -207,15 +207,9 @@
                 <dt>Status</dt>
                 <dd><x-status :value="$lpk->status" /></dd>
             </div>
-            <div style="grid-column: 1 / -1; align-items: start;">
-                <dt>Ruang Lingkup Akreditasi</dt>
-                <dd>
-                    @if($lpk->scope)
-                        <div style="white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line, #e2e8f0); border-radius: 6px; padding: 12px 16px; max-height: 280px; overflow-y: auto;">{{ $lpk->scope }}</div>
-                    @else
-                        <span style="color: var(--muted);">Belum diisi</span>
-                    @endif
-                </dd>
+            <div style="align-items: start;">
+                <dt style="padding-top: 2px;">Ruang Lingkup Akreditasi</dt>
+                <dd>@if($lpk->scope)<div style="white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line, #e2e8f0); border-radius: 6px; padding: 10px 14px; max-height: 280px; overflow-y: auto;">{{ $lpk->scope }}</div>@else<span style="color: var(--muted);">Belum diisi</span>@endif</dd>
             </div>
             <div>
                 <dt>Email</dt>
@@ -231,41 +225,15 @@
             </div>
             <div>
                 <dt style="white-space: nowrap;">Tanggal Terbit Sertifikat</dt>
-                <dd>
-                    @if($lpk->certificate_date)
-                        <strong>{{ $lpk->certificate_date->format('d M Y') }}</strong>
-                    @else
-                        <span style="color: var(--muted);">Belum ditentukan</span>
-                    @endif
-                </dd>
+                <dd>@if($lpk->certificate_date)<strong>{{ $lpk->certificate_date->format('d M Y') }}</strong>@else<span style="color: var(--muted);">Belum ditentukan</span>@endif</dd>
             </div>
             <div>
                 <dt style="white-space: nowrap;">Masa Berlaku Akreditasi</dt>
-                <dd>
-                    @if($lpk->expired_at)
-                        <strong>{{ $lpk->expired_at->format('d M Y') }}</strong>
-                        @if($lpk->isExpired())
-                            <span class="status status-danger" style="margin-left: 6px; font-size: 11px; vertical-align: middle;">Kedaluwarsa</span>
-                        @elseif($lpk->isExpiringSoon())
-                            <span class="status status-warn" style="margin-left: 6px; font-size: 11px; vertical-align: middle;">Mendekati Expired</span>
-                        @endif
-                    @else
-                        <span style="color: var(--muted);">Belum ditentukan</span>
-                    @endif
-                </dd>
+                <dd>@if($lpk->expired_at)<strong>{{ $lpk->expired_at->format('d M Y') }}</strong>@if($lpk->isExpired())<span class="status status-danger" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Kedaluwarsa</span>@elseif($lpk->isExpiringSoon())<span class="status status-warn" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Mendekati Kedaluwarsa</span>@endif @else<span style="color: var(--muted);">Belum ditentukan</span>@endif</dd>
             </div>
             <div>
-                <dt>Berkas Akreditasi (Sertifikat, Amandemen & Lampiran)</dt>
-                <dd>
-                    @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
-                        <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 12px; min-height: 32px;">
-                            <x-icon name="sheets" size="14" />
-                            <span>Buka Berkas di Google Drive &rarr;</span>
-                        </a>
-                    @else
-                        <span style="color: var(--muted);">Belum ada tautan berkas</span>
-                    @endif
-                </dd>
+                <dt style="white-space: nowrap;" title="Sertifikat, Amandemen & Lampiran">Berkas Akreditasi</dt>
+                <dd>@if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))<a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 12px; min-height: 32px;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive"><x-icon name="sheets" size="14" /><span>Buka Berkas di Google Drive &rarr;</span></a>@else<span style="color: var(--muted);">Belum ada tautan berkas</span>@endif</dd>
             </div>
         </dl>
     </section>

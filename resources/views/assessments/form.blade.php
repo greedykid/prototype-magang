@@ -18,7 +18,7 @@
         <select name="lpk_id" required>
             <option value="">Pilih LPK</option>
             @foreach($lpks as $lpk)
-                <option value="{{ $lpk->id }}" @selected(old('lpk_id', $assessment->lpk_id) == $lpk->id)>{{ $lpk->name }}</option>
+                <option value="{{ $lpk->id }}" @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>{{ $lpk->name }}</option>
             @endforeach
         </select>
     </label>
@@ -32,8 +32,8 @@
             <option value="">Pilih jenis asesmen</option>
             @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
                 <option value="{{ $typeKey }}" @selected(
-                    old('assessment_type', $assessment->assessment_type) === $typeKey ||
-                    (old('assessment_type') === null && (
+                    old('assessment_type', $assessment->assessment_type ?: request('assessment_type')) === $typeKey ||
+                    (old('assessment_type') === null && request('assessment_type') === null && (
                         ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
                         ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
                         ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
@@ -56,11 +56,11 @@
     </label>
     <label>
         Mulai
-        <input type="datetime-local" name="start_at" value="{{ old('start_at', $assessment->start_at?->format('Y-m-d\TH:i')) }}" required>
+        <input type="datetime-local" name="start_at" value="{{ old('start_at', $assessment->start_at?->format('Y-m-d\TH:i') ?: request('start_at')) }}" required>
     </label>
     <label>
         Selesai
-        <input type="datetime-local" name="end_at" value="{{ old('end_at', $assessment->end_at?->format('Y-m-d\TH:i')) }}" required>
+        <input type="datetime-local" name="end_at" value="{{ old('end_at', $assessment->end_at?->format('Y-m-d\TH:i') ?: request('end_at')) }}" required>
     </label>
     <label>
         Lokasi

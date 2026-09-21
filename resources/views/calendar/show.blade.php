@@ -7,14 +7,14 @@
     <div>
         <a class="back-link" href="{{ route('calendar.index', ['month' => $event->start_at->format('Y-m')]) }}">Kembali ke kalender</a>
         <h1>{{ $event->title }}</h1>
-        <p class="lede">{{ $event->lpk->name }} &middot; agenda prototype lokal</p>
+        <p class="lede">{{ $event->lpk->name }} &middot; Agenda Asesmen Laboratorium</p>
     </div>
     <div class="heading-actions">
         <x-status :value="$event->status" />
         @php
             $gcalStart = $event->start_at->copy()->setTimezone('UTC')->format('Ymd\THis\Z');
             $gcalEnd = $event->end_at->copy()->setTimezone('UTC')->format('Ymd\THis\Z');
-            $gcalDetails = "LPK: {$event->lpk->name}\nStatus: {$event->status}\nDeskripsi: " . ($event->description ?: '-') . "\nSIMASADI KAN Prototype";
+            $gcalDetails = "LPK: {$event->lpk->name}\nStatus: {$event->status}\nDeskripsi: " . ($event->description ?: '-') . "\nSIMASADI KAN - Dit. Akreditasi Laboratorium";
             $gcalUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
                 . '&text=' . urlencode($event->title)
                 . '&dates=' . $gcalStart . '/' . $gcalEnd

@@ -111,7 +111,7 @@ const createCustomSelect = (select) => {
     let searchInput = null;
     let emptyNotice = null;
 
-    if (optionsCount > 6) {
+    if (optionsCount > 6 && select.dataset.noSearch === undefined) {
         const searchWrap = document.createElement('div');
         searchWrap.className = 'custom-select-search-wrap';
         searchWrap.innerHTML = '<svg class="custom-select-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
@@ -237,7 +237,7 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *, .gcal-board, .gcal-toolbar');
         if (parentContainer) {
             parentContainer.classList.add('has-open-select');
         }
@@ -267,7 +267,7 @@ const createCustomSelect = (select) => {
         trigger.setAttribute('aria-expanded', 'false');
         optionElements.forEach((el) => el.classList.remove('is-focused'));
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *, .gcal-board, .gcal-toolbar');
         if (parentContainer && !parentContainer.querySelector('.custom-select-wrapper.is-open')) {
             parentContainer.classList.remove('has-open-select');
         }

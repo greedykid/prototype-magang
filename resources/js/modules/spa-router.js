@@ -441,6 +441,8 @@ const navigateTo = async (url, pushState = true) => {
         if (typeof closeModal === 'function') closeModal();
         else window.closeModal?.();
 
+        window.closeNotificationDropdown?.();
+
         document.querySelectorAll('body > .gcal-popover, body > #gcal-event-popover').forEach((p) => {
             if (typeof returnPopoverToPlaceholder === 'function') returnPopoverToPlaceholder(p);
             if (p.parentElement === document.body) {

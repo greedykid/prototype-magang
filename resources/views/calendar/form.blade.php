@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', $formTitle.' | SIMASADI')
 @section('content')
-<div class="page-heading"><div><a class="back-link" href="{{ route('calendar.index') }}">Kembali ke kalender</a><h1>{{ $formTitle }}</h1><p class="lede">Agenda ini hanya tersimpan di database prototype lokal.</p></div></div>
+<div class="page-heading"><div><a class="back-link" href="{{ route('calendar.index') }}">Kembali ke kalender</a><h1>{{ $formTitle }}</h1><p class="lede">Kelola jadwal pelaksanaan asesmen dan agenda penilikan laboratorium.</p></div></div>
 <form class="panel form-grid" method="POST" action="{{ $event->exists ? route('calendar.events.update', $event) : route('calendar.events.store') }}">
     @csrf @if($event->exists) @method('PUT') @endif
     <label class="full">LPK<select name="lpk_id" required><option value="">Pilih LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected(old('lpk_id', $event->lpk_id) == $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label>

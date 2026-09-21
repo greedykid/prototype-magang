@@ -33,6 +33,54 @@ window.quickAddAt = quickAddAt;
 window.navigateTo = navigateTo;
 window.toggleSidebarState = toggleSidebarState;
 
+export function closeNotificationDropdown() {
+    const currentMenu = document.getElementById('notif-dropdown-menu');
+    const currentBtn = document.getElementById('notif-dropdown-btn');
+    if (currentMenu && currentMenu.style.display !== 'none') {
+        currentMenu.style.display = 'none';
+        currentBtn?.setAttribute('aria-expanded', 'false');
+    }
+}
+window.closeNotificationDropdown = closeNotificationDropdown;
+
+export function initNotificationDropdown() {
+    const btn = document.getElementById('notif-dropdown-btn');
+    const menu = document.getElementById('notif-dropdown-menu');
+    if (!btn || !menu) return;
+
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        const isHidden = menu.style.display === 'none' || getComputedStyle(menu).display === 'none';
+        menu.style.display = isHidden ? 'block' : 'none';
+        btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    };
+
+    menu.onclick = (e) => {
+        if (e.target.closest('a, button')) {
+            closeNotificationDropdown();
+        }
+    };
+
+    if (!window._notifClickBound) {
+        window._notifClickBound = true;
+        document.addEventListener('click', (e) => {
+            const currentMenu = document.getElementById('notif-dropdown-menu');
+            const currentBtn = document.getElementById('notif-dropdown-btn');
+            if (currentMenu && currentMenu.style.display !== 'none') {
+                if (!currentMenu.contains(e.target) && e.target !== currentBtn && !currentBtn?.contains(e.target)) {
+                    closeNotificationDropdown();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeNotificationDropdown();
+            }
+        });
+    }
+}
+
 // ==========================================================================
 // Page Components Initializer (Idempotent for Initial Load & SPA Transitions)
 // ==========================================================================
@@ -50,6 +98,9 @@ export const initPageComponents = () => {
     if (document.querySelector('.gcal-shell')) {
         initGcalComponents();
     }
+
+    // 5. Topbar Notification Dropdown
+    initNotificationDropdown();
 };
 
 window.initPageComponents = initPageComponents;

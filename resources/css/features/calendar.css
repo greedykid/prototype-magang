@@ -221,6 +221,14 @@
     background: #4f46e5;
 }
 
+.gcal-cat-indicator.amber {
+    background: #d97706;
+}
+
+.gcal-cat-indicator.rose {
+    background: #e11d48;
+}
+
 .gcal-lpk-select {
     background: #ffffff;
     border: 1px solid #c8c4be;
@@ -258,26 +266,43 @@
     gap: 12px;
 }
 
+.gcal-nav-group {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
 .gcal-btn-today {
+    align-items: center !important;
+    display: inline-flex !important;
     font-size: 13px !important;
-    min-height: 34px !important;
-    padding: 6px 14px !important;
+    font-weight: 600 !important;
+    height: 38px !important;
+    justify-content: center !important;
+    min-height: 38px !important;
+    padding: 0 16px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
 
 .gcal-nav-arrows {
-    display: flex;
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
     gap: 4px;
 }
 
 .gcal-arrow-btn {
     align-items: center;
     display: inline-flex;
-    height: 34px !important;
+    height: 38px !important;
     justify-content: center;
-    min-height: 34px !important;
-    min-width: 34px !important;
+    min-height: 38px !important;
+    min-width: 38px !important;
     padding: 0 !important;
-    width: 34px;
+    width: 38px !important;
+    flex-shrink: 0 !important;
 }
 
 .gcal-title-label {
@@ -285,6 +310,217 @@
     font-size: 17px;
     font-weight: 600;
     margin: 0;
+}
+
+.gcal-title-picker-wrap {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.gcal-title-selects {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+}
+
+.gcal-select-wrapper {
+    box-sizing: border-box;
+    display: inline-flex;
+    position: relative;
+    vertical-align: middle;
+}
+
+.gcal-select-wrapper-month {
+    width: 145px;
+}
+
+.gcal-select-wrapper-year {
+    width: 104px;
+}
+
+.gcal-select-wrapper .custom-select-wrapper {
+    width: 100%;
+}
+
+.gcal-select-wrapper .custom-select-trigger {
+    background: #ffffff !important;
+    border: 1px solid #dcd8d0 !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    color: var(--ink) !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    height: 38px !important;
+    justify-content: space-between !important;
+    min-height: 38px !important;
+    padding: 0 12px !important;
+    transition: all 140ms ease !important;
+    width: 100% !important;
+}
+
+.gcal-select-wrapper .custom-select-trigger:hover {
+    background: #f7f6f3 !important;
+    border-color: #b5b0a6 !important;
+}
+
+.gcal-select-wrapper .custom-select-wrapper.is-open .custom-select-trigger,
+.gcal-select-wrapper .custom-select-trigger:focus-visible {
+    border-color: var(--maroon) !important;
+    box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.12) !important;
+    outline: none !important;
+}
+
+.gcal-select-wrapper .custom-select-value {
+    color: var(--ink) !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.gcal-select-wrapper .custom-select-value > span {
+    color: var(--ink) !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.gcal-select-wrapper .custom-select-arrow {
+    align-items: center !important;
+    color: #716c62 !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: center !important;
+    margin-left: 6px !important;
+    transition: transform 180ms ease, color 180ms ease !important;
+}
+
+.gcal-select-wrapper .custom-select-wrapper.is-open .custom-select-arrow {
+    color: var(--maroon) !important;
+    transform: rotate(180deg) !important;
+}
+
+.gcal-select-wrapper .custom-select-menu {
+    background: #ffffff !important;
+    border: 1px solid #c8c4be !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+    box-sizing: border-box !important;
+    max-height: 240px !important;
+    min-width: 100% !important;
+    overflow-y: auto !important;
+    z-index: 100 !important;
+}
+
+.gcal-select-wrapper-month .custom-select-menu {
+    left: 0 !important;
+    min-width: 145px !important;
+    right: auto !important;
+    width: max-content !important;
+}
+
+.gcal-select-wrapper-year .custom-select-menu {
+    left: auto !important;
+    min-width: 114px !important;
+    right: 0 !important;
+    width: max-content !important;
+}
+
+.gcal-select-wrapper .custom-select-option {
+    align-items: center !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    gap: 8px !important;
+    justify-content: space-between !important;
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+}
+
+.gcal-select-wrapper .custom-select-option-content {
+    align-items: center !important;
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+}
+
+.gcal-select-wrapper .custom-select-option-text {
+    color: inherit !important;
+    flex: 1 1 auto !important;
+    overflow: visible !important;
+    overflow-wrap: normal !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+}
+
+.gcal-select-wrapper .custom-select-check {
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    justify-content: center !important;
+    margin-left: 6px !important;
+}
+
+.gcal-select-wrapper .custom-select-option.is-selected {
+    font-weight: 700 !important;
+}
+
+.gcal-select-wrapper .custom-select-option.is-selected .custom-select-check {
+    display: flex !important;
+}
+
+/* Compact mode for Week and Day views */
+.gcal-title-selects.is-compact .gcal-select-wrapper-month {
+    width: 90px;
+}
+
+.gcal-title-selects.is-compact .gcal-select-wrapper-year {
+    width: 82px;
+}
+
+.gcal-title-selects.is-compact .custom-select-trigger {
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 8px !important;
+}
+
+.gcal-title-selects.is-compact .custom-select-value,
+.gcal-title-selects.is-compact .custom-select-value > span {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+.gcal-title-selects.is-compact .custom-select-option {
+    font-size: 13px !important;
+    min-height: 32px !important;
+    padding: 6px 10px !important;
+}
+
+/* Fallback for native select before JS init */
+.gcal-nav-select:not(.custom-select-native) {
+    background: #ffffff;
+    border: 1px solid #dcd8d0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 700;
+    height: 38px;
+    padding: 0 10px;
+    width: 100%;
 }
 
 .gcal-view-switcher {
@@ -451,6 +687,18 @@
     background: #f5f0ff;
     border-left: 3px solid #7e22ce;
     color: #581c87;
+}
+
+.gcal-event-chip.theme-amber {
+    background: #fffbeb;
+    border-left: 3px solid #d97706;
+    color: #92400e;
+}
+
+.gcal-event-chip.theme-rose {
+    background: #fff1f2;
+    border-left: 3px solid #e11d48;
+    color: #9f1239;
 }
 
 .gcal-chip-time {
@@ -652,6 +900,18 @@
     color: #581c87;
 }
 
+.gcal-timed-card.theme-amber {
+    background: #fffbeb;
+    border-left: 3.5px solid #d97706;
+    color: #92400e;
+}
+
+.gcal-timed-card.theme-rose {
+    background: #fff1f2;
+    border-left: 3.5px solid #e11d48;
+    color: #9f1239;
+}
+
 .gcal-card-inner {
     display: flex;
     flex-direction: column;
@@ -817,6 +1077,16 @@
     border-left: 4px solid #7e22ce;
 }
 
+.gcal-agenda-row.theme-amber {
+    background: #fffdf5;
+    border-left: 4px solid #d97706;
+}
+
+.gcal-agenda-row.theme-rose {
+    background: #fff5f5;
+    border-left: 4px solid #e11d48;
+}
+
 .gcal-agenda-time-col strong {
     color: var(--ink);
     display: block;
@@ -858,6 +1128,16 @@
 .gcal-badge-pill.theme-purple {
     background: #f3e8ff;
     color: #6b21a8;
+}
+
+.gcal-badge-pill.theme-amber {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.gcal-badge-pill.theme-rose {
+    background: #ffe4e6;
+    color: #9f1239;
 }
 
 .gcal-agenda-meta {

@@ -62,7 +62,7 @@
     @endif
 
     <section class="metric-grid" aria-label="Ringkasan angka">
-        <div class="metric"><span>LPK terdaftar</span><strong>{{ $lpkCount }}</strong><small>Data contoh yang tersimpan</small></div>
+        <div class="metric"><span>LPK terdaftar</span><strong>{{ $lpkCount }}</strong><small>Total laboratorium terdata</small></div>
         <div class="metric"><span>Akreditasi berjalan</span><strong>{{ $activeAccreditationCount }}</strong><small>Status sedang berlangsung</small></div>
         <div class="metric"><span>Masalah terbuka</span><strong>{{ $openIssueCount }}</strong><small>Terbuka atau sedang ditangani</small></div>
         <div class="metric warn"><span>Melewati target</span><strong>{{ $overdueIssueCount }}</strong><small>Perlu ditinjau</small></div>

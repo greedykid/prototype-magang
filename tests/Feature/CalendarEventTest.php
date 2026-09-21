@@ -95,4 +95,55 @@ class CalendarEventTest extends TestCase
         $todayResponse->assertOk();
         $todayResponse->assertSee('today', false);
     }
+
+    public function test_calendar_displays_lpk_surveillance_and_reaccreditation_milestones(): void
+    {
+        $user = User::factory()->create();
+
+        $lpk = Lpk::factory()->create([
+            'name' => 'Laboratorium Kalibrasi Uji Akurat',
+            'certificate_date' => '2025-06-15',
+            'expired_at' => '2026-10-20',
+        ]);
+
+        // 1. Visit calendar for September 2026: S1 milestone should appear
+        $responseSept = $this->actingAs($user)->get('/calendar?view=month&month=2026-09');
+        $responseSept->assertOk();
+        $responseSept->assertSee('Jatuh Tempo Surveilen (S1/S2)');
+        $responseSept->assertSee('Kedaluwarsa Akreditasi');
+        $responseSept->assertSee('[S1] Surveilen 1: Laboratorium Kalibrasi Uji Akurat');
+        $responseSept->assertSee('theme-amber');
+
+        // 2. Visit calendar for October 2026: Expired_at milestone should appear
+        $responseOct = $this->actingAs($user)->get('/calendar?view=month&month=2026-10');
+        $responseOct->assertOk();
+        $responseOct->assertSee('[Kedaluwarsa] Akreditasi: Laboratorium Kalibrasi Uji Akurat');
+        $responseOct->assertSee('theme-rose');
+
+        // 3. Check agenda view displays the synchronized milestone
+        $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2026-09-15');
+        $responseAgenda->assertOk();
+        $responseAgenda->assertSee('Jatuh Tempo Surveilen');
+        $responseAgenda->assertSee('Laboratorium Kalibrasi Uji Akurat');
+    }
+
+    public function test_calendar_renders_month_and_year_direct_selectors(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/calendar?view=month&month=2028-05');
+        $response->assertOk();
+
+        // Check selectors exist
+        $response->assertSee('id="gcal-select-month"', false);
+        $response->assertSee('id="gcal-select-year"', false);
+
+        // Check selected month and year
+        $response->assertSee('<option value="05" selected>Mei</option>', false);
+        $response->assertSee('<option value="2028" selected>2028</option>', false);
+
+        // Check future year options exist for KAN 5-year accreditation cycles
+        $response->assertSee('<option value="2030">2030</option>', false);
+        $response->assertSee('<option value="2035">2035</option>', false);
+    }
 }

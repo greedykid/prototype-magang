@@ -105,8 +105,8 @@
                 <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
                 <div class="user-details">
                     <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
-                    <span class="badge-role {{ auth()->user()->role_badge_class ?? 'badge-role-default' }}" style="margin-top: 3px;">
-                        {{ auth()->user()->role_label ?? 'Petugas' }}
+                    <span class="badge-role {{ auth()->user()->role_badge_class ?? 'badge-role-default' }}" title="{{ auth()->user()->role_label }}" style="margin-top: 3px;">
+                        {{ auth()->user()->role_short_label ?? auth()->user()->role_label ?? 'Petugas' }}
                     </span>
                 </div>
             </div>
@@ -118,8 +118,8 @@
             </form>
         </div>
         <div class="sidebar-foot-note">
-            <span class="eyebrow">MODE BELAJAR</span>
-            <p>Data contoh lokal, belum terhubung ke sistem resmi.</p>
+            <span class="eyebrow">SISTEM AKREDITASI</span>
+            <p>SIMASADI v1.0 &middot; Dit. Akreditasi Laboratorium KAN</p>
         </div>
     </div>
 </aside>

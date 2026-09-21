@@ -27,7 +27,11 @@
 .card:has(.custom-select-wrapper.is-open),
 .card.has-open-select,
 section:has(.custom-select-wrapper.is-open),
-section.has-open-select {
+section.has-open-select,
+.gcal-board:has(.custom-select-wrapper.is-open),
+.gcal-board.has-open-select,
+.gcal-toolbar:has(.custom-select-wrapper.is-open),
+.gcal-toolbar.has-open-select {
     overflow: visible !important;
     position: relative !important;
     z-index: 35 !important;

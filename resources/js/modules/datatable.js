@@ -266,7 +266,7 @@ export const initDataTables = () => {
         tableWrap.dataset.initialized = 'true';
 
         const headers = [...table.querySelectorAll('thead th')].map((header) => {
-            return header.querySelector('.th-label')?.textContent.trim() || header.textContent.trim();
+            return header.dataset.label || header.querySelector('.th-label')?.textContent.trim() || header.textContent.trim();
         });
         const storageKey = `simasadi-table-view-${window.location.pathname}-${index}`;
         const isMobile = window.matchMedia('(max-width: 600px)').matches;
@@ -275,7 +275,7 @@ export const initDataTables = () => {
 
         table.querySelectorAll('tbody tr').forEach((row) => {
             row.querySelectorAll('td').forEach((cell, cellIndex) => {
-                cell.dataset.label = headers[cellIndex] || '';
+                cell.dataset.label = cell.dataset.label || headers[cellIndex] || '';
             });
         });
 

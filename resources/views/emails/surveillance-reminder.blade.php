@@ -41,6 +41,14 @@
             .header-banner {
                 padding: 18px 14px !important;
             }
+            .header-logos {
+                padding: 14px 10px !important;
+            }
+            .header-logos img {
+                height: 32px !important;
+                max-height: 32px !important;
+                margin: 0 8px 4px !important;
+            }
             .header-banner h2 {
                 font-size: 16px !important;
                 line-height: 1.3 !important;
@@ -124,10 +132,22 @@
 <body class="email-body" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; background-color: #f1f5f9; margin: 0; padding: 24px 12px;">
     <div class="email-container" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); box-sizing: border-box;">
         
+        <!-- Kop Lembaga / Brand Header -->
+        <div class="header-logos" style="background-color: #ffffff; padding: 20px 24px 16px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td align="center" style="vertical-align: middle;">
+                        <img src="{{ isset($message) ? $message->embed(public_path('images/logo-kan.png')) : asset('images/logo-kan.png') }}" alt="Logo Komite Akreditasi Nasional (KAN)" height="42" style="height: 42px; max-height: 42px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle; margin: 0 14px 4px; border: 0; outline: none; text-decoration: none;">
+                        <img src="{{ isset($message) ? $message->embed(public_path('images/logo-bsn.png')) : asset('images/logo-bsn.png') }}" alt="Logo Badan Standardisasi Nasional (BSN)" height="42" style="height: 42px; max-height: 42px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle; margin: 0 14px 4px; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                </tr>
+            </table>
+        </div>
+
         <!-- Header -->
-        <div class="header-banner" style="background-color: #0f172a; padding: 24px; text-align: center; border-bottom: 4px solid #e11d48;">
-            <h2 style="color: #ffffff; margin: 0 0 6px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px;">Komite Akreditasi Nasional (KAN)</h2>
-            <p style="color: #94a3b8; margin: 0; font-size: 13px;">Sistem Informasi & Administrasi Akreditasi (SIMASADI)</p>
+        <div class="header-banner" style="background-color: #0f172a; padding: 20px 24px; text-align: center; border-bottom: 4px solid #e11d48;">
+            <h2 style="color: #ffffff; margin: 0 0 4px 0; font-size: 17px; text-transform: uppercase; letter-spacing: 0.5px;">Komite Akreditasi Nasional (KAN)</h2>
+            <p style="color: #94a3b8; margin: 0; font-size: 12.5px;">Sistem Informasi &amp; Administrasi Akreditasi (SIMASADI)</p>
         </div>
 
         <!-- Notification Banner -->
@@ -206,9 +226,13 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer-card" style="background-color: #f8fafc; padding: 18px 24px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; word-break: break-word;">
-            <p style="margin: 0 0 4px 0;"><strong>Sekretariat Komite Akreditasi Nasional (KAN)</strong></p>
-            <p style="margin: 0; line-height: 1.5;">Gedung BSN, Kompleks Puspiptek Serpong, Tangerang Selatan | Email: sekretariat@kan.or.id</p>
+        <div class="footer-card" style="background-color: #f8fafc; padding: 20px 24px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; word-break: break-word;">
+            <div style="margin-bottom: 10px;">
+                <img src="{{ isset($message) ? $message->embed(public_path('images/logo-kan.png')) : asset('images/logo-kan.png') }}" alt="KAN" height="24" style="height: 24px; width: auto; vertical-align: middle; margin: 0 8px; opacity: 0.85; display: inline-block; border: 0;">
+                <img src="{{ isset($message) ? $message->embed(public_path('images/logo-bsn.png')) : asset('images/logo-bsn.png') }}" alt="BSN" height="24" style="height: 24px; width: auto; vertical-align: middle; margin: 0 8px; opacity: 0.85; display: inline-block; border: 0;">
+            </div>
+            <p style="margin: 0 0 4px 0; color: #334155;"><strong>Sekretariat Komite Akreditasi Nasional (KAN) &bull; Badan Standardisasi Nasional (BSN)</strong></p>
+            <p style="margin: 0; line-height: 1.5; color: #94a3b8;">Gedung BSN, Kompleks Puspiptek Serpong, Tangerang Selatan | Email: sekretariat@kan.or.id</p>
         </div>
     </div>
 </body>

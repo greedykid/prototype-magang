@@ -658,10 +658,11 @@ td span {
     display: grid;
     font-size: 13px;
     gap: 12px;
-    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-columns: 96px minmax(0, 1fr);
     line-height: 1.45;
     padding: 10px 16px;
     position: static !important;
+    white-space: normal !important;
     width: 100%;
     word-break: break-word;
 }
@@ -676,6 +677,8 @@ td span {
     letter-spacing: 0.04em;
     padding-top: 1px;
     text-transform: uppercase;
+    white-space: normal !important;
+    word-break: break-word !important;
 }
 
 .table-mode-grid td[data-label=""]::before,
@@ -788,6 +791,276 @@ td span {
     transform: translateY(0);
 }
 
+/* ==========================================================================
+   Modern Card Grid for LPKs (.table-lpks-custom in .table-mode-grid)
+   ========================================================================== */
+.table-mode-grid .table-lpks-custom tbody {
+    display: grid !important;
+    gap: 16px !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    width: 100% !important;
+}
+
+.table-mode-grid .table-lpks-custom tr {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms ease, border-color 160ms ease !important;
+    width: 100% !important;
+}
+
+.table-mode-grid .table-lpks-custom tr:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 1. Card Top Bar / Eyebrow: No. Akreditasi & Alert Badges */
+.table-mode-grid .table-lpks-custom td.col-lpk-no {
+    align-items: center !important;
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: space-between !important;
+    order: 1 !important;
+    padding: 10px 16px !important;
+    width: 100% !important;
+    white-space: normal !important;
+}
+
+.table-mode-grid .table-lpks-custom td.col-lpk-no::before {
+    display: none !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-card-reg-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-reg-link {
+    background: #e2e8f0 !important;
+    border-radius: 6px !important;
+    color: #0f172a !important;
+    display: inline-block !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    padding: 2.5px 8px !important;
+    text-decoration: none !important;
+    transition: background 140ms ease !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-reg-link:hover {
+    background: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-card-alerts {
+    align-items: center !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin: 0 !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-alert-badge {
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    padding: 2px 6px !important;
+}
+
+/* 2. Card Title & Status: Nama LPK */
+.table-mode-grid .table-lpks-custom td.col-lpk-name {
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    order: 2 !important;
+    padding: 14px 16px 12px 16px !important;
+    white-space: normal !important;
+    width: 100% !important;
+}
+
+.table-mode-grid .table-lpks-custom td.col-lpk-name::before {
+    display: none !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-name-link {
+    color: #0f172a !important;
+    display: -webkit-box !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    overflow: hidden !important;
+    text-decoration: none !important;
+    text-overflow: ellipsis !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    transition: color 140ms ease !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-name-link:hover {
+    color: #5645d4 !important;
+    text-decoration: underline !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-status-wrap {
+    align-items: center !important;
+    display: flex !important;
+    gap: 6px !important;
+    margin: 0 !important;
+}
+
+/* 3. Card Meta Rows: Alamat, Telepon, Email, Lingkup, Masa Berlaku */
+.table-mode-grid .table-lpks-custom td.col-lpk-address,
+.table-mode-grid .table-lpks-custom td.col-lpk-phone,
+.table-mode-grid .table-lpks-custom td.col-lpk-email,
+.table-mode-grid .table-lpks-custom td.col-lpk-scope,
+.table-mode-grid .table-lpks-custom td.col-lpk-expiry {
+    align-items: start !important;
+    background: transparent !important;
+    border-bottom: 1px solid #f8fafc !important;
+    box-sizing: border-box !important;
+    color: #1e293b !important;
+    display: grid !important;
+    font-size: 12.5px !important;
+    gap: 12px !important;
+    grid-template-columns: 100px minmax(0, 1fr) !important;
+    line-height: 1.45 !important;
+    order: 3 !important;
+    padding: 8px 16px !important;
+    white-space: normal !important;
+    width: 100% !important;
+    word-break: break-word !important;
+}
+
+.table-mode-grid .table-lpks-custom td.col-lpk-address::before,
+.table-mode-grid .table-lpks-custom td.col-lpk-phone::before,
+.table-mode-grid .table-lpks-custom td.col-lpk-email::before,
+.table-mode-grid .table-lpks-custom td.col-lpk-scope::before,
+.table-mode-grid .table-lpks-custom td.col-lpk-expiry::before {
+    color: #64748b !important;
+    content: attr(data-label) !important;
+    flex-shrink: 0 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    padding-top: 1px !important;
+    text-transform: uppercase !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Lingkup scrollable area with sleek custom scrollbar */
+.table-mode-grid .table-lpks-custom .lpk-scope-text {
+    color: #475569 !important;
+    display: block !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    max-height: 90px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 6px !important;
+    scrollbar-color: #cbd5e1 transparent !important;
+    scrollbar-width: thin !important;
+    white-space: pre-line !important;
+    word-break: break-word !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-scope-text::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-scope-text::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-scope-text::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 999px !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-scope-text::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}
+
+/* Masa Berlaku row without overlap */
+.table-mode-grid .table-lpks-custom .lpk-expiry-date {
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+}
+
+.table-mode-grid .table-lpks-custom .lpk-cert-date {
+    color: #64748b !important;
+    display: block !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    margin-top: 2px !important;
+}
+
+/* 4. Card Footer: Drive Link */
+.table-mode-grid .table-lpks-custom td.col-lpk-link {
+    align-items: center !important;
+    background: #f8fafc !important;
+    border-bottom: none !important;
+    border-top: 1px solid #f1f5f9 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: auto !important;
+    order: 4 !important;
+    padding: 10px 16px !important;
+    white-space: normal !important;
+    width: 100% !important;
+}
+
+.table-mode-grid .table-lpks-custom td.col-lpk-link::before {
+    display: none !important;
+}
+
+.table-mode-grid .table-lpks-custom .btn-table-drive {
+    align-items: center !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    color: #5645d4 !important;
+    display: inline-flex !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    gap: 4px !important;
+    letter-spacing: 0.01em !important;
+    padding: 4px 12px !important;
+    text-decoration: none !important;
+    transition: all 140ms ease !important;
+}
+
+.table-mode-grid .table-lpks-custom .btn-table-drive:hover {
+    background: #5645d4 !important;
+    border-color: #5645d4 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+}
+
 /* Table View - Polished Detail Action Button */
 .table-wrap:not(.table-mode-grid) table tbody td:last-child {
     text-align: right;
@@ -893,7 +1166,7 @@ td span {
 .table-filters { border-bottom: 1px solid var(--line); margin-bottom: 22px; padding-bottom: 18px; }.table-filter-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }.table-filter-grid label { font-size: 12px; }.table-filter-grid input, .table-filter-grid select { font-size: 14px; font-weight: 400; }.table-filter-actions { display: flex; gap: 10px; margin-top: 14px; }
 input, select, textarea { background: #fff; border: 1px solid #c8c4be; border-radius: 8px; box-sizing: border-box; color: var(--ink); font: inherit; max-width: 100%; min-height: 44px; min-width: 0; padding: 10px 12px; width: 100%; transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease; } input:focus, select:focus, textarea:focus { border-color: var(--maroon); box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.12); outline: none; } textarea { min-height: 100px; resize: vertical; } label { box-sizing: border-box; display: grid; gap: 7px; font-weight: 600; max-width: 100%; min-width: 0; }.check { align-items: center; display: flex; font-weight: 400; gap: 8px; }.check input { min-height: 18px; width: 18px; }
 .form-grid { box-sizing: border-box; display: grid; gap: 19px; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 100%; width: 100%; }.form-grid > * { box-sizing: border-box; max-width: 100%; min-width: 0; }.form-grid .full { grid-column: 1 / -1; max-width: 100%; min-width: 0; }.form-actions { box-sizing: border-box; display: flex; gap: 10px; justify-content: end; margin-top: 4px; max-width: 100%; min-width: 0; width: 100%; }
-.detail-list { display: grid; gap: 0; }.detail-list > div { border-bottom: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: 210px minmax(0, 1fr); align-items: center; padding: 15px 0; }.detail-list > div:last-child { border-bottom: 0; }.detail-list dt { color: var(--muted); font-size: 13px; line-height: 1.5; }.detail-list dd { margin: 0; white-space: pre-line; line-height: 1.5; }.inline-form { align-items: end; border-top: 1px solid var(--line); display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; }.inline-form label { flex: 1; }.followup-form { border-top: 1px solid var(--line); margin-top: 17px; padding-top: 20px; }.page-heading > .status { align-self: end; margin-bottom: 10px; }.alert { border: 1px solid; border-radius: 8px; margin-bottom: 20px; padding: 13px 16px; }.alert.success { background: #e5f0e9; border-color: #91bda7; color: var(--green); }.alert.error { background: #fae7e7; border-color: #d79a9a; color: #7d2525; }.alert ul { margin: 5px 0 0; padding-left: 18px; }.empty { background: #fbf8f3; border-radius: 8px; color: var(--muted); padding: 22px; text-align: center; }.empty-action { display: table; margin: 14px auto 0; }
+.detail-list { display: grid; gap: 0; }.detail-list > div { border-bottom: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: 220px minmax(0, 1fr); align-items: center; padding: 14px 0; }.detail-list > div:last-child { border-bottom: 0; }.detail-list dt { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0; }.detail-list dd { margin: 0; line-height: 1.5; }.detail-list dd.pre-line, .detail-list .detail-pre { white-space: pre-line; }.inline-form { align-items: end; border-top: 1px solid var(--line); display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; }.inline-form label { flex: 1; }.followup-form { border-top: 1px solid var(--line); margin-top: 17px; padding-top: 20px; }.page-heading > .status { align-self: end; margin-bottom: 10px; }.alert { border: 1px solid; border-radius: 8px; margin-bottom: 20px; padding: 13px 16px; }.alert.success { background: #e5f0e9; border-color: #91bda7; color: var(--green); }.alert.error { background: #fae7e7; border-color: #d79a9a; color: #7d2525; }.alert ul { margin: 5px 0 0; padding-left: 18px; }.empty { background: #fbf8f3; border-radius: 8px; color: var(--muted); padding: 22px; text-align: center; }.empty-action { display: table; margin: 14px auto 0; }
 .pagination { display: flex; gap: 7px; list-style: none; margin: 20px 0 0; padding: 0; }.pagination a, .pagination span { align-items: center; border: 1px solid var(--line); display: inline-flex; min-height: 40px; padding: 7px 12px; text-decoration: none; }.pagination .active span { background: var(--maroon); color: white; }
 .auth-page { align-items: center; background: var(--maroon-dark); display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
 .login-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 20px 45px -12px rgba(23, 20, 36, 0.28); max-width: 440px; padding: clamp(28px, 5vw, 44px); width: 100%; }

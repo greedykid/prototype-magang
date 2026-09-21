@@ -126,6 +126,80 @@ class CalendarEventController extends Controller
             ]);
         }
 
+        // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
+        $lpksWithMilestones = Lpk::with('assessments')
+            ->where(function ($q) {
+                $q->whereNotNull('certificate_date')
+                    ->orWhereNotNull('expired_at');
+            })
+            ->get();
+
+        foreach ($lpksWithMilestones as $lpkItem) {
+            $milestones = $lpkItem->surveillance_milestones;
+            foreach ($milestones as $key => $milestone) {
+                if (empty($milestone['target_date'])) {
+                    continue;
+                }
+
+                $targetDate = CarbonImmutable::parse($milestone['target_date'])->setTime(9, 0);
+                $targetDateEnd = $targetDate->setTime(17, 0);
+
+                if ($targetDate->gte($queryStart->startOfDay()) && $targetDate->lte($queryEnd->endOfDay())) {
+                    $isExpiry = ($key === 'ra');
+                    $catCode = $isExpiry ? 'KEDALUWARSA' : 'SURVEILEN';
+                    $catLabel = $isExpiry ? 'Kedaluwarsa Akreditasi' : 'Jatuh Tempo Surveilen';
+                    $colorTheme = $isExpiry ? 'rose' : 'amber';
+
+                    $typePrefix = match ($key) {
+                        's1' => '[S1] Surveilen 1: ',
+                        's2' => '[S2] Surveilen 2: ',
+                        default => '[Kedaluwarsa] Akreditasi: ',
+                    };
+
+                    $statusNote = match ($milestone['status']) {
+                        'COMPLETED_OR_SCHEDULED' => ' (Asesmen telah dijadwalkan atau dilaksanakan)',
+                        'OVERDUE' => ' (Perhatian: Melewati target siklus pengawasan KAN)',
+                        'DUE' => ' (Periode notifikasi pengawasan aktif)',
+                        'EXPIRED' => ' (Sertifikat akreditasi telah kedaluwarsa)',
+                        default => ' (Target siklus terjadwal)',
+                    };
+
+                    $assessmentTypeParam = match ($key) {
+                        's1', 's2' => 'Surveilen',
+                        default => 'Re-asesmen',
+                    };
+
+                    $createAssessmentUrl = route('assessments.create', [
+                        'lpk_id' => $lpkItem->id,
+                        'assessment_type' => $assessmentTypeParam,
+                        'start_at' => $targetDate->format('Y-m-d\T09:00'),
+                        'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
+                    ]);
+
+                    $unifiedEvents->push([
+                        'id' => 'lpk_' . $key . '_' . $lpkItem->id,
+                        'source' => 'lpk_milestone',
+                        'category' => $catCode,
+                        'category_label' => $catLabel,
+                        'color_theme' => $colorTheme,
+                        'title' => $typePrefix . $lpkItem->name,
+                        'lpk_id' => $lpkItem->id,
+                        'lpk_name' => $lpkItem->name,
+                        'start_at' => $targetDate,
+                        'end_at' => $targetDateEnd,
+                        'location' => $lpkItem->address ?: 'Lokasi Lapangan LPK',
+                        'status' => $milestone['status'],
+                        'notes' => $milestone['description'] . $statusNote,
+                        'description' => 'Target siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name . ' (' . $lpkItem->registration_number . ')',
+                        'lead' => null,
+                        'url' => route('lpks.show', $lpkItem),
+                        'edit_url' => $createAssessmentUrl,
+                        'action_label' => 'Jadwalkan Asesmen',
+                    ]);
+                }
+            }
+        }
+
         $eventsByDate = $unifiedEvents->sortBy('start_at')->groupBy(fn ($ev) => $ev['start_at']->toDateString());
 
         // For backwards-compatibility with tests that check $events or $weeks

@@ -30,11 +30,11 @@
                         <span style="background: #0f9d58; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
                             Rekomendasi
                         </span>
-                        <strong style="font-size: 14px; color: #1b5e20;">Live Sync Google Sheets (=IMPORTDATA)</strong>
+                        <strong style="font-size: 14px; color: #1b5e20;">Sinkronisasi Otomatis Google Sheets (=IMPORTDATA)</strong>
                     </div>
                 </div>
                 <p style="margin: 0 0 12px; font-size: 12.5px; color: #2e7d32; line-height: 1.45;">
-                    Data di spreadsheet akan <strong>otomatis tersinkronisasi secara real-time</strong> dari SIMASADI tanpa perlu mengunggah ulang file.
+                    Data di spreadsheet akan <strong>otomatis terbarui</strong> dari SIMASADI tanpa perlu mengunggah ulang berkas.
                 </p>
 
                 @php

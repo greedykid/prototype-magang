@@ -40,7 +40,7 @@
             <div class="gcal-popover-actions-right">
                 <a href="#" class="button secondary btn-sm" id="popover-edit-link" onclick="window.closeEventPopover(this)">
                     <x-icon name="edit" size="14" />
-                    <span>Ubah</span>
+                    <span id="popover-edit-label">Ubah</span>
                 </a>
                 <a href="#" class="button primary btn-sm" id="popover-detail-link" onclick="window.closeEventPopover(this)">
                     <span>Detail Lengkap</span>

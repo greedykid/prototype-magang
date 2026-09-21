@@ -117,9 +117,13 @@ function showEventPopover(triggerEl, eventData) {
     }
 
     const editLink = popover.querySelector('#popover-edit-link');
+    const editLabel = popover.querySelector('#popover-edit-label') || editLink?.querySelector('span');
     if (editLink) {
         if (eventData.edit_url) {
             editLink.href = eventData.edit_url;
+            if (editLabel) {
+                editLabel.textContent = eventData.action_label || 'Ubah';
+            }
             editLink.style.display = 'inline-flex';
         } else {
             editLink.style.display = 'none';
@@ -367,15 +371,18 @@ function initGcalLiveTimeLine() {
 
 // Client-side Instant Filter for Calendar Categories & LPK
 function initGcalFilters() {
-    const catAssessment = document.getElementById('filter-cat-assessment');
-    const catAgenda = document.getElementById('filter-cat-agenda');
+    const categoryCheckboxes = document.querySelectorAll('[data-filter-cat]');
     const lpkSelect = document.getElementById('gcal-filter-lpk');
 
-    if (!catAssessment && !catAgenda && !lpkSelect) return;
+    if (!categoryCheckboxes.length && !lpkSelect) return;
 
     function applyGcalFilters() {
-        const showAssessment = catAssessment ? catAssessment.checked : true;
-        const showAgenda = catAgenda ? catAgenda.checked : true;
+        const activeCategories = new Set();
+        categoryCheckboxes.forEach((cb) => {
+            if (cb.checked) {
+                activeCategories.add(cb.dataset.filterCat);
+            }
+        });
         const selectedLpk = lpkSelect ? lpkSelect.value.trim() : '';
 
         // Filter event chips in Month view, cards in Week/Day views, and rows in Agenda view
@@ -384,10 +391,10 @@ function initGcalFilters() {
             const cat = el.dataset.cat;
             const lpk = el.dataset.lpkId ? String(el.dataset.lpkId) : '';
 
-            let visible = true;
-            if (cat === 'ASESMEN_LAPANGAN' && !showAssessment) visible = false;
-            if (cat === 'AGENDA_INTERNAL' && !showAgenda) visible = false;
-            if (selectedLpk && lpk !== selectedLpk) visible = false;
+            let visible = activeCategories.has(cat);
+            if (selectedLpk && lpk !== selectedLpk) {
+                visible = false;
+            }
 
             el.style.display = visible ? '' : 'none';
         });
@@ -400,24 +407,74 @@ function initGcalFilters() {
         });
     }
 
-    if (catAssessment && !catAssessment.dataset.gcalFilterInit) {
-        catAssessment.dataset.gcalFilterInit = 'true';
-        catAssessment.addEventListener('change', applyGcalFilters);
-    }
-    if (catAgenda && !catAgenda.dataset.gcalFilterInit) {
-        catAgenda.dataset.gcalFilterInit = 'true';
-        catAgenda.addEventListener('change', applyGcalFilters);
-    }
+    categoryCheckboxes.forEach((cb) => {
+        if (!cb.dataset.gcalFilterInit) {
+            cb.dataset.gcalFilterInit = 'true';
+            cb.addEventListener('change', applyGcalFilters);
+        }
+    });
+
     if (lpkSelect && !lpkSelect.dataset.gcalFilterInit) {
         lpkSelect.dataset.gcalFilterInit = 'true';
         lpkSelect.addEventListener('change', applyGcalFilters);
     }
 }
 
+// Month & Year Direct Selector Navigation
+function initGcalMonthYearPicker() {
+    const monthSelect = document.getElementById('gcal-select-month');
+    const yearSelect = document.getElementById('gcal-select-year');
+    if (!monthSelect || !yearSelect) return;
+
+    function handleMonthYearChange() {
+        const selectedMonth = monthSelect.value;
+        const selectedYear = yearSelect.value;
+        const baseUrl = monthSelect.dataset.calendarBaseUrl || '/calendar';
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const currentView = urlParams.get('view') || 'month';
+        urlParams.set('view', currentView);
+
+        if (currentView === 'month') {
+            urlParams.set('month', `${selectedYear}-${selectedMonth}`);
+            urlParams.delete('date');
+            urlParams.delete('selected');
+        } else {
+            const currentDateStr = urlParams.get('date');
+            let day = 1;
+            if (currentDateStr && /^\d{4}-\d{2}-\d{2}$/.test(currentDateStr)) {
+                day = parseInt(currentDateStr.split('-')[2], 10) || 1;
+            }
+            const maxDays = new Date(parseInt(selectedYear, 10), parseInt(selectedMonth, 10), 0).getDate();
+            const validDay = Math.min(day, maxDays);
+            const paddedDay = String(validDay).padStart(2, '0');
+
+            urlParams.set('date', `${selectedYear}-${selectedMonth}-${paddedDay}`);
+            urlParams.delete('month');
+        }
+
+        const targetUrl = `${baseUrl}?${urlParams.toString()}`;
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(targetUrl);
+        } else {
+            window.location.href = targetUrl;
+        }
+    }
+
+    if (!monthSelect.dataset.gcalPickerInit) {
+        monthSelect.dataset.gcalPickerInit = 'true';
+        monthSelect.addEventListener('change', handleMonthYearChange);
+    }
+    if (!yearSelect.dataset.gcalPickerInit) {
+        yearSelect.dataset.gcalPickerInit = 'true';
+        yearSelect.addEventListener('change', handleMonthYearChange);
+    }
+}
+
 function initGcalComponents() {
     initGcalLiveTimeLine();
     initGcalFilters();
+    initGcalMonthYearPicker();
 }
 
-
-export { showEventPopover, returnPopoverToPlaceholder, closeEventPopover, quickAddAt, initGcalLiveTimeLine, initGcalFilters, initGcalComponents };
+export { showEventPopover, returnPopoverToPlaceholder, closeEventPopover, quickAddAt, initGcalLiveTimeLine, initGcalFilters, initGcalMonthYearPicker, initGcalComponents };

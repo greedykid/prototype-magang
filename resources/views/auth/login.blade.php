@@ -61,7 +61,7 @@
             <input type="checkbox" name="remember"> Ingat sesi ini
         </label>
         <button class="button primary login-submit-btn" type="submit" id="login-submit-btn">
-            <span class="btn-text">Masuk ke workspace</span>
+            <span class="btn-text">Masuk ke Sistem</span>
             <span class="btn-spinner" aria-hidden="true">
                 <x-icon name="loader" size="18" />
             </span>

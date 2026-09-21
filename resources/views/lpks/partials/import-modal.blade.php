@@ -51,7 +51,7 @@
 
                     <div style="text-align: center; position: relative; margin: 16px 0;">
                         <span style="background: #fff; padding: 0 10px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase;">
-                            — ATAU —
+                            ATAU
                         </span>
                     </div>
 

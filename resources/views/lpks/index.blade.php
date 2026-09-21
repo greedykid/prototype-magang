@@ -5,7 +5,7 @@
 @section('content')
 <x-page-header
     title="Daftar LPK"
-    subtitle="Kelola catatan dasar lembaga pengujian yang digunakan di prototype."
+    subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi LPK."
 >
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
         <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
@@ -56,7 +56,7 @@
                 <select name="expiry">
                     <option value="">Semua masa berlaku</option>
                     <option value="VALID" @selected($expiry === 'VALID')>Masih berlaku</option>
-                    <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati expired (&le; 90 hari)</option>
+                    <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati kedaluwarsa (&le; 90 hari)</option>
                     <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
                 </select>
             </label>
@@ -74,31 +74,31 @@
             <table class="table-lpks-custom">
                 <thead>
                     <tr style="background-color: #eef4fc;">
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NO. AKREDITASI</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NAMA LPK</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">ALAMAT</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">TELEPON / FAX</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">EMAIL</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">LINGKUP</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">MASA BERLAKU AKREDITASI (EXPIRED)</th>
-                        <th style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap; text-align: center;">LINK</th>
+                        <th data-label="No. Akreditasi" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NO. AKREDITASI</th>
+                        <th data-label="Nama LPK" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NAMA LPK</th>
+                        <th data-label="Alamat" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">ALAMAT</th>
+                        <th data-label="Telepon / Fax" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">TELEPON / FAX</th>
+                        <th data-label="Email" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">EMAIL</th>
+                        <th data-label="Lingkup" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">LINGKUP</th>
+                        <th data-label="Masa Berlaku" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">MASA BERLAKU AKREDITASI (EXPIRED)</th>
+                        <th data-label="Berkas" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap; text-align: center;">LINK</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($lpks as $lpk)
                         <tr>
                             <!-- 1. NO. AKREDITASI -->
-                            <td style="white-space: nowrap; vertical-align: top; padding: 12px 14px;">
-                                <div>
-                                    <a href="{{ route('lpks.show', $lpk) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; color: #1e293b; text-decoration: none;" class="hover-underline" title="Buka rincian LPK">
+                            <td class="col-lpk-no" style="white-space: nowrap; vertical-align: top; padding: 12px 14px;">
+                                <div class="lpk-card-reg-wrap">
+                                    <a href="{{ route('lpks.show', $lpk) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; color: #1e293b; text-decoration: none;" class="hover-underline lpk-reg-link" title="Buka rincian LPK">
                                         {{ $lpk->registration_number }}
                                     </a>
                                 </div>
                                 @php($lpkAlerts = $lpk->getActiveSurveillanceAlerts())
                                 @if(!empty($lpkAlerts))
-                                    <div style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <div class="lpk-card-alerts" style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
                                         @foreach($lpkAlerts as $alt)
-                                            <span class="badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;" title="{{ $alt['description'] }}">
+                                            <span class="badge lpk-alert-badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;" title="{{ $alt['description'] }}">
                                                 ⚠ {{ $alt['name'] }}
                                             </span>
                                         @endforeach
@@ -107,22 +107,22 @@
                             </td>
 
                             <!-- 2. NAMA LPK -->
-                            <td style="vertical-align: top; min-width: 220px; padding: 12px 14px;">
-                                <a href="{{ route('lpks.show', $lpk) }}" style="font-weight: 600; color: #1d4ed8; text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;" class="hover-underline" title="Buka rincian LPK">
+                            <td class="col-lpk-name" style="vertical-align: top; min-width: 220px; padding: 12px 14px;">
+                                <a href="{{ route('lpks.show', $lpk) }}" style="font-weight: 600; color: #1d4ed8; text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;" class="hover-underline lpk-name-link" title="Buka rincian LPK">
                                     {{ $lpk->name }}
                                 </a>
-                                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                <div class="lpk-status-wrap" style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
                                     <x-status :value="$lpk->status" />
                                 </div>
                             </td>
 
                             <!-- 3. ALAMAT -->
-                            <td style="vertical-align: top; min-width: 180px; max-width: 260px; font-size: 12.5px; color: #334155; line-height: 1.4; padding: 12px 14px;">
-                                {{ $lpk->address ?: '-' }}
+                            <td class="col-lpk-address" style="vertical-align: top; min-width: 180px; max-width: 260px; font-size: 12.5px; color: #334155; line-height: 1.4; padding: 12px 14px;">
+                                <div class="lpk-val-address">{{ $lpk->address ?: '-' }}</div>
                             </td>
 
                             <!-- 4. TELEPON / FAX -->
-                            <td style="vertical-align: top; white-space: nowrap; font-size: 12.5px; color: #334155; padding: 12px 14px;">
+                            <td class="col-lpk-phone" style="vertical-align: top; white-space: nowrap; font-size: 12.5px; color: #334155; padding: 12px 14px;">
                                 @if($lpk->phone)
                                     <a href="tel:{{ $lpk->phone }}" style="color: inherit; text-decoration: none;" title="Hubungi telepon">
                                         {{ $lpk->phone }}
@@ -133,7 +133,7 @@
                             </td>
 
                             <!-- 5. EMAIL -->
-                            <td style="vertical-align: top; white-space: nowrap; font-size: 12.5px; padding: 12px 14px;">
+                            <td class="col-lpk-email" style="vertical-align: top; white-space: nowrap; font-size: 12.5px; padding: 12px 14px;">
                                 @if($lpk->email)
                                     <a href="mailto:{{ $lpk->email }}" style="color: #2563eb; text-decoration: none;" class="hover-underline" title="Kirim email">
                                         {{ $lpk->email }}
@@ -144,27 +144,27 @@
                             </td>
 
                             <!-- 6. LINGKUP -->
-                            <td style="vertical-align: top; min-width: 260px; max-width: 380px; font-size: 12px; line-height: 1.45; padding: 12px 14px;">
+                            <td class="col-lpk-scope" style="vertical-align: top; min-width: 260px; max-width: 380px; font-size: 12px; line-height: 1.45; padding: 12px 14px;">
                                 @if($lpk->scope)
-                                    <div style="max-height: 175px; overflow-y: auto; white-space: pre-line; color: #334155; word-break: break-word; padding-right: 6px; margin: 0;" title="{{ $lpk->scope }}">{{ trim($lpk->scope) }}</div>
+                                    <div class="lpk-scope-text" style="max-height: 175px; overflow-y: auto; white-space: pre-line; color: #334155; word-break: break-word; padding-right: 6px; margin: 0;" title="{{ $lpk->scope }}">{{ trim($lpk->scope) }}</div>
                                 @else
                                     <span style="color: var(--muted);">-</span>
                                 @endif
                             </td>
 
                             <!-- 7. MASA BERLAKU AKREDITASI (EXPIRED) -->
-                            <td style="vertical-align: top; white-space: nowrap; padding: 12px 14px;">
+                            <td class="col-lpk-expiry" data-label="Masa Berlaku" style="vertical-align: top; white-space: nowrap; padding: 12px 14px;">
                                 @if($lpk->expired_at)
-                                    <div style="font-weight: 600; font-size: 13px; {{ $lpk->isExpired() ? 'color: #dc2626;' : 'color: #0f172a;' }}">
+                                    <div class="lpk-expiry-date" style="font-weight: 600; font-size: 13px; {{ $lpk->isExpired() ? 'color: #dc2626;' : 'color: #0f172a;' }}">
                                         {{ $lpk->expired_at->format('d/m/Y') }}
                                     </div>
                                     @if($lpk->certificate_date)
-                                        <small style="display: block; color: var(--muted); font-size: 11px; margin-top: 1px;">Terbit: {{ $lpk->certificate_date->format('d/m/Y') }}</small>
+                                        <small class="lpk-cert-date" style="display: block; color: var(--muted); font-size: 11px; margin-top: 1px;">Terbit: {{ $lpk->certificate_date->format('d/m/Y') }}</small>
                                     @endif
                                     @if($lpk->isExpired())
                                         <span class="status status-danger" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Kedaluwarsa</span>
                                     @elseif($lpk->isExpiringSoon())
-                                        <span class="status status-warn" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Mendekati Expired</span>
+                                        <span class="status status-warn" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Mendekati Kedaluwarsa</span>
                                     @endif
                                 @else
                                     <span style="color: var(--muted); font-size: 12px;">-</span>
@@ -172,7 +172,7 @@
                             </td>
 
                             <!-- 8. LINK -->
-                            <td style="vertical-align: top; text-align: center; white-space: nowrap; padding: 12px 14px;">
+                            <td class="col-lpk-link" style="vertical-align: top; text-align: center; white-space: nowrap; padding: 12px 14px;">
                                 @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
                                     <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary btn-table-drive" style="font-size: 11.5px; padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive">
                                         <span>Drive</span>
