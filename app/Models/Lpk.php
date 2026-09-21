@@ -19,8 +19,7 @@ class Lpk extends Model
         'status',
         'notes',
         'expired_at',
-        'certificate_drive_url',
-        'amendment_drive_url',
+        'drive_url',
     ];
 
     protected function casts(): array

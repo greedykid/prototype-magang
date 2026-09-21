@@ -65,28 +65,15 @@
                 </dd>
             </div>
             <div>
-                <dt>Sertifikat Akreditasi</dt>
+                <dt>Berkas Akreditasi (Sertifikat, Amandemen & Lampiran)</dt>
                 <dd>
-                    @if($lpk->certificate_drive_url)
-                        <a href="{{ $lpk->certificate_drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 10px; min-height: 32px;">
+                    @if($lpk->drive_url)
+                        <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 12px; min-height: 32px;">
                             <x-icon name="sheets" size="14" />
-                            <span>Buka Sertifikat di Drive &rarr;</span>
+                            <span>Buka Berkas di Google Drive &rarr;</span>
                         </a>
                     @else
-                        <span style="color: var(--muted);">Belum ada tautan sertifikat</span>
-                    @endif
-                </dd>
-            </div>
-            <div>
-                <dt>Amandemen Lampiran Sertifikat</dt>
-                <dd>
-                    @if($lpk->amendment_drive_url)
-                        <a href="{{ $lpk->amendment_drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 10px; min-height: 32px;">
-                            <x-icon name="sheets" size="14" />
-                            <span>Buka Amandemen Lampiran di Drive &rarr;</span>
-                        </a>
-                    @else
-                        <span style="color: var(--muted);">Belum ada tautan amandemen</span>
+                        <span style="color: var(--muted);">Belum ada tautan berkas</span>
                     @endif
                 </dd>
             </div>

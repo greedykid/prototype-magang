@@ -70,8 +70,7 @@ class LpkController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'status' => ['required', 'in:ACTIVE,INACTIVE'],
             'expired_at' => ['nullable', 'date'],
-            'certificate_drive_url' => ['nullable', 'url', 'max:1000'],
-            'amendment_drive_url' => ['nullable', 'url', 'max:1000'],
+            'drive_url' => ['nullable', 'url', 'max:1000'],
         ]);
     }
 }

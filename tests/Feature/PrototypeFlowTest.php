@@ -99,7 +99,7 @@ class PrototypeFlowTest extends TestCase
         $this->actingAs($user)->get('/lpks?status=ACTIVE&page=2')->assertOk()->assertSee('status=ACTIVE');
     }
 
-    public function test_user_can_create_lpk_with_expiry_and_drive_links(): void
+    public function test_user_can_create_lpk_with_expiry_and_drive_link(): void
     {
         $user = User::factory()->create();
 
@@ -108,22 +108,19 @@ class PrototypeFlowTest extends TestCase
             'name' => 'LPK Pengujian Drive',
             'status' => 'ACTIVE',
             'expired_at' => '2028-10-15',
-            'certificate_drive_url' => 'https://drive.google.com/file/d/12345/view',
-            'amendment_drive_url' => 'https://drive.google.com/drive/folders/67890',
+            'drive_url' => 'https://drive.google.com/drive/folders/12345demo',
         ]);
 
         $response->assertRedirect();
 
         $lpk = Lpk::where('registration_number', 'LPK-TEST-DRIVE-01')->firstOrFail();
         $this->assertEquals('2028-10-15', $lpk->expired_at->format('Y-m-d'));
-        $this->assertEquals('https://drive.google.com/file/d/12345/view', $lpk->certificate_drive_url);
-        $this->assertEquals('https://drive.google.com/drive/folders/67890', $lpk->amendment_drive_url);
+        $this->assertEquals('https://drive.google.com/drive/folders/12345demo', $lpk->drive_url);
 
         $showResponse = $this->actingAs($user)->get(route('lpks.show', $lpk));
         $showResponse->assertOk()
             ->assertSee('15 Oct 2028')
-            ->assertSee('Buka Sertifikat di Drive')
-            ->assertSee('Buka Amandemen Lampiran di Drive');
+            ->assertSee('Buka Berkas di Google Drive');
     }
 }
 

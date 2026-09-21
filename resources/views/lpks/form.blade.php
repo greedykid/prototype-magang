@@ -46,14 +46,9 @@
         <input type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}">
     </label>
     <label class="full">
-        Link Google Drive Sertifikat Akreditasi
-        <input type="url" name="certificate_drive_url" value="{{ old('certificate_drive_url', $lpk->certificate_drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas sertifikat akreditasi)">
-        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tempelkan tautan Google Drive berkas PDF sertifikat akreditasi resmi.</small>
-    </label>
-    <label class="full">
-        Link Google Drive Amandemen & Lampiran Sertifikat
-        <input type="url" name="amendment_drive_url" value="{{ old('amendment_drive_url', $lpk->amendment_drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas amandemen atau folder berkas)">
-        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tempelkan tautan Google Drive amandemen lampiran ruang lingkup sertifikat.</small>
+        Link Google Drive Dokumen (Sertifikat Akreditasi, Amandemen & Lampiran)
+        <input type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)">
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tempelkan satu tautan Google Drive terpadu yang memuat Sertifikat Akreditasi serta Amandemen & Lampiran Sertifikat.</small>
     </label>
     <div class="form-actions full">
         <a class="button ghost" href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}">Batal</a>

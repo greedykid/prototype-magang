@@ -29,8 +29,7 @@ class LpkImportController extends Controller
             'telepon',
             'status',
             'masa_berlaku',
-            'link_drive_sertifikat',
-            'link_drive_amandemen',
+            'link_drive_dokumen',
         ];
 
         $samples = [
@@ -42,8 +41,7 @@ class LpkImportController extends Controller
                 '021-3141234',
                 'ACTIVE',
                 date('Y-m-d', strtotime('+3 years')),
-                'https://drive.google.com/file/d/1demo-sertifikat-lp101/view',
-                'https://drive.google.com/drive/folders/1demo-amandemen-lp101',
+                'https://drive.google.com/drive/folders/1demo-berkas-lp101',
             ],
             [
                 'LK-202-IDN',
@@ -53,8 +51,7 @@ class LpkImportController extends Controller
                 '022-2508899',
                 'ACTIVE',
                 date('Y-m-d', strtotime('+4 years')),
-                'https://drive.google.com/file/d/1demo-sertifikat-lk202/view',
-                'https://drive.google.com/drive/folders/1demo-amandemen-lk202',
+                'https://drive.google.com/drive/folders/1demo-berkas-lk202',
             ],
             [
                 'LI-303-IDN',
@@ -64,8 +61,7 @@ class LpkImportController extends Controller
                 '031-5345678',
                 'ACTIVE',
                 date('Y-m-d', strtotime('+2 years')),
-                'https://drive.google.com/file/d/1demo-sertifikat-li303/view',
-                'https://drive.google.com/drive/folders/1demo-amandemen-li303',
+                'https://drive.google.com/drive/folders/1demo-berkas-li303',
             ],
         ];
 
@@ -141,8 +137,7 @@ class LpkImportController extends Controller
                 'telepon', 'telp', 'phone', 'notelp', 'teleponhp' => 'phone',
                 'status', 'statusoperasional' => 'status',
                 'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi' => 'expired_at',
-                'linkdrivesertifikat', 'drivesertifikat', 'sertifikatdrive', 'linkdrive' => 'certificate_drive_url',
-                'linkdriveamandemen', 'driveamandemen', 'amandemendrive', 'lampirandrive' => 'amendment_drive_url',
+                'linkdrivedokumen', 'linkdrive', 'driveurl', 'tautandrive', 'linkdrivesertifikat', 'linkdriveamandemen' => 'drive_url',
                 'catatan', 'keterangan', 'notes' => 'notes',
                 default => $clean,
             };
@@ -186,8 +181,7 @@ class LpkImportController extends Controller
             }
 
             $expiredAt = ! empty($data['expired_at']) ? date('Y-m-d', strtotime($data['expired_at'])) : null;
-            $certUrl = ! empty($data['certificate_drive_url']) ? $data['certificate_drive_url'] : null;
-            $amendUrl = ! empty($data['amendment_drive_url']) ? $data['amendment_drive_url'] : null;
+            $driveUrl = ! empty($data['drive_url']) ? $data['drive_url'] : null;
 
             $existing = Lpk::where('registration_number', $regNo)->first();
 
@@ -199,8 +193,7 @@ class LpkImportController extends Controller
                     'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
                     'status' => $status,
                     'expired_at' => $expiredAt ?: $existing->expired_at,
-                    'certificate_drive_url' => $certUrl ?: $existing->certificate_drive_url,
-                    'amendment_drive_url' => $amendUrl ?: $existing->amendment_drive_url,
+                    'drive_url' => $driveUrl ?: $existing->drive_url,
                     'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
                 ]);
                 $updatedCount++;
@@ -213,8 +206,7 @@ class LpkImportController extends Controller
                     'phone' => $data['phone'] ?? null,
                     'status' => $status,
                     'expired_at' => $expiredAt,
-                    'certificate_drive_url' => $certUrl,
-                    'amendment_drive_url' => $amendUrl,
+                    'drive_url' => $driveUrl,
                     'notes' => $data['notes'] ?? null,
                 ]);
                 $createdCount++;
