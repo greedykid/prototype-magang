@@ -68,6 +68,9 @@
                             <td>
                                 <strong>{{ $lpk->name }}</strong>
                                 <span>{{ $lpk->registration_number }}</span>
+                                @if($lpk->scope)
+                                    <small style="display: block; color: var(--muted); font-size: 12px; margin-top: 2px;">{{ Str::limit($lpk->scope, 60) }}</small>
+                                @endif
                             </td>
                             <td><x-status :value="$lpk->status" /></td>
                             <td>

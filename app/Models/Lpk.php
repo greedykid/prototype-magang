@@ -13,6 +13,7 @@ class Lpk extends Model
     protected $fillable = [
         'registration_number',
         'name',
+        'scope',
         'address',
         'email',
         'phone',

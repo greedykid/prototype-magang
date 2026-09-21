@@ -24,6 +24,7 @@ class LpkImportController extends Controller
         $columns = [
             'nomor_registrasi',
             'nama_lpk',
+            'ruang_lingkup',
             'alamat',
             'email',
             'telepon',
@@ -36,6 +37,7 @@ class LpkImportController extends Controller
             [
                 'LP-101-IDN',
                 'Balai Pengujian Lingkungan Sejahtera',
+                'Laboratorium Pengujian Kimia, Fisika, dan Lingkungan Hidup',
                 'Jl. M.H. Thamrin No. 12, Jakarta Pusat',
                 'kontak@lablingkungan.id',
                 '021-3141234',
@@ -46,6 +48,7 @@ class LpkImportController extends Controller
             [
                 'LK-202-IDN',
                 'Pusat Kalibrasi Presisi Bandung',
+                'Laboratorium Kalibrasi Suhu, Tekanan, dan Massa',
                 'Jl. Ir. H. Juanda No. 88, Bandung',
                 'layanan@kalibrasipresisi.co.id',
                 '022-2508899',
@@ -56,6 +59,7 @@ class LpkImportController extends Controller
             [
                 'LI-303-IDN',
                 'Lembaga Inspeksi Teknik Terpadu',
+                'Lembaga Inspeksi Instalasi Pipa dan Bejana Tekan',
                 'Jl. Pemuda No. 45, Surabaya',
                 'sekretariat@inspeksiteknik.id',
                 '031-5345678',
@@ -132,6 +136,7 @@ class LpkImportController extends Controller
             return match ($clean) {
                 'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg' => 'registration_number',
                 'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian' => 'name',
+                'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi' => 'scope',
                 'alamat', 'address' => 'address',
                 'email', 'surel' => 'email',
                 'telepon', 'telp', 'phone', 'notelp', 'teleponhp' => 'phone',
@@ -188,6 +193,7 @@ class LpkImportController extends Controller
             if ($existing) {
                 $existing->update([
                     'name' => $name,
+                    'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
                     'address' => ! empty($data['address']) ? $data['address'] : $existing->address,
                     'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
                     'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
@@ -201,6 +207,7 @@ class LpkImportController extends Controller
                 Lpk::create([
                     'registration_number' => $regNo,
                     'name' => $name,
+                    'scope' => $data['scope'] ?? null,
                     'address' => $data['address'] ?? null,
                     'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,

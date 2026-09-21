@@ -22,6 +22,11 @@
         Nama LPK
         <input name="name" value="{{ old('name', $lpk->name) }}" required>
     </label>
+    <label class="full">
+        Ruang Lingkup Akreditasi (Scope)
+        <textarea name="scope" rows="2" placeholder="Contoh: Laboratorium Pengujian Kimia, Fisika, Air Minum, dan Mikrobiologi Lingkungan">{{ old('scope', $lpk->scope) }}</textarea>
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tuliskan bidang pengujian, kalibrasi, inspeksi, atau skema sertifikasi yang diakreditasi KAN.</small>
+    </label>
     <label>
         Email
         <input type="email" name="email" value="{{ old('email', $lpk->email) }}">

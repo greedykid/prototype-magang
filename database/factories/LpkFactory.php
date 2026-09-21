@@ -50,9 +50,20 @@ class LpkFactory extends Factory
         $item = $curatedLpks[$index % count($curatedLpks)];
         $index++;
 
+        $scopeMap = [
+            'LP' => 'Laboratorium Pengujian Kimia, Fisika, Biologi, dan Lingkungan Hidup',
+            'LK' => 'Laboratorium Kalibrasi Suhu, Tekanan, Massa, dan Kelistrikan',
+            'LSPr' => 'Lembaga Sertifikasi Produk SNI Sektor Manufaktur & Pangan',
+            'LI' => 'Lembaga Inspeksi Instalasi Pipa, Bejana Tekan, dan Struktur',
+        ];
+
+        $prefix = explode('-', $item['reg'])[0] ?? 'LP';
+        $scope = $scopeMap[$prefix] ?? 'Pengujian Mutu, Kalibrasi Instrumen, dan Asesmen Penilaian Kesesuaian';
+
         return [
             'registration_number' => $item['reg'],
             'name' => $item['name'],
+            'scope' => $scope,
             'address' => $item['address'],
             'email' => $item['email'],
             'phone' => $item['phone'],

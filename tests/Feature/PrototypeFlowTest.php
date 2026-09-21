@@ -106,6 +106,7 @@ class PrototypeFlowTest extends TestCase
         $response = $this->actingAs($user)->post('/lpks', [
             'registration_number' => 'LPK-TEST-DRIVE-01',
             'name' => 'LPK Pengujian Drive',
+            'scope' => 'Pengujian Mikrobiologi dan Toksikologi',
             'status' => 'ACTIVE',
             'expired_at' => '2028-10-15',
             'drive_url' => 'https://drive.google.com/drive/folders/12345demo',
@@ -114,13 +115,41 @@ class PrototypeFlowTest extends TestCase
         $response->assertRedirect();
 
         $lpk = Lpk::where('registration_number', 'LPK-TEST-DRIVE-01')->firstOrFail();
+        $this->assertEquals('Pengujian Mikrobiologi dan Toksikologi', $lpk->scope);
         $this->assertEquals('2028-10-15', $lpk->expired_at->format('Y-m-d'));
         $this->assertEquals('https://drive.google.com/drive/folders/12345demo', $lpk->drive_url);
 
         $showResponse = $this->actingAs($user)->get(route('lpks.show', $lpk));
         $showResponse->assertOk()
+            ->assertSee('Pengujian Mikrobiologi dan Toksikologi')
             ->assertSee('15 Oct 2028')
             ->assertSee('Buka Berkas di Google Drive');
+    }
+
+    public function test_lpk_scope_can_be_searched_and_exported_to_csv(): void
+    {
+        $user = User::factory()->create();
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LK-SCOPE-999',
+            'name' => 'Kalibrasi Presisi Akustik',
+            'scope' => 'Laboratorium Kalibrasi Akustik dan Vibrasi',
+            'status' => 'ACTIVE',
+            'expired_at' => '2029-01-01',
+        ]);
+
+        // Test search by scope
+        $searchResponse = $this->actingAs($user)->get('/lpks?search=Akustik');
+        $searchResponse->assertOk()
+            ->assertSee('Kalibrasi Presisi Akustik')
+            ->assertSee('Laboratorium Kalibrasi Akustik dan Vibrasi');
+
+        // Test CSV export contains scope header and scope value
+        $csvResponse = $this->actingAs($user)->get(route('reports.lpks.export'));
+        $csvResponse->assertOk();
+        $content = $csvResponse->streamedContent();
+        $this->assertStringContainsString('Ruang Lingkup Akreditasi', $content);
+        $this->assertStringContainsString('Laboratorium Kalibrasi Akustik dan Vibrasi', $content);
     }
 }
 

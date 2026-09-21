@@ -36,6 +36,16 @@
                 <dd><x-status :value="$lpk->status" /></dd>
             </div>
             <div>
+                <dt>Ruang Lingkup</dt>
+                <dd>
+                    @if($lpk->scope)
+                        <strong>{{ $lpk->scope }}</strong>
+                    @else
+                        <span style="color: var(--muted);">Belum diisi</span>
+                    @endif
+                </dd>
+            </div>
+            <div>
                 <dt>Email</dt>
                 <dd>{{ $lpk->email ?: 'Belum diisi' }}</dd>
             </div>
