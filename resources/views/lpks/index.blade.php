@@ -126,9 +126,7 @@
                             <!-- 6. LINGKUP -->
                             <td style="vertical-align: top; min-width: 260px; max-width: 380px; font-size: 12px; line-height: 1.45; padding: 12px 14px;">
                                 @if($lpk->scope)
-                                    <div style="max-height: 120px; overflow-y: auto; white-space: pre-line; color: #334155; word-break: break-word; padding-right: 6px;" title="{{ $lpk->scope }}">
-                                        {{ $lpk->scope }}
-                                    </div>
+                                    <div style="max-height: 175px; overflow-y: auto; white-space: pre-line; color: #334155; word-break: break-word; padding-right: 6px; margin: 0;" title="{{ $lpk->scope }}">{{ trim($lpk->scope) }}</div>
                                 @else
                                     <span style="color: var(--muted);">-</span>
                                 @endif
@@ -155,10 +153,10 @@
 
                             <!-- 8. LINK -->
                             <td style="vertical-align: top; text-align: center; white-space: nowrap; padding: 12px 14px;">
-                                @if($lpk->drive_url)
-                                    <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="font-size: 11.5px; padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive">
-                                        <x-icon name="sheets" size="13" style="color: #0f9d58;" />
-                                        <span>Drive &rarr;</span>
+                                @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
+                                    <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary btn-table-drive" style="font-size: 11.5px; padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive">
+                                        <x-icon name="sheets" size="13" />
+                                        <span>Drive</span>
                                     </a>
                                 @else
                                     <span style="color: var(--muted); font-size: 12px;">-</span>

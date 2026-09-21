@@ -95,6 +95,7 @@ class LpkImportController extends Controller
         ]);
 
         $csvContent = '';
+        $sheetHyperlinks = [];
 
         if ($request->hasFile('csv_file')) {
             $file = $request->file('csv_file');
@@ -132,6 +133,26 @@ class LpkImportController extends Controller
                     return back()->with('error', 'Gagal mengunduh spreadsheet dari URL yang diberikan. Pastikan tautan dapat diakses publik (Anyone with the link).');
                 }
                 $csvContent = $response->body();
+
+                // Coba ambil XLSX untuk mengekstrak hyperlink formula asli (karena export CSV Google Sheets menghapus formula hyperlink)
+                if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $inputUrl, $sheetMatches)) {
+                    $sheetId = $sheetMatches[1];
+                    $xlsxUrl = "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=xlsx";
+                    try {
+                        $xlsxResponse = Http::withHeaders([
+                            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        ])->withOptions([
+                            'cookies' => $cookieJar,
+                            'allow_redirects' => ['max' => 10, 'strict' => false, 'referer' => true, 'protocols' => ['http', 'https']],
+                        ])->timeout(15)->get($xlsxUrl);
+
+                        if ($xlsxResponse->successful() && strlen($xlsxResponse->body()) > 500) {
+                            $sheetHyperlinks = $this->extractHyperlinksFromXlsx($xlsxResponse->body());
+                        }
+                    } catch (\Throwable) {
+                        // Abaikan jika XLSX tidak dapat diambil
+                    }
+                }
             } catch (\Throwable $e) {
                 return back()->with('error', 'Terjadi kesalahan koneksi saat mengakses Google Sheets: ' . $e->getMessage());
             }
@@ -184,8 +205,10 @@ class LpkImportController extends Controller
         $createdCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
+        $excelRowNumber = 1;
 
         foreach ($lines as $line) {
+            $excelRowNumber++;
             if (trim($line) === '') {
                 continue;
             }
@@ -223,9 +246,25 @@ class LpkImportController extends Controller
             $expiredAt = $this->parseDateString($data['expired_at'] ?? null);
             if (! $expiredAt && $certificateDate) {
                 $expiredAt = date('Y-m-d', strtotime('+5 years', strtotime($certificateDate)));
+            } elseif (! $certificateDate && $expiredAt) {
+                $certificateDate = date('Y-m-d', strtotime('-5 years', strtotime($expiredAt)));
             }
 
-            $driveUrl = ! empty($data['drive_url']) && filter_var($data['drive_url'], FILTER_VALIDATE_URL) ? $data['drive_url'] : ($data['drive_url'] ?? null);
+            $rawDriveUrl = ! empty($data['drive_url']) ? trim((string) $data['drive_url']) : null;
+            $driveUrl = null;
+
+            if (! empty($rawDriveUrl) && filter_var($rawDriveUrl, FILTER_VALIDATE_URL) && str_starts_with($rawDriveUrl, 'http')) {
+                $driveUrl = $rawDriveUrl;
+            } elseif (! empty($sheetHyperlinks[$excelRowNumber])) {
+                $driveColIndex = array_search('drive_url', $headers, true);
+                $driveColLetter = $driveColIndex !== false ? chr(65 + $driveColIndex) : null;
+
+                if ($driveColLetter && ! empty($sheetHyperlinks[$excelRowNumber][$driveColLetter])) {
+                    $driveUrl = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
+                } else {
+                    $driveUrl = reset($sheetHyperlinks[$excelRowNumber]);
+                }
+            }
 
             $existing = Lpk::where('registration_number', $regNo)->first();
 
@@ -239,7 +278,7 @@ class LpkImportController extends Controller
                     'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
                     'status' => $status,
                     'expired_at' => $expiredAt ?: $existing->expired_at,
-                    'drive_url' => $driveUrl ?: $existing->drive_url,
+                    'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
                     'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
                 ]);
                 $updatedCount++;
@@ -328,5 +367,58 @@ class LpkImportController extends Controller
         }
 
         return $url;
+    }
+
+    /**
+     * Mengekstrak URL hyperlink dari file XLSX Google Sheets (misal formula =HYPERLINK("url", "Link")).
+     */
+    protected function extractHyperlinksFromXlsx(string $xlsxBinary): array
+    {
+        $hyperlinks = [];
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_') . '.zip';
+
+        try {
+            file_put_contents($tempFile, $xlsxBinary);
+            $phar = new \PharData($tempFile);
+
+            if (isset($phar['xl/worksheets/sheet1.xml'])) {
+                $xml = $phar['xl/worksheets/sheet1.xml']->getContent();
+
+                if (preg_match_all('/<c r="([A-Z]+)(\d+)"[^>]*><f>(.*?)<\/f>/s', $xml, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $m) {
+                        $col = $m[1];
+                        $row = (int) $m[2];
+                        $formula = html_entity_decode($m[3], ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+                        if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
+                            $targetUrl = trim($urlMatches[1]);
+
+                            // Unpack redirect Google jika ada (misal google.com/url?q=...)
+                            if (str_contains($targetUrl, 'google.com/url?') && str_contains($targetUrl, 'q=')) {
+                                $parsed = parse_url($targetUrl);
+                                if (! empty($parsed['query'])) {
+                                    parse_str($parsed['query'], $queryArgs);
+                                    if (! empty($queryArgs['q'])) {
+                                        $targetUrl = $queryArgs['q'];
+                                    }
+                                }
+                            }
+
+                            if (filter_var($targetUrl, FILTER_VALIDATE_URL) && str_starts_with($targetUrl, 'http')) {
+                                $hyperlinks[$row][$col] = $targetUrl;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Abaikan kesalahan pembongkaran phar
+        } finally {
+            if (file_exists($tempFile)) {
+                @unlink($tempFile);
+            }
+        }
+
+        return $hyperlinks;
     }
 }

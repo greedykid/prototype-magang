@@ -45,7 +45,7 @@ class Lpk extends Model
             return false;
         }
 
-        return $this->expired_at->diffInDays(now()) <= $days;
+        return $this->expired_at->isFuture() && $this->expired_at->lte(now()->addDays($days));
     }
 
     /**
@@ -56,7 +56,7 @@ class Lpk extends Model
      */
     public function getSurveillanceMilestonesAttribute(): array
     {
-        $certDate = $this->certificate_date;
+        $certDate = $this->certificate_date ?: ($this->expired_at ? $this->expired_at->copy()->subYears(5) : null);
         $expDate = $this->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
 
         $milestones = [

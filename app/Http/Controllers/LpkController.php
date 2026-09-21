@@ -63,17 +63,24 @@ class LpkController extends Controller
     public function sendSurveillanceReminder(Lpk $lpk, Request $request): RedirectResponse
     {
         $alerts = $lpk->getActiveSurveillanceAlerts();
-        if (empty($alerts)) {
+        $isSimulation = $request->boolean('is_simulation') || $request->input('simulasi') == 1;
+
+        if (empty($alerts) && ! $isSimulation) {
             return back()->with('error', 'Tidak ada jadwal notifikasi pengawasan (S1, S2, atau Re-Akreditasi) yang sedang aktif untuk LPK ini.');
         }
 
-        if (empty($lpk->email)) {
-            return back()->with('error', 'LPK tidak memiliki alamat email PIC Lab yang terdaftar. Harap lengkapi email pada profil LPK terlebih dahulu.');
+        $recipientEmail = $lpk->email;
+        if (empty($recipientEmail)) {
+            if ($isSimulation) {
+                $recipientEmail = auth()->user()?->email ?: 'sandbox@simasadi.test';
+            } else {
+                return back()->with('error', 'LPK tidak memiliki alamat email PIC Lab yang terdaftar. Harap lengkapi email pada profil LPK terlebih dahulu.');
+            }
         }
 
-        $code = $request->input('code');
+        $code = strtoupper((string) $request->input('code', ''));
         $targetAlert = null;
-        if ($code) {
+        if ($code && ! empty($alerts)) {
             foreach ($alerts as $a) {
                 if ($a['code'] === $code) {
                     $targetAlert = $a;
@@ -81,13 +88,49 @@ class LpkController extends Controller
                 }
             }
         }
-        $alertToSend = $targetAlert ?: $alerts[0];
+
+        if (! $targetAlert && ! empty($alerts) && ! $code) {
+            $targetAlert = $alerts[0];
+        }
+
+        if (! $targetAlert) {
+            $milestones = $lpk->surveillance_milestones;
+            $mKey = strtolower($code) ?: 's1';
+            $selectedM = $milestones[$mKey] ?? $milestones['s1'];
+            $targetAlert = [
+                'lpk_id' => $lpk->id,
+                'lpk_reg' => $lpk->registration_number,
+                'lpk_name' => $lpk->name,
+                'lpk_email' => $recipientEmail,
+                'code' => $selectedM['code'],
+                'name' => $selectedM['name'] . ($isSimulation ? ' (Simulasi)' : ''),
+                'notice_date' => $selectedM['notice_date'],
+                'target_date' => $selectedM['target_date'],
+                'status' => 'SIMULATED',
+                'status_label' => 'SIMULASI UJI COBA',
+                'is_urgent' => true,
+                'severity' => 'warn',
+                'description' => $selectedM['description'],
+                'last_notified_at' => $lpk->last_surveillance_notified_at,
+            ];
+        }
 
         try {
-            \Illuminate\Support\Facades\Mail::to($lpk->email)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alertToSend));
+            if (empty(config('mail.mailers.smtp.username')) || config('mail.mailers.smtp.host') === '127.0.0.1') {
+                config([
+                    'mail.mailers.smtp.host' => 'sandbox.smtp.mailtrap.io',
+                    'mail.mailers.smtp.port' => 2525,
+                    'mail.mailers.smtp.username' => 'dccf097e9f5ffe',
+                    'mail.mailers.smtp.password' => 'ee0c1f3cad62a3',
+                    'mail.mailers.smtp.encryption' => 'tls',
+                ]);
+            }
+
+            \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmail)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
             $lpk->update(['last_surveillance_notified_at' => now()]);
 
-            return back()->with('success', "Email pemberitahuan resmi {$alertToSend['name']} berhasil dikirimkan ke PIC Lab ({$lpk->email}) via Mailtrap SMTP.");
+            $prefix = $isSimulation ? 'Simulasi email' : 'Email';
+            return back()->with('success', "{$prefix} pemberitahuan resmi {$targetAlert['name']} berhasil dikirimkan ke {$recipientEmail} via Mailtrap SMTP.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal mengirim email notifikasi: ' . $e->getMessage());
         }
@@ -110,6 +153,8 @@ class LpkController extends Controller
 
         if (! empty($data['certificate_date']) && empty($data['expired_at'])) {
             $data['expired_at'] = \Carbon\Carbon::parse($data['certificate_date'])->addYears(5)->toDateString();
+        } elseif (empty($data['certificate_date']) && ! empty($data['expired_at'])) {
+            $data['certificate_date'] = \Carbon\Carbon::parse($data['expired_at'])->subYears(5)->toDateString();
         }
 
         return $data;

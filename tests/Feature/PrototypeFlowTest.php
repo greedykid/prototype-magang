@@ -227,6 +227,40 @@ class PrototypeFlowTest extends TestCase
         $this->assertNotNull($lpk->last_surveillance_notified_at);
     }
 
+    public function test_simulation_notification_can_be_sent_even_without_active_alerts(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-SIM-01',
+            'name' => 'Lab Simulasi Mailtrap',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->toDateString(),
+            'expired_at' => now()->addYears(5)->toDateString(),
+            'email' => 'pic.sim@mailtrap-test.id',
+        ]);
+
+        $this->assertEmpty($lpk->getActiveSurveillanceAlerts());
+
+        $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk), [
+            'is_simulation' => '1',
+            'code' => 's2',
+        ]);
+
+        $response->assertRedirect()->assertSessionHas('success');
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
+            return $mail->hasTo('pic.sim@mailtrap-test.id')
+                && $mail->lpk->id === $lpk->id
+                && $mail->alert['code'] === 'S2';
+        });
+
+        $lpk->refresh();
+        $this->assertNotNull($lpk->last_surveillance_notified_at);
+    }
+
     public function test_persistent_notification_renders_on_ui_and_cannot_be_dismissed(): void
     {
         $user = User::factory()->create(['role' => User::ROLE_ADMIN]);
@@ -315,6 +349,33 @@ class PrototypeFlowTest extends TestCase
         $response->assertSee('Pengujian Kimia, Fisika, dan Lingkungan Air Bersih');
         $response->assertSee('15/01/2030');
         $response->assertSee('https://drive.google.com/drive/folders/test-folder-lpk-99', false);
+    }
+
+    public function test_lpk_is_expiring_soon_status_accuracy(): void
+    {
+        // Far future (2030) should NOT be expiring soon
+        $farFutureLpk = Lpk::factory()->create([
+            'registration_number' => 'LP-2030-IDN',
+            'expired_at' => now()->addYears(4),
+        ]);
+        $this->assertFalse($farFutureLpk->isExpiringSoon());
+        $this->assertFalse($farFutureLpk->isExpired());
+
+        // Soon (within 30 days) should be expiring soon
+        $soonLpk = Lpk::factory()->create([
+            'registration_number' => 'LP-SOON-IDN',
+            'expired_at' => now()->addDays(20),
+        ]);
+        $this->assertTrue($soonLpk->isExpiringSoon());
+        $this->assertFalse($soonLpk->isExpired());
+
+        // Already expired should NOT be expiring soon, but isExpired() = true
+        $expiredLpk = Lpk::factory()->create([
+            'registration_number' => 'LP-PAST-IDN',
+            'expired_at' => now()->subDays(10),
+        ]);
+        $this->assertFalse($expiredLpk->isExpiringSoon());
+        $this->assertTrue($expiredLpk->isExpired());
     }
 }
 

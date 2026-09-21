@@ -30,9 +30,17 @@ class SurveillanceReminderMail extends Mailable
         $senderAddress = config('mail.from.address', 'simasadi@kan.or.id');
         $senderName = config('mail.from.name', 'Sekretariat KAN - SIMASADI');
 
+        $isSim = (! empty($this->alert['status']) && $this->alert['status'] === 'SIMULATED')
+            || str_contains($this->alert['name'], 'Simulasi');
+
+        $cleanName = trim(str_replace(['(Simulasi Mobile Test)', '(Simulasi)', 'Simulasi'], '', $this->alert['name']));
+        $tag = $isSim ? '[SIMULASI KAN]' : '[PEMBERITAHUAN KAN]';
+
+        $subject = "{$tag} {$cleanName} - {$this->lpk->registration_number}";
+
         return new Envelope(
             from: new Address($senderAddress, $senderName),
-            subject: "[PEMBERITAHUAN KAN] Jadwal Pengawasan {$this->alert['name']} - {$this->lpk->name} ({$this->lpk->registration_number})",
+            subject: $subject,
         );
     }
 

@@ -201,4 +201,29 @@ class LpkImportTest extends TestCase
             'drive_url' => 'https://drive.google.com/drive/folders/demo-186',
         ]);
     }
+
+    public function test_import_with_plain_text_link_does_not_save_invalid_relative_url(): void
+    {
+        $csvData = "\"NO. AKREDITASI\",\"NAMA LPK\",\"LINK\"\n" .
+            "\"LP-999-IDN\",\"Lab Tanpa URL Asli\",\"Link\"\n";
+
+        $file = UploadedFile::fake()->createWithContent('plain-link.csv', $csvData);
+
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
+            'csv_file' => $file,
+        ]);
+
+        $response->assertRedirect(route('lpks.index'));
+
+        // drive_url should be null, not the literal text 'Link'
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-999-IDN',
+            'drive_url' => null,
+        ]);
+
+        // UI should render '-' and never render href="Link"
+        $indexResponse = $this->actingAs($this->admin)->get(route('lpks.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertDontSee('href="Link"', false);
+    }
 }
