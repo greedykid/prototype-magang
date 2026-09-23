@@ -28,8 +28,20 @@ class LpkController extends Controller
                 ->orWhere('address', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%")
-            ))
-            ->when(in_array($status, ['ACTIVE', 'INACTIVE'], true), fn ($query) => $query->where('status', $status));
+            ));
+        if ($status === 'INACTIVE') {
+            $query->where('status', 'INACTIVE');
+        } elseif ($status === 'SURVEILLANCE_OVERDUE') {
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_OVERDUE')->pluck('id');
+            $query->whereIn('id', $matchingIds);
+        } elseif ($status === 'SURVEILLANCE_DUE') {
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_DUE')->pluck('id');
+            $query->whereIn('id', $matchingIds);
+        } elseif ($status === 'EXPIRED') {
+            $query->whereNotNull('expired_at')->where('expired_at', '<', now()->startOfDay());
+        } elseif ($status === 'ACTIVE') {
+            $query->where('status', 'ACTIVE');
+        }
 
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
@@ -61,7 +73,7 @@ class LpkController extends Controller
             $query->whereIn('id', $matchingIds);
         }
 
-        $lpks = $query->withCount(['accreditations', 'issues'])->latest()->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments'])->withCount(['accreditations', 'issues'])->latest()->paginate($perPage)->withQueryString();
 
         return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage'));
     }
@@ -80,7 +92,7 @@ class LpkController extends Controller
 
     public function show(Lpk $lpk): View
     {
-        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'issues' => fn ($q) => $q->latest()])]);
+        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'issues' => fn ($q) => $q->latest(), 'assessments'])]);
     }
 
     public function edit(Lpk $lpk): View

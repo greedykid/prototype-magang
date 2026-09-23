@@ -51,34 +51,6 @@ const setupGlobalSelectListeners = () => {
     });
 };
 
-const getStatusDotHtml = (val) => {
-    if (!val) return '';
-    const v = String(val).toUpperCase();
-    const map = {
-        'ACTIVE': 'dot-active',
-        'SUCCESS': 'dot-success',
-        'COMPLETED': 'dot-completed',
-        'RESOLVED': 'dot-resolved',
-        'APPROVED': 'dot-active',
-        'IN_PROGRESS': 'dot-in_progress',
-        'SCHEDULED': 'dot-in_progress',
-        'UNDER_REVIEW': 'dot-in_progress',
-        'OPEN': 'dot-open',
-        'PLANNED': 'dot-planned',
-        'SUBMITTED': 'dot-submitted',
-        'NEED_REVISION': 'dot-need_revision',
-        'INACTIVE': 'dot-inactive',
-        'CANCELLED': 'dot-cancelled',
-        'FAILED': 'dot-failed',
-        'REJECTED': 'dot-rejected',
-        'NOT_STARTED': 'dot-not_started',
-        'HIGH': 'dot-high',
-        'MEDIUM': 'dot-medium',
-        'LOW': 'dot-low',
-    };
-    const dotClass = map[v];
-    return dotClass ? `<span class="status-dot ${dotClass}" aria-hidden="true"></span>` : '';
-};
 
 const createCustomSelect = (select) => {
     const wrapper = document.createElement('div');
@@ -156,12 +128,10 @@ const createCustomSelect = (select) => {
             optionEl.setAttribute('aria-selected', String(isSelected));
             if (isSelected) optionEl.classList.add('is-selected');
 
-            const dotHtml = getStatusDotHtml(opt.value);
             const labelText = opt.textContent.trim();
 
             optionEl.innerHTML = `
                 <span class="custom-select-option-content">
-                    ${dotHtml}
                     <span class="custom-select-option-text">${labelText}</span>
                 </span>
                 <span class="custom-select-check">${checkIconSvg}</span>
@@ -180,9 +150,8 @@ const createCustomSelect = (select) => {
     const syncFromNative = () => {
         const selectedOpt = select.options[select.selectedIndex] || select.options[0];
         if (selectedOpt) {
-            const dotHtml = getStatusDotHtml(selectedOpt.value);
             const labelText = selectedOpt.textContent.trim();
-            valueSpan.innerHTML = `${dotHtml}<span>${labelText}</span>`;
+            valueSpan.innerHTML = `<span>${labelText}</span>`;
             valueSpan.classList.toggle('is-placeholder', !selectedOpt.value && select.required);
         } else {
             valueSpan.innerHTML = '<span>Pilih...</span>';

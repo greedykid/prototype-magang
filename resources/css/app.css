@@ -29,6 +29,7 @@
 @import './features/assessments.css';
 @import './features/accreditations.css';
 @import './features/calendar.css';
+@import './features/errors.css';
 
 /* 5. Master Responsive Layout (Must load last to override base component rules) */
 @import './layout/responsive.css';

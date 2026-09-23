@@ -37,6 +37,9 @@
                 <select name="status">
                     <option value="">Semua status</option>
                     <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
+                    <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jadwal Surveilen</option>
+                    <option value="SURVEILLANCE_DUE" @selected($status === 'SURVEILLANCE_DUE')>Jatuh Tempo Surveilen</option>
+                    <option value="EXPIRED" @selected($status === 'EXPIRED')>Kedaluwarsa (Expired)</option>
                     <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
                 </select>
             </label>
@@ -112,7 +115,7 @@
                                     {{ $lpk->name }}
                                 </a>
                                 <div class="lpk-status-wrap" style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
-                                    <x-status :value="$lpk->status" />
+                                    <x-status :value="$lpk->dynamic_status" />
                                 </div>
                             </td>
 

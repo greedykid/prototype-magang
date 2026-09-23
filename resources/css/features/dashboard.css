@@ -162,3 +162,216 @@
 }
 
 /* ==========================================================================
+   Balanced 2-Column Dashboard Layout & Modular Widgets
+   ========================================================================== */
+.dashboard-main-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr);
+    align-items: start;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.surveillance-alert-panel {
+    border-left: 5px solid #e11d48;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.surveillance-alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.surveillance-alert-title {
+    font-size: 15.5px;
+    margin: 0 0 4px 0;
+    color: #9f1239;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.surveillance-alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.surveillance-alert-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 6px;
+    padding: 10px 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Agenda Asesmen Terdekat */
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.agenda-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 8px;
+    gap: 14px;
+    transition: all 180ms ease;
+    text-decoration: none;
+}
+
+.agenda-card:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.agenda-card-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    padding: 6px 8px;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 6px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.agenda-card-date .day {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--maroon, #800000);
+    line-height: 1;
+}
+
+.agenda-card-date .month {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--muted, #64748b);
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.agenda-card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.agenda-card-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink, #0f172a);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.agenda-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted, #64748b);
+    flex-wrap: wrap;
+}
+
+/* Compliance and Monitoring items */
+.compliance-summary-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.compliance-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 8px;
+    gap: 12px;
+    text-decoration: none;
+    transition: all 180ms ease;
+}
+
+.compliance-item:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.compliance-item-info strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink, #0f172a);
+}
+
+.compliance-item-info span {
+    font-size: 12px;
+    color: var(--muted, #64748b);
+}
+
+.compliance-item-badge {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.system-health-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.system-health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 6px;
+    font-size: 12.5px;
+}
+
+.system-health-row span {
+    color: var(--muted, #64748b);
+}
+
+.system-health-row strong {
+    color: var(--ink, #0f172a);
+}

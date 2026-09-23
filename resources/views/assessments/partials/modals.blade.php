@@ -42,7 +42,7 @@
 </div>
 
 {{-- Modal 2: Verifikasi Kepatuhan SBM oleh Sekretariat KAN --}}
-@if($assessment->expense)
+@if($assessment->expense && auth()->user()?->isAdmin())
 <div class="simasadi-modal" id="modal-verify-expense" role="dialog" aria-modal="true">
     <div class="simasadi-modal-box">
         <div class="simasadi-modal-head">

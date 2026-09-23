@@ -210,7 +210,11 @@
         </table>
 
         <div style="text-align: center;">
-            <a href="{{ route('accreditations.show', $accreditation) }}" class="back-btn">&larr; Kembali ke SIMASADI</a>
+            @if(auth()->user()?->isAdmin())
+                <a href="{{ route('accreditations.show', $accreditation) }}" class="back-btn">&larr; Kembali ke SIMASADI</a>
+            @else
+                <a href="{{ route('dashboard') }}" class="back-btn">&larr; Kembali ke SIMASADI</a>
+            @endif
         </div>
     </div>
     <div class="footer">

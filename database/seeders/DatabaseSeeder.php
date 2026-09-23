@@ -24,10 +24,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $admin = User::factory()->create([
-            'name' => 'Budi Administrator',
+            'name' => 'Budi Administrator Unit',
             'email' => 'admin@simasadi.local',
             'password' => 'password',
             'role' => User::ROLE_ADMIN,
+        ]);
+
+        $pic = User::factory()->create([
+            'name' => 'PIC Laboratorium Penguji & Kalibrasi',
+            'email' => 'pic@simasadi.local',
+            'password' => 'password',
+            'role' => User::ROLE_PIC,
         ]);
 
         $staff = User::factory()->create([

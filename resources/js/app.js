@@ -8,6 +8,7 @@ import { handleFlashNotifications } from './modules/notifications.js';
 import { initModalListeners, openModal, closeModal, returnModalToPlaceholder } from './modules/modals.js';
 import { initButtonLoader } from './modules/button-loader.js';
 import { initAuthTransitions } from './modules/auth-transitions.js';
+import { initConfirmations } from './modules/confirmations.js';
 import {
     showEventPopover,
     returnPopoverToPlaceholder,
@@ -113,6 +114,7 @@ initSidebarCollapse();
 initModalListeners();
 initButtonLoader();
 initAuthTransitions();
+initConfirmations();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

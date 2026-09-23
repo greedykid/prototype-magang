@@ -7,7 +7,10 @@
     <div>
         <a class="back-link" href="{{ route('lpks.index') }}">Semua LPK</a>
         <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 23px; line-height: 1.35; font-weight: 700; word-break: break-word; max-width: 950px;">{{ $lpk->name }}</h1>
-        <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; Lembaga Penilaian Kesesuaian Terakreditasi</p>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+            <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; Lembaga Penilaian Kesesuaian Terakreditasi</p>
+            <x-status :value="$lpk->dynamic_status" />
+        </div>
     </div>
     @if(auth()->user()?->isAdmin())
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px;">
@@ -15,7 +18,7 @@
                 <x-icon name="edit" size="16" />
                 <span>Ubah data</span>
             </a>
-            <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data LPK {{ addslashes($lpk->name) }} ({{ $lpk->registration_number }})? Seluruh data proses terkait akan ikut terhapus.');" style="margin: 0; display: inline-block;">
+            <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" class="form-delete-lpk" data-lpk-name="{{ $lpk->name }}" data-lpk-reg="{{ $lpk->registration_number }}" style="margin: 0; display: inline-block;">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="button danger" style="background: #e53e3e; border-color: #c53030; color: #ffffff; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 16px;">
@@ -81,7 +84,7 @@
     <div class="panel-head" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line, #e2e8f0); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
         <div>
             <span class="eyebrow">SIKLUS KAN U-01</span>
-            <h2 style="margin: 0; font-size: 16px;">Roadmap Pengawasan &amp; Re-Akreditasi (Surveillance Roadmap)</h2>
+            <h2 style="margin: 0; font-size: 16px;">Siklus Pengawasan &amp; Re-Akreditasi</h2>
         </div>
         @if(auth()->user()?->isAdmin())
             <a href="{{ route('assessments.index') }}" class="button secondary" style="font-size: 12.5px; padding: 4px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;">
@@ -205,7 +208,7 @@
         <dl class="detail-list">
             <div>
                 <dt>Status</dt>
-                <dd><x-status :value="$lpk->status" /></dd>
+                <dd><x-status :value="$lpk->dynamic_status" /></dd>
             </div>
             <div style="align-items: start;">
                 <dt style="padding-top: 2px;">Ruang Lingkup Akreditasi</dt>
@@ -238,26 +241,28 @@
         </dl>
     </section>
 
-    <section class="panel" style="align-self: start;">
-        <div class="panel-head">
-            <div>
-                <span class="eyebrow">AKREDITASI</span>
-                <h2>Proses terkait</h2>
-            </div>
-            <a href="{{ route('accreditations.index') }}">Semua proses</a>
-        </div>
-
-        @forelse($lpk->accreditations as $item)
-            <a class="list-row" href="{{ route('accreditations.show', $item) }}">
+    @if(auth()->user()?->isAdmin())
+        <section class="panel" style="align-self: start;">
+            <div class="panel-head">
                 <div>
-                    <strong>Proses akreditasi #{{ $item->id }}</strong>
-                    <span>Target {{ $item->target_date?->format('d M Y') ?: 'Belum ditentukan' }}</span>
+                    <span class="eyebrow">AKREDITASI</span>
+                    <h2>Proses terkait</h2>
                 </div>
-                <x-status :value="$item->status" />
-            </a>
-        @empty
-            <div class="empty">Belum ada proses akreditasi.</div>
-        @endforelse
-    </section>
+                <a href="{{ route('accreditations.index') }}">Semua proses</a>
+            </div>
+
+            @forelse($lpk->accreditations as $item)
+                <a class="list-row" href="{{ route('accreditations.show', $item) }}">
+                    <div>
+                        <strong>Proses akreditasi #{{ $item->id }}</strong>
+                        <span>Target {{ $item->target_date?->format('d M Y') ?: 'Belum ditentukan' }}</span>
+                    </div>
+                    <x-status :value="$item->status" />
+                </a>
+            @empty
+                <div class="empty">Belum ada proses akreditasi.</div>
+            @endforelse
+        </section>
+    @endif
 </div>
 @endsection

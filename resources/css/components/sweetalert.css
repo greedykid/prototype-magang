@@ -68,6 +68,19 @@
     transform: translateY(-1px) !important;
 }
 
+.simasadi-swal-btn.simasadi-swal-danger-btn {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.24) !important;
+}
+
+.simasadi-swal-btn.simasadi-swal-danger-btn:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+    transform: translateY(-1px) !important;
+}
+
 .simasadi-swal-cancel-btn {
     align-items: center !important;
     background: #ffffff !important;

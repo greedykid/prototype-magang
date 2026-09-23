@@ -557,9 +557,13 @@ const navigateTo = async (url, pushState = true) => {
 
         window.scrollTo({ top: 0, behavior: 'instant' });
 
+        const originalContent = pageWrap.innerHTML;
+        let skeletonRendered = false;
+
         // Debounced skeleton: Only show skeleton if fetch takes longer than 80ms
         // This ensures local navigation is instantaneous without flickering or lag!
         const skeletonTimer = setTimeout(() => {
+            skeletonRendered = true;
             pageWrap.innerHTML = renderSkeletonForType(type);
         }, 80);
 
@@ -571,8 +575,11 @@ const navigateTo = async (url, pushState = true) => {
 
         clearTimeout(skeletonTimer);
 
-        if (!response.ok || response.redirected) {
-            window.location.href = response.url || url;
+        if (response.redirected) {
+            if (skeletonRendered) {
+                pageWrap.innerHTML = originalContent;
+            }
+            window.location.href = response.url;
             return;
         }
 
@@ -582,7 +589,11 @@ const navigateTo = async (url, pushState = true) => {
 
         const newContent = doc.querySelector('#page-content-wrapper') || doc.querySelector('.page-wrap');
         if (!newContent) {
-            window.location.href = url;
+            // Non-HTML or outside app-shell layout (e.g. login redirect)
+            if (skeletonRendered) {
+                pageWrap.innerHTML = originalContent;
+            }
+            window.location.href = response.url || url;
             return;
         }
 
@@ -682,6 +693,16 @@ export const initSpaRouter = (callback) => {
         window.closeEventPopover?.();
         window.closeModal?.();
         navigateTo(window.location.href, false);
+    });
+
+    // Handle BFCache recovery if page was restored from browser cache with pending skeleton
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            const pageWrap = document.querySelector('#page-content-wrapper') || document.querySelector('.page-wrap');
+            if (pageWrap && pageWrap.querySelector('.skeleton-wrapper')) {
+                navigateTo(window.location.href, false);
+            }
+        }
     });
 };
 

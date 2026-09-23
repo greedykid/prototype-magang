@@ -25,7 +25,7 @@
                 <x-icon name="edit" size="14" />
                 <span>{{ $expense ? 'Perbarui Biaya' : 'Input Biaya Asesor' }}</span>
             </button>
-            @if($expense && $expense->total_cost > 0 && auth()->user()?->hasRole(['admin', 'staf']))
+            @if($expense && $expense->total_cost > 0 && auth()->user()?->isAdmin())
                 <button type="button" class="button primary" onclick="window.openModal('modal-verify-expense')">
                     <x-icon name="check" size="14" />
                     <span>Verifikasi SBM</span>

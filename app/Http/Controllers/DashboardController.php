@@ -29,6 +29,13 @@ class DashboardController extends Controller
             'recentFollowups' => IssueFollowup::with(['issue', 'user'])->latest()->take(4)->get(),
             'amendmentCount' => Amendment::whereNotIn('status', ['COMPLETED', 'REJECTED'])->count(),
             'assessmentCount' => Assessment::whereBetween('start_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'upcomingAssessments' => Assessment::with('lpk')
+                ->where('start_at', '>=', now()->startOfDay())
+                ->orderBy('start_at', 'asc')
+                ->take(5)
+                ->get(),
+            'unpaidBillingCount' => \App\Models\AccreditationBilling::where('status', 'UNPAID')->count(),
+            'pendingExpenseCount' => \App\Models\AssessmentExpense::where('status', 'MENUNGGU_VERIFIKASI')->count(),
             'serviceIssueCount' => Service::whereIn('status', ['DEGRADED', 'DOWN'])->count(),
             'lastBackup' => Backup::latest('finished_at')->first(),
         ]);

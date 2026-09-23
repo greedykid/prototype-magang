@@ -69,11 +69,25 @@ class RoleAccessControlTest extends TestCase
         $lpkIndexResponse->assertOk()->assertDontSee('Tambah LPK');
 
         $lpkShowResponse = $this->actingAs($pic)->get(route('lpks.show', $lpk));
-        $lpkShowResponse->assertOk()->assertDontSee('Ubah data');
+        $lpkShowResponse->assertOk()
+            ->assertDontSee('Ubah data')
+            ->assertDontSee('Semua proses')
+            ->assertDontSee(route('accreditations.index'));
 
         // 3. PIC DITOLAK (403) mengakses manajemen asesmen resmi (create/edit)
         $this->actingAs($pic)->get(route('assessments.create'))->assertForbidden();
         $this->actingAs($pic)->get(route('assessments.edit', $assessment))->assertForbidden();
+
+        // Tombol Tambah asesmen dan Ubah asesmen TIDAK MUNCUL untuk PIC
+        $this->actingAs($pic)->get(route('assessments.index'))
+            ->assertOk()
+            ->assertDontSee('Tambah asesmen');
+
+        $this->actingAs($pic)->get(route('assessments.show', $assessment))
+            ->assertOk()
+            ->assertDontSee('Ubah asesmen')
+            ->assertDontSee('Verifikasi SBM')
+            ->assertDontSee('modal-verify-expense');
 
         // 4. PIC DITOLAK (403) mengakses monitoring server teknis
         $this->actingAs($pic)->get(route('monitoring.services'))->assertForbidden();
@@ -82,14 +96,21 @@ class RoleAccessControlTest extends TestCase
         // 5. PIC DITOLAK (403) mengakses proses akreditasi internal
         $this->actingAs($pic)->get(route('accreditations.index'))->assertForbidden();
 
-        // Sidebar PIC menampilkan navigasi khusus lab terakreditasi
+        // Tampilan Dashboard PIC TIDAK memuat tombol atau tautan yang dibatasi (403)
         $picDashboard = $this->actingAs($pic)->get(route('dashboard'));
         $picDashboard->assertOk()
             ->assertSee('Laboratorium Terakreditasi')
             ->assertSee('Data Laboratorium')
             ->assertDontSee('<span class="nav-label">Administrasi Laboratorium</span>', false)
             ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
-            ->assertDontSee('<span class="nav-label">Backup</span>', false);
+            ->assertDontSee('<span class="nav-label">Backup</span>', false)
+            ->assertDontSee(route('accreditations.index'))
+            ->assertDontSee(route('amendments.index'))
+            ->assertDontSee('Tambah LPK')
+            ->assertDontSee('Jadwalkan Kunjungan')
+            ->assertDontSee('Jadwalkan asesmen')
+            ->assertDontSee('Lihat proses &rarr;', false)
+            ->assertDontSee('Finansial &amp; Administrasi', false);
     }
 
     public function test_role_helpers_and_attributes_work_correctly(): void

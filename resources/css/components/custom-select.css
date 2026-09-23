@@ -130,7 +130,7 @@ section.has-open-select,
     padding-left: 1px;
 }
 
-.custom-select-value > span:not(.status-dot) {
+.custom-select-value > span {
     display: block;
     flex: 1 1 0%;
     max-width: 100%;
@@ -363,62 +363,5 @@ section.has-open-select,
     text-align: center;
 }
 
-/* Status Indicator Dots inside trigger & option items */
-.status-dot {
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-    height: 7.5px;
-    width: 7.5px;
-    margin-left: 3px;
-    margin-right: 2px;
-}
-
-.status-dot.dot-active,
-.status-dot.dot-completed,
-.status-dot.dot-resolved,
-.status-dot.dot-success {
-    background-color: #16a34a;
-    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
-}
-
-.status-dot.dot-in_progress,
-.status-dot.dot-scheduled,
-.status-dot.dot-open,
-.status-dot.dot-under_review {
-    background-color: #d97706;
-    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
-}
-
-.status-dot.dot-planned,
-.status-dot.dot-submitted,
-.status-dot.dot-need_revision {
-    background-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-}
-
-.status-dot.dot-inactive,
-.status-dot.dot-cancelled,
-.status-dot.dot-failed,
-.status-dot.dot-rejected,
-.status-dot.dot-not_started {
-    background-color: #dc2626;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-}
-
-.status-dot.dot-high {
-    background-color: #dc2626;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-}
-
-.status-dot.dot-medium {
-    background-color: #d97706;
-    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
-}
-
-.status-dot.dot-low {
-    background-color: #16a34a;
-    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
-}
 
 /* ==========================================================================

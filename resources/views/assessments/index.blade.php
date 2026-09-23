@@ -13,7 +13,7 @@
             <x-icon name="sheets" size="16" style="color: #0f9d58;" />
             <span>Google Sheets & Ekspor</span>
         </button>
-        @if(auth()->user()?->hasRole(['admin', 'staf']))
+        @if(auth()->user()?->isAdmin())
             <a class="button primary" href="{{ route('assessments.create') }}">
                 <x-icon name="plus" size="16" />
                 <span>Tambah asesmen</span>

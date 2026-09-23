@@ -80,116 +80,108 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 
 ## 🔄 Alur Kerja Utama Berdasarkan Peran (Role-Based Flowcharts)
 
-Aplikasi SIMASADI mengimplementasikan pemisahan hak akses dan tanggung jawab operasional (*Role-Based Access Control / RBAC*) yang ketat mengacu pada Standard Operating Procedure (SOP) Komite Akreditasi Nasional (KAN) dan Badan Standardisasi Nasional (BSN).
+Aplikasi SIMASADI mengimplementasikan pemisahan hak akses dan tanggung jawab operasional (*Role-Based Access Control / RBAC*) yang ketat antara pihak Sekretariat Akreditasi KAN dan pihak Laboratorium Terakreditasi.
+
+Sistem dirancang secara presisi dengan **2 peran utama**:
 
 ### 👥 Kredensial Akun Pengguna
 
-| Peran (*Role*) | Akun Demo | Hak Akses Utama | Batasan Keamanan |
+| Peran (*Role*) | Akun Login | Hak Akses Utama | Batasan Keamanan |
 |---|---|---|---|
-| **Staf Administrasi** | `staf@simasadi.local` | Registrasi & Impor LPK, Jadwal Asesmen, Amandemen, Billing PNBP, Verifikasi SBM, e-Sign SK | Ditolak (403) membuka menu teknis server (*Layanan KANMIS* & *Backup*) |
-| **Asesor / Auditor** | `asesor@simasadi.local` | Penugasan Asesmen, Kalender Kerja, Pelaporan Biaya Mandiri (SBM), Issue Tracker | Ditolak (403) membuat/mengubah LPK, menjadwalkan asesmen, dan dilarang memverifikasi biaya sendiri |
-| **Administrator Sistem** | `admin@simasadi.local` | Akses penuh seluruh modul, Monitoring KANMIS, Histori Backup, Konfigurasi Live Feed | Tanpa batasan |
-| **Akun Demo (All)** | `demo@simasadi.local` | Akses super-admin serbaguna untuk kebutuhan pengujian menyeluruh | Tanpa batasan |
+| **Admin Unit Akreditasi Lab** | `admin@simasadi.local` | Akses penuh: Tata kelola master LPK (input/edit/hapus/impor), notifikasi pengawasan surveilen, penjadwalan asesmen, verifikasi SBM biaya asesor, proses akreditasi & billing PNBP SIMPONI, amandemen lingkup, e-Sign BSrE SK, monitoring KANMIS & backup, kalender, ekspor Google Sheets. | Tanpa batasan (Akses Administrator Unit). |
+| **PIC Laboratorium** | `pic@simasadi.local` | Monitoring operasional: Dashboard ringkasan & peringatan surveilen, direktori data laboratorium terakreditasi & dokumen Google Drive, jadwal asesmen lapangan KAN, kalender pengawasan, serta pelaporan kendala (Issue Tracker). | Ditolak (403) dan disembunyikan dari seluruh fungsi administratif sekretariat (tambah/ubah/hapus LPK, penjadwalan asesmen, verifikasi SBM, billing PNBP, amandemen, serta monitoring layanan KANMIS & backup). |
 
-*(Password seragam untuk seluruh akun:* `password`*)*
+*(Kata sandi bawaan untuk seluruh akun:* `password`*)*
 
 ---
 
-### 1. Alur Kerja Staf Administrasi Akreditasi (`staf@simasadi.local`)
+### 1. Alur Kerja Administrator Unit Akreditasi Lab (`admin@simasadi.local`)
 
-Staf Administrasi bertindak sebagai operator sekretariat KAN yang memfasilitasi siklus akreditasi dari pendaftaran LPK hingga penerbitan Surat Keputusan (SK) Akreditasi.
+Administrator Unit bertindak sebagai pengelola utama di lingkungan Direktorat Akreditasi Laboratorium KAN/BSN yang memfasilitasi seluruh siklus pengawasan LPK, penjadwalan asesmen, verifikasi finansial SBM, billing PNBP, hingga penerbitan SK Akreditasi bertanda tangan elektronik BSrE.
 
 ```mermaid
 flowchart TD
-    StartStaff(["Mulai: Login sebagai Staf Administrasi"]) --> InputLPK{"Input Data LPK"}
-    InputLPK -->|"Input Manual"| FormLPK["Isi Form Registrasi LPK Baru"]
-    InputLPK -->|"Impor Massal"| ImportLPK["Unggah CSV / Link Google Sheets (Smart Upsert)"]
-    FormLPK --> DataLPKReady["Data Master LPK Aktif"]
-    ImportLPK --> DataLPKReady
+    StartAdmin(["Mulai: Login sebagai Admin Unit Lab"]) --> DashboardAdmin["Akses Dashboard: Pantau KPI, Status Pengawasan, & Distribusi Akreditasi"]
 
-    DataLPKReady --> BuatAkreditasi["Buat Permohonan / Proses Akreditasi"]
-    BuatAkreditasi --> JadwalAsesmen["Jadwalkan Program Asesmen (Surveilen / Awal)"]
-    JadwalAsesmen --> TerbitBilling["Terbitkan Kode Billing SIMPONI (PNBP 15 Digit)"]
+    DashboardAdmin --> PilihanKelola{"Pilih Modul Pengelolaan"}
 
-    TerbitBilling --> TungguBayar{"Verifikasi Pembayaran PNBP?"}
-    TungguBayar -->|"Belum Lunas"| FollowupBilling["Monitoring Status Tagihan (Menunggu Pembayaran)"]
-    FollowupBilling --> TungguBayar
-    TungguBayar -->|"Lunas"| CatatNTPN["Input Nomor NTPN 16-Digit Kas Negara (Status: PAID)"]
+    %% 1. Master Data LPK
+    PilihanKelola -->|"Master LPK"| KelolaLPK["Manajemen Lembaga Penilaian Kesesuaian (LPK)"]
+    KelolaLPK --> InputLPK{"Metode Tambah Data"}
+    InputLPK -->|"Input Manual"| FormLPK["Isi Profil LPK & Ruang Lingkup"]
+    InputLPK -->|"Impor Massal"| ImportLPK["Unggah File CSV / Sync Google Sheets (Smart Upsert)"]
+    FormLPK --> DataLPKAktif["Master Data LPK Aktif"]
+    ImportLPK --> DataLPKAktif
+    DataLPKAktif --> CekSurveilen{"Deteksi Jatuh Tempo Surveilen (S1/S2/RA)?"}
+    CekSurveilen -->|"Ya"| KirimReminder["Kirim Notifikasi Email Peringatan ke PIC Lab"]
+    CekSurveilen -->|"Hapus LPK"| HapusLPK["Hapus Data LPK (Konfirmasi Modal SweetAlert2)"]
 
-    JadwalAsesmen --> VerifBiaya{"Verifikasi Biaya SBM Asesor"}
-    VerifBiaya -->|"Belum Dilaporkan"| MenungguLapor["Menunggu Asesor Mengajukan Biaya di Lapangan"]
-    MenungguLapor --> VerifBiaya
-    VerifBiaya -->|"Perlu Revisi"| TolakBiaya["Kembalikan ke Asesor dengan Catatan Revisi Kwitansi/Nominal"]
-    TolakBiaya --> MenungguLapor
-    VerifBiaya -->|"Sesuai SBM"| SetujuiBiaya["Setujui Biaya Asesor (Status: TERVERIFIKASI)"]
+    %% 2. Agenda Asesmen & Verifikasi Biaya
+    PilihanKelola -->|"Program Asesmen"| JadwalAsesmen["Jadwalkan Kunjungan Asesmen Lapangan (KAN U-01)"]
+    JadwalAsesmen --> InputBiaya["Asesor / Tim Menginput Rincian Realisasi Biaya SBM"]
+    InputBiaya --> VerifBiaya{"Verifikasi Kepatuhan SBM (Sekretariat KAN)"}
+    VerifBiaya -->|"Perlu Revisi"| TolakBiaya["Kembalikan ke Pelapor dengan Catatan Perbaikan"]
+    TolakBiaya --> InputBiaya
+    VerifBiaya -->|"Sesuai Pagu SBM"| SetujuiBiaya["Setujui Realisasi Biaya (Status: TERVERIFIKASI)"]
 
-    CatatNTPN --> QualityGate{"Quality Gate: Kesiapan Rilis Dokumen"}
-    SetujuiBiaya --> QualityGate
-    QualityGate -->|"Syarat Terpenuhi (PAID + TERVERIFIKASI)"| ESign["Pembubuhan e-Sign BSrE & Segel Digital Dokumen SK"]
-    QualityGate -->|"Syarat Belum Lengkap"| HoldRelease["Tahan Rilis SK Akreditasi (Blocked)"]
+    %% 3. Akreditasi, PNBP & e-Sign
+    PilihanKelola -->|"Proses Akreditasi"| BuatAkreditasi["Buka Proses Akreditasi Baru / Re-Akreditasi"]
+    BuatAkreditasi --> TerbitBilling["Terbitkan Kode Billing SIMPONI (PNBP 15-Digit)"]
+    TerbitBilling --> BayarBilling{"Konfirmasi Pembayaran Kas Negara"}
+    BayarBilling -->|"Lunas"| CatatNTPN["Input Nomor NTPN 16-Karakter (Status: PAID)"]
+    BayarBilling -->|"Belum Bayar"| MonitorBilling["Pantau Masa Aktif Billing"]
+    MonitorBilling --> BayarBilling
 
-    ESign --> SyncSheets["Sinkronkan / Ekspor Rekap ke Google Sheets"]
-    SyncSheets --> SelesaiStaff(["Selesai: SK Diterbitkan ke Lembaga Penilaian Kesesuaian"])
+    SetujuiBiaya --> QualityGate{"Quality Gate: Kesiapan Rilis SK"}
+    CatatNTPN --> QualityGate
+    QualityGate -->|"Syarat Lengkap (PAID + TERVERIFIKASI)"| ESignSK["Pembubuhan e-Sign BSrE & Segel Digital Dokumen SK"]
+    QualityGate -->|"Syarat Belum Terpenuhi"| TahanSK["Rilis SK Ditahan Sistem (Quality Gate Lock)"]
+
+    %% 4. Monitoring Sistem & Integrasi
+    PilihanKelola -->|"Sistem & Integrasi"| MonitoringSistem["Monitoring Layanan KANMIS, Pencadangan Backup, & Live CSV Feed"]
+
+    ESignSK --> SelesaiAdmin(["Selesai: SK Resmi Diterbitkan & Data Tersinkronisasi"])
+    MonitoringSistem --> SelesaiAdmin
+    KirimReminder --> SelesaiAdmin
+    HapusLPK --> SelesaiAdmin
 ```
 
 ---
 
-### 2. Alur Kerja Asesor / Auditor KAN (`asesor@simasadi.local`)
+### 2. Alur Kerja PIC Laboratorium (`pic@simasadi.local`)
 
-Asesor bertugas melaksanakan audit/surveilen teknis di lapangan, melaporkan kendala operasional, dan mempertanggungjawabkan biaya perjalanan dinas secara transparan sesuai pagu Standar Biaya Masukan (SBM) Kementerian Keuangan.
-
-```mermaid
-flowchart TD
-    StartAsesor(["Mulai: Login sebagai Asesor / Auditor"]) --> CekJadwal["Cek Kalender Kerja & Penugasan Asesmen"]
-    CekJadwal --> TinjauLPK["Tinjau Profil LPK & Ruang Lingkup (Read-Only)"]
-    TinjauLPK --> Pelaksanaan["Pelaksanaan Asesmen Lapangan / Audit Dokumen"]
-
-    Pelaksanaan --> AdaKendala{"Ditemukan Kendala / Isu Lapangan?"}
-    AdaKendala -->|"Ya"| LaporIsu["Buka Tiket Kendala Operasional (Issue Tracker)"]
-    LaporIsu --> CatatFollowup["Tambahkan Catatan Tindak Lanjut Kronologis"]
-    CatatFollowup --> LaporBiaya["Buka Menu Pelaporan Biaya Perjalanan Dinas (SBM)"]
-    AdaKendala -->|"Tidak"| LaporBiaya
-
-    LaporBiaya --> InputRincian["Isi Rincian Biaya: Uang Harian, Transportasi, Hotel, Paket Data"]
-    InputRincian --> LampirkanKwitansi["Catat Nomor Bukti Kwitansi / Tiket / SPPD"]
-    LampirkanKwitansi --> SubmitBiaya["Kirim Pengajuan Biaya ke Sekretariat KAN"]
-
-    SubmitBiaya --> StatusBiaya{"Pemeriksaan oleh Sekretariat KAN"}
-    StatusBiaya -->|"Perlu Revisi"| PerbaikiBiaya["Perbarui Rincian Biaya Sesuai Catatan Verifikator"]
-    PerbaikiBiaya --> SubmitBiaya
-    StatusBiaya -->|"Disetujui Sesuai SBM"| SelesaiAsesor(["Selesai: Pertanggungjawaban Audit & SPPD Lengkap"])
-```
-
----
-
-### 3. Alur Kerja Administrator Sistem (`admin@simasadi.local`)
-
-Administrator Sistem bertanggung jawab atas tata kelola infrastruktur teknis, pengawasan integritas data, ketersediaan layanan pendukung, dan konfigurasi integrasi data eksternal.
+PIC Laboratorium bertindak sebagai perwakilan resmi dari Laboratorium Terakreditasi yang menggunakan SIMASADI untuk memantau status kepatuhan akreditasi, meninjau jadwal kunjungan surveilen KAN, mengakses dokumen legalitas, dan melaporkan kendala operasional.
 
 ```mermaid
 flowchart TD
-    StartAdmin(["Mulai: Login sebagai Administrator Sistem"]) --> DashboardAdmin["Akses Dashboard Eksekutif & Pengawasan Sistem"]
+    StartPIC(["Mulai: Login sebagai PIC Laboratorium"]) --> DashboardPIC["Akses Dashboard Ringkasan Lab Terakreditasi"]
 
-    DashboardAdmin --> PilihanMenu{"Pilih Domain Tata Kelola"}
+    DashboardPIC --> CekNotif{"Terdapat Peringatan Pengawasan KAN?"}
+    CekNotif -->|"Ada Jatuh Tempo (S1/S2/RA)"| BukaRoadmap["Buka Roadmap Siklus Pengawasan & Re-Akreditasi"]
+    CekNotif -->|"Siklus Aman"| MenuPIC{"Pilih Kebutuhan Informasi"}
+    BukaRoadmap --> MenuPIC
 
-    PilihanMenu -->|"Operasional Umum"| SupervisiOperasional["Supervisi Penuh Data LPK, Asesmen, Billing PNBP, dan e-Sign"]
-    
-    PilihanMenu -->|"Monitoring KANMIS"| CekLayanan["Monitoring Ketersediaan Layanan KANMIS (Up/Degraded/Down)"]
-    CekLayanan --> StatusLayanan{"Status Layanan"}
-    StatusLayanan -->|"Degraded / Down"| CatatInsiden["Catat Log Insiden & Downtime Layanan KANMIS"]
-    StatusLayanan -->|"Up / Normal"| LayananAman["Sistem KANMIS Berjalan Optimal"]
+    %% 1. Direktori Lab & Dokumen Drive
+    MenuPIC -->|"Data Laboratorium"| LihatProfil["Buka Direktori Data Laboratorium"]
+    LihatProfil --> TinjauDetail["Tinjau Profil, Nomor Akreditasi, Ruang Lingkup, & Masa Berlaku SK"]
+    TinjauDetail --> BukaDrive["Akses Berkas Sertifikat & Lampiran Resmi di Google Drive"]
 
-    PilihanMenu -->|"Histori Backup"| KelolaBackup["Pengawasan Pencadangan Data Fisik (Backup Registry)"]
-    KelolaBackup --> CatatLogBackup["Verifikasi dan Catat Log Backup (Status, Ukuran, Staf PIC)"]
+    %% 2. Jadwal Asesmen
+    MenuPIC -->|"Jadwal Asesmen"| CekAgenda["Buka Daftar Jadwal Asesmen Lapangan"]
+    CekAgenda --> RincianAgenda["Lihat Waktu Kunjungan, Jenis Asesmen, & Asesor Kepala (Lead Assessor)"]
 
-    PilihanMenu -->|"Integrasi Data"| KelolaSheets["Pengaturan Live CSV Feed & Token Google Sheets"]
-    KelolaSheets --> GenerateFeed["Penyediaan Endpoint =IMPORTDATA untuk Analisis Eksekutif"]
+    %% 3. Kalender Pengawasan
+    MenuPIC -->|"Kalender Pengawasan"| BukaKalender["Lihat Kalender Pengawasan Kerja (Tampilan Bulan/Minggu/Hari)"]
 
-    SupervisiOperasional --> SelesaiAdmin(["Selesai: Kinerja & Tata Kelola Sistem Terjaga"])
-    CatatInsiden --> SelesaiAdmin
-    LayananAman --> SelesaiAdmin
-    CatatLogBackup --> SelesaiAdmin
-    GenerateFeed --> SelesaiAdmin
+    %% 4. Pusat Kendala
+    MenuPIC -->|"Pusat Kendala"| LaporKendala{"Menemukan Kendala Operasional?"}
+    LaporKendala -->|"Ya"| BuatTiket["Buat Laporan Masalah Baru (Issue Tracker)"]
+    BuatTiket --> CatatFollowup["Kirim Catatan Tindak Lanjut untuk Koordinasi dengan Sekretariat KAN"]
+    LaporKendala -->|"Tidak"| SelesaiPIC(["Selesai: Pemantauan Kepatuhan Laboratorium Berjalan Lancar"])
+    CatatFollowup --> SelesaiPIC
+    BukaDrive --> SelesaiPIC
+    RincianAgenda --> SelesaiPIC
+    BukaKalender --> SelesaiPIC
 ```
 
 ---

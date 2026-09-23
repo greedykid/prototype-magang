@@ -9,7 +9,7 @@
     :title="$assessment->title"
     :subtitle="$assessment->lpk->name"
 >
-    @if(auth()->user()?->hasRole(['admin', 'staf']))
+    @if(auth()->user()?->isAdmin())
         <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
             <x-icon name="edit" size="16" />
             <span>Ubah asesmen</span>

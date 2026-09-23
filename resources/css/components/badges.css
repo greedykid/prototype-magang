@@ -2,8 +2,8 @@
 .status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }
 .status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released { background: var(--mint); border-color: #9bcda8; color: var(--green); }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }
-.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review { background: #fff8e6; border-color: #f3d18c; color: #925400; }
-.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due { background: #fff8e6; border-color: #f3d18c; color: #925400; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
 .badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; max-width: 100%; box-sizing: border-box; }
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

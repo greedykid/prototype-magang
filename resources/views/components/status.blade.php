@@ -39,6 +39,9 @@
         // Tanda Tangan Elektronik BSrE
         'SIGNED' => 'Tersertifikasi BSrE',
         'UNSIGNED' => 'Belum TTE',
+        // Siklus Pengawasan Akreditasi KAN
+        'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
+        'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
     ];
     $label = $labels[$value] ?? str_replace('_', ' ', $value);
 @endphp

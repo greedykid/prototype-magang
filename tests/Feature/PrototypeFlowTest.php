@@ -28,7 +28,11 @@ class PrototypeFlowTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])
             ->assertRedirect('/dashboard');
 
-        $this->get('/dashboard')->assertOk()->assertSee('Selamat datang');
+        $this->get('/dashboard')->assertOk()
+            ->assertSee('Selamat datang')
+            ->assertSee('Asesmen Terdekat')
+            ->assertSee('Finansial &amp; Administrasi', false)
+            ->assertSee('Keandalan Sistem');
     }
 
     public function test_user_can_create_lpk(): void
@@ -281,10 +285,10 @@ class PrototypeFlowTest extends TestCase
             ->assertSee('Peringatan Jatuh Tempo Siklus Pengawasan KAN')
             ->assertSee('Lab Banner Test');
 
-        // Halaman show memuat Roadmap Siklus
+        // Halaman show memuat Siklus Pengawasan
         $showRes = $this->actingAs($user)->get(route('lpks.show', $lpk));
         $showRes->assertOk()
-            ->assertSee('Roadmap Pengawasan', false)
+            ->assertSee('Siklus Pengawasan', false)
             ->assertSee('Surveilen 1 (S1)')
             ->assertSee('Kirim Notifikasi Email PIC Lab');
     }
@@ -519,5 +523,105 @@ class PrototypeFlowTest extends TestCase
             return $mail->hasTo('pic.lab@example.com') && $mail->lpk->id === $lpk->id;
         });
     }
+
+    public function test_lpk_dynamic_status_identifies_overdue_surveillance_and_expired(): void
+    {
+        // 1. LPK whose S1 target date has passed (16 months ago) without assessment -> SURVEILLANCE_OVERDUE
+        $overdueLpk = Lpk::create([
+            'registration_number' => 'LP-TEST-OVERDUE',
+            'name' => 'Lab Overdue S1',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(16)->toDateString(),
+            'expired_at' => now()->addMonths(44)->toDateString(),
+        ]);
+        $this->assertSame('SURVEILLANCE_OVERDUE', $overdueLpk->dynamic_status);
+        $this->assertSame('Lewat Jadwal Surveilen', $overdueLpk->dynamic_status_label);
+
+        // 2. LPK with S1 assessment scheduled/completed -> ACTIVE
+        Assessment::factory()->create([
+            'lpk_id' => $overdueLpk->id,
+            'title' => 'Asesmen Surveilen 1 (S1)',
+            'assessment_type' => 'SURVEILLANCE',
+            'status' => 'COMPLETED',
+            'start_at' => now()->subMonth(),
+            'end_at' => now()->subMonth(),
+        ]);
+        $overdueLpk->unsetRelation('assessments');
+        $this->assertSame('ACTIVE', $overdueLpk->dynamic_status);
+
+        // 3. LPK whose certificate is expired -> EXPIRED
+        $expiredLpk = Lpk::create([
+            'registration_number' => 'LP-TEST-EXP',
+            'name' => 'Lab Expired',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subYears(6)->toDateString(),
+            'expired_at' => now()->subDay()->toDateString(),
+        ]);
+        $this->assertSame('EXPIRED', $expiredLpk->dynamic_status);
+        $this->assertSame('Kedaluwarsa', $expiredLpk->dynamic_status_label);
+
+        // 4. LPK with status INACTIVE -> INACTIVE
+        $inactiveLpk = Lpk::create([
+            'registration_number' => 'LP-TEST-INACT',
+            'name' => 'Lab Inactive',
+            'status' => 'INACTIVE',
+            'certificate_date' => now()->subMonths(2)->toDateString(),
+            'expired_at' => now()->addYears(4)->toDateString(),
+        ]);
+        $this->assertSame('INACTIVE', $inactiveLpk->dynamic_status);
+        $this->assertSame('Tidak Aktif', $inactiveLpk->dynamic_status_label);
+
+        // 5. LPK in notice window (14 months) -> SURVEILLANCE_DUE
+        $dueLpk = Lpk::create([
+            'registration_number' => 'LP-TEST-DUE',
+            'name' => 'Lab Due S1',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
+        ]);
+        $this->assertSame('SURVEILLANCE_DUE', $dueLpk->dynamic_status);
+        $this->assertSame('Jatuh Tempo Surveilen', $dueLpk->dynamic_status_label);
+    }
+
+    public function test_lpk_index_and_show_render_dynamic_status_badge(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // Create LPK with overdue S1
+        $overdueLpk = Lpk::create([
+            'registration_number' => 'LP-BADGE-OVERDUE',
+            'name' => 'Lab Badge Overdue',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(18)->toDateString(),
+            'expired_at' => now()->addMonths(42)->toDateString(),
+        ]);
+
+        // Create LPK with recent certificate (compliant ACTIVE)
+        $activeLpk = Lpk::create([
+            'registration_number' => 'LP-BADGE-ACTIVE',
+            'name' => 'Lab Badge Aktif Sejati',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(2)->toDateString(),
+            'expired_at' => now()->addYears(4)->toDateString(),
+        ]);
+
+        // Check index page renders dynamic status badge
+        $indexResponse = $this->actingAs($admin)->get('/lpks');
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Lewat Jadwal Surveilen');
+        $indexResponse->assertSee('status-surveillance_overdue');
+
+        // Check show page renders dynamic status badge
+        $showResponse = $this->actingAs($admin)->get(route('lpks.show', $overdueLpk));
+        $showResponse->assertOk();
+        $showResponse->assertSee('Lewat Jadwal Surveilen');
+
+        // Test filtering by SURVEILLANCE_OVERDUE
+        $filteredResponse = $this->actingAs($admin)->get('/lpks?status=SURVEILLANCE_OVERDUE');
+        $filteredResponse->assertOk();
+        $filteredResponse->assertSee('Lab Badge Overdue');
+        $filteredResponse->assertDontSee('Lab Badge Aktif Sejati');
+    }
 }
+
 

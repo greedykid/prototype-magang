@@ -49,6 +49,61 @@ class Lpk extends Model
     }
 
     /**
+     * Menghitung status dinamis akreditasi LPK berdasarkan kepatuhan siklus pengawasan KAN & masa berlaku sertifikat.
+     * Mengembalikan:
+     * - 'INACTIVE': Jika dinonaktifkan secara manual oleh admin
+     * - 'EXPIRED': Jika masa berlaku sertifikat akreditasi telah habis
+     * - 'SURVEILLANCE_OVERDUE': Jika telah melewati batas target jadwal surveilen (S1 di bulan 15 atau S2 di bulan 36) tanpa agenda asesmen
+     * - 'SURVEILLANCE_DUE': Jika berada dalam masa aktif notifikasi surveilen / re-akreditasi
+     * - 'ACTIVE': Jika status aktif dan seluruh jadwal pengawasan aman / terpenuhi
+     */
+    public function getDynamicStatusAttribute(): string
+    {
+        if ($this->status === 'INACTIVE') {
+            return 'INACTIVE';
+        }
+
+        if ($this->isExpired()) {
+            return 'EXPIRED';
+        }
+
+        $milestones = $this->surveillance_milestones;
+
+        // Cek apakah ada surveilen yang melewati target waktu tanpa pelaksanaan asesmen
+        $isOverdue = ($milestones['s1']['status'] ?? '') === 'OVERDUE'
+            || ($milestones['s2']['status'] ?? '') === 'OVERDUE';
+
+        if ($isOverdue) {
+            return 'SURVEILLANCE_OVERDUE';
+        }
+
+        // Cek apakah ada notifikasi surveilen yang sedang aktif (due)
+        $isDue = ($milestones['s1']['status'] ?? '') === 'DUE'
+            || ($milestones['s2']['status'] ?? '') === 'DUE'
+            || ($milestones['ra']['status'] ?? '') === 'DUE';
+
+        if ($isDue) {
+            return 'SURVEILLANCE_DUE';
+        }
+
+        return 'ACTIVE';
+    }
+
+    /**
+     * Label representasi status akreditasi dinamis LPK.
+     */
+    public function getDynamicStatusLabelAttribute(): string
+    {
+        return match ($this->dynamic_status) {
+            'INACTIVE' => 'Tidak Aktif',
+            'EXPIRED' => 'Kedaluwarsa',
+            'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
+            'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
+            default => 'Aktif',
+        };
+    }
+
+    /**
      * Hitung jadwal acuan siklus pengawasan KAN (S1, S2, dan Re-Akreditasi).
      * S1: Notif bulan 14, kunjungan bulan 15.
      * S2: Notif bulan 35, kunjungan bulan 36.
