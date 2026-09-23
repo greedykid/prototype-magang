@@ -48,11 +48,6 @@ section.has-open-select,
     z-index: 60 !important;
 }
 
-.simasadi-modal-box:has(.custom-select-wrapper.is-open),
-.simasadi-modal-box.has-open-select {
-    overflow: visible !important;
-}
-
 .custom-select-wrapper {
     box-sizing: border-box;
     display: block;
@@ -167,7 +162,7 @@ section.has-open-select,
     display: none;
     flex-direction: column;
     left: 0;
-    max-height: 290px;
+    max-height: 220px;
     max-width: 100%;
     min-width: 100%;
     padding: 6px;

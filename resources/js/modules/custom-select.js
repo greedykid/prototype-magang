@@ -195,9 +195,17 @@ const createCustomSelect = (select) => {
         closeAllCustomSelects(wrapper);
 
         const rect = trigger.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+        const modalBox = wrapper.closest('.simasadi-modal-box');
+        let spaceBelow = window.innerHeight - rect.bottom;
+        let spaceAbove = rect.top;
+
+        if (modalBox) {
+            const modalRect = modalBox.getBoundingClientRect();
+            spaceBelow = modalRect.bottom - rect.bottom;
+            spaceAbove = rect.top - modalRect.top;
+        }
+
+        if (spaceBelow < 190 && spaceAbove > spaceBelow) {
             wrapper.classList.add('dropup');
         } else {
             wrapper.classList.remove('dropup');
@@ -206,7 +214,7 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *, .gcal-board, .gcal-toolbar');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar');
         if (parentContainer) {
             parentContainer.classList.add('has-open-select');
         }
@@ -236,7 +244,7 @@ const createCustomSelect = (select) => {
         trigger.setAttribute('aria-expanded', 'false');
         optionElements.forEach((el) => el.classList.remove('is-focused'));
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, .simasadi-modal-box, label, .form-grid > *, .gcal-board, .gcal-toolbar');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar');
         if (parentContainer && !parentContainer.querySelector('.custom-select-wrapper.is-open')) {
             parentContainer.classList.remove('has-open-select');
         }

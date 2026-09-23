@@ -73,6 +73,17 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $notifiedCount = 0;
     $activeNoticeCount = 0;
 
+    // Alur Opsi 2: Ambil seluruh email staf PIC internal Unit Akreditasi Laboratorium BSN
+    $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+    if (empty($picEmails)) {
+        $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
+    }
+    if (empty($picEmails)) {
+        $picEmails = [config('mail.from.address', 'simasadi@kan.or.id')];
+    }
+    $picSummary = implode(', ', $picEmails);
+    $this->line("Target penerima pengingat internal: {$picSummary}");
+
     foreach ($lpks as $lpk) {
         $alerts = $lpk->getActiveSurveillanceAlerts();
         if (empty($alerts)) {
@@ -84,28 +95,23 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
         foreach ($alerts as $alert) {
             $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
 
-            if (! $lpk->email) {
-                $this->line("    ⚠ Dilewati: Email PIC Lab tidak terdaftar.");
-                continue;
-            }
-
             if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
                 $this->line("    ℹ Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
                 continue;
             }
 
             try {
-                \Illuminate\Support\Facades\Mail::to($lpk->email)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
+                \Illuminate\Support\Facades\Mail::to($picEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
                 $lpk->update(['last_surveillance_notified_at' => now()]);
                 $notifiedCount++;
-                $this->info("    ✓ Email pemberitahuan berhasil dikirim ke {$lpk->email} via Mailtrap.");
+                $this->info("    ✓ Email pengingat internal berhasil dikirim ke PIC ({$picSummary}) via Mailtrap.");
             } catch (\Throwable $e) {
-                $this->error("    ✗ Gagal mengirim email ke {$lpk->email}: " . $e->getMessage());
+                $this->error("    ✗ Gagal mengirim email ke PIC: " . $e->getMessage());
             }
         }
     }
 
     $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
-})->purpose('Memeriksa jadwal jatuh tempo Surveilen 1 (Bulan 14), Surveilen 2 (Bulan 35), dan Re-Akreditasi (1 Bulan sebelum habis), serta mengirim email ke PIC Lab.');
+})->purpose('Memeriksa jadwal jatuh tempo pengawasan KAN untuk seluruh LPK dan mengirim email pengingat ke staf/PIC internal Unit Akreditasi Laboratorium BSN.');
 
 

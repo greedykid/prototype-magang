@@ -126,14 +126,24 @@ class LpkController extends Controller
                 return back()->with('error', 'Tidak ada jadwal notifikasi pengawasan (S1, S2, atau Re-Akreditasi) yang sedang aktif untuk LPK ini.');
             }
 
-            $recipientEmail = $lpk->email;
-            if (empty($recipientEmail)) {
-                if ($isSimulation) {
-                    $recipientEmail = auth()->user()?->email ?: 'sandbox@simasadi.test';
-                } else {
-                    return back()->with('error', 'LPK tidak memiliki alamat email PIC Lab yang terdaftar. Harap lengkapi email pada profil LPK terlebih dahulu.');
-                }
+            // Alur Opsi 2: Notifikasi kerja internal ditujukan ke staf/PIC internal Unit Akreditasi Lab BSN
+            $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+
+            // Jika belum ada pengguna ber-peran PIC, fallback ke admin sistem atau user yang sedang login
+            if (empty($picEmails)) {
+                $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
             }
+
+            if (empty($picEmails) && auth()->check() && auth()->user()?->email) {
+                $picEmails = [auth()->user()->email];
+            }
+
+            if (empty($picEmails)) {
+                $picEmails = [config('mail.from.address', 'simasadi@kan.or.id')];
+            }
+
+            $recipientEmails = $picEmails;
+            $recipientEmail = $recipientEmails[0];
 
             $code = strtoupper((string) $request->input('code', ''));
             $targetAlert = null;
@@ -158,7 +168,7 @@ class LpkController extends Controller
                     'lpk_id' => $lpk->id,
                     'lpk_reg' => $lpk->registration_number,
                     'lpk_name' => $lpk->name,
-                    'lpk_email' => $recipientEmail,
+                    'lpk_email' => $lpk->email ?: $recipientEmail,
                     'code' => $selectedM['code'],
                     'name' => $selectedM['name'] . ($isSimulation ? ' (Simulasi)' : ''),
                     'notice_date' => $selectedM['notice_date'],
@@ -201,14 +211,14 @@ class LpkController extends Controller
             ]);
 
             try {
-                \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmail)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
+                \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
             } catch (\Throwable $sendException) {
                 // Auto-fallback dual-port: jika port 587/2525 terkendala di network lokal atau cloud, coba port pasangannya secara otomatis
                 if (str_contains($host, 'mailtrap.io') && in_array($port, [587, 2525], true)) {
                     $altPort = ($port === 587) ? 2525 : 587;
                     \Illuminate\Support\Facades\Mail::purge('smtp');
                     config(['mail.mailers.smtp.port' => $altPort]);
-                    \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmail)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
+                    \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
                 } else {
                     throw $sendException;
                 }
@@ -218,8 +228,10 @@ class LpkController extends Controller
                 $lpk->update(['last_surveillance_notified_at' => now()]);
             }
 
-            $prefix = $isSimulation ? 'Simulasi email' : 'Email';
-            return back()->with('success', "{$prefix} pemberitahuan resmi {$targetAlert['name']} berhasil dikirimkan ke {$recipientEmail} via Mailtrap SMTP.");
+            $recipientCount = count($recipientEmails);
+            $recipientSummary = $recipientCount === 1 ? $recipientEmails[0] : "{$recipientCount} PIC Unit (" . implode(', ', $recipientEmails) . ')';
+            $prefix = $isSimulation ? 'Simulasi email pengingat' : 'Email pengingat';
+            return back()->with('success', "{$prefix} jadwal {$targetAlert['name']} untuk {$lpk->name} berhasil dikirimkan ke PIC internal unit BSN ({$recipientSummary}).");
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Surveillance Reminder Mail Error: ' . $e->getMessage(), [
                 'exception' => $e,

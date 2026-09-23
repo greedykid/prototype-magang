@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-    <title>Pemberitahuan Pengawasan Akreditasi KAN</title>
+    <title>Pengingat Internal Pengawasan Akreditasi KAN</title>
     <style>
         /* Base Resets */
         body, table, td, p, a, li, blockquote {
@@ -110,17 +110,22 @@
                 padding-left: 18px !important;
                 font-size: 13px !important;
             }
-            .btn-drive-wrap {
-                margin: 20px 0 !important;
-            }
-            .btn-drive {
+            /* Mobile button styling */
+            .btn-col {
                 display: block !important;
                 width: 100% !important;
-                text-align: center !important;
-                padding: 12px 16px !important;
+                padding: 0 0 8px 0 !important;
+            }
+            .btn-primary-action,
+            .btn-schedule-action,
+            .btn-sub-action {
+                display: block !important;
+                width: 100% !important;
                 min-height: 44px !important;
-                line-height: 20px !important;
+                line-height: 22px !important;
+                padding: 11px 14px !important;
                 box-sizing: border-box !important;
+                text-align: center !important;
             }
             .footer-card {
                 padding: 16px 14px !important;
@@ -147,7 +152,7 @@
         <!-- Header -->
         <div class="header-banner" style="background-color: #0f172a; padding: 20px 24px; text-align: center; border-bottom: 4px solid #e11d48;">
             <h2 style="color: #ffffff; margin: 0 0 4px 0; font-size: 17px; text-transform: uppercase; letter-spacing: 0.5px;">Komite Akreditasi Nasional (KAN)</h2>
-            <p style="color: #94a3b8; margin: 0; font-size: 12.5px;">Sistem Informasi &amp; Administrasi Akreditasi (SIMASADI)</p>
+            <p style="color: #94a3b8; margin: 0; font-size: 12.5px;">Sistem Informasi &amp; Administrasi Akreditasi (SIMASADI) &bull; Direktorat Akreditasi Laboratorium BSN</p>
         </div>
 
         <!-- Notification Banner -->
@@ -162,10 +167,10 @@
 
         <!-- Body -->
         <div class="content-area" style="padding: 24px;">
-            <p style="margin-top: 0; font-size: 14px; word-break: break-word;">Kepada Yth. <strong>PIC / Manajemen Lab {{ $lpk->name }}</strong>,</p>
+            <p style="margin-top: 0; font-size: 14px; word-break: break-word;">Kepada Yth. <strong>Tim PIC &amp; Analis Akreditasi Laboratorium BSN</strong>,</p>
             
             <p style="font-size: 14px; color: #334155; line-height: 1.6; word-break: break-word;">
-                Berdasarkan siklus pemeliharaan akreditasi Komite Akreditasi Nasional (KAN), sistem mencatat bahwa Lembaga Penilaian Kesesuaian (LPK) Saudara saat ini telah memasuki masa jatuh tempo untuk pelaksanaan <strong>{{ $alert['name'] }}</strong>.
+                Pemberitahuan Sistem Internal: Laboratorium Penilaian Kesesuaian (LPK) binaan <strong>{{ $lpk->name }}</strong> (No. Reg: {{ $lpk->registration_number }}) saat ini telah memasuki jendela waktu jatuh tempo pelaksanaan <strong>{{ $alert['name'] }}</strong>. Harap segera melakukan koordinasi dan tindak lanjut pengawasan.
             </p>
 
             <!-- Detail LPK Box -->
@@ -178,6 +183,20 @@
                     <tr>
                         <td class="label-col" style="padding: 7px 10px 7px 0; color: #64748b; width: 34%; vertical-align: top; font-size: 12.5px; word-break: break-word;">Nama Lembaga (LPK)</td>
                         <td class="val-col" style="padding: 7px 0; font-weight: bold; color: #0f172a; width: 66%; vertical-align: top; word-break: break-word;">{{ $lpk->name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col" style="padding: 7px 10px 7px 0; color: #64748b; width: 34%; vertical-align: top; font-size: 12.5px; word-break: break-word;">Kontak Narahubung Lab</td>
+                        <td class="val-col" style="padding: 7px 0; color: #334155; width: 66%; vertical-align: top; word-break: break-word;">
+                            @if($lpk->email)
+                                <a href="mailto:{{ $lpk->email }}" style="color: #2563eb; text-decoration: none; font-weight: 600;">{{ $lpk->email }}</a>
+                            @else
+                                <span style="color: #94a3b8;">Email belum tercatat</span>
+                            @endif
+                            @if($lpk->phone)
+                                <span style="margin: 0 6px; color: #cbd5e1;">|</span>
+                                <a href="tel:{{ $lpk->phone }}" style="color: #334155; text-decoration: none; font-weight: 500;">{{ $lpk->phone }}</a>
+                            @endif
+                        </td>
                     </tr>
                     @if($lpk->scope)
                     <tr>
@@ -204,24 +223,70 @@
                 </table>
             </div>
 
-            <!-- Petunjuk Tindak Lanjut -->
-            <h4 style="margin: 20px 0 10px 0; font-size: 14px; color: #0f172a;">Instruksi Tindak Lanjut:</h4>
-            <ol class="instructions-list" style="font-size: 13.5px; color: #475569; padding-left: 20px; margin: 0 0 20px 0; word-break: break-word;">
-                <li style="margin-bottom: 8px;">Memastikan kesiapan sistem manajemen mutu dan rekaman teknis laboratorium/inspeksi sesuai standar ISO/IEC terkait.</li>
-                <li style="margin-bottom: 8px;">Menyiapkan konfirmasi personel penanggung jawab teknis dan jadwal penerimaan tim asesor penilikan KAN.</li>
-                <li style="margin-bottom: 8px;">Memastikan berkas kelengkapan akreditasi dan rekaman uji banding / uji profisiensi telah terbarui.</li>
+            <!-- Petunjuk Tindak Lanjut untuk PIC BSN -->
+            <h4 style="margin: 20px 0 10px 0; font-size: 14px; color: #0f172a;">Instruksi Tindak Lanjut Petugas / PIC:</h4>
+            <ol class="instructions-list" style="font-size: 13.5px; color: #475569; padding-left: 20px; margin: 0 0 22px 0; word-break: break-word;">
+                <li style="margin-bottom: 8px;">Menelaah arsip berkas mutu, laporan audit internal, dan rekaman uji profisiensi laboratorium di Google Drive / SIMASADI.</li>
+                <li style="margin-bottom: 8px;">Menghubungi narahubung laboratorium terkait guna mengonfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan.</li>
+                <li style="margin-bottom: 8px;">Menyusun rencana penugasan Tim Asesor KAN (Asesor Kepala &amp; Asesor Teknis) serta menjadwalkan agenda resmi pada SIMASADI.</li>
             </ol>
 
-            @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
-            <div class="btn-drive-wrap" style="text-align: center; margin: 24px 0;">
-                <a href="{{ $lpk->drive_url }}" class="btn-drive" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 11px 22px; border-radius: 6px; font-size: 13.5px; font-weight: 600; box-sizing: border-box; word-break: break-word;">
-                    Buka Berkas Google Drive LPK &rarr;
-                </a>
-            </div>
-            @endif
+            <!-- Action Buttons Section (Khusus PIC Internal) -->
+            <div style="margin: 24px 0 20px 0;">
+                <!-- Baris 1: Tombol Aksi Utama (Buka SIMASADI & Jadwalkan Asesmen) -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="btn-group-table" style="margin-bottom: 12px;">
+                    <tr>
+                        <td class="btn-col" style="width: 50%; padding-right: 6px; vertical-align: top;">
+                            <a href="{{ route('lpks.show', $lpk) }}" class="btn-primary-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #0f172a; color: #ffffff !important; text-decoration: none; padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 44px; line-height: 20px; word-break: break-word;">
+                                Buka Rincian LPK di SIMASADI &rarr;
+                            </a>
+                        </td>
+                        <td class="btn-col" style="width: 50%; padding-left: 6px; vertical-align: top;">
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="btn-schedule-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #059669; color: #ffffff !important; text-decoration: none; padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 44px; line-height: 20px; word-break: break-word;">
+                                Jadwalkan Asesmen Lapangan &oplus;
+                            </a>
+                        </td>
+                    </tr>
+                </table>
 
-            <p style="font-size: 13px; color: #64748b; margin-top: 24px; border-top: 1px dashed #cbd5e1; padding-top: 16px; word-break: break-word; line-height: 1.5;">
-                <em>Catatan: Pemberitahuan ini dikirimkan secara resmi oleh sistem pemantauan akreditasi SIMASADI KAN. Harap segera berkoordinasi dengan Sekretariat KAN untuk sinkronisasi jadwal penugasan asesor.</em>
+                <!-- Baris 2: Tombol Aksi Cepat Pendukung (Drive Berkas & Kontak Lab) -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="btn-group-table">
+                    <tr>
+                        @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
+                        <td class="btn-col" style="padding: 0 4px 6px 0; vertical-align: top;">
+                            <a href="{{ $lpk->drive_url }}" class="btn-sub-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
+                                Buka Berkas Google Drive LPK
+                            </a>
+                        </td>
+                        @endif
+
+                        @if($lpk->email)
+                        <td class="btn-col" style="padding: 0 4px 6px 4px; vertical-align: top;">
+                            <a href="mailto:{{ $lpk->email }}?subject={{ rawurlencode('[Pemberitahuan KAN] Persiapan ' . $alert['name'] . ' - ' . $lpk->name . ' (' . $lpk->registration_number . ')') }}&body={{ rawurlencode("Yth. Pimpinan / Manajemen Mutu " . $lpk->name . ",\n\nSehubungan dengan siklus pemeliharaan akreditasi KAN, laboratorium Saudara telah memasuki periode pelaksanaan " . $alert['name'] . ".\n\nMohon menyampaikan konfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan kepada Sekretariat KAN.\n\nTerima kasih.\n\nTim Akreditasi Laboratorium BSN / KAN") }}" class="btn-sub-action" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
+                                Kirim Email Pemanggilan ke Lab
+                            </a>
+                        </td>
+                        @endif
+
+                        @if($lpk->phone)
+                        @php
+                            $cleanPhone = preg_replace('/[^0-9]/', '', (string)$lpk->phone);
+                            if (str_starts_with($cleanPhone, '0')) {
+                                $cleanPhone = '62' . substr($cleanPhone, 1);
+                            }
+                        @endphp
+                        <td class="btn-col" style="padding: 0 0 6px 4px; vertical-align: top;">
+                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ rawurlencode('Halo Bapak/Ibu Manajemen Mutu ' . $lpk->name . ', kami dari Tim Akreditasi Laboratorium BSN ingin berkoordinasi mengenai jadwal ' . $alert['name'] . ' untuk ' . $lpk->registration_number . '.') }}" class="btn-sub-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
+                                Chat WhatsApp Lab
+                            </a>
+                        </td>
+                        @endif
+                    </tr>
+                </table>
+            </div>
+
+            <p style="font-size: 12.5px; color: #64748b; margin-top: 24px; border-top: 1px dashed #cbd5e1; padding-top: 16px; word-break: break-word; line-height: 1.5;">
+                <em>Catatan Internal: Notifikasi ini dikirimkan secara otomatis oleh sistem SIMASADI khusus bagi staf/PIC internal Direktorat Akreditasi Laboratorium BSN guna memantau ketepatan siklus akreditasi KAN.</em>
             </p>
         </div>
 
@@ -231,8 +296,8 @@
                 <img src="{{ isset($message) ? $message->embed(public_path('images/logo-kan.png')) : asset('images/logo-kan.png') }}" alt="KAN" height="24" style="height: 24px; width: auto; vertical-align: middle; margin: 0 8px; opacity: 0.85; display: inline-block; border: 0;">
                 <img src="{{ isset($message) ? $message->embed(public_path('images/logo-bsn.png')) : asset('images/logo-bsn.png') }}" alt="BSN" height="24" style="height: 24px; width: auto; vertical-align: middle; margin: 0 8px; opacity: 0.85; display: inline-block; border: 0;">
             </div>
-            <p style="margin: 0 0 4px 0; color: #334155;"><strong>Sekretariat Komite Akreditasi Nasional (KAN) &bull; Badan Standardisasi Nasional (BSN)</strong></p>
-            <p style="margin: 0; line-height: 1.5; color: #94a3b8;">Gedung BSN, Kompleks Puspiptek Serpong, Tangerang Selatan | Email: sekretariat@kan.or.id</p>
+            <p style="margin: 0 0 4px 0; color: #334155;"><strong>Direktorat Akreditasi Laboratorium &bull; Badan Standardisasi Nasional (BSN)</strong></p>
+            <p style="margin: 0; line-height: 1.5; color: #94a3b8;">Gedung BSN, Kompleks Puspiptek Serpong, Tangerang Selatan | Email Internal: simasadi@kan.or.id</p>
         </div>
     </div>
 </body>

@@ -34,9 +34,9 @@ class SurveillanceReminderMail extends Mailable
             || str_contains($this->alert['name'], 'Simulasi');
 
         $cleanName = trim(str_replace(['(Simulasi Mobile Test)', '(Simulasi)', 'Simulasi'], '', $this->alert['name']));
-        $tag = $isSim ? '[SIMULASI KAN]' : '[PEMBERITAHUAN KAN]';
+        $tag = $isSim ? '[SIMULASI INTERNAL KAN]' : '[PENGINGAT INTERNAL KAN]';
 
-        $subject = "{$tag} {$cleanName} - {$this->lpk->registration_number}";
+        $subject = "{$tag} {$cleanName} - {$this->lpk->registration_number} ({$this->lpk->name})";
 
         return new Envelope(
             from: new Address($senderAddress, $senderName),

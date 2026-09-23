@@ -208,6 +208,7 @@ class PrototypeFlowTest extends TestCase
         \Illuminate\Support\Facades\Mail::fake();
 
         $admin = User::factory()->create(['role' => 'admin']);
+        $picUser = User::factory()->create(['role' => 'pic', 'email' => 'pic.internal@bsn.go.id']);
 
         $lpk = Lpk::create([
             'registration_number' => 'LP-MAIL-01',
@@ -215,14 +216,14 @@ class PrototypeFlowTest extends TestCase
             'status' => 'ACTIVE',
             'certificate_date' => now()->subMonths(14)->toDateString(),
             'expired_at' => now()->addMonths(46)->toDateString(),
-            'email' => 'pic.lab@mailtrap-test.id',
+            'email' => 'lab.external@mailtrap-test.id',
         ]);
 
         $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk));
         $response->assertRedirect()->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
-            return $mail->hasTo('pic.lab@mailtrap-test.id')
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+            return $mail->hasTo($picUser->email)
                 && $mail->lpk->id === $lpk->id
                 && $mail->alert['code'] === 'S1';
         });
@@ -236,6 +237,7 @@ class PrototypeFlowTest extends TestCase
         \Illuminate\Support\Facades\Mail::fake();
 
         $admin = User::factory()->create(['role' => 'admin']);
+        $picUser = User::factory()->create(['role' => 'pic', 'email' => 'pic.sim@simasadi.local']);
 
         $lpk = Lpk::create([
             'registration_number' => 'LP-SIM-01',
@@ -243,7 +245,7 @@ class PrototypeFlowTest extends TestCase
             'status' => 'ACTIVE',
             'certificate_date' => now()->toDateString(),
             'expired_at' => now()->addYears(5)->toDateString(),
-            'email' => 'pic.sim@mailtrap-test.id',
+            'email' => 'lab.sim.external@mailtrap-test.id',
         ]);
 
         $this->assertEmpty($lpk->getActiveSurveillanceAlerts());
@@ -255,8 +257,8 @@ class PrototypeFlowTest extends TestCase
 
         $response->assertRedirect()->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
-            return $mail->hasTo('pic.sim@mailtrap-test.id')
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+            return $mail->hasTo($picUser->email)
                 && $mail->lpk->id === $lpk->id
                 && $mail->alert['code'] === 'S2';
         });
@@ -297,21 +299,25 @@ class PrototypeFlowTest extends TestCase
     {
         \Illuminate\Support\Facades\Mail::fake();
 
+        $picUser = User::factory()->create(['role' => 'pic', 'email' => 'artisan.pic@bsn.go.id']);
+
         $lpk = Lpk::create([
             'registration_number' => 'LP-CMD-01',
             'name' => 'Lab Artisan Command Test',
             'status' => 'ACTIVE',
             'certificate_date' => now()->subMonths(14)->toDateString(),
             'expired_at' => now()->addMonths(46)->toDateString(),
-            'email' => 'artisan.pic@test.id',
+            'email' => 'lab.external@test.id',
         ]);
 
         $this->artisan('lpk:check-surveillance', ['--force' => true])
             ->expectsOutputToContain('Memeriksa status siklus pengawasan KAN')
-            ->expectsOutputToContain('Email pemberitahuan berhasil dikirim')
+            ->expectsOutputToContain('Email pengingat internal berhasil dikirim ke PIC')
             ->assertExitCode(0);
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class);
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($picUser) {
+            return $mail->hasTo($picUser->email);
+        });
     }
 
     public function test_lpk_index_table_headers_and_columns(): void
@@ -504,11 +510,12 @@ class PrototypeFlowTest extends TestCase
         \Illuminate\Support\Facades\Mail::fake();
 
         $admin = User::factory()->create(['role' => 'admin']);
+        $picUser = User::factory()->create(['role' => 'pic', 'email' => 'pic.petugas@bsn.go.id']);
         $lpk = Lpk::create([
             'registration_number' => 'LP-EMAIL-TEST',
             'name' => 'Lab Pengujian Simulasi Email',
             'status' => 'ACTIVE',
-            'email' => 'pic.lab@example.com',
+            'email' => 'lab.external@example.com',
             'certificate_date' => now()->subMonths(14)->toDateString(),
             'expired_at' => now()->addMonths(46)->toDateString(),
         ]);
@@ -519,8 +526,8 @@ class PrototypeFlowTest extends TestCase
         ]);
 
         $response->assertSessionHas('success');
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk) {
-            return $mail->hasTo('pic.lab@example.com') && $mail->lpk->id === $lpk->id;
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+            return $mail->hasTo($picUser->email) && $mail->lpk->id === $lpk->id;
         });
     }
 

@@ -5,7 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $registration_number
+ * @property string $name
+ * @property string|null $scope
+ * @property Carbon|null $certificate_date
+ * @property string|null $address
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string $status
+ * @property string|null $notes
+ * @property Carbon|null $expired_at
+ * @property Carbon|null $last_surveillance_notified_at
+ * @property string|null $drive_url
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string $dynamic_status
+ * @property-read string $dynamic_status_label
+ * @property-read array $surveillance_milestones
+ */
 class Lpk extends Model
 {
     use HasFactory;
@@ -111,7 +132,9 @@ class Lpk extends Model
      */
     public function getSurveillanceMilestonesAttribute(): array
     {
+        /** @var Carbon|null $certDate */
         $certDate = $this->certificate_date ?: ($this->expired_at ? $this->expired_at->copy()->subYears(5) : null);
+        /** @var Carbon|null $expDate */
         $expDate = $this->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
 
         $milestones = [
