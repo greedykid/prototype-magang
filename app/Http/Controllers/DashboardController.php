@@ -16,6 +16,18 @@ class DashboardController extends Controller
 {
     public function __invoke(): View
     {
+        $activeTpCount = Assessment::tpActive()->count();
+        $overdueTpCount = Assessment::tpOverdue()->count();
+        $dueSoonTpCount = Assessment::tpDueSoon(14)->count();
+        $urgentTpAssessments = Assessment::with('lpk')
+            ->whereNotIn('tp_status', [Assessment::TP_STATUS_NONE, Assessment::TP_STATUS_SATISFIED])
+            ->whereNotNull('tp_due_date')
+            ->get()
+            ->filter(fn (Assessment $a) => $a->is_tp_overdue || ($a->days_remaining_tp !== null && $a->days_remaining_tp <= 14))
+            ->sortBy('effective_tp_due_date')
+            ->values()
+            ->take(5);
+
         return view('dashboard', [
             'lpkCount' => Lpk::count(),
             'activeAccreditationCount' => Accreditation::where('status', 'IN_PROGRESS')->count(),
@@ -38,6 +50,10 @@ class DashboardController extends Controller
             'pendingExpenseCount' => \App\Models\AssessmentExpense::where('status', 'MENUNGGU_VERIFIKASI')->count(),
             'serviceIssueCount' => Service::whereIn('status', ['DEGRADED', 'DOWN'])->count(),
             'lastBackup' => Backup::latest('finished_at')->first(),
+            'activeTpCount' => $activeTpCount,
+            'overdueTpCount' => $overdueTpCount,
+            'dueSoonTpCount' => $dueSoonTpCount,
+            'urgentTpAssessments' => $urgentTpAssessments,
         ]);
     }
 }

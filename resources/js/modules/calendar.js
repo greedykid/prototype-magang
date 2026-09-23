@@ -157,40 +157,42 @@ function showEventPopover(triggerEl, eventData) {
     if (card) {
         if (triggerEl && window.innerWidth > 768) {
             const rect = triggerEl.getBoundingClientRect();
-            const cardWidth = Math.min(380, window.innerWidth - 32);
-            const cardHeight = card.offsetHeight || 320;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const cardWidth = Math.min(380, viewportWidth - 32);
             const gap = 10;
             const margin = 16;
             const topbarOffset = 70;
 
-            // Space available to the right and left of the clicked element relative to viewport
-            const spaceRight = window.innerWidth - rect.right - gap - margin;
+            // Pastikan popover tidak pernah melebihi tinggi layar yang tersedia di laptop
+            const maxAvailableHeight = Math.max(240, viewportHeight - topbarOffset - margin);
+            card.style.maxHeight = `${maxAvailableHeight}px`;
+
+            // Hitung posisi horizontal (kiri atau kanan chip)
+            const spaceRight = viewportWidth - rect.right - gap - margin;
             const spaceLeft = rect.left - gap - margin;
 
             let left;
             if (spaceRight >= cardWidth) {
-                // Fits comfortably to the right of the chip
                 left = rect.right + gap;
             } else if (spaceLeft >= cardWidth) {
-                // Fits comfortably to the left of the chip
                 left = rect.left - cardWidth - gap;
             } else {
-                // If neither side fits fully, place on the side with more available space
                 if (spaceRight >= spaceLeft) {
-                    left = Math.min(rect.right + gap, window.innerWidth - cardWidth - margin);
+                    left = Math.min(rect.right + gap, viewportWidth - cardWidth - margin);
                 } else {
                     left = Math.max(margin, rect.left - cardWidth - gap);
                 }
             }
+            left = Math.max(margin, Math.min(viewportWidth - cardWidth - margin, left));
 
-            // Keep left strictly within viewport margins
-            left = Math.max(margin, Math.min(window.innerWidth - cardWidth - margin, left));
+            // Ukur ketinggian render aktual kartu setelah display block & maxHeight terpasang
+            const cardHeight = card.offsetHeight || card.getBoundingClientRect().height || 320;
 
-            // Align top near top of clicked element (with subtle 8px lift for visual balance)
+            // Posisikan secara vertikal dengan jaminan tidak terpotong di batas bawah maupun topbar
             let top = rect.top - 8;
-            const maxTop = window.innerHeight - cardHeight - margin;
-            if (top > maxTop) {
-                top = maxTop;
+            if (top + cardHeight > viewportHeight - margin) {
+                top = viewportHeight - cardHeight - margin;
             }
             if (top < topbarOffset) {
                 top = topbarOffset;
@@ -204,6 +206,7 @@ function showEventPopover(triggerEl, eventData) {
             card.style.position = '';
             card.style.left = '';
             card.style.top = '';
+            card.style.maxHeight = '';
             card.style.zIndex = '';
         }
     }
@@ -323,12 +326,8 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-window.addEventListener('scroll', () => {
-    const activePopovers = document.querySelectorAll('.gcal-popover:not([style*="display: none"])');
-    if (activePopovers.length && window.innerWidth > 768) {
-        closeEventPopover();
-    }
-}, { passive: true });
+// Popover dipertahankan saat scroll agar tidak menutup tiba-tiba di layar laptop/desktop.
+// Pengguna dapat menutup popover melalui tombol silang [x], klik di luar popover, atau tombol Escape.
 
 window.addEventListener('resize', () => {
     const activePopovers = document.querySelectorAll('.gcal-popover:not([style*="display: none"])');

@@ -51,7 +51,7 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
    * Form input biaya dan modal verifikasi persetujuan oleh Sekretariat KAN mengacu pada Standar Biaya Masukan (SBM) Peraturan Menteri Keuangan.
 9. **Realisasi Billing PNBP (SIMPONI Kemenkeu):**
    * Penerbitan Kode Billing SIMPONI 15 digit dan tarif PNBP jasa akreditasi sesuai PP PNBP BSN.
-   * Masa berlaku pembayaran, status tagihan (`Belum Bayar`, `Terbayar`, `Kadaluarsa`).
+   * Masa berlaku pembayaran, status tagihan (`Belum Bayar`, `Terbayar`, `Kedaluwarsa`).
    * Formulir simulasi pelunasan kas negara dengan pencatatan Nomor Transaksi Penerimaan Negara (NTPN 16-karakter) dan kanal perbankan.
 10. **Tanda Tangan Elektronik Dokumen SK (e-Sign BSrE):**
    * Pembubuhan tanda tangan elektronik tersertifikasi Balai Sertifikasi Elektronik (BSrE - BSSN) atas nama Ketua Komite Akreditasi Nasional.

@@ -14,6 +14,8 @@ use App\Http\Controllers\IssueController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -54,8 +56,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
     Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
+    // Pengaturan Profil & Kata Sandi Pengguna
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
     // 2. Administrasi & Monitoring Sistem (Hanya Administrator Unit)
     Route::middleware('role:admin')->group(function (): void {
+        // Manajemen Pengguna & Hak Akses PIC / Admin
+        Route::resource('users', UserController::class)->except(['show']);
         Route::get('/monitoring/services', [MonitoringController::class, 'services'])->name('monitoring.services');
         Route::get('/monitoring/backups', [MonitoringController::class, 'backups'])->name('monitoring.backups');
 
@@ -81,6 +90,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
         Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
         Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
+        Route::post('/assessments/{assessment}/tp-tracking', [AssessmentController::class, 'updateTp'])->name('assessments.tp.update')->whereNumber('assessment');
 
         // Verifikasi Biaya Perjalanan Dinas SBM Asesor
         Route::post('/assessments/{assessment}/expenses/verify', [AssessmentExpenseController::class, 'verify'])->name('assessments.expenses.verify');

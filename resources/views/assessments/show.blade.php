@@ -44,6 +44,8 @@
     </div>
 </section>
 
+@include('assessments.partials.tp-tracking')
+
 @include('assessments.partials.cost-reporting')
 
 @include('assessments.partials.modals')

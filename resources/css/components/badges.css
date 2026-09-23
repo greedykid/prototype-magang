@@ -12,3 +12,11 @@
 .badge-role-staff { background: var(--lavender); border-color: #d6ccff; color: var(--maroon); }
 .badge-role-assessor { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
+
+/* Badges SLA Tindakan Perbaikan (TP & VTP) KAN */
+.badge-tp { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; padding: 2px 8px; width: fit-content; max-width: 100%; white-space: nowrap; }
+.badge-tp-neutral { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+.badge-tp-success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.badge-tp-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+.badge-tp-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.badge-tp-danger { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }

@@ -1,5 +1,5 @@
 <div class="simasadi-modal" id="modal-quick-add-event" role="dialog" aria-modal="true" aria-labelledby="quick-add-title">
-    <div class="simasadi-modal-box" style="max-width: 580px;">
+    <div class="simasadi-modal-box" style="max-width: 580px; max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overflow-y: auto;">
         <div class="simasadi-modal-head">
             <div>
                 <h4 id="quick-add-title" style="margin: 0; font-size: 18px; font-weight: 700;">Buat Agenda Kegiatan Baru</h4>

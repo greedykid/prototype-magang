@@ -58,6 +58,19 @@ class User extends Authenticatable
         };
     }
 
+    public function getInitialsAttribute(): string
+    {
+        $words = preg_split('/\s+/', trim((string) ($this->name ?? 'User')));
+        if (empty($words) || empty($words[0])) {
+            return 'U';
+        }
+        if (count($words) === 1) {
+            return strtoupper(substr($words[0], 0, 2));
+        }
+
+        return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+    }
+
     public function getRoleBadgeClassAttribute(): string
     {
         return match ($this->role) {

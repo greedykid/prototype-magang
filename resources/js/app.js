@@ -44,6 +44,16 @@ export function closeNotificationDropdown() {
 }
 window.closeNotificationDropdown = closeNotificationDropdown;
 
+export function closeUserDropdown() {
+    const currentMenu = document.getElementById('user-dropdown-menu');
+    const currentBtn = document.getElementById('user-dropdown-btn');
+    if (currentMenu && currentMenu.style.display !== 'none') {
+        currentMenu.style.display = 'none';
+        currentBtn?.setAttribute('aria-expanded', 'false');
+    }
+}
+window.closeUserDropdown = closeUserDropdown;
+
 export function initNotificationDropdown() {
     const btn = document.getElementById('notif-dropdown-btn');
     const menu = document.getElementById('notif-dropdown-menu');
@@ -51,6 +61,7 @@ export function initNotificationDropdown() {
 
     btn.onclick = (e) => {
         e.stopPropagation();
+        closeUserDropdown();
         const isHidden = menu.style.display === 'none' || getComputedStyle(menu).display === 'none';
         menu.style.display = isHidden ? 'block' : 'none';
         btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
@@ -61,25 +72,54 @@ export function initNotificationDropdown() {
             closeNotificationDropdown();
         }
     };
+}
 
-    if (!window._notifClickBound) {
-        window._notifClickBound = true;
-        document.addEventListener('click', (e) => {
-            const currentMenu = document.getElementById('notif-dropdown-menu');
-            const currentBtn = document.getElementById('notif-dropdown-btn');
-            if (currentMenu && currentMenu.style.display !== 'none') {
-                if (!currentMenu.contains(e.target) && e.target !== currentBtn && !currentBtn?.contains(e.target)) {
-                    closeNotificationDropdown();
-                }
-            }
-        });
+export function initUserDropdown() {
+    const btn = document.getElementById('user-dropdown-btn');
+    const menu = document.getElementById('user-dropdown-menu');
+    if (!btn || !menu) return;
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        closeNotificationDropdown();
+        const isHidden = menu.style.display === 'none' || getComputedStyle(menu).display === 'none';
+        menu.style.display = isHidden ? 'block' : 'none';
+        btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    };
+
+    menu.onclick = (e) => {
+        if (e.target.closest('a, button')) {
+            closeUserDropdown();
+        }
+    };
+}
+
+if (!window._dropdownsBound) {
+    window._dropdownsBound = true;
+    document.addEventListener('click', (e) => {
+        const currentNotifMenu = document.getElementById('notif-dropdown-menu');
+        const currentNotifBtn = document.getElementById('notif-dropdown-btn');
+        if (currentNotifMenu && currentNotifMenu.style.display !== 'none') {
+            if (!currentNotifMenu.contains(e.target) && e.target !== currentNotifBtn && !currentNotifBtn?.contains(e.target)) {
                 closeNotificationDropdown();
             }
-        });
-    }
+        }
+
+        const currentUserMenu = document.getElementById('user-dropdown-menu');
+        const currentUserBtn = document.getElementById('user-dropdown-btn');
+        if (currentUserMenu && currentUserMenu.style.display !== 'none') {
+            if (!currentUserMenu.contains(e.target) && e.target !== currentUserBtn && !currentUserBtn?.contains(e.target)) {
+                closeUserDropdown();
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeNotificationDropdown();
+            closeUserDropdown();
+        }
+    });
 }
 
 // ==========================================================================
@@ -100,8 +140,9 @@ export const initPageComponents = () => {
         initGcalComponents();
     }
 
-    // 5. Topbar Notification Dropdown
+    // 5. Topbar Dropdowns
     initNotificationDropdown();
+    initUserDropdown();
 };
 
 window.initPageComponents = initPageComponents;

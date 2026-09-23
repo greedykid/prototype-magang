@@ -1,10 +1,18 @@
 a { color: var(--maroon-dark); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--maroon); }
 :focus-visible { outline: 3px solid #7b3ff2; outline-offset: 3px; }
-h1, h2 { font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-weight: 600; letter-spacing: -.035em; }
-h1 { font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.05; margin: .3rem 0 .7rem; }
-h2 { font-size: 1.55rem; margin: .2rem 0; }
+h1, h2 { font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-weight: 600; letter-spacing: -.025em; }
+h1 { font-size: clamp(1.45rem, 2.2vw, 1.85rem); line-height: 1.2; margin: .2rem 0 .5rem; }
+h2 { font-size: 1.35rem; margin: .2rem 0; }
 
-.lede { color: var(--muted); margin: 0; max-width: 660px; }
+.page-heading h1 {
+    font-size: clamp(1.4rem, 2vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    margin: 0 0 6px 0;
+}
+
+.lede { color: var(--muted); margin: 0; max-width: 660px; font-size: 13.5px; line-height: 1.5; }
 .eyebrow { color: var(--terracotta); display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; }
 .page-heading .eyebrow { display: none !important; }

@@ -126,6 +126,57 @@ class CalendarEventController extends Controller
             ]);
         }
 
+        // 2b. Sinkronisasi Batas Waktu Tindakan Perbaikan (TP & VTP) KAN ke Kalender
+        $tpAssessments = Assessment::with('lpk')
+            ->whereNotNull('tp_status')
+            ->where('tp_status', '!=', Assessment::TP_STATUS_NONE)
+            ->get();
+
+        foreach ($tpAssessments as $item) {
+            $effectiveDueDate = $item->effective_tp_due_date;
+            if (! $effectiveDueDate) {
+                continue;
+            }
+
+            $dueStart = CarbonImmutable::parse($effectiveDueDate)->setTime(9, 0);
+            $dueEnd = $dueStart->setTime(17, 0);
+
+            if ($dueStart->gte($queryStart->startOfDay()) && $dueStart->lte($queryEnd->endOfDay())) {
+                $colorTheme = match ($item->tp_status) {
+                    Assessment::TP_STATUS_SATISFIED => 'emerald',
+                    default => $item->is_tp_overdue ? 'rose' : (($item->days_remaining_tp !== null && $item->days_remaining_tp <= 14) ? 'amber' : 'emerald'),
+                };
+
+                $statusLabel = match ($item->tp_status) {
+                    Assessment::TP_STATUS_SATISFIED => 'Memenuhi Syarat (Selesai)',
+                    default => $item->is_tp_overdue ? 'Melewati Batas Waktu' : (($item->days_remaining_tp !== null && $item->days_remaining_tp <= 14) ? 'Jatuh Tempo Segera' : 'Penyusunan Perbaikan'),
+                };
+
+                $unifiedEvents->push([
+                    'id' => 'tp_' . $item->id,
+                    'source' => 'assessment_tp',
+                    'category' => 'TINDAKAN_PERBAIKAN',
+                    'category_label' => 'Batas Waktu TP & VTP',
+                    'color_theme' => $colorTheme,
+                    'title' => '[Batas TP] ' . ($item->lpk?->name ?? 'LPK') . ' - ' . $item->title,
+                    'lpk_id' => $item->lpk_id,
+                    'lpk_name' => $item->lpk?->name ?? 'LPK Terakreditasi',
+                    'start_at' => $dueStart,
+                    'end_at' => $dueEnd,
+                    'location' => $item->location ?: 'Daring / KANMIS',
+                    'status' => $item->tp_status,
+                    'notes' => 'Tenggat penyelesaian tindakan perbaikan KAN (' . $item->assessment_type_label . '). ' .
+                        ($item->tp_has_extension ? 'Perpanjangan surat +1 bulan aktif (' . ($item->tp_extension_letter_no ?: 'Ada surat') . '). ' : '') .
+                        'Status: ' . $statusLabel,
+                    'description' => 'Target batas waktu penyelesaian tindakan perbaikan KAN: 3 bulan untuk AA, 2 bulan untuk Survailen/PRL/RA. ' . ($item->tp_notes ?: ''),
+                    'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                    'url' => route('assessments.show', $item),
+                    'edit_url' => route('assessments.show', $item),
+                    'action_label' => 'Buka Detail Asesmen',
+                ]);
+            }
+        }
+
         // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
         $lpksWithMilestones = Lpk::with('assessments')
             ->where(function ($q) {

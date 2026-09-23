@@ -23,10 +23,84 @@
 </div>
 <section class="panel">
     <form class="table-filters" method="GET">
-        <div class="table-filter-grid"><label>Cari agenda<input name="search" value="{{ $search }}" placeholder="Judul agenda"></label><label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label><label>Jenis<select name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label><label>Status<select name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Berjalan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label><label>Mulai dari<input type="date" name="start_from" value="{{ $startFrom }}"></label><label>Mulai sampai<input type="date" name="start_to" value="{{ $startTo }}"></label></div>
-        <div class="table-filter-actions"><button class="button secondary" type="submit">Terapkan filter</button>@if($search || $lpkId || $assessmentType || $status || $startFrom || $startTo)<a class="button ghost" href="{{ route('assessments.index') }}">Reset</a>@endif</div>
+        <div class="table-filter-grid">
+            <label>Cari agenda<input name="search" value="{{ $search }}" placeholder="Judul agenda"></label>
+            <label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label>
+            <label>Jenis<select name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
+            <label>Status<select name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Berjalan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
+            <label>Status TP (SLA KAN)
+                <select name="tp_status">
+                    <option value="">Semua status TP</option>
+                    <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Tidak Ada Temuan</option>
+                    <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
+                    <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
+                    <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Overdue)</option>
+                    <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
+                </select>
+            </label>
+            <label>Mulai dari<input type="date" name="start_from" value="{{ $startFrom }}"></label>
+            <label>Mulai sampai<input type="date" name="start_to" value="{{ $startTo }}"></label>
+        </div>
+        <div class="table-filter-actions">
+            <button class="button secondary" type="submit">Terapkan filter</button>
+            @if($search || $lpkId || $assessmentType || $status || ($tpFilter ?? null) || $startFrom || $startTo)
+                <a class="button ghost" href="{{ route('assessments.index') }}">Reset</a>
+            @endif
+        </div>
     </form>
-    @if($assessments->count())<div class="table-wrap"><table><thead><tr><th>Agenda</th><th>LPK</th><th>Waktu</th><th>Biaya Asesor</th><th>Status</th><th></th></tr></thead><tbody>@foreach($assessments as $assessment)<tr><td><strong>{{ $assessment->title }}</strong><span>{{ $assessment->assessment_type_label }}</span></td><td>{{ $assessment->lpk->name }}</td><td>{{ $assessment->start_at->format('d M Y, H:i') }} WIB</td><td><x-status :value="$assessment->expense ? $assessment->expense->status : 'BELUM_DILAPORKAN'" /></td><td><x-status :value="$assessment->status" /></td><td><a href="{{ route('assessments.show',$assessment) }}">Detail</a></td></tr>@endforeach</tbody></table></div>{{ $assessments->links() }}@else<div class="empty">{{ $search || $lpkId || $assessmentType || $status || $startFrom || $startTo ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }} @if($search || $lpkId || $assessmentType || $status || $startFrom || $startTo)<a class="button ghost empty-action" href="{{ route('assessments.index') }}">Reset filter</a>@endif</div>@endif
+    @if($assessments->count())
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Agenda</th>
+                        <th>LPK</th>
+                        <th>Waktu</th>
+                        <th>Tindakan Perbaikan (TP)</th>
+                        <th>Biaya Asesor</th>
+                        <th>Status Asesmen</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($assessments as $assessment)
+                        <tr>
+                            <td>
+                                <strong>{{ $assessment->title }}</strong>
+                                <span>{{ $assessment->assessment_type_label }}</span>
+                            </td>
+                            <td>{{ $assessment->lpk->name }}</td>
+                            <td>{{ $assessment->start_at->format('d M Y, H:i') }} WIB</td>
+                            <td>
+                                @php $badge = $assessment->tp_sla_badge; @endphp
+                                <div style="display: flex; flex-direction: column; gap: 3px;">
+                                    <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['detail'] }}">
+                                        {{ $badge['label'] }}
+                                    </span>
+                                    @if($assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE)
+                                        <small style="color: var(--muted); font-size: 11px;">
+                                            Batas: {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </td>
+                            <td><x-status :value="$assessment->expense ? $assessment->expense->status : 'BELUM_DILAPORKAN'" /></td>
+                            <td><x-status :value="$assessment->status" /></td>
+                            <td><a href="{{ route('assessments.show', $assessment) }}">Detail</a></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        {{ $assessments->links() }}
+    @else
+        <div class="empty">
+            {{ $search || $lpkId || $assessmentType || $status || ($tpFilter ?? null) || $startFrom || $startTo ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }}
+            @if($search || $lpkId || $assessmentType || $status || ($tpFilter ?? null) || $startFrom || $startTo)
+                <a class="button ghost empty-action" href="{{ route('assessments.index') }}">Reset filter</a>
+            @endif
+        </div>
+    @endif
 </section>
 
 @include('partials.sheets-modal', [

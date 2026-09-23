@@ -333,7 +333,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     }
 
     .page-heading h1 {
-        font-size: clamp(22px, 5.5vw, 28px) !important;
+        font-size: clamp(19px, 4.5vw, 23px) !important;
         line-height: 1.25 !important;
     }
 

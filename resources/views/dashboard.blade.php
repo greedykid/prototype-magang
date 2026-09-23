@@ -5,7 +5,7 @@
 @section('content')
     <div class="page-heading">
         <div>
-            <h1>Selamat datang, {{ auth()->user()->name }}.</h1>
+            <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()->name }}.</h1>
             <p class="lede">Ringkasan operasional kepatuhan akreditasi, surveilen KAN, dan agenda penugasan asesmen.</p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -29,10 +29,10 @@
             <strong style="{{ !empty($globalSurveillanceAlerts) ? 'color: var(--terracotta);' : '' }}">{{ count($globalSurveillanceAlerts ?? []) }}</strong>
             <small>{{ !empty($globalSurveillanceAlerts) ? 'Perlu tindakan segera' : 'Siklus pengawasan normal' }}</small>
         </a>
-        <a href="{{ route('assessments.index') }}" class="metric" style="text-decoration: none; color: inherit;">
+        <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
             <span>Asesmen bulan ini</span>
-            <strong>{{ $assessmentCount }}</strong>
-            <small>Agenda penugasan asesor</small>
+            <strong style="{{ !empty($overdueTpCount) ? 'color: var(--terracotta);' : '' }}">{{ $assessmentCount }}</strong>
+            <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' TP melewati batas waktu KAN' : (!empty($dueSoonTpCount) ? $dueSoonTpCount . ' TP jatuh tempo segera' : 'Agenda penugasan asesor') }}</small>
         </a>
         <a href="{{ route('issues.index') }}" class="metric {{ $overdueIssueCount ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
             <span>Masalah terbuka</span>
@@ -81,7 +81,7 @@
                                 </div>
                                 <div class="surveillance-alert-actions">
                                     <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-sm">
-                                        Detail Siklus
+                                        Lihat Detail
                                     </a>
                                     @if(auth()->user()?->isAdmin())
                                         <a href="{{ route('assessments.index') }}" class="button primary button-sm">
@@ -98,6 +98,51 @@
                                 </a>
                             </div>
                         @endif
+                    </div>
+                </section>
+            @endif
+
+            {{-- Panel Peringatan Batas Waktu Tindakan Perbaikan (TP & VTP) KAN --}}
+            @if(isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty())
+                <section class="panel surveillance-alert-panel" aria-labelledby="tp-alert-heading" style="border-left: 4px solid #dc2626; margin-bottom: 20px;">
+                    <div class="surveillance-alert-header">
+                        <div>
+                            <h2 id="tp-alert-heading" class="surveillance-alert-title" style="color: #991b1b;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                Peringatan Batas Waktu Tindakan Perbaikan (TP &amp; VTP) KAN
+                            </h2>
+                            <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ $urgentTpAssessments->count() }} asesmen dengan tindakan perbaikan yang mendekati jatuh tempo (&le; 14 hari) atau melewati batas regulasi KAN.</p>
+                        </div>
+                        <span class="badge" style="background-color: #fee2e2; color: #991b1b; font-weight: 700; font-size: 11.5px; padding: 4px 10px; border-radius: 6px;">SLA Ketat KAN</span>
+                    </div>
+                    <div class="surveillance-alert-list">
+                        @foreach($urgentTpAssessments as $assessment)
+                            @php $tpBadge = $assessment->tp_sla_badge; @endphp
+                            <div class="surveillance-alert-item">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
+                                        {{ $tpBadge['label'] }}
+                                    </span>
+                                    <div>
+                                        <a href="{{ route('assessments.show', $assessment) }}" style="font-weight: 600; color: var(--text, #0f172a); text-decoration: none;">
+                                            {{ $assessment->title }}
+                                        </a>
+                                        <span style="font-size: 12px; color: var(--muted, #64748b); margin-left: 6px;">({{ $assessment->lpk->name }})</span>
+                                        <div style="font-size: 12px; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : '#b45309' }};">
+                                            {{ $assessment->assessment_type_label }} &bull; Batas Akhir: <strong>{{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d/m/Y') : '-' }}</strong>
+                                            @if($assessment->tp_has_extension)
+                                                <span style="color: #7c3aed; margin-left: 4px; font-weight: 600;">(+1 Bulan Surat Resmi)</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="surveillance-alert-actions">
+                                    <a href="{{ route('assessments.show', $assessment) }}" class="button secondary button-sm">
+                                        Periksa TP
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </section>
             @endif

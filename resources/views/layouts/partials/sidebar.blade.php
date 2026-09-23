@@ -81,7 +81,17 @@
             </div>
 
             <div class="nav-section">
-                <span class="nav-section-title">{{ auth()->user()?->isAdmin() ? 'Monitoring & Sistem' : 'Pusat Kendala' }}</span>
+                <span class="nav-section-title">Akses & Sistem</span>
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}" data-tooltip="Manajemen Pengguna">
+                    <x-icon name="users" size="18" />
+                    <span class="nav-label">Manajemen Pengguna</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">Dukungan</span>
+                {{-- Fitur Monitoring Layanan KANMIS & Backup disembunyikan sementara --}}
+                {{--
                 @if(auth()->user()?->isAdmin())
                     <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
                         <x-icon name="services" size="18" />
@@ -92,16 +102,17 @@
                         <span class="nav-label">Backup</span>
                     </a>
                 @endif
-                <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Masalah">
+                --}}
+                <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Pusat Kendala">
                     <x-icon name="issues" size="18" />
-                    <span class="nav-label">Masalah</span>
+                    <span class="nav-label">Pusat Kendala</span>
                 </a>
             </div>
         @endif
     </nav>
     <div class="sidebar-foot">
         <div class="drawer-account">
-            <div class="user-identity">
+            <a href="{{ route('profile.edit') }}" class="user-identity" title="Pengaturan Profil &amp; Kata Sandi" style="text-decoration: none; color: inherit; min-width: 0; flex: 1;">
                 <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
                 <div class="user-details">
                     <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
@@ -109,7 +120,7 @@
                         {{ auth()->user()?->role_short_label ?? auth()->user()?->role_label ?? 'Petugas' }}
                     </span>
                 </div>
-            </div>
+            </a>
             <form method="POST" action="{{ route('logout') }}" id="logout-form" class="logout-form">
                 @csrf
                 <button type="submit" class="link-button logout-icon" aria-label="Keluar" title="Keluar">

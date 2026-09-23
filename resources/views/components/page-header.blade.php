@@ -10,7 +10,7 @@
         @if($backUrl)
             <a class="back-link" href="{{ $backUrl }}">{{ $backText }}</a>
         @endif
-        <h1>{{ $title }}</h1>
+        <h1>{!! $title !!}</h1>
         @if($subtitle)
             <p class="lede">{{ $subtitle }}</p>
         @endif

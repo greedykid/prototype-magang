@@ -146,4 +146,36 @@ class CalendarEventTest extends TestCase
         $response->assertSee('<option value="2030">2030</option>', false);
         $response->assertSee('<option value="2035">2035</option>', false);
     }
+
+    public function test_calendar_year_selector_dynamically_includes_years_from_lpk_expiry_dates(): void
+    {
+        $user = User::factory()->create();
+
+        // Create an LPK with expiry date in year 2040
+        Lpk::factory()->create([
+            'expired_at' => '2040-08-17',
+        ]);
+
+        $response = $this->actingAs($user)->get('/calendar?view=month&month=2026-09');
+        $response->assertOk();
+
+        // The year 2040 should dynamically appear in the options
+        $response->assertSee('<option value="2040">2040</option>', false);
+    }
+
+    public function test_calendar_year_selector_dynamically_includes_earlier_years_from_lpk_certificate_dates(): void
+    {
+        $user = User::factory()->create();
+
+        // Create an archive LPK with certificate date in year 2014
+        Lpk::factory()->create([
+            'certificate_date' => '2014-05-20',
+        ]);
+
+        $response = $this->actingAs($user)->get('/calendar?view=month&month=2026-09');
+        $response->assertOk();
+
+        // The year 2014 should dynamically appear in the options
+        $response->assertSee('<option value="2014">2014</option>', false);
+    }
 }

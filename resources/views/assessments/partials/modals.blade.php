@@ -75,3 +75,82 @@
     </div>
 </div>
 @endif
+
+{{-- Modal 3: Kelola Tindakan Perbaikan (TP & VTP) KAN --}}
+@if(auth()->user()?->isAdmin())
+<div class="simasadi-modal" id="modal-tp-tracking" role="dialog" aria-modal="true">
+    <div class="simasadi-modal-box" style="max-width: 580px;">
+        <div class="simasadi-modal-head">
+            <h4>Kelola Tindakan Perbaikan (TP &amp; VTP)</h4>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-tp-tracking')" aria-label="Tutup modal">&times;</button>
+        </div>
+        <form method="POST" action="{{ route('assessments.tp.update', $assessment) }}">
+            @csrf
+            <div style="display: grid; gap: 14px;">
+                <div style="padding: 10px 12px; background: var(--lavender, #f5f3ff); border: 1px solid #ddd6fe; border-radius: 6px; font-size: 12.5px; color: #5b21b6; line-height: 1.4;">
+                    <strong>Regulasi Dokumen KAN:</strong>
+                    AA (3 bulan), Surveilen/PRL/RA (2 bulan). Perpanjangan masa perbaikan maksimal 1 bulan berbasis surat permohonan resmi LPK.
+                </div>
+
+                <label>
+                    <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Tindakan Perbaikan</span>
+                    <select name="tp_status" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <option value="NONE" @selected(old('tp_status', $assessment->tp_status) === 'NONE')>Nihil / Tidak Ada Temuan</option>
+                        <option value="IN_PROGRESS" @selected(old('tp_status', $assessment->tp_status) === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
+                        <option value="UNDER_VERIFICATION" @selected(old('tp_status', $assessment->tp_status) === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
+                        <option value="SATISFIED" @selected(old('tp_status', $assessment->tp_status) === 'SATISFIED')>Dinyatakan Memenuhi (Selesai)</option>
+                    </select>
+                </label>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <label>
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal</span>
+                        <input type="date" name="tp_due_date" value="{{ old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: '')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <small style="color: var(--muted); font-size: 11px;">Otomatis +2 / +3 bulan jika kosong.</small>
+                    </label>
+
+                    <label>
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Tanggal Dinyatakan Memenuhi</span>
+                        <input type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <small style="color: var(--muted); font-size: 11px;">Diisi jika status telah selesai / memenuhi.</small>
+                    </label>
+                </div>
+
+                {{-- Bagian Permohonan Perpanjangan --}}
+                <div style="padding: 12px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                        <input type="checkbox" name="tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('extension-fields').style.display = this.checked ? 'grid' : 'none'">
+                        <span>Ajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Aturan KAN)</span>
+                    </label>
+
+                    <div id="extension-fields" style="display: {{ old('tp_has_extension', $assessment->tp_has_extension) ? 'grid' : 'none' }}; gap: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <label>
+                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor Surat Resmi LPK</span>
+                                <input type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
+                            </label>
+                            <label>
+                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tanggal Surat</span>
+                                <input type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
+                            </label>
+                        </div>
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Catatan Alasan Perpanjangan</span>
+                            <input type="text" name="tp_extension_notes" placeholder="Contoh: Pengadaan bahan acuan standar dan kalibrasi ulang memerlukan waktu tambahan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
+                        </label>
+                    </div>
+                </div>
+
+                <label>
+                    <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Catatan Temuan &amp; Bukti Tindakan Perbaikan</span>
+                    <textarea name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau status kelengkapan bukti tindakan perbaikan LPK..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
+                </label>
+            </div>
+            <div class="modal-form-actions">
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-tp-tracking')">Batal</button>
+                <button type="submit" class="button primary">Simpan Status TP</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif

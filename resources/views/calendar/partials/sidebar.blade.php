@@ -66,6 +66,11 @@
                     <span class="gcal-cat-text">Jatuh Tempo Surveilen (S1/S2)</span>
                 </label>
                 <label class="gcal-checkbox-row">
+                    <input type="checkbox" id="filter-cat-tp" checked data-filter-cat="TINDAKAN_PERBAIKAN">
+                    <span class="gcal-cat-indicator emerald"></span>
+                    <span class="gcal-cat-text">Batas Waktu TP &amp; VTP KAN</span>
+                </label>
+                <label class="gcal-checkbox-row">
                     <input type="checkbox" id="filter-cat-expiry" checked data-filter-cat="KEDALUWARSA">
                     <span class="gcal-cat-indicator rose"></span>
                     <span class="gcal-cat-text">Kedaluwarsa Akreditasi</span>

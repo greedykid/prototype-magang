@@ -38,8 +38,8 @@
     <label>
         Status
         <select name="status">
-            <option value="ACTIVE" @selected(old('status', $lpk->status ?: 'ACTIVE') === 'ACTIVE')>ACTIVE</option>
-            <option value="INACTIVE" @selected(old('status', $lpk->status) === 'INACTIVE')>INACTIVE</option>
+            <option value="ACTIVE" @selected(old('status', $lpk->status ?: 'ACTIVE') === 'ACTIVE')>Aktif</option>
+            <option value="INACTIVE" @selected(old('status', $lpk->status) === 'INACTIVE')>Tidak Aktif</option>
         </select>
     </label>
     <label class="full">
@@ -49,13 +49,30 @@
     <label>
         Tanggal Terbit Sertifikat Akreditasi
         <input type="date" name="certificate_date" value="{{ old('certificate_date', $lpk->certificate_date?->format('Y-m-d')) }}">
-        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Acuan siklus KAN: S1 (Bulan 14), S2 (Bulan 35), dan RA (1 Thn sebelum habis).</small>
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tanggal SK / sertifikat akreditasi terbit.</small>
     </label>
     <label>
         Masa berlaku akreditasi (Expired)
         <input type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}">
         <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Otomatis +5 tahun jika dikosongkan dan tanggal terbit diisi.</small>
     </label>
+
+    <div class="full" style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--maroon, #5645d4); border-radius: 8px; padding: 12px 16px; margin: -6px 0 2px;">
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5645d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div style="font-size: 12px; line-height: 1.5; color: #334155;">
+                <strong style="color: #0f172a; display: block; margin-bottom: 4px; font-size: 12.5px;">Acuan Siklus Pengawasan &amp; Re-Akreditasi KAN:</strong>
+                <ul style="margin: 0; padding-left: 18px; color: #475569;">
+                    <li><strong>Surveilen 1 (S1):</strong> Pelaksanaan asesmen pada Bulan ke 15-18.</li>
+                    <li><strong>Surveilen 2 (S2):</strong> Pelaksanaan asesmen pada Bulan ke 36-39.</li>
+                    <li><strong>Re-Akreditasi (RA):</strong> Upload dokumen mulai Bulan ke-48 (maksimal Bulan ke-51 harus lengkap), asesmen re-akreditasi maksimal Bulan ke-54.</li>
+                </ul>
+                <div style="margin-top: 6px; font-size: 11px; color: #64748b;">
+                    <em>Catatan: Pengingat email dikirim otomatis pada Bulan ke-14, Bulan ke-35, dan jelang Re-Akreditasi.</em>
+                </div>
+            </div>
+        </div>
+    </div>
     <label class="full">
         Link Google Drive Dokumen (Sertifikat Akreditasi, Amandemen & Lampiran)
         <input type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)">

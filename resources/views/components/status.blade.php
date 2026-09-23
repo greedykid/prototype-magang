@@ -35,7 +35,7 @@
         // Realisasi PNBP SIMPONI
         'UNPAID' => 'Belum Bayar',
         'PAID' => 'Terbayar (NTPN Sah)',
-        'EXPIRED' => 'Kadaluarsa',
+        'EXPIRED' => 'Kedaluwarsa',
         // Tanda Tangan Elektronik BSrE
         'SIGNED' => 'Tersertifikasi BSrE',
         'UNSIGNED' => 'Belum TTE',

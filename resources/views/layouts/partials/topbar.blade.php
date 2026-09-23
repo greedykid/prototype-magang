@@ -1,5 +1,5 @@
 <header class="topbar">
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="topbar-nav-left">
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
             <span class="sr-only">Buka navigasi</span>
             <span class="menu-icon" aria-hidden="true"></span>
@@ -11,6 +11,8 @@
             <span class="context-label" title="Unit Akreditasi Laboratorium &bull; Direktorat Akreditasi Laboratorium KAN">Unit Akreditasi Lab &bull; Dit. Akreditasi Laboratorium KAN</span>
             <strong class="context-title">@php($moduleCategory = match (true) {
                 request()->routeIs('dashboard') => 'Ringkasan Eksekutif',
+                request()->routeIs('profile.*') => 'Pengaturan Profil Pengguna',
+                request()->routeIs('users.*') => 'Manajemen Pengguna & PIC',
                 request()->routeIs('lpks.*', 'accreditations.*', 'amendments.*') => 'Manajemen Akreditasi LPK',
                 request()->routeIs('assessments.*', 'calendar.*') => 'Jadwal & Penugasan Asesmen',
                 request()->routeIs('monitoring.*') => 'Monitoring Sistem & Infrastruktur',
@@ -20,62 +22,121 @@
         </div>
     </div>
     @if(auth()->check())
-        <div class="topbar-actions" style="display: flex; align-items: center; gap: 12px;">
+        <div class="topbar-actions">
             @php($alertCount = count($globalSurveillanceAlerts ?? []))
-            <div class="topbar-notifications" style="position: relative;">
-                <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn" aria-expanded="false" aria-haspopup="true" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e2e8f0; background-color: {{ $alertCount > 0 ? '#fff1f2' : '#ffffff' }}; color: {{ $alertCount > 0 ? '#e11d48' : '#64748b' }}; position: relative; cursor: pointer; padding: 0;">
+            <div class="topbar-notifications">
+                <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn {{ $alertCount > 0 ? 'has-alerts' : '' }}" aria-expanded="false" aria-haspopup="true" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     @if($alertCount > 0)
-                        <span style="position: absolute; top: -4px; right: -4px; background-color: #e11d48; color: #ffffff; font-size: 10.5px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; box-shadow: 0 0 0 2px #ffffff;">
+                        <span class="topbar-notif-badge">
                             {{ $alertCount }}
                         </span>
                     @endif
                 </button>
 
-                <div id="notif-dropdown-menu" class="notif-dropdown" onclick="if(event.target.closest('a, button')) { this.style.display='none'; document.getElementById('notif-dropdown-btn')?.setAttribute('aria-expanded', 'false'); }" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - 24px); background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); z-index: 1000; overflow: hidden;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <strong style="font-size: 13px; color: #1e293b;">Notifikasi Siklus Pengawasan</strong>
-                            <span style="font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: {{ $alertCount > 0 ? '#fee2e2' : '#f1f5f9' }}; color: {{ $alertCount > 0 ? '#b91c1c' : '#64748b' }};">
+                <div id="notif-dropdown-menu" class="notif-dropdown" style="display: none;">
+                    <div class="notif-dropdown-header">
+                        <div class="notif-dropdown-heading">
+                            <strong class="notif-dropdown-title">Notifikasi Siklus Pengawasan</strong>
+                            <span class="notif-pill {{ $alertCount > 0 ? 'is-alert' : '' }}">
                                 {{ $alertCount }}
                             </span>
                         </div>
                         @if($alertCount > 0)
-                            <span style="font-size: 11px; color: #e11d48; font-weight: 600;">Perlu Tindakan</span>
+                            <span class="notif-alert-badge">Perlu Tindakan</span>
                         @endif
                     </div>
 
-                    <div style="padding: 16px;">
+                    <div class="notif-dropdown-body">
                         @if($alertCount > 0)
-                            <div style="font-size: 12.5px; font-weight: 600; color: #1e293b; margin-bottom: 4px;">
+                            <div class="notif-alert-title">
                                 {{ $alertCount }} Laboratorium Memerlukan Perhatian
                             </div>
-                            <p style="font-size: 11.5px; color: #64748b; margin: 0 0 12px 0; line-height: 1.5;">
+                            <p class="notif-alert-desc">
                                 Terdapat siklus Surveilen (S1/S2) atau Re-Akreditasi KAN yang telah mendekati batas waktu atau melewati jadwal.
                             </p>
-                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="display: block; width: 100%; text-align: center; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 6px; background: #5645d4; color: #ffffff; text-decoration: none; box-sizing: border-box; transition: background 150ms ease;" onmouseover="this.style.background='#4738b8'" onmouseout="this.style.background='#5645d4'">
+                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-cta-btn">
                                 Tinjau LPK Jatuh Tempo &rarr;
                             </a>
                         @else
-                            <div style="text-align: center; padding: 8px 0; color: #64748b;">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 8px; display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-                                <div style="font-size: 12.5px; font-weight: 600; color: #475569;">Tidak ada notifikasi aktif</div>
-                                <div style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">Seluruh siklus pengawasan KAN dalam status aman.</div>
+                            <div class="notif-empty-state">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="notif-empty-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                                <div class="notif-empty-title">Tidak ada notifikasi aktif</div>
+                                <div class="notif-empty-desc">Seluruh siklus pengawasan KAN dalam status aman.</div>
                             </div>
                         @endif
                     </div>
 
-                    <div style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
-                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" style="font-size: 12px; font-weight: 600; color: #5645d4; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    <div class="notif-dropdown-footer">
+                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">
                             Lihat Semua di Daftar LPK &rarr;
                         </a>
                     </div>
                 </div>
             </div>
 
-            <span class="badge-role topbar-role-badge {{ auth()->user()->role_badge_class }}">
-                {{ auth()->user()->role_label }}
-            </span>
+            {{-- User Profile Avatar & Dropdown --}}
+            <div class="topbar-user-dropdown">
+                <button type="button" id="user-dropdown-btn" class="topbar-user-btn" aria-expanded="false" aria-haspopup="true" title="Profil Pengguna &amp; Akun ({{ auth()->user()->name }})">
+                    <span class="user-avatar" aria-hidden="true">{{ auth()->user()->initials }}</span>
+                    <x-icon name="chevron-down" size="14" class="topbar-user-chevron" />
+                </button>
+
+                <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">
+                    {{-- Header Profil --}}
+                    <div class="user-dropdown-header">
+                        <div class="user-dropdown-identity">
+                            <span class="user-avatar user-avatar-lg" aria-hidden="true">{{ auth()->user()->initials }}</span>
+                            <div class="user-dropdown-meta">
+                                <strong class="user-dropdown-name">{{ auth()->user()->name }}</strong>
+                                <span class="user-dropdown-email">{{ auth()->user()->email }}</span>
+                                <div class="user-dropdown-badge-wrap">
+                                    <span class="badge-role {{ auth()->user()->role_badge_class }}">
+                                        {{ auth()->user()->role_label }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="user-dropdown-divider"></div>
+
+                    {{-- Menu Cepat --}}
+                    <div class="user-dropdown-body">
+                        <a href="{{ route('dashboard') }}" class="user-dropdown-item">
+                            <x-icon name="dashboard" size="15" />
+                            <span>Dasbor Utama</span>
+                        </a>
+                        <a href="{{ route('profile.edit') }}" class="user-dropdown-item">
+                            <x-icon name="user" size="15" />
+                            <span>Profil &amp; Kata Sandi</span>
+                        </a>
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('users.index') }}" class="user-dropdown-item">
+                                <x-icon name="users" size="15" />
+                                <span>Manajemen Pengguna</span>
+                            </a>
+                        @endif
+                        <a href="{{ route('issues.index') }}" class="user-dropdown-item">
+                            <x-icon name="issues" size="15" />
+                            <span>Pusat Kendala &amp; Bantuan</span>
+                        </a>
+                    </div>
+
+                    <div class="user-dropdown-divider"></div>
+
+                    {{-- Aksi Logout --}}
+                    <div class="user-dropdown-footer">
+                        <form method="POST" action="{{ route('logout') }}" id="topbar-logout-form" class="logout-form">
+                            @csrf
+                            <button type="submit" class="user-dropdown-item user-dropdown-logout" aria-label="Keluar dari akun">
+                                <x-icon name="log-out" size="15" />
+                                <span>Keluar dari Akun</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 </header>

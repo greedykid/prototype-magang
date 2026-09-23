@@ -105,9 +105,9 @@ class Lpk extends Model
 
     /**
      * Hitung jadwal acuan siklus pengawasan KAN (S1, S2, dan Re-Akreditasi).
-     * S1: Notif bulan 14, kunjungan bulan 15.
-     * S2: Notif bulan 35, kunjungan bulan 36.
-     * RA: Notif 1 bulan sebelum masa berlaku sertifikat habis.
+     * S1: Surveilen 1 pada bulan 15-18 (notifikasi email bulan 14).
+     * S2: Surveilen 2 pada bulan 36-39 (notifikasi email bulan 35).
+     * RA: Upload dokumen mulai bulan 48 (maks. bulan 51 lengkap), asesmen RA maks. bulan 54.
      */
     public function getSurveillanceMilestonesAttribute(): array
     {
@@ -120,7 +120,7 @@ class Lpk extends Model
                 'name' => 'Surveilen 1 (S1)',
                 'notice_date' => $certDate ? $certDate->copy()->addMonths(14) : null,
                 'target_date' => $certDate ? $certDate->copy()->addMonths(15) : null,
-                'description' => 'Penilikan pertama (notifikasi bulan ke-14, target kunjungan bulan ke-15)',
+                'description' => 'Surveilen 1 pada bulan 15-18 (notifikasi email bulan ke-14)',
                 'status' => 'PENDING',
             ],
             's2' => [
@@ -128,7 +128,7 @@ class Lpk extends Model
                 'name' => 'Surveilen 2 (S2)',
                 'notice_date' => $certDate ? $certDate->copy()->addMonths(35) : null,
                 'target_date' => $certDate ? $certDate->copy()->addMonths(36) : null,
-                'description' => 'Penilikan kedua (notifikasi bulan ke-35, target kunjungan bulan ke-36)',
+                'description' => 'Surveilen 2 pada bulan 36-39 (notifikasi email bulan ke-35)',
                 'status' => 'PENDING',
             ],
             'ra' => [
@@ -136,7 +136,7 @@ class Lpk extends Model
                 'name' => 'Re-Akreditasi (RA)',
                 'notice_date' => $expDate ? $expDate->copy()->subMonth() : ($certDate ? $certDate->copy()->addYears(5)->subMonth() : null),
                 'target_date' => $expDate,
-                'description' => 'Akreditasi ulang (notifikasi 1 bulan sebelum masa berlaku sertifikat habis)',
+                'description' => 'Re-Akreditasi: upload dokumen mulai bulan 48 (maks. bulan 51 lengkap), asesmen maks. bulan 54',
                 'status' => 'PENDING',
             ],
         ];

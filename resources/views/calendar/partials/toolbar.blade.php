@@ -57,8 +57,13 @@
                         9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
                     ];
                     $currentYear = (int) $currentMonth->format('Y');
-                    $minYear = min(2020, $currentYear - 2);
-                    $maxYear = max(2035, $currentYear + 5);
+                    $minLpkDate = \App\Models\Lpk::whereNotNull('certificate_date')->min('certificate_date');
+                    $minLpkYear = $minLpkDate ? (int) substr($minLpkDate, 0, 4) : 2020;
+                    $maxLpkDate = \App\Models\Lpk::whereNotNull('expired_at')->max('expired_at');
+                    $maxLpkYear = $maxLpkDate ? (int) substr($maxLpkDate, 0, 4) : 2035;
+
+                    $minYear = min(2020, $currentYear - 2, $minLpkYear);
+                    $maxYear = max(2035, $currentYear + 5, $maxLpkYear);
                     $availableYears = range($minYear, $maxYear);
                 @endphp
 
