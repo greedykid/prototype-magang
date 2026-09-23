@@ -57,18 +57,4 @@ class UserFactory extends Factory
             'role' => User::ROLE_PIC,
         ]);
     }
-
-    public function staff(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'role' => User::ROLE_ADMIN,
-        ]);
-    }
-
-    public function assessor(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'role' => User::ROLE_PIC,
-        ]);
-    }
 }

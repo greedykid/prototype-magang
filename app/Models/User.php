@@ -21,26 +21,12 @@ class User extends Authenticatable
     public const ROLE_ADMIN = 'admin';
     public const ROLE_PIC = 'pic';
 
-    // Aliases untuk kompatibilitas ke belakang
-    public const ROLE_STAFF = 'admin';
-    public const ROLE_ASSESSOR = 'pic';
-
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
     }
 
     public function isPic(): bool
-    {
-        return $this->role === self::ROLE_PIC;
-    }
-
-    public function isStaff(): bool
-    {
-        return $this->role === self::ROLE_ADMIN;
-    }
-
-    public function isAssessor(): bool
     {
         return $this->role === self::ROLE_PIC;
     }

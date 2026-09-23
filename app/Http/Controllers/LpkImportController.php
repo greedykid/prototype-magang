@@ -6,20 +6,21 @@ use App\Models\Lpk;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LpkImportController extends Controller
 {
     /**
-     * Mengunduh berkas template CSV resmi untuk impor LPK.
+     * Mengunduh berkas template resmi untuk impor LPK (format CSV atau XLSX).
      */
-    public function downloadTemplate(): StreamedResponse
+    public function downloadTemplate(Request $request): mixed
     {
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="template-import-lpk.csv"',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-        ];
+        $format = strtolower((string) $request->query('format', 'csv'));
 
         $columns = [
             'nomor_registrasi',
@@ -73,6 +74,27 @@ class LpkImportController extends Controller
             ],
         ];
 
+        if ($format === 'xlsx') {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Template LPK');
+            $sheet->fromArray([$columns, ...$samples]);
+
+            return response()->streamDownload(function () use ($spreadsheet) {
+                $writer = new Xlsx($spreadsheet);
+                $writer->save('php://output');
+            }, 'template-import-lpk.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            ]);
+        }
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template-import-lpk.csv"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ];
+
         return response()->stream(function () use ($columns, $samples) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF");
@@ -85,21 +107,42 @@ class LpkImportController extends Controller
     }
 
     /**
-     * Memproses impor LPK dari berkas CSV unggahan atau tautan Google Sheets.
+     * Memproses impor LPK dari berkas unggahan (.xlsx, .csv) atau tautan Google Sheets.
      */
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'csv_file' => ['nullable', 'file', 'mimes:csv,txt', 'max:5120'],
+            'csv_file' => ['nullable', 'file', 'extensions:csv,txt,xlsx', 'max:10240'],
             'sheets_url' => ['nullable', 'url', 'max:1000'],
         ]);
 
-        $csvContent = '';
+        $headers = [];
+        $rows = [];
         $sheetHyperlinks = [];
 
         if ($request->hasFile('csv_file')) {
             $file = $request->file('csv_file');
-            $csvContent = file_get_contents($file->getRealPath());
+            $extension = strtolower((string) $file->getClientOriginalExtension());
+            $mime = (string) $file->getMimeType();
+
+            if ($extension === 'xlsx' || str_contains($mime, 'spreadsheetml')) {
+                try {
+                    $parsed = $this->parseXlsxFile($file->getRealPath());
+                    $headers = $parsed['headers'];
+                    $rows = $parsed['rows'];
+                    $sheetHyperlinks = $parsed['hyperlinks'];
+                } catch (\Throwable $e) {
+                    return back()->with('error', 'Gagal membaca berkas Excel: ' . $e->getMessage());
+                }
+            } else {
+                $csvContent = file_get_contents($file->getRealPath());
+                $parsed = $this->parseCsvContent($csvContent);
+                if (isset($parsed['error'])) {
+                    return back()->with('error', $parsed['error']);
+                }
+                $headers = $parsed['headers'];
+                $rows = $parsed['rows'];
+            }
         } elseif ($request->filled('sheets_url')) {
             $inputUrl = $request->input('sheets_url');
             $url = $this->normalizeGoogleSheetsUrl($inputUrl);
@@ -134,7 +177,7 @@ class LpkImportController extends Controller
                 }
                 $csvContent = $response->body();
 
-                // Coba ambil XLSX untuk mengekstrak hyperlink formula asli (karena export CSV Google Sheets menghapus formula hyperlink)
+                // Coba ambil XLSX untuk mengekstrak hyperlink formula asli
                 if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $inputUrl, $sheetMatches)) {
                     $sheetId = $sheetMatches[1];
                     $xlsxUrl = "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=xlsx";
@@ -153,50 +196,19 @@ class LpkImportController extends Controller
                         // Abaikan jika XLSX tidak dapat diambil
                     }
                 }
+
+                $parsed = $this->parseCsvContent($csvContent);
+                if (isset($parsed['error'])) {
+                    return back()->with('error', $parsed['error']);
+                }
+                $headers = $parsed['headers'];
+                $rows = $parsed['rows'];
             } catch (\Throwable $e) {
                 return back()->with('error', 'Terjadi kesalahan koneksi saat mengakses Google Sheets: ' . $e->getMessage());
             }
         } else {
-            return back()->with('error', 'Silakan unggah berkas CSV atau masukkan tautan Google Sheets.');
+            return back()->with('error', 'Silakan unggah berkas Excel/CSV atau masukkan tautan Google Sheets.');
         }
-
-        // Hapus BOM UTF-8 jika ada
-        $csvContent = preg_replace('/^\xEF\xBB\xBF/', '', trim($csvContent));
-
-        if (empty($csvContent)) {
-            return back()->with('error', 'Berkas atau spreadsheet tidak memiliki data untuk diimpor.');
-        }
-
-        // Pisahkan per baris
-        $lines = preg_split('/\r\n|\r|\n/', $csvContent);
-        if (empty($lines)) {
-            return back()->with('error', 'Format data spreadsheet tidak dikenali.');
-        }
-
-        // Deteksi pemisah (koma atau titik koma)
-        $firstLine = $lines[0];
-        $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
-
-        $headerRaw = str_getcsv(array_shift($lines), $delimiter, '"', '\\');
-        $headers = array_map(function ($col) {
-            $clean = strtolower(trim((string) $col));
-            $clean = str_replace([' ', '-', '_', '.', '/', '(', ')', ':', ',', '\\'], '', $clean);
-
-            return match ($clean) {
-                'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg', 'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor', 'no' => 'registration_number',
-                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk' => 'name',
-                'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi', 'ruanglingkupuji' => 'scope',
-                'alamat', 'address', 'lokasi' => 'address',
-                'email', 'surel', 'mail' => 'email',
-                'telepon', 'telp', 'phone', 'notelp', 'teleponhp', 'teleponfax', 'telfax', 'fax', 'telpfax' => 'phone',
-                'status', 'statusoperasional' => 'status',
-                'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat' => 'certificate_date',
-                'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi', 'masaberlakuakreditasiexpired', 'expiredakreditasi', 'tanggalkadaluarsa', 'exp' => 'expired_at',
-                'link', 'linkdrive', 'linkdrivedokumen', 'driveurl', 'tautandrive', 'tautan', 'linkdrivesertifikat', 'linkdriveamandemen', 'url', 'googledrive', 'linkberkas' => 'drive_url',
-                'catatan', 'keterangan', 'notes' => 'notes',
-                default => $clean,
-            };
-        }, $headerRaw);
 
         if (! in_array('registration_number', $headers, true) || ! in_array('name', $headers, true)) {
             return back()->with('error', 'Format kolom tidak sesuai. Kolom "nomor_registrasi" (atau "NO. AKREDITASI") dan "nama_lpk" wajib ada. Silakan periksa kembali judul kolom spreadsheet.');
@@ -205,15 +217,11 @@ class LpkImportController extends Controller
         $createdCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
-        $excelRowNumber = 1;
 
-        foreach ($lines as $line) {
-            $excelRowNumber++;
-            if (trim($line) === '') {
-                continue;
-            }
+        foreach ($rows as $item) {
+            $excelRowNumber = $item['row_number'];
+            $row = $item['values'];
 
-            $row = str_getcsv($line, $delimiter, '"', '\\');
             if (count($row) < 2) {
                 $skippedCount++;
                 continue;
@@ -257,7 +265,7 @@ class LpkImportController extends Controller
                 $driveUrl = $rawDriveUrl;
             } elseif (! empty($sheetHyperlinks[$excelRowNumber])) {
                 $driveColIndex = array_search('drive_url', $headers, true);
-                $driveColLetter = $driveColIndex !== false ? chr(65 + $driveColIndex) : null;
+                $driveColLetter = $driveColIndex !== false ? Coordinate::stringFromColumnIndex($driveColIndex + 1) : null;
 
                 if ($driveColLetter && ! empty($sheetHyperlinks[$excelRowNumber][$driveColLetter])) {
                     $driveUrl = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
@@ -311,6 +319,148 @@ class LpkImportController extends Controller
     }
 
     /**
+     * Mem-parsing string CSV mentah menjadi headers dan rows.
+     */
+    protected function parseCsvContent(string $csvContent): array
+    {
+        $csvContent = preg_replace('/^\xEF\xBB\xBF/', '', trim($csvContent));
+
+        if (empty($csvContent)) {
+            return ['error' => 'Berkas atau spreadsheet tidak memiliki data untuk diimpor.'];
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', $csvContent);
+        if (empty($lines)) {
+            return ['error' => 'Format data spreadsheet tidak dikenali.'];
+        }
+
+        $firstLine = $lines[0];
+        $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
+
+        $headerRaw = str_getcsv(array_shift($lines), $delimiter, '"', '\\');
+        $headers = $this->normalizeHeaders($headerRaw);
+
+        $rows = [];
+        $lineNum = 1;
+        foreach ($lines as $line) {
+            $lineNum++;
+            if (trim($line) === '') {
+                continue;
+            }
+            $rowValues = str_getcsv($line, $delimiter, '"', '\\');
+            $rows[] = [
+                'row_number' => $lineNum,
+                'values' => $rowValues,
+            ];
+        }
+
+        return [
+            'headers' => $headers,
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Mem-parsing berkas Excel (.xlsx) menjadi headers, rows, dan hyperlinks.
+     */
+    protected function parseXlsxFile(string $filePath): array
+    {
+        $reader = IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(false);
+        $spreadsheet = $reader->load($filePath);
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        $headers = [];
+        $rows = [];
+        $hyperlinks = [];
+
+        foreach ($worksheet->getRowIterator() as $row) {
+            $rowNum = $row->getRowIndex();
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false);
+
+            $rowValues = [];
+            $colIndex = 0;
+
+            foreach ($cellIterator as $cell) {
+                $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                $val = '';
+
+                if ($cell->hasHyperlink() && ! empty($cell->getHyperlink()->getUrl())) {
+                    $hyperlinks[$rowNum][$colLetter] = $cell->getHyperlink()->getUrl();
+                }
+
+                if ($cell->isFormula()) {
+                    $formula = (string) $cell->getValue();
+                    if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
+                        $hyperlinks[$rowNum][$colLetter] = trim($urlMatches[1]);
+                    }
+                }
+
+                if (ExcelDate::isDateTime($cell)) {
+                    try {
+                        $dateObj = ExcelDate::excelToDateTimeObject($cell->getValue());
+                        $val = $dateObj->format('Y-m-d');
+                    } catch (\Throwable) {
+                        $val = (string) $cell->getCalculatedValue();
+                    }
+                } else {
+                    $val = (string) ($cell->getCalculatedValue() ?? '');
+                }
+
+                $rowValues[] = $val;
+                $colIndex++;
+            }
+
+            // Lewati baris kosong
+            if (empty(array_filter($rowValues, fn ($v) => trim((string) $v) !== ''))) {
+                continue;
+            }
+
+            if (empty($headers)) {
+                $headers = $this->normalizeHeaders($rowValues);
+            } else {
+                $rows[] = [
+                    'row_number' => $rowNum,
+                    'values' => $rowValues,
+                ];
+            }
+        }
+
+        return [
+            'headers' => $headers,
+            'rows' => $rows,
+            'hyperlinks' => $hyperlinks,
+        ];
+    }
+
+    /**
+     * Normalisasi nama kolom header ke format atribut model LPK.
+     */
+    protected function normalizeHeaders(array $headerRaw): array
+    {
+        return array_map(function ($col) {
+            $clean = strtolower(trim((string) $col));
+            $clean = str_replace([' ', '-', '_', '.', '/', '(', ')', ':', ',', '\\'], '', $clean);
+
+            return match ($clean) {
+                'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg', 'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor', 'no' => 'registration_number',
+                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk' => 'name',
+                'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi', 'ruanglingkupuji' => 'scope',
+                'alamat', 'address', 'lokasi' => 'address',
+                'email', 'surel', 'mail' => 'email',
+                'telepon', 'telp', 'phone', 'notelp', 'teleponhp', 'teleponfax', 'telfax', 'fax', 'telpfax' => 'phone',
+                'status', 'statusoperasional' => 'status',
+                'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat' => 'certificate_date',
+                'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi', 'masaberlakuakreditasiexpired', 'expiredakreditasi', 'tanggalkadaluarsa', 'exp' => 'expired_at',
+                'link', 'linkdrive', 'linkdrivedokumen', 'driveurl', 'tautandrive', 'tautan', 'linkdrivesertifikat', 'linkdriveamandemen', 'url', 'googledrive', 'linkberkas' => 'drive_url',
+                'catatan', 'keterangan', 'notes' => 'notes',
+                default => $clean,
+            };
+        }, $headerRaw);
+    }
+
+    /**
      * Parsing fleksibel format tanggal (ISO, d/m/Y, teks bulan Indonesia, dsb.)
      */
     protected function parseDateString(?string $date): ?string
@@ -355,7 +505,6 @@ class LpkImportController extends Controller
      */
     protected function normalizeGoogleSheetsUrl(string $url): string
     {
-        // Format standar: https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit#gid=0
         if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
             $sheetId = $matches[1];
             $gid = '0';
@@ -393,7 +542,6 @@ class LpkImportController extends Controller
                         if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
                             $targetUrl = trim($urlMatches[1]);
 
-                            // Unpack redirect Google jika ada (misal google.com/url?q=...)
                             if (str_contains($targetUrl, 'google.com/url?') && str_contains($targetUrl, 'q=')) {
                                 $parsed = parse_url($targetUrl);
                                 if (! empty($parsed['query'])) {

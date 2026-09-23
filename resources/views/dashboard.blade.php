@@ -79,12 +79,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary" style="font-size: 12px; padding: 4px 10px; min-height: 28px;">
-                                        Roadmap Siklus
+                                <div class="surveillance-alert-actions">
+                                    <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-sm">
+                                        Detail Siklus
                                     </a>
                                     @if(auth()->user()?->isAdmin())
-                                        <a href="{{ route('assessments.index') }}" class="button primary" style="font-size: 12px; padding: 4px 10px; min-height: 28px;">
+                                        <a href="{{ route('assessments.index') }}" class="button primary button-sm">
                                             Jadwalkan Kunjungan
                                         </a>
                                     @endif

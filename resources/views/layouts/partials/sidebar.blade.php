@@ -13,9 +13,9 @@
             {{-- Menu Khusus PIC Laboratorium Terakreditasi --}}
             <div class="nav-section">
                 <span class="nav-section-title">Utama</span>
-                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
+                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Dasbor">
                     <x-icon name="dashboard" size="18" />
-                    <span class="nav-label">Ringkasan</span>
+                    <span class="nav-label">Dasbor</span>
                 </a>
             </div>
 
@@ -46,9 +46,9 @@
             {{-- Menu Administrator Unit Akreditasi Laboratorium --}}
             <div class="nav-section">
                 <span class="nav-section-title">Utama</span>
-                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Ringkasan">
+                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" data-tooltip="Dasbor">
                     <x-icon name="dashboard" size="18" />
-                    <span class="nav-label">Ringkasan</span>
+                    <span class="nav-label">Dasbor</span>
                 </a>
             </div>
 

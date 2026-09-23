@@ -45,6 +45,53 @@ class LpkImportTest extends TestCase
         $this->assertStringContainsString('LP-101-IDN', $content);
     }
 
+    public function test_admin_can_download_import_template_xlsx(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('lpks.import.template', ['format' => 'xlsx']));
+
+        $response->assertOk();
+        $this->assertStringContainsString('template-import-lpk.xlsx', (string) $response->headers->get('content-disposition'));
+        $this->assertSame(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            $response->headers->get('content-type')
+        );
+    }
+
+    public function test_admin_can_import_lpks_from_xlsx_file(): void
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            ['nomor_registrasi', 'nama_lpk', 'ruang_lingkup', 'alamat', 'email', 'status', 'link_drive_dokumen'],
+            ['LP-888-IDN', 'Laboratorium Excel Mandiri', 'Pengujian Kimia', 'Jl. Sudirman 99', 'lab@excel.id', 'ACTIVE', 'https://drive.google.com/test-folder'],
+        ]);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'test_xlsx_') . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        $file = new UploadedFile($tempPath, 'lpk-data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
+
+        $response = $this->actingAs($this->admin)->post(route('lpks.import'), [
+            'csv_file' => $file,
+        ]);
+
+        if (file_exists($tempPath)) {
+            @unlink($tempPath);
+        }
+
+        $response->assertRedirect(route('lpks.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-888-IDN',
+            'name' => 'Laboratorium Excel Mandiri',
+            'scope' => 'Pengujian Kimia',
+            'email' => 'lab@excel.id',
+            'drive_url' => 'https://drive.google.com/test-folder',
+        ]);
+    }
+
     public function test_pic_is_forbidden_from_importing_or_downloading_template(): void
     {
         $templateResponse = $this->actingAs($this->pic)->get(route('lpks.import.template'));
