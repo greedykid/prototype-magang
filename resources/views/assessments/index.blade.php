@@ -59,7 +59,7 @@
                         <th>Tindakan Perbaikan (TP)</th>
                         <th>Biaya Asesor</th>
                         <th>Status Asesmen</th>
-                        <th></th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>

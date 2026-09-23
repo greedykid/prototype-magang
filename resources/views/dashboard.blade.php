@@ -8,12 +8,12 @@
             <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()->name }}.</h1>
             <p class="lede">Ringkasan operasional kepatuhan akreditasi, surveilen KAN, dan agenda penugasan asesmen.</p>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div class="dashboard-header-actions">
             @if(auth()->user()?->isAdmin())
                 <a class="button secondary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a>
             @endif
             <a class="button secondary" href="{{ route('calendar.index') }}"><x-icon name="calendar" size="16" /><span>Kalender Kerja</span></a>
-            <a class="button primary" href="{{ route('issues.create') }}"><x-icon name="plus" size="16" /><span>Buat laporan masalah</span></a>
+            <a class="button primary" href="{{ route('issues.create') }}"><x-icon name="plus" size="16" /><span>Lapor Masalah</span></a>
         </div>
     </div>
 

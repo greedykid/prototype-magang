@@ -7,6 +7,30 @@
     margin: 0 0 6px 0 !important;
 }
 
+/* Dashboard Header Actions */
+.dashboard-header-actions {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.dashboard-header-actions .button {
+    font-size: 13px;
+    padding: 8px 14px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 12px;
+    }
+}
+
 .metric-grid { display: grid; gap: 14px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 28px; }
 .metric, .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
 .metric { min-height: 143px; padding: 20px; transition: transform 220ms var(--ease-out-expo), box-shadow 220ms var(--ease-out-expo), border-color 200ms ease; }.metric:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -6px rgba(26, 26, 26, 0.08); border-color: #d6d2cb; }.metric span, .metric small { color: var(--muted); display: block; }.metric strong { display: block; font: 600 2.5rem/1.1 'Instrument Sans', sans-serif; letter-spacing: -.04em; margin: 13px 0 6px; }.metric.warn strong { color: var(--terracotta); }
