@@ -713,6 +713,52 @@ class PrototypeFlowTest extends TestCase
         $lpk->update(['name' => 'Lab Otomatis Asesmen Updated']);
         $this->assertEquals(3, $lpk->assessments()->count());
     }
+
+    public function test_user_can_input_sk_number_and_date_when_tp_completed(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lpk = Lpk::factory()->create();
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Uji Coba SK',
+            'assessment_type' => 'Surveilen',
+            'status' => 'COMPLETED',
+            'tp_status' => 'IN_PROGRESS',
+        ]);
+
+        // 1. Update via modal TP update route
+        $response = $this->actingAs($admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => 'SATISFIED',
+            'tp_satisfied_at' => '2026-09-24',
+            'sk_number' => 'SK.KAN.042/BSN/IX/2026',
+            'sk_date' => '2026-09-24',
+            'tp_notes' => 'Tindakan perbaikan telah diverifikasi dan SK terbit.',
+        ]);
+
+        $response->assertRedirect();
+        $assessment->refresh();
+
+        $this->assertEquals('SATISFIED', $assessment->tp_status);
+        $this->assertEquals('SK.KAN.042/BSN/IX/2026', $assessment->sk_number);
+        $this->assertEquals('2026-09-24', $assessment->sk_date->toDateString());
+
+        // 2. Verify display on show page
+        $showResponse = $this->actingAs($admin)->get(route('assessments.show', $assessment));
+        $showResponse->assertOk();
+        $showResponse->assertSee('SK.KAN.042/BSN/IX/2026');
+        $showResponse->assertSee('24 Sep 2026');
+
+        // 3. Verify display on index page
+        $indexResponse = $this->actingAs($admin)->get(route('assessments.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('SK: SK.KAN.042/BSN/IX/2026');
+
+        // 4. Verify display on LPK show page
+        $lpkResponse = $this->actingAs($admin)->get(route('lpks.show', $lpk));
+        $lpkResponse->assertOk();
+        $lpkResponse->assertSee('SK.KAN.042/BSN/IX/2026');
+    }
 }
 
 

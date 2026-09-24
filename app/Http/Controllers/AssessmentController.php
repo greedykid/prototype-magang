@@ -118,6 +118,8 @@ class AssessmentController extends Controller
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
             'tp_notes' => ['nullable', 'string'],
+            'sk_number' => ['nullable', 'string', 'max:150'],
+            'sk_date' => ['nullable', 'date'],
         ]);
 
         $validated['tp_has_extension'] = $request->boolean('tp_has_extension');
@@ -151,6 +153,8 @@ class AssessmentController extends Controller
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
             'tp_notes' => ['nullable', 'string'],
+            'sk_number' => ['nullable', 'string', 'max:150'],
+            'sk_date' => ['nullable', 'date'],
         ]);
     }
 }

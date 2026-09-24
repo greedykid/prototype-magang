@@ -132,6 +132,30 @@
             </div>
         </div>
 
+        {{-- Section: Keputusan Akreditasi / SK KAN --}}
+        <div id="form-sk-block" style="padding: 14px; background: #ffffff; border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text); display: block;">
+                        Surat Keputusan (SK) Hasil Asesmen / Akreditasi KAN
+                    </span>
+                    <small style="color: var(--muted); font-size: 11.5px;">Diisi jika tindakan perbaikan telah selesai / memenuhi atau SK kelanjutan/re-akreditasi telah diterbitkan.</small>
+                </div>
+                <span class="badge-tp badge-tp-success" style="font-size: 11px;">Penyelesaian &amp; SK KAN</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                <label>
+                    Nomor SK KAN
+                    <input type="text" name="sk_number" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}">
+                </label>
+                <label>
+                    Tanggal SK
+                    <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}">
+                </label>
+            </div>
+        </div>
+
         <label>
             Catatan temuan &amp; tindakan perbaikan
             <textarea name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau tindakan koreksi yang dilakukan LPK...">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>

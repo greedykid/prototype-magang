@@ -118,6 +118,31 @@
         </div>
     </div>
 
+    {{-- SK KAN Hasil Asesmen / Kelanjutan Akreditasi --}}
+    @if($assessment->sk_number)
+        <div style="margin-bottom: 20px; padding: 14px 18px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.04em; display: block;">
+                        Surat Keputusan (SK) Hasil Asesmen Telah Terbit
+                    </span>
+                    <strong style="font-size: 15px; color: #14532d; letter-spacing: 0.01em;">{{ $assessment->sk_number }}</strong>
+                </div>
+            </div>
+            @if($assessment->sk_date)
+                <div style="text-align: right;">
+                    <span style="font-size: 11.5px; color: #15803d; display: block;">Tanggal Penerbitan SK</span>
+                    <strong style="font-size: 14px; color: #14532d;">{{ $assessment->sk_date->format('d M Y') }}</strong>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- Notes & Extension Details --}}
     @if($assessment->tp_notes || ($assessment->tp_has_extension && $assessment->tp_extension_notes))
         <div style="display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line);">

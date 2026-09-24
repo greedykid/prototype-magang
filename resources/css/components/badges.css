@@ -1,11 +1,13 @@
-.status, .priority { border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; letter-spacing: .01em; max-width: max-content; padding: 4px 9px; transition: transform 180ms var(--ease-out-expo), box-shadow 180ms ease; white-space: nowrap; width: fit-content; }.status:hover, .priority:hover { transform: scale(1.05); }
+.status, .priority { border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; letter-spacing: .01em; max-width: max-content; padding: 4px 9px; transition: transform 180ms var(--ease-out-expo), box-shadow 180ms ease; white-space: nowrap; width: fit-content; flex-shrink: 0; }.status:hover, .priority:hover { transform: scale(1.05); }
+.status-planned, .status-closed { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+.status-scheduled, .status-submitted { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 .status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }
-.status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released { background: var(--mint); border-color: #9bcda8; color: var(--green); }
+.status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--mint); border-color: #9bcda8; color: var(--green); }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }
 .status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due { background: #fff8e6; border-color: #f3d18c; color: #925400; }
 .status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
-.badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; max-width: 100%; box-sizing: border-box; }
+.badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; max-width: 100%; box-sizing: border-box; flex-shrink: 0; }
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge-role-admin { background: #fef3f2; border-color: #fecdca; color: #b42318; }
 .badge-role-pic { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
@@ -14,7 +16,7 @@
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
 
 /* Badges SLA Tindakan Perbaikan (TP & VTP) KAN */
-.badge-tp { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; padding: 2px 8px; width: fit-content; max-width: 100%; white-space: nowrap; }
+.badge-tp { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; padding: 2px 8px; width: fit-content; max-width: 100%; white-space: nowrap; flex-shrink: 0; }
 .badge-tp-neutral { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
 .badge-tp-success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
 .badge-tp-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }

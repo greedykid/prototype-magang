@@ -73,6 +73,17 @@
         <dt>Catatan</dt>
         <dd>{{ $assessment->notes ?: 'Belum ada catatan.' }}</dd>
     </div>
+    @if($assessment->sk_number)
+        <div>
+            <dt>Surat Keputusan (SK)</dt>
+            <dd>
+                <strong style="color: #15803d;">{{ $assessment->sk_number }}</strong>
+                @if($assessment->sk_date)
+                    <span style="color: var(--muted); font-size: 13px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
+                @endif
+            </dd>
+        </div>
+    @endif
 </section>
 
 @include('assessments.partials.tp-tracking')

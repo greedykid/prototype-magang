@@ -290,15 +290,24 @@
             </div>
 
             @forelse($lpk->assessments->sortBy('start_at') as $item)
-                <a class="list-row" href="{{ route('assessments.show', $item) }}">
-                    <div>
-                        <strong>{{ $item->title }}</strong>
-                        <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
+                <a class="assessment-list-row" href="{{ route('assessments.show', $item) }}">
+                    <div class="assessment-list-top">
+                        <div class="assessment-list-title-wrap">
+                            <strong class="assessment-list-title">{{ $item->title }}</strong>
+                        </div>
+                        <div class="assessment-list-badges">
+                            <x-status :value="$item->status" />
+                            @if($item->is_submission_overdue)
+                                <span class="badge-tp badge-tp-danger" style="font-size: 10px;" title="Toleransi pengisian asesmen telah terlampaui">Lewat Toleransi</span>
+                            @endif
+                        </div>
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px;">
-                        <x-status :value="$item->status" />
-                        @if($item->is_submission_overdue)
-                            <span class="badge-tp badge-tp-danger" style="font-size: 10px;">Lewat Toleransi</span>
+                    <div class="assessment-list-meta">
+                        <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
+                        @if($item->sk_number)
+                            <span class="assessment-list-sk">
+                                SK KAN: {{ $item->sk_number }} @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif
+                            </span>
                         @endif
                     </div>
                 </a>

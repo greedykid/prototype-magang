@@ -58,6 +58,8 @@ class Assessment extends Model
         'tp_extension_notes',
         'tp_satisfied_at',
         'tp_notes',
+        'sk_number',
+        'sk_date',
     ];
 
     protected function casts(): array
@@ -70,6 +72,7 @@ class Assessment extends Model
             'tp_extension_months' => 'integer',
             'tp_extension_date' => 'date',
             'tp_satisfied_at' => 'date',
+            'sk_date' => 'date',
         ];
     }
 

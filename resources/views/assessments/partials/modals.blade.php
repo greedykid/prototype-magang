@@ -141,6 +141,24 @@
                     </div>
                 </div>
 
+                {{-- Bagian SK Hasil Asesmen --}}
+                <div style="padding: 10px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; display: grid; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 12.5px; color: #166534; display: block;">Surat Keputusan (SK) Hasil Asesmen KAN</strong>
+                        <small style="color: #15803d; font-size: 11px;">Diisi jika tindakan perbaikan telah selesai / dinyatakan memenuhi dan terbit SK KAN.</small>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor SK KAN</span>
+                            <input type="text" name="sk_number" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                        </label>
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tanggal SK</span>
+                            <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                        </label>
+                    </div>
+                </div>
+
                 <label style="position: relative; z-index: 1;">
                     <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Catatan Temuan &amp; Bukti Tindakan Perbaikan</span>
                     <textarea name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau status kelengkapan bukti tindakan perbaikan LPK..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
