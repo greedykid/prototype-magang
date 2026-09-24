@@ -15,10 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('registration_number')->unique();
             $table->string('name');
+            $table->text('scope')->nullable();
+            $table->date('certificate_date')->nullable();
             $table->text('address')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('status')->default('ACTIVE');
+            $table->date('expired_at')->nullable();
+            $table->text('drive_url')->nullable();
+            $table->timestamp('last_surveillance_notified_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

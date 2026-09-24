@@ -167,6 +167,16 @@
         width: 260px;
     }
 
+    body.modal-open .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        z-index: 50 !important;
+    }
+
     html.sidebar-is-collapsed .app-shell,
     .app-shell.sidebar-collapsed {
         grid-template-columns: 72px minmax(0, 1fr);
@@ -175,6 +185,11 @@
     html.sidebar-is-collapsed .sidebar,
     .app-shell.sidebar-collapsed .sidebar {
         width: 72px;
+    }
+
+    html.sidebar-is-collapsed body.modal-open .sidebar,
+    .app-shell.sidebar-collapsed body.modal-open .sidebar {
+        width: 72px !important;
     }
 
     html.sidebar-is-collapsed .navbar-sidebar-toggle svg,

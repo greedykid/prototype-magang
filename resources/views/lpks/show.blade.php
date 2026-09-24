@@ -104,9 +104,9 @@
             <h2 style="margin: 0; font-size: 16px;">Siklus Pengawasan &amp; Re-Akreditasi</h2>
         </div>
         @if(auth()->user()?->isAdmin())
-            <a href="{{ route('assessments.index') }}" class="button secondary" style="font-size: 12.5px; padding: 4px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;">
+            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="button secondary" style="font-size: 12.5px; padding: 4px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;">
+                <x-icon name="plus" size="14" />
                 <span>Jadwalkan Asesmen Kunjungan</span>
-                <span aria-hidden="true">&rarr;</span>
             </a>
         @endif
     </div>
@@ -142,15 +142,23 @@
                 @endif
             </div>
             @if(auth()->user()?->isAdmin())
-                <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
-                    @csrf
-                    <input type="hidden" name="is_simulation" value="1">
-                    <input type="hidden" name="code" value="s1">
-                    <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email S1 ke PIC Lab">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>Simulasi Email S1</span>
-                    </button>
-                </form>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+                    @if(!$linkedS1)
+                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S1', 'target_date' => $s1['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
+                            <x-icon name="plus" size="13" />
+                            <span>Jadwalkan Kunjungan S1</span>
+                        </a>
+                    @endif
+                    <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}">
+                        @csrf
+                        <input type="hidden" name="is_simulation" value="1">
+                        <input type="hidden" name="code" value="s1">
+                        <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email S1 ke PIC Lab">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>Simulasi Email S1</span>
+                        </button>
+                    </form>
+                </div>
             @endif
         </div>
 
@@ -184,15 +192,23 @@
                 @endif
             </div>
             @if(auth()->user()?->isAdmin())
-                <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
-                    @csrf
-                    <input type="hidden" name="is_simulation" value="1">
-                    <input type="hidden" name="code" value="s2">
-                    <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email S2 ke PIC Lab">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>Simulasi Email S2</span>
-                    </button>
-                </form>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+                    @if(!$linkedS2)
+                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S2', 'target_date' => $s2['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
+                            <x-icon name="plus" size="13" />
+                            <span>Jadwalkan Kunjungan S2</span>
+                        </a>
+                    @endif
+                    <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}">
+                        @csrf
+                        <input type="hidden" name="is_simulation" value="1">
+                        <input type="hidden" name="code" value="s2">
+                        <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email S2 ke PIC Lab">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>Simulasi Email S2</span>
+                        </button>
+                    </form>
+                </div>
             @endif
         </div>
 
@@ -226,15 +242,23 @@
                 @endif
             </div>
             @if(auth()->user()?->isAdmin())
-                <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
-                    @csrf
-                    <input type="hidden" name="is_simulation" value="1">
-                    <input type="hidden" name="code" value="ra">
-                    <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email RA ke PIC Lab">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>Simulasi Email RA</span>
-                    </button>
-                </form>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+                    @if(!$linkedRA)
+                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'RA', 'target_date' => $ra['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
+                            <x-icon name="plus" size="13" />
+                            <span>Jadwalkan Re-asesmen</span>
+                        </a>
+                    @endif
+                    <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}">
+                        @csrf
+                        <input type="hidden" name="is_simulation" value="1">
+                        <input type="hidden" name="code" value="ra">
+                        <button type="submit" class="button secondary" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px; border-color: #cbd5e1; color: #334155; background: #ffffff;" title="Simulasikan kirim email RA ke PIC Lab">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>Simulasi Email RA</span>
+                        </button>
+                    </form>
+                </div>
             @endif
         </div>
     </div>

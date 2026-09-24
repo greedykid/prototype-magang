@@ -113,7 +113,11 @@
                                         <span aria-hidden="true">&rarr;</span>
                                     </a>
                                     @if(auth()->user()?->isAdmin())
-                                        <a href="{{ route('assessments.index') }}" class="button primary button-sm">
+                                        <a href="{{ route('assessments.create', [
+                                            'lpk_id' => $alert['lpk_id'],
+                                            'alert_code' => $alert['code'],
+                                            'target_date' => $alert['target_date'] ? $alert['target_date']->format('Y-m-d') : null,
+                                        ]) }}" class="button primary button-sm">
                                             <x-icon name="plus" size="14" />
                                             <span>Jadwalkan Kunjungan</span>
                                         </a>

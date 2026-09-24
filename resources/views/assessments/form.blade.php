@@ -13,6 +13,26 @@
 <form class="panel form-grid" method="POST" action="{{ $assessment->exists ? route('assessments.update', $assessment) : route('assessments.store') }}">
     @csrf
     @if($assessment->exists) @method('PUT') @endif
+
+    @if(!$assessment->exists && ($assessment->lpk_id || request('lpk_id')))
+        @php
+            $prefilledLpk = $lpks->firstWhere('id', old('lpk_id', $assessment->lpk_id ?: request('lpk_id')));
+        @endphp
+        @if($prefilledLpk)
+            <div class="full" style="background: #f0fdf4; border: 1px solid #86efac; border-left: 4px solid #16a34a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <x-icon name="check-circle" size="20" style="color: #16a34a; flex-shrink: 0;" />
+                    <div style="font-size: 13px; color: #166534;">
+                        <strong>Jadwal Kunjungan Otomatis Disiapkan:</strong> Form telah terisi berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->registration_number }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
+                    </div>
+                </div>
+                <span class="badge" style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+                    Auto Pre-filled
+                </span>
+            </div>
+        @endif
+    @endif
+
     <label class="full">
         LPK
         <select name="lpk_id" required>
@@ -24,7 +44,7 @@
     </label>
     <label class="full">
         Judul
-        <input name="title" value="{{ old('title', $assessment->title) }}" required>
+        <input name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required>
     </label>
     <label>
         Jenis asesmen (Standar KAN U-01)
@@ -64,11 +84,11 @@
     </label>
     <label>
         Lokasi
-        <input name="location" value="{{ old('location', $assessment->location) }}">
+        <input name="location" value="{{ old('location', $assessment->location ?: request('location')) }}">
     </label>
     <label>
         Lead assessor
-        <input name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor) }}">
+        <input name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: request('lead_assessor')) }}">
     </label>
     <label class="full">
         Catatan

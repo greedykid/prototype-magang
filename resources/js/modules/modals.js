@@ -14,6 +14,8 @@ export function returnModalToPlaceholder(modal) {
     }
 }
 
+let savedModalScrollY = 0;
+
 export function openModal(modalId) {
     let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) {
@@ -30,6 +32,11 @@ export function openModal(modalId) {
             }
             modal = document.getElementById(modalId);
         }
+    }
+
+    // Capture current scroll offset before body scroll-lock applies
+    if (!document.querySelector('.simasadi-modal.is-active')) {
+        savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     }
 
     // Teleport to document.body so modal escapes any ancestor containing block,
@@ -50,12 +57,18 @@ export function openModal(modalId) {
     modal.classList.add('is-active');
     document.body.classList.add('modal-open');
 
-    // Auto-focus first input on non-touch devices
+    // Auto-focus first input on non-touch devices without causing viewport jumps
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
     if (!isTouch) {
-        const focusable = modal.querySelector('input:not([type="hidden"]), select, textarea, button.primary');
+        const focusable = modal.querySelector('button.custom-select-trigger, input:not([type="hidden"]), select:not(.custom-select-native), textarea, button.primary');
         if (focusable) {
-            setTimeout(() => focusable.focus(), 60);
+            setTimeout(() => {
+                try {
+                    focusable.focus({ preventScroll: true });
+                } catch {
+                    focusable.focus();
+                }
+            }, 60);
         }
     }
 }
@@ -67,6 +80,9 @@ export function closeModal(modalIdOrEl) {
             returnModalToPlaceholder(m);
         });
         document.body.classList.remove('modal-open');
+        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+        }
         return;
     }
 
@@ -90,6 +106,9 @@ export function closeModal(modalIdOrEl) {
     // Remove body.modal-open only if no other modal is currently active
     if (!document.querySelector('.simasadi-modal.is-active')) {
         document.body.classList.remove('modal-open');
+        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+        }
     }
 }
 

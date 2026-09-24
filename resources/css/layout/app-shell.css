@@ -2,6 +2,12 @@
 
 .main-content { min-width: 0; }
 
+@media (min-width: 901px) {
+    .main-content {
+        grid-column: 2;
+    }
+}
+
 .page-wrap { margin: 0 auto; max-width: 1720px; padding: clamp(20px, 2.5vw, 36px) clamp(16px, 2vw, 32px); }
 .page-heading { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 32px; }
 .page-heading > div:first-child { min-width: 0; flex: 1 1 300px; }

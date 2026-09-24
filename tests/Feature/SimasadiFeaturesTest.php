@@ -171,4 +171,38 @@ class SimasadiFeaturesTest extends TestCase
         // Now release ready!
         $this->assertTrue($accreditation->fresh()->isReleaseReady());
     }
+
+    public function test_can_prefill_assessment_schedule_from_surveillance_alert(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create([
+            'name' => 'Laboratorium Uji Mutu Unggul',
+            'registration_number' => 'LP-999-IDN',
+            'address' => 'Jl. Sangkuriang No. 1, Kota Bandung',
+        ]);
+
+        // 1. Test prefill with S1 alert
+        $response = $this->actingAs($user)->get(route('assessments.create', [
+            'lpk_id' => $lpk->id,
+            'alert_code' => 'S1',
+            'target_date' => '2026-10-15',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('Jadwal Kunjungan Otomatis Disiapkan');
+        $response->assertSee('Laboratorium Uji Mutu Unggul');
+        $response->assertSee('Surveilen 1 Siklus KAN - Laboratorium Uji Mutu Unggul');
+        $response->assertSee('Kota Bandung');
+        $response->assertSee('2026-10-15T09:00');
+
+        // 2. Test prefill with RA (Re-Akreditasi) alert
+        $responseRA = $this->actingAs($user)->get(route('assessments.create', [
+            'lpk_id' => $lpk->id,
+            'alert_code' => 'RA',
+            'target_date' => '2026-12-01',
+        ]));
+
+        $responseRA->assertOk();
+        $responseRA->assertSee('Re-asesmen Siklus KAN - Laboratorium Uji Mutu Unggul');
+    }
 }
