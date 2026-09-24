@@ -307,6 +307,9 @@
                         @if($item->sk_number)
                             <span class="assessment-list-sk">
                                 SK KAN: {{ $item->sk_number }} @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif
+                                @if($item->sk_lead_time_days !== null)
+                                    &bull; <span style="font-weight: 500; color: #475569;">Durasi: {{ $item->sk_lead_time_days }} hari</span>
+                                @endif
                             </span>
                         @endif
                     </div>

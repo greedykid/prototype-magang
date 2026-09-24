@@ -16,7 +16,7 @@
         @endif
     </div>
     @if(isset($actions) || (isset($slot) && $slot->isNotEmpty()))
-        <div class="page-heading-actions" style="display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="page-heading-actions" style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-left: auto; flex-shrink: 0;">
             {{ $actions ?? $slot }}
         </div>
     @endif

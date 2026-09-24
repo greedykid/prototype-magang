@@ -257,6 +257,64 @@ class Assessment extends Model
         ];
     }
 
+    /**
+     * Hitung rentang durasi (dalam hari kalender) dari pelaksanaan asesmen hingga tanggal penerbitan SK.
+     * Menggunakan tanggal selesai asesmen (end_at) atau tanggal mulai (start_at) sebagai titik awal.
+     */
+    public function getSkLeadTimeDaysAttribute(): ?int
+    {
+        $baseDate = $this->end_at ?? $this->start_at;
+        if (! $baseDate || ! $this->sk_date) {
+            return null;
+        }
+
+        return (int) $baseDate->copy()->startOfDay()->diffInDays($this->sk_date->copy()->startOfDay(), false);
+    }
+
+    /**
+     * Label representatif untuk rentang waktu pelaksanaan asesmen sampai tanggal SK.
+     * Contoh: "74 hari (2 bulan 14 hari)", "15 hari", atau "0 hari (pada hari pelaksanaan)".
+     */
+    public function getSkLeadTimeLabelAttribute(): ?string
+    {
+        $days = $this->sk_lead_time_days;
+        if ($days === null) {
+            return null;
+        }
+
+        if ($days < 0) {
+            return abs($days) . ' hari sebelum asesmen';
+        }
+
+        if ($days === 0) {
+            return '0 hari (pada hari pelaksanaan)';
+        }
+
+        $baseDate = ($this->end_at ?? $this->start_at)->copy()->startOfDay();
+        $skDate = $this->sk_date->copy()->startOfDay();
+        $diff = $baseDate->diff($skDate);
+
+        $parts = [];
+        if ($diff->y > 0) {
+            $parts[] = $diff->y . ' tahun';
+        }
+        if ($diff->m > 0) {
+            $parts[] = $diff->m . ' bulan';
+        }
+        if ($diff->d > 0) {
+            $parts[] = $diff->d . ' hari';
+        }
+
+        $detailed = !empty($parts) ? implode(' ', $parts) : ($days . ' hari');
+
+        if ($diff->y > 0 || $diff->m > 0) {
+            return "{$days} hari ({$detailed})";
+        }
+
+        return "{$days} hari";
+    }
+
+
     protected static function booted(): void
     {
         static::saving(function (Assessment $assessment): void {

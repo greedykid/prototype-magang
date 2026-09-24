@@ -3,24 +3,21 @@
 @section('title', 'Program Asesmen | SIMASADI')
 
 @section('content')
-<div class="page-heading">
-    <div>
-        <h1>Program asesmen</h1>
-        <p class="lede">Jadwal dan progres asesmen semua LPK.</p>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
-            <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-            <span>Google Sheets & Ekspor</span>
-        </button>
-        @if(auth()->user()?->isAdmin())
-            <a class="button primary" href="{{ route('assessments.create') }}">
-                <x-icon name="plus" size="16" />
-                <span>Tambah asesmen</span>
-            </a>
-        @endif
-    </div>
-</div>
+<x-page-header
+    title="Program asesmen"
+    subtitle="Jadwal dan progres asesmen semua LPK."
+>
+    <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
+        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
+        <span>Google Sheets & Ekspor</span>
+    </button>
+    @if(auth()->user()?->isAdmin())
+        <a class="button primary" href="{{ route('assessments.create') }}">
+            <x-icon name="plus" size="16" />
+            <span>Tambah asesmen</span>
+        </a>
+    @endif
+</x-page-header>
 <section class="panel">
     <form class="table-filters" method="GET">
         <div class="table-filter-grid">
@@ -70,8 +67,11 @@
                                 <span>{{ $assessment->assessment_type_label }}</span>
                                 @if($assessment->sk_number)
                                     <div style="margin-top: 3px;">
-                                        <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK Terbit: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date->format('d/m/Y') . ')' : '' }}">
+                                        <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date->format('d/m/Y') . ')' : '' }} {{ $assessment->sk_lead_time_label ? '• Rentang: ' . $assessment->sk_lead_time_label : '' }}">
                                             SK: {{ $assessment->sk_number }}
+                                            @if($assessment->sk_lead_time_days !== null)
+                                                ({{ $assessment->sk_lead_time_days }} hr)
+                                            @endif
                                         </span>
                                     </div>
                                 @endif

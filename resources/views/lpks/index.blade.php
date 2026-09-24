@@ -7,22 +7,20 @@
     title="Daftar LPK"
     subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi LPK."
 >
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
-            <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-            <span>Google Sheets & Ekspor</span>
+    <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
+        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
+        <span>Google Sheets & Ekspor</span>
+    </button>
+    @if(auth()->user()?->isAdmin())
+        <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
+            <x-icon name="upload" size="16" />
+            <span>Impor LPK</span>
         </button>
-        @if(auth()->user()?->isAdmin())
-            <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
-                <x-icon name="upload" size="16" />
-                <span>Impor LPK</span>
-            </button>
-            <a class="button primary" href="{{ route('lpks.create') }}">
-                <x-icon name="plus" size="16" />
-                <span>Tambah LPK</span>
-            </a>
-        @endif
-    </div>
+        <a class="button primary" href="{{ route('lpks.create') }}">
+            <x-icon name="plus" size="16" />
+            <span>Tambah LPK</span>
+        </a>
+    @endif
 </x-page-header>
 
 <section class="panel">

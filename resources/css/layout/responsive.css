@@ -344,15 +344,19 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         width: 100% !important;
     }
 
-    .heading-actions {
+    .heading-actions,
+    .page-heading-actions {
         align-items: stretch !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 10px !important;
         width: 100% !important;
+        margin-left: 0 !important;
     }
 
-    .heading-actions .button {
+    .heading-actions .button,
+    .page-heading-actions .button,
+    .page-heading-actions a.button {
         justify-content: center !important;
         min-height: 44px !important;
         width: 100% !important;

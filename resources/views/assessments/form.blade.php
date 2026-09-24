@@ -154,6 +154,12 @@
                     <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}">
                 </label>
             </div>
+            @if($assessment->sk_lead_time_label)
+                <div style="font-size: 12px; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 4px;">
+                    <strong>Rentang Proses:</strong> {{ $assessment->sk_lead_time_label }}
+                    (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->format('d M Y') }} s/d SK {{ $assessment->sk_date->format('d M Y') }})
+                </div>
+            @endif
         </div>
 
         <label>

@@ -10,6 +10,7 @@ use App\Models\Issue;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PrototypeFlowTest extends TestCase
@@ -758,6 +759,43 @@ class PrototypeFlowTest extends TestCase
         $lpkResponse = $this->actingAs($admin)->get(route('lpks.show', $lpk));
         $lpkResponse->assertOk();
         $lpkResponse->assertSee('SK.KAN.042/BSN/IX/2026');
+    }
+
+    public function test_assessment_sk_lead_time_calculation_and_display(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $lpk = Lpk::factory()->create();
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Uji Lead Time',
+            'assessment_type' => 'SURVEILLANCE',
+            'status' => 'COMPLETED',
+            'start_at' => Carbon::parse('2026-07-08 09:00:00'),
+            'end_at' => Carbon::parse('2026-07-10 16:00:00'),
+            'sk_number' => 'SK.KAN.099/BSN/IX/2026',
+            'sk_date' => Carbon::parse('2026-09-24'),
+        ]);
+
+        $this->assertEquals(76, $assessment->sk_lead_time_days);
+        $this->assertStringContainsString('76 hari', $assessment->sk_lead_time_label);
+        $this->assertStringContainsString('2 bulan 14 hari', $assessment->sk_lead_time_label);
+
+        // Verify displayed on assessment detail page
+        $showResponse = $this->actingAs($admin)->get(route('assessments.show', $assessment));
+        $showResponse->assertOk();
+        $showResponse->assertSee('Rentang Proses:');
+        $showResponse->assertSee('76 hari');
+
+        // Verify displayed on assessment index page
+        $indexResponse = $this->actingAs($admin)->get(route('assessments.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('76 hr');
+
+        // Verify displayed on LPK show page
+        $lpkResponse = $this->actingAs($admin)->get(route('lpks.show', $lpk));
+        $lpkResponse->assertOk();
+        $lpkResponse->assertSee('Durasi: 76 hari');
     }
 }
 

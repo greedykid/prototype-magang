@@ -73,13 +73,22 @@
         <dt>Catatan</dt>
         <dd>{{ $assessment->notes ?: 'Belum ada catatan.' }}</dd>
     </div>
-    @if($assessment->sk_number)
+    @if($assessment->sk_number || $assessment->sk_date)
         <div>
             <dt>Surat Keputusan (SK)</dt>
             <dd>
-                <strong style="color: #15803d;">{{ $assessment->sk_number }}</strong>
+                @if($assessment->sk_number)
+                    <strong style="color: #15803d;">{{ $assessment->sk_number }}</strong>
+                @endif
                 @if($assessment->sk_date)
                     <span style="color: var(--muted); font-size: 13px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
+                @endif
+                @if($assessment->sk_lead_time_label)
+                    <div style="margin-top: 4px;">
+                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
+                            Rentang Proses: {{ $assessment->sk_lead_time_label }}
+                        </span>
+                    </div>
                 @endif
             </dd>
         </div>

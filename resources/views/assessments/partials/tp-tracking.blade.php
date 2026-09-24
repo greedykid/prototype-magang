@@ -138,6 +138,11 @@
                 <div style="text-align: right;">
                     <span style="font-size: 11.5px; color: #15803d; display: block;">Tanggal Penerbitan SK</span>
                     <strong style="font-size: 14px; color: #14532d;">{{ $assessment->sk_date->format('d M Y') }}</strong>
+                    @if($assessment->sk_lead_time_label)
+                        <span style="display: block; font-size: 11px; color: #166534; font-weight: 600; margin-top: 2px;" title="Durasi sejak akhir pelaksanaan asesmen hingga tanggal SK">
+                            Rentang: {{ $assessment->sk_lead_time_label }}
+                        </span>
+                    @endif
                 </div>
             @endif
         </div>
