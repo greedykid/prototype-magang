@@ -109,11 +109,13 @@
                                 </div>
                                 <div class="surveillance-alert-actions">
                                     <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-sm">
-                                        Lihat Detail
+                                        <span>Lihat Detail</span>
+                                        <span aria-hidden="true">&rarr;</span>
                                     </a>
                                     @if(auth()->user()?->isAdmin())
                                         <a href="{{ route('assessments.index') }}" class="button primary button-sm">
-                                            Jadwalkan Kunjungan
+                                            <x-icon name="plus" size="14" />
+                                            <span>Jadwalkan Kunjungan</span>
                                         </a>
                                     @endif
                                 </div>
@@ -166,7 +168,8 @@
                                 </div>
                                 <div class="surveillance-alert-actions">
                                     <a href="{{ route('assessments.show', $assessment) }}" class="button secondary button-sm">
-                                        Periksa TP
+                                        <span>Periksa TP</span>
+                                        <span aria-hidden="true">&rarr;</span>
                                     </a>
                                 </div>
                             </div>

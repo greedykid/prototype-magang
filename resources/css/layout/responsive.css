@@ -171,22 +171,20 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         overflow: hidden;
     }
 
-    .context-label {
-        font-size: 11px;
-        line-height: 1.2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    .context-label,
+    .topbar .context-label {
+        display: none !important;
     }
 
-    .context-title {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.3;
-        margin-top: 2px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    .context-title,
+    .topbar .context-title {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        line-height: 1.25 !important;
+        margin-top: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
 
     .topbar .badge-role,
@@ -328,8 +326,15 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     .page-heading {
         align-items: stretch !important;
         flex-direction: column !important;
-        gap: 16px !important;
-        margin-bottom: 24px !important;
+        gap: 12px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .page-heading > div:first-child {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
     }
 
     .page-heading h1 {
@@ -345,21 +350,39 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     }
 
     .heading-actions,
-    .page-heading-actions {
+    .page-heading-actions,
+    .dashboard-header-actions {
         align-items: stretch !important;
         display: flex !important;
-        flex-direction: column !important;
+        flex-wrap: wrap !important;
         gap: 10px !important;
         width: 100% !important;
         margin-left: 0 !important;
+        margin-top: 4px !important;
     }
 
     .heading-actions .button,
+    .heading-actions a.button,
     .page-heading-actions .button,
-    .page-heading-actions a.button {
+    .page-heading-actions a.button,
+    .dashboard-header-actions .button,
+    .dashboard-header-actions a.button {
+        flex: 1 1 140px !important;
         justify-content: center !important;
         min-height: 44px !important;
-        width: 100% !important;
+        width: auto !important;
+    }
+
+    .heading-actions a.button.primary,
+    .page-heading-actions a.button.primary,
+    .dashboard-header-actions a.button.primary {
+        flex: 1 1 100% !important;
+    }
+
+    .table-filter-grid {
+        display: grid !important;
+        gap: 10px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .content-grid,
@@ -519,7 +542,287 @@ a, button, input, select, textarea, .list-row, .pagination-item {
    ========================================================================== */
 @media (max-width: 680px) {
     .page-wrap {
-        padding: 16px 14px 40px !important;
+        padding: 14px 12px 40px !important;
+    }
+
+    /* Mobile Topbar Compact Context */
+    .context-label,
+    .topbar .context-label {
+        display: none !important;
+    }
+
+    .context-title,
+    .topbar .context-title {
+        font-size: 13.5px !important;
+        line-height: 1.25 !important;
+    }
+
+    .topbar {
+        padding: 6px 14px !important;
+        min-height: 52px !important;
+    }
+
+    .topbar-actions {
+        gap: 8px !important;
+        align-items: center !important;
+    }
+
+    .topbar-notif-btn {
+        height: 38px !important;
+        width: 38px !important;
+        min-height: 38px !important;
+        min-width: 38px !important;
+    }
+
+    .topbar-user-btn {
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 2px 6px 2px 2px !important;
+    }
+
+    .topbar-user-btn .user-avatar {
+        height: 32px !important;
+        width: 32px !important;
+        font-size: 11.5px !important;
+    }
+
+    /* Mobile Panels & Containers */
+    .panel {
+        padding: 16px 14px !important;
+        border-radius: 8px !important;
+    }
+
+    .panel-head {
+        margin-bottom: 12px !important;
+    }
+
+    .empty {
+        padding: 14px 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* Mobile Persistent Surveillance Banner (Eliminates Height Expansion Bug) */
+    .persistent-surveillance-banner {
+        padding: 12px 14px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .persistent-surveillance-banner-inner,
+    .persistent-surveillance-banner > div {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .persistent-surveillance-banner-main,
+    .persistent-surveillance-banner > div > div:first-child {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
+    }
+
+    .persistent-surveillance-banner-action,
+    .persistent-surveillance-banner > div > div:last-child {
+        margin-top: 2px !important;
+        width: 100% !important;
+    }
+
+    .persistent-surveillance-banner-action .button,
+    .persistent-surveillance-banner .button {
+        width: 100% !important;
+        min-height: 42px !important;
+        justify-content: center !important;
+    }
+
+    /* Mobile Dashboard Header & Actions */
+    .page-heading {
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .page-heading > div:first-child {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
+    }
+
+    .dashboard-greeting {
+        font-size: 19px !important;
+        line-height: 1.3 !important;
+        margin-bottom: 4px !important;
+    }
+
+    .page-heading .lede {
+        font-size: 12.5px !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
+    }
+
+    .dashboard-header-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 4px !important;
+    }
+
+    .dashboard-header-actions .button,
+    .dashboard-header-actions a.button {
+        flex: 1 1 calc(50% - 4px) !important;
+        min-height: 42px !important;
+        font-size: 13px !important;
+        padding: 8px 10px !important;
+        justify-content: center !important;
+    }
+
+    .dashboard-header-actions a.button.primary {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+
+    /* Mobile Surveillance Alerts */
+    .surveillance-alert-panel {
+        padding: 14px 12px !important;
+    }
+
+    .surveillance-alert-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .surveillance-alert-item {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 12px 14px !important;
+        gap: 10px !important;
+        background: #ffffff !important;
+        border: 1px solid var(--line, #e2e8f0) !important;
+        border-radius: 8px !important;
+    }
+
+    .surveillance-alert-actions {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 4px !important;
+    }
+
+    .surveillance-alert-actions .button {
+        justify-content: center !important;
+        min-height: 42px !important;
+        width: 100% !important;
+        font-size: 13px !important;
+    }
+
+    .surveillance-alert-actions .button.secondary {
+        background: #f8fafc !important;
+        border: 1.5px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        font-weight: 600 !important;
+    }
+
+    .surveillance-alert-actions .button.secondary:hover,
+    .surveillance-alert-actions .button.secondary:focus-visible {
+        background: #f1f5f9 !important;
+        border-color: #94a3b8 !important;
+    }
+
+    /* Agenda Lapangan (Field Agenda) Mobile Reflow */
+    .agenda-card {
+        display: grid !important;
+        grid-template-columns: 46px 1fr !important;
+        gap: 8px 12px !important;
+        padding: 12px !important;
+        align-items: start !important;
+        border-radius: 8px !important;
+    }
+
+    .agenda-card-date {
+        grid-row: 1 / 3 !important;
+        min-width: 46px !important;
+        width: 46px !important;
+        padding: 6px 4px !important;
+    }
+
+    .agenda-card-main {
+        grid-column: 2 !important;
+        min-width: 0 !important;
+    }
+
+    .agenda-card-title {
+        white-space: normal !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+        font-size: 13.5px !important;
+    }
+
+    .agenda-card-meta {
+        font-size: 12px !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+    }
+
+    .agenda-card > .status {
+        grid-column: 2 !important;
+        justify-self: start !important;
+        margin-top: 4px !important;
+    }
+
+    /* General Table Filters & Actions on Mobile */
+    .table-filters {
+        margin-bottom: 16px !important;
+        padding-bottom: 14px !important;
+    }
+
+    .table-filter-grid {
+        display: grid !important;
+        gap: 10px !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .table-filter-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-top: 12px !important;
+        width: 100% !important;
+    }
+
+    .table-filter-actions .button,
+    .table-filter-actions a.button {
+        justify-content: center !important;
+        min-height: 44px !important;
+        width: 100% !important;
+    }
+
+    /* Compliance & System Health Items on Mobile */
+    .compliance-item {
+        padding: 10px 12px !important;
+        gap: 10px !important;
+    }
+
+    .system-health-row {
+        padding: 10px 0 !important;
+        font-size: 13px !important;
+    }
+
+    /* Modal Form Actions on Mobile */
+    .modal-form-actions {
+        flex-direction: column-reverse !important;
+        gap: 8px !important;
+        padding: 14px 16px !important;
+        margin-left: -16px !important;
+        margin-right: -16px !important;
+    }
+
+    .modal-form-actions .button {
+        justify-content: center !important;
+        min-height: 44px !important;
+        width: 100% !important;
     }
 
     /* Google Calendar Toolbar Reflow */
@@ -1078,15 +1381,37 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         font-weight: 600 !important;
     }
 
-    /* Metrics & Cards */
+    /* Metrics & Cards (Balanced 2-Column Grid on Mobile) */
+    .metric-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+
     .metric {
-        min-height: 105px !important;
-        padding: 14px !important;
+        min-height: 78px !important;
+        padding: 10px 12px !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    .metric span {
+        font-size: 11px !important;
+        line-height: 1.25 !important;
+        display: block !important;
     }
 
     .metric strong {
-        font-size: 1.85rem !important;
-        margin: 8px 0 4px !important;
+        font-size: 1.45rem !important;
+        line-height: 1.1 !important;
+        margin: 3px 0 2px !important;
+        display: block !important;
+    }
+
+    .metric small {
+        font-size: 10px !important;
+        line-height: 1.25 !important;
+        display: block !important;
     }
 
     .list-row {
@@ -1107,8 +1432,12 @@ a, button, input, select, textarea, .list-row, .pagination-item {
    4. Very Narrow Screens (max-width: 400px)
    ========================================================================== */
 @media (max-width: 400px) {
-    .metric-grid {
-        grid-template-columns: 1fr !important;
+    .metric {
+        padding: 8px 10px !important;
+    }
+
+    .metric strong {
+        font-size: 1.35rem !important;
     }
 
     .gcal-view-tab {

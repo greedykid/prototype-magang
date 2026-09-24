@@ -14,8 +14,8 @@
         </p>
     </div>
     @if(auth()->user()?->isAdmin())
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px;">
-            <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 16px;">
+        <div class="heading-actions" style="margin-top: 14px;">
+            <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
                 <x-icon name="edit" size="16" />
                 <span>Ubah asesmen</span>
             </a>
