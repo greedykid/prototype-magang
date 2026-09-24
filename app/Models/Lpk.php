@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Assessment;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -53,6 +55,131 @@ class Lpk extends Model
             'expired_at' => 'date',
             'last_surveillance_notified_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (Lpk $lpk): void {
+            $lpk->generateSurveillanceAssessments();
+        });
+
+        static::updated(function (Lpk $lpk): void {
+            if ($lpk->wasChanged(['certificate_date', 'expired_at'])) {
+                $lpk->generateSurveillanceAssessments();
+            }
+        });
+    }
+
+    /**
+     * Otomatis membuat agenda asesmen surveilen (S1, S2) dan Re-Akreditasi (RA)
+     * berdasarkan tanggal terbit sertifikat akreditasi LPK sesuai siklus KAN U-01.
+     */
+    public function generateSurveillanceAssessments(?int $creatorId = null): int
+    {
+        /** @var Carbon|null $certDate */
+        $certDate = $this->certificate_date ?: ($this->expired_at ? $this->expired_at->copy()->subYears(5) : null);
+        if (! $certDate) {
+            return 0;
+        }
+
+        $creatorId = $creatorId
+            ?: auth()->id()
+            ?: User::where('role', User::ROLE_ADMIN)->value('id')
+            ?: User::value('id');
+
+        if (! $creatorId) {
+            return 0;
+        }
+
+        $created = 0;
+
+        // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
+        $s1Target = $certDate->copy()->addMonths(15)->startOfDay()->setHour(9);
+        $s1Assessment = $this->assessments()
+            ->where(function ($q) {
+                $q->where('title', 'like', '%Surveilen 1%')
+                    ->orWhere('title', 'like', '%(S1)%')
+                    ->orWhere('title', 'like', '% S1 %');
+            })->first();
+
+        if (! $s1Assessment) {
+            $this->assessments()->create([
+                'created_by' => $creatorId,
+                'title' => "Asesmen Surveilen 1 (S1) - {$this->name}",
+                'assessment_type' => 'Surveilen',
+                'start_at' => $s1Target,
+                'end_at' => $s1Target->copy()->addDays(2)->setHour(17),
+                'location' => $this->address ?: 'Kantor / Fasilitas LPK',
+                'status' => 'PLANNED',
+                'notes' => 'Agenda asesmen surveilen berkala tahun pertama otomatis dijadwalkan sesuai siklus KAN (Bulan ke-15).',
+            ]);
+            $created++;
+        } elseif ($s1Assessment->status === 'PLANNED') {
+            $s1Assessment->update([
+                'start_at' => $s1Target,
+                'end_at' => $s1Target->copy()->addDays(2)->setHour(17),
+            ]);
+        }
+
+        // 2. Asesmen Surveilen 2 (S2): Bulan 36 (Target Kunjungan Bulan 36-39)
+        $s2Target = $certDate->copy()->addMonths(36)->startOfDay()->setHour(9);
+        $s2Assessment = $this->assessments()
+            ->where(function ($q) {
+                $q->where('title', 'like', '%Surveilen 2%')
+                    ->orWhere('title', 'like', '%(S2)%')
+                    ->orWhere('title', 'like', '% S2 %');
+            })->first();
+
+        if (! $s2Assessment) {
+            $this->assessments()->create([
+                'created_by' => $creatorId,
+                'title' => "Asesmen Surveilen 2 (S2) - {$this->name}",
+                'assessment_type' => 'Surveilen',
+                'start_at' => $s2Target,
+                'end_at' => $s2Target->copy()->addDays(2)->setHour(17),
+                'location' => $this->address ?: 'Kantor / Fasilitas LPK',
+                'status' => 'PLANNED',
+                'notes' => 'Agenda asesmen surveilen berkala tahun ketiga otomatis dijadwalkan sesuai siklus KAN (Bulan ke-36).',
+            ]);
+            $created++;
+        } elseif ($s2Assessment->status === 'PLANNED') {
+            $s2Assessment->update([
+                'start_at' => $s2Target,
+                'end_at' => $s2Target->copy()->addDays(2)->setHour(17),
+            ]);
+        }
+
+        // 3. Re-asesmen (RA): Bulan 54 (H-6 bulan sebelum masa berlaku 60 bulan berakhir)
+        $raTarget = $certDate->copy()->addMonths(54)->startOfDay()->setHour(9);
+        $raAssessment = $this->assessments()
+            ->where(function ($q) {
+                $q->where('title', 'like', '%Re-asesmen%')
+                    ->orWhere('title', 'like', '%Re-Akreditasi%')
+                    ->orWhere('title', 'like', '%(RA)%')
+                    ->orWhere('title', 'like', '% RA %')
+                    ->orWhereIn('assessment_type', ['Re-asesmen', 'REASSESSMENT']);
+            })->first();
+
+        if (! $raAssessment) {
+            $this->assessments()->create([
+                'created_by' => $creatorId,
+                'title' => "Asesmen Re-Akreditasi (Re-asesmen) - {$this->name}",
+                'assessment_type' => 'Re-asesmen',
+                'start_at' => $raTarget,
+                'end_at' => $raTarget->copy()->addDays(3)->setHour(17),
+                'location' => $this->address ?: 'Kantor / Fasilitas LPK',
+                'status' => 'PLANNED',
+                'notes' => 'Agenda re-asesmen siklus akreditasi ulang otomatis dijadwalkan sesuai siklus KAN (Bulan ke-54, H-6 bulan sebelum masa berlaku berakhir).',
+            ]);
+            $created++;
+        } elseif ($raAssessment->status === 'PLANNED') {
+            $raAssessment->update([
+                'start_at' => $raTarget,
+                'end_at' => $raTarget->copy()->addDays(3)->setHour(17),
+            ]);
+        }
+
+        return $created;
     }
 
     public function isExpired(): bool
@@ -175,9 +302,19 @@ class Lpk extends Model
 
         // Cek S1
         if ($milestones['s1']['notice_date']) {
-            $hasS1 = $assessments->contains(function ($item) use ($certDate) {
+            $hasS1 = $assessments->contains(function ($item) use ($certDate, $now) {
+                if ($item->status === 'PLANNED') {
+                    return false;
+                }
+
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
                 $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(10)) && $item->start_at->lte($certDate->copy()->addMonths(24));
+
+                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
+                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                    return false;
+                }
+
                 return $isSurv && ($isWithinRange || str_contains(strtolower($item->title ?: ''), 's1'));
             });
 
@@ -194,9 +331,19 @@ class Lpk extends Model
 
         // Cek S2
         if ($milestones['s2']['notice_date']) {
-            $hasS2 = $assessments->contains(function ($item) use ($certDate) {
+            $hasS2 = $assessments->contains(function ($item) use ($certDate, $now) {
+                if ($item->status === 'PLANNED') {
+                    return false;
+                }
+
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
                 $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(25)) && $item->start_at->lte($certDate->copy()->addMonths(44));
+
+                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
+                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                    return false;
+                }
+
                 return $isSurv && ($isWithinRange || str_contains(strtolower($item->title ?: ''), 's2'));
             });
 
@@ -213,7 +360,16 @@ class Lpk extends Model
 
         // Cek RA
         if ($milestones['ra']['notice_date']) {
-            $hasRA = $assessments->contains(function ($item) {
+            $hasRA = $assessments->contains(function ($item) use ($now) {
+                if ($item->status === 'PLANNED') {
+                    return false;
+                }
+
+                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
+                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                    return false;
+                }
+
                 return str_contains(strtolower($item->assessment_type ?: ''), 're-') || str_contains(strtolower($item->title ?: ''), 're-akreditasi') || str_contains(strtolower($item->title ?: ''), 'ra');
             });
 

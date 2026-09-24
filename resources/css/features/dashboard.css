@@ -280,6 +280,71 @@
     }
 }
 
+/* Simple Compact Green All-Clear Banner */
+.dashboard-safe-banner {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #16a34a;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.05);
+}
+
+.dashboard-safe-banner-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.dashboard-safe-banner-icon {
+    flex-shrink: 0;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-safe-banner-text {
+    font-size: 13px;
+    color: #166534;
+    line-height: 1.4;
+}
+
+.dashboard-safe-banner-text strong {
+    color: #14532d;
+    font-weight: 700;
+    margin-right: 4px;
+}
+
+.dashboard-safe-banner-badge {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .dashboard-safe-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
 /* Agenda Asesmen Terdekat */
 .agenda-list {
     display: flex;

@@ -111,15 +111,23 @@ body.modal-open {
 
 /* Modal Import Component */
 .simasadi-modal-box.modal-lg {
-    max-width: 600px;
+    max-width: 620px;
+    width: 100%;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    max-height: min(720px, calc(100vh - 48px));
+    max-height: min(720px, calc(100dvh - 48px));
     overflow: hidden;
 }
 
 .simasadi-modal-box.modal-lg .simasadi-modal-head {
-    padding: 20px 24px;
+    padding: 18px 24px;
     margin-bottom: 0;
     border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+    background: #ffffff;
+    z-index: 2;
 }
 
 .modal-head-title {
@@ -134,11 +142,42 @@ body.modal-open {
     font-weight: 700;
 }
 
+.modal-import-form,
+.simasadi-modal-box.modal-lg > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
 .modal-import-body {
     padding: 20px 24px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-import-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-import-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-import-body::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
+}
+
+.modal-import-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.6);
 }
 
 .modal-import-lead {
@@ -291,6 +330,8 @@ body.modal-open {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    flex-shrink: 0;
+    z-index: 2;
 }
 
 @media (max-width: 640px) {
@@ -315,6 +356,23 @@ body.modal-open {
         padding: 18px 22px;
         max-height: calc(100vh - 24px);
         max-height: calc(100dvh - 24px);
+    }
+
+    .simasadi-modal-box.modal-lg {
+        padding: 0;
+    }
+
+    .simasadi-modal-box.modal-lg .simasadi-modal-head {
+        padding: 14px 20px;
+    }
+
+    .modal-import-body {
+        padding: 16px 20px;
+        gap: 12px;
+    }
+
+    .import-modal-footer {
+        padding: 12px 20px;
     }
 
     .simasadi-modal-head {

@@ -87,6 +87,38 @@ class Assessment extends Model
     }
 
     /**
+     * Batas akhir toleransi pengisian hasil asesmen:
+     * Batas terakhir pada bulan dan tahun yang sama dengan waktu pelaksanaan/kunjungan (end_at).
+     * Contoh: Kunjungan 18 April 2026 -> Batas akhir 30 April 2026 (pada tahun 2026 yang sama).
+     */
+    public function getSubmissionDueDateAttribute(): ?Carbon
+    {
+        if (! $this->end_at) {
+            return null;
+        }
+
+        return $this->end_at->copy()->endOfMonth()->endOfDay();
+    }
+
+    /**
+     * Cek apakah pengisian asesmen telah melewati batas toleransi bulan dan tahun kunjungan.
+     * Jika sudah lewat dari akhir bulan waktu kunjungan dan belum berstatus COMPLETED, maka dikatakan sudah lewat jadwal asesmen.
+     */
+    public function getIsSubmissionOverdueAttribute(): bool
+    {
+        if (in_array($this->status, ['COMPLETED', 'CANCELLED'], true)) {
+            return false;
+        }
+
+        $dueDate = $this->submission_due_date;
+        if (! $dueDate) {
+            return false;
+        }
+
+        return now()->gt($dueDate);
+    }
+
+    /**
      * Hitung batas waktu default TP & VTP sesuai regulasi KAN:
      * - Akreditasi Awal: 3 bulan
      * - Survailen, PRL, Re-asesmen, Audit Kecukupan: 2 bulan
@@ -160,6 +192,10 @@ class Assessment extends Model
      */
     public function getTpStatusLabelAttribute(): string
     {
+        if (in_array($this->status, ['PLANNED', 'SCHEDULED'], true) && $this->tp_status === self::TP_STATUS_NONE) {
+            return 'Menunggu Pelaksanaan Asesmen';
+        }
+
         return self::TP_STATUSES[$this->tp_status] ?? ($this->tp_status ?: 'Nihil / Tidak Ada Temuan');
     }
 
@@ -168,6 +204,14 @@ class Assessment extends Model
      */
     public function getTpSlaBadgeAttribute(): array
     {
+        if (in_array($this->status, ['PLANNED', 'SCHEDULED'], true) && $this->tp_status === self::TP_STATUS_NONE) {
+            return [
+                'type' => 'neutral',
+                'label' => 'Belum Asesmen',
+                'detail' => 'Kunjungan asesmen belum dilaksanakan (belum ada temuan KNC)',
+            ];
+        }
+
         if ($this->tp_status === self::TP_STATUS_NONE) {
             return [
                 'type' => 'neutral',

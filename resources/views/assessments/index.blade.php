@@ -25,13 +25,13 @@
     <form class="table-filters" method="GET">
         <div class="table-filter-grid">
             <label>Cari agenda<input name="search" value="{{ $search }}" placeholder="Judul agenda"></label>
-            <label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label>
+            <label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
             <label>Jenis<select name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
             <label>Status<select name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Berjalan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
             <label>Status TP (SLA KAN)
                 <select name="tp_status">
                     <option value="">Semua status TP</option>
-                    <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Tidak Ada Temuan</option>
+                    <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
                     <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
                     <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
                     <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Overdue)</option>
@@ -69,7 +69,10 @@
                                 <strong>{{ $assessment->title }}</strong>
                                 <span>{{ $assessment->assessment_type_label }}</span>
                             </td>
-                            <td>{{ $assessment->lpk->name }}</td>
+                            <td>
+                                <strong>{{ $assessment->lpk->name }}</strong>
+                                <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500;">{{ $assessment->lpk->registration_number }}</span>
+                            </td>
                             <td>{{ $assessment->start_at->format('d M Y, H:i') }} WIB</td>
                             <td>
                                 @php $badge = $assessment->tp_sla_badge; @endphp
@@ -85,7 +88,16 @@
                                 </div>
                             </td>
                             <td><x-status :value="$assessment->expense ? $assessment->expense->status : 'BELUM_DILAPORKAN'" /></td>
-                            <td><x-status :value="$assessment->status" /></td>
+                            <td>
+                                <x-status :value="$assessment->status" />
+                                @if($assessment->is_submission_overdue)
+                                    <div style="margin-top: 3px;">
+                                        <span class="badge-tp badge-tp-danger" style="font-size: 10px; display: inline-block;" title="Toleransi pengisian asesmen (akhir bulan dan tahun yang sama dari waktu kunjungan) telah terlampaui">
+                                            Lewat Jadwal Asesmen
+                                        </span>
+                                    </div>
+                                @endif
+                            </td>
                             <td><a href="{{ route('assessments.show', $assessment) }}">Detail</a></td>
                         </tr>
                     @endforeach

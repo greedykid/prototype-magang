@@ -3,6 +3,34 @@
 @section('title', 'Ringkasan | SIMASADI')
 
 @section('content')
+    {{-- Notifikasi Hijau Tanda Kondisi Aman (Simple & Compact di Paling Atas) --}}
+    @php
+        $isAllClear = empty($globalSurveillanceAlerts)
+            && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty())
+            && empty($overdueIssueCount)
+            && empty($serviceIssueCount);
+    @endphp
+
+    @if($isAllClear)
+        <aside class="dashboard-safe-banner" role="status" aria-label="Status kepatuhan operasional">
+            <div class="dashboard-safe-banner-main">
+                <span class="dashboard-safe-banner-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </span>
+                <span class="dashboard-safe-banner-text">
+                    <strong>Semua Aman &amp; Kepatuhan Terkendali:</strong> Tidak ada tindakan mendesak yang diperlukan. Seluruh siklus pengawasan dan operasional berjalan optimal.
+                </span>
+            </div>
+            <span class="dashboard-safe-banner-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                Kondisi Normal
+            </span>
+        </aside>
+    @endif
+
     <div class="page-heading">
         <div>
             <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()->name }}.</h1>

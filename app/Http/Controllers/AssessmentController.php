@@ -59,7 +59,7 @@ class AssessmentController extends Controller
 
         return view('assessments.index', array_merge([
             'assessments' => $assessments,
-            'lpks' => Lpk::orderBy('name')->get(['id', 'name']),
+            'lpks' => Lpk::orderBy('registration_number')->get(['id', 'registration_number', 'name']),
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
         ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));

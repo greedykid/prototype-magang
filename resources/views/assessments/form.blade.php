@@ -18,7 +18,7 @@
         <select name="lpk_id" required>
             <option value="">Pilih LPK</option>
             @foreach($lpks as $lpk)
-                <option value="{{ $lpk->id }}" @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>{{ $lpk->name }}</option>
+                <option value="{{ $lpk->id }}" @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>
             @endforeach
         </select>
     </label>

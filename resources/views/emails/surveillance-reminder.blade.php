@@ -170,14 +170,14 @@
             <p style="margin-top: 0; font-size: 14px; word-break: break-word;">Kepada Yth. <strong>Tim PIC &amp; Analis Akreditasi Laboratorium BSN</strong>,</p>
             
             <p style="font-size: 14px; color: #334155; line-height: 1.6; word-break: break-word;">
-                Pemberitahuan Sistem Internal: Laboratorium Penilaian Kesesuaian (LPK) binaan <strong>{{ $lpk->name }}</strong> (No. Reg: {{ $lpk->registration_number }}) saat ini telah memasuki jendela waktu jatuh tempo pelaksanaan <strong>{{ $alert['name'] }}</strong>. Harap segera melakukan koordinasi dan tindak lanjut pengawasan.
+                Pemberitahuan Sistem Internal: Laboratorium Penilaian Kesesuaian (LPK) binaan <strong>{{ $lpk->name }}</strong> (No. Akreditasi: {{ $lpk->registration_number }}) saat ini telah memasuki jendela waktu jatuh tempo pelaksanaan <strong>{{ $alert['name'] }}</strong>. Harap segera melakukan koordinasi dan tindak lanjut pengawasan.
             </p>
 
             <!-- Detail LPK Box -->
             <div class="detail-card" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 20px 0; box-sizing: border-box;">
                 <table class="detail-table" style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;">
                     <tr>
-                        <td class="label-col" style="padding: 7px 10px 7px 0; color: #64748b; width: 34%; vertical-align: top; font-size: 12.5px; word-break: break-word;">Nomor Registrasi LPK</td>
+                        <td class="label-col" style="padding: 7px 10px 7px 0; color: #64748b; width: 34%; vertical-align: top; font-size: 12.5px; word-break: break-word;">Nomor Akreditasi</td>
                         <td class="val-col" style="padding: 7px 0; font-weight: bold; color: #0f172a; width: 66%; vertical-align: top; word-break: break-word;">{{ $lpk->registration_number }}</td>
                     </tr>
                     <tr>
@@ -238,12 +238,12 @@
                     <tr>
                         <td class="btn-col" style="width: 50%; padding-right: 6px; vertical-align: top;">
                             <a href="{{ route('lpks.show', $lpk) }}" class="btn-primary-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #0f172a; color: #ffffff !important; text-decoration: none; padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 44px; line-height: 20px; word-break: break-word;">
-                                Buka Rincian LPK di SIMASADI &rarr;
+                                Buka Rincian LPK di SIMASADI
                             </a>
                         </td>
                         <td class="btn-col" style="width: 50%; padding-left: 6px; vertical-align: top;">
                             <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="btn-schedule-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #059669; color: #ffffff !important; text-decoration: none; padding: 12px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 44px; line-height: 20px; word-break: break-word;">
-                                Jadwalkan Asesmen Lapangan &oplus;
+                                Jadwalkan Asesmen Lapangan
                             </a>
                         </td>
                     </tr>
@@ -262,7 +262,7 @@
 
                         @if($lpk->email)
                         <td class="btn-col" style="padding: 0 4px 6px 4px; vertical-align: top;">
-                            <a href="mailto:{{ $lpk->email }}?subject={{ rawurlencode('[Pemberitahuan KAN] Persiapan ' . $alert['name'] . ' - ' . $lpk->name . ' (' . $lpk->registration_number . ')') }}&body={{ rawurlencode("Yth. Pimpinan / Manajemen Mutu " . $lpk->name . ",\n\nSehubungan dengan siklus pemeliharaan akreditasi KAN, laboratorium Saudara telah memasuki periode pelaksanaan " . $alert['name'] . ".\n\nMohon menyampaikan konfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan kepada Sekretariat KAN.\n\nTerima kasih.\n\nTim Akreditasi Laboratorium BSN / KAN") }}" class="btn-sub-action" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
+                            <a href="mailto:{{ $lpk->email }}?subject={{ rawurlencode('[Pemberitahuan KAN] Persiapan ' . $alert['name'] . ' - ' . $lpk->registration_number) }}&body={{ rawurlencode("Yth. Pimpinan / Manajemen Mutu " . $lpk->name . ",\n\nSehubungan dengan siklus pemeliharaan akreditasi KAN, laboratorium Saudara telah memasuki periode pelaksanaan " . $alert['name'] . ".\n\nMohon menyampaikan konfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan kepada Sekretariat KAN.\n\nTerima kasih.\n\nTim Akreditasi Laboratorium BSN / KAN") }}" class="btn-sub-action" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
                                 Kirim Email Pemanggilan ke Lab
                             </a>
                         </td>

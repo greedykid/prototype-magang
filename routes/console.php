@@ -4,6 +4,7 @@ use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
 
 Artisan::command('inspire', function () {
@@ -113,5 +114,29 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
 
     $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
 })->purpose('Memeriksa jadwal jatuh tempo pengawasan KAN untuk seluruh LPK dan mengirim email pengingat ke staf/PIC internal Unit Akreditasi Laboratorium BSN.');
+
+Artisan::command('lpk:generate-assessments', function () {
+    $this->info('Menjalankan pembuatan otomatis agenda asesmen surveilen & re-akreditasi LPK...');
+
+    $lpks = \App\Models\Lpk::all();
+    $totalCreated = 0;
+
+    foreach ($lpks as $lpk) {
+        $count = $lpk->generateSurveillanceAssessments();
+        if ($count > 0) {
+            $this->line("  ✓ {$lpk->registration_number} ({$lpk->name}): {$count} agenda asesmen berhasil dibuat.");
+            $totalCreated += $count;
+        }
+    }
+
+    $this->info("Selesai! Sebanyak {$totalCreated} agenda asesmen surveilen berhasil dibuat/disinkronkan.");
+})->purpose('Otomatis membuat agenda asesmen surveilen (S1, S2) dan Re-Akreditasi (RA) untuk seluruh LPK berdasarkan siklus tanggal sertifikat KAN.');
+
+Schedule::command('lpk:check-surveillance')
+    ->dailyAt('07:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+
 
 

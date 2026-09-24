@@ -8,7 +8,7 @@
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-import-lpk')" aria-label="Tutup modal">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('lpks.import') }}" enctype="multipart/form-data">
+        <form class="modal-import-form" method="POST" action="{{ route('lpks.import') }}" enctype="multipart/form-data">
             @csrf
             <div class="modal-import-body">
                 <p class="modal-import-lead">

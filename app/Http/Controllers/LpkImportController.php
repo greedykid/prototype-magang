@@ -289,6 +289,7 @@ class LpkImportController extends Controller
                     'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
                     'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
                 ]);
+                $existing->generateSurveillanceAssessments();
                 $updatedCount++;
             } else {
                 Lpk::create([

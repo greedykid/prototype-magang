@@ -32,7 +32,8 @@ class PrototypeFlowTest extends TestCase
             ->assertSee('Selamat datang')
             ->assertSee('Asesmen Terdekat')
             ->assertSee('Finansial &amp; Administrasi', false)
-            ->assertSee('Keandalan Sistem');
+            ->assertSee('Keandalan Sistem')
+            ->assertSee('Semua Aman &amp; Kepatuhan Terkendali', false);
     }
 
     public function test_user_can_create_lpk(): void
@@ -578,6 +579,32 @@ class PrototypeFlowTest extends TestCase
         $this->assertSame('INACTIVE', $inactiveLpk->dynamic_status);
         $this->assertSame('Tidak Aktif', $inactiveLpk->dynamic_status_label);
 
+        // 5. Test tolerance for assessment filling (end of same month and year of visit)
+        $recentAssessment = Assessment::factory()->create([
+            'lpk_id' => $inactiveLpk->id,
+            'title' => 'Asesmen Baru Selesai Kunjungan',
+            'assessment_type' => 'SURVEILLANCE',
+            'status' => 'IN_PROGRESS',
+            'start_at' => now()->startOfMonth()->addDays(2),
+            'end_at' => now()->startOfMonth()->addDays(4),
+        ]);
+        $this->assertFalse($recentAssessment->is_submission_overdue);
+        $this->assertEquals($recentAssessment->end_at->copy()->endOfMonth()->endOfDay(), $recentAssessment->submission_due_date);
+        $this->assertEquals($recentAssessment->end_at->year, $recentAssessment->submission_due_date->year);
+        $this->assertEquals($recentAssessment->end_at->month, $recentAssessment->submission_due_date->month);
+
+        $overdueAssessment = Assessment::factory()->create([
+            'lpk_id' => $inactiveLpk->id,
+            'title' => 'Asesmen Lewat Toleransi Akhir Bulan',
+            'assessment_type' => 'SURVEILLANCE',
+            'status' => 'IN_PROGRESS',
+            'start_at' => now()->subMonth()->startOfMonth()->addDays(2),
+            'end_at' => now()->subMonth()->startOfMonth()->addDays(4),
+        ]);
+        $this->assertTrue($overdueAssessment->is_submission_overdue);
+        $this->assertEquals($overdueAssessment->end_at->year, $overdueAssessment->submission_due_date->year);
+        $this->assertEquals($overdueAssessment->end_at->month, $overdueAssessment->submission_due_date->month);
+
         // 5. LPK in notice window (14 months) -> SURVEILLANCE_DUE
         $dueLpk = Lpk::create([
             'registration_number' => 'LP-TEST-DUE',
@@ -629,6 +656,64 @@ class PrototypeFlowTest extends TestCase
         $filteredResponse->assertSee('Lab Badge Overdue');
         $filteredResponse->assertDontSee('Lab Badge Aktif Sejati');
     }
+
+    public function test_lpk_automatically_generates_surveillance_and_reaccreditation_assessments_on_creation(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $certDate = now()->toDateString();
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-AUTO-ASSESS-01',
+            'name' => 'Lab Otomatis Asesmen',
+            'status' => 'ACTIVE',
+            'certificate_date' => $certDate,
+            'expired_at' => now()->addYears(5)->toDateString(),
+            'address' => 'Jl. Pengujian No. 99, Jakarta',
+        ]);
+
+        // Pastikan 3 agenda asesmen otomatis terbuat
+        $assessments = $lpk->assessments()->orderBy('start_at')->get();
+        $this->assertCount(3, $assessments);
+
+        // 1. Asesmen Surveilen 1 (S1) - Bulan 15
+        $s1 = $assessments[0];
+        $this->assertStringContainsString('Surveilen 1', $s1->title);
+        $this->assertEquals('Surveilen', $s1->assessment_type);
+        $this->assertEquals('PLANNED', $s1->status);
+        $this->assertEquals(now()->addMonths(15)->format('Y-m'), $s1->start_at->format('Y-m'));
+
+        // 2. Asesmen Surveilen 2 (S2) - Bulan 36
+        $s2 = $assessments[1];
+        $this->assertStringContainsString('Surveilen 2', $s2->title);
+        $this->assertEquals('Surveilen', $s2->assessment_type);
+        $this->assertEquals('PLANNED', $s2->status);
+        $this->assertEquals(now()->addMonths(36)->format('Y-m'), $s2->start_at->format('Y-m'));
+
+        // 3. Asesmen Re-Akreditasi (RA) - Bulan 54
+        $ra = $assessments[2];
+        $this->assertStringContainsString('Re-Akreditasi', $ra->title);
+        $this->assertEquals('Re-asesmen', $ra->assessment_type);
+        $this->assertEquals('PLANNED', $ra->status);
+        $this->assertEquals(now()->addMonths(54)->format('Y-m'), $ra->start_at->format('Y-m'));
+
+        // Pastikan muncul pada halaman daftar asesmen
+        $this->actingAs($admin)->get(route('assessments.index', ['lpk_id' => $lpk->id]))
+            ->assertOk()
+            ->assertSee('Asesmen Surveilen 1 (S1) - Lab Otomatis Asesmen')
+            ->assertSee('Asesmen Surveilen 2 (S2) - Lab Otomatis Asesmen')
+            ->assertSee('Asesmen Re-Akreditasi (Re-asesmen) - Lab Otomatis Asesmen');
+
+        // Pastikan muncul pada halaman detail LPK
+        $this->actingAs($admin)->get(route('lpks.show', $lpk))
+            ->assertOk()
+            ->assertSee('Daftar Asesmen Surveilen')
+            ->assertSee('Asesmen Surveilen 1 (S1) - Lab Otomatis Asesmen');
+
+        // Pastikan update tanggal sertifikat tidak membuat duplikat
+        $lpk->update(['name' => 'Lab Otomatis Asesmen Updated']);
+        $this->assertEquals(3, $lpk->assessments()->count());
+    }
 }
+
 
 

@@ -3,8 +3,9 @@
 .main-content { min-width: 0; }
 
 .page-wrap { margin: 0 auto; max-width: 1720px; padding: clamp(20px, 2.5vw, 36px) clamp(16px, 2vw, 32px); }
-.page-heading { align-items: end; display: flex; gap: 30px; justify-content: space-between; margin-bottom: 37px; }
-.page-heading > div { min-width: 0; }
+.page-heading { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-bottom: 32px; }
+.page-heading > div { min-width: 0; flex: 1 1 300px; }
+.page-heading-actions { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
 .page-heading .back-link,
 .back-link {
     align-items: center;

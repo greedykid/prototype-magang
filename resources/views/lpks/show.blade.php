@@ -41,6 +41,23 @@
 @php
     $milestones = $lpk->surveillance_milestones;
     $activeAlerts = $lpk->getActiveSurveillanceAlerts();
+    $s1 = $milestones['s1'];
+    $s2 = $milestones['s2'];
+    $ra = $milestones['ra'];
+    $linkedS1 = $lpk->assessments->first(function ($a) use ($s1) {
+        return str_contains(strtolower($a->title), 's1')
+            || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s1['target_date'] && abs($a->start_at->diffInMonths($s1['target_date'])) <= 3);
+    });
+    $linkedS2 = $lpk->assessments->first(function ($a) use ($s2, $linkedS1) {
+        return (str_contains(strtolower($a->title), 's2')
+            || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s2['target_date'] && abs($a->start_at->diffInMonths($s2['target_date'])) <= 3))
+            && $a->id !== ($linkedS1?->id ?? null);
+    });
+    $linkedRA = $lpk->assessments->first(function ($a) {
+        return str_contains(strtolower($a->title), 'ra')
+            || str_contains(strtolower($a->title), 're-akreditasi')
+            || str_contains(strtolower($a->assessment_type), 're-');
+    });
 @endphp
 
 @if(!empty($activeAlerts))
@@ -96,7 +113,6 @@
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
         <!-- S1 Card -->
-        @php($s1 = $milestones['s1'])
         <div style="border: 1.5px solid {{ in_array($s1['status'], ['DUE', 'OVERDUE']) ? '#f43f5e' : 'var(--line, #e2e8f0)' }}; border-radius: 8px; padding: 16px; background: {{ in_array($s1['status'], ['DUE', 'OVERDUE']) ? '#fff1f2' : 'var(--surface-subtle, #f8fafc)' }}; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; flex-wrap: wrap;">
@@ -116,6 +132,14 @@
                     <div>Waktu Notifikasi: <strong>{{ $s1['notice_date'] ? $s1['notice_date']->format('d M Y') : '-' }}</strong></div>
                     <div>Target Kunjungan: <strong>{{ $s1['target_date'] ? $s1['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
+                @if($linkedS1)
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                        <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
+                        <a href="{{ route('assessments.show', $linkedS1) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
+                            {{ $linkedS1->status === 'PLANNED' ? 'Rencana (Bulan 15)' : $linkedS1->status }} &rarr;
+                        </a>
+                    </div>
+                @endif
             </div>
             @if(auth()->user()?->isAdmin())
                 <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
@@ -131,7 +155,6 @@
         </div>
 
         <!-- S2 Card -->
-        @php($s2 = $milestones['s2'])
         <div style="border: 1.5px solid {{ in_array($s2['status'], ['DUE', 'OVERDUE']) ? '#f43f5e' : 'var(--line, #e2e8f0)' }}; border-radius: 8px; padding: 16px; background: {{ in_array($s2['status'], ['DUE', 'OVERDUE']) ? '#fff1f2' : 'var(--surface-subtle, #f8fafc)' }}; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; flex-wrap: wrap;">
@@ -151,6 +174,14 @@
                     <div>Waktu Notifikasi: <strong>{{ $s2['notice_date'] ? $s2['notice_date']->format('d M Y') : '-' }}</strong></div>
                     <div>Target Kunjungan: <strong>{{ $s2['target_date'] ? $s2['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
+                @if($linkedS2)
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                        <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
+                        <a href="{{ route('assessments.show', $linkedS2) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
+                            {{ $linkedS2->status === 'PLANNED' ? 'Rencana (Bulan 36)' : $linkedS2->status }} &rarr;
+                        </a>
+                    </div>
+                @endif
             </div>
             @if(auth()->user()?->isAdmin())
                 <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
@@ -166,7 +197,6 @@
         </div>
 
         <!-- RA Card -->
-        @php($ra = $milestones['ra'])
         <div style="border: 1.5px solid {{ in_array($ra['status'], ['DUE', 'EXPIRED']) ? '#f43f5e' : 'var(--line, #e2e8f0)' }}; border-radius: 8px; padding: 16px; background: {{ in_array($ra['status'], ['DUE', 'EXPIRED']) ? '#fff1f2' : 'var(--surface-subtle, #f8fafc)' }}; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; flex-wrap: wrap;">
@@ -186,6 +216,14 @@
                     <div>Waktu Notifikasi: <strong>{{ $ra['notice_date'] ? $ra['notice_date']->format('d M Y') : '-' }}</strong></div>
                     <div>Masa Berlaku Habis: <strong>{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
+                @if($linkedRA)
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                        <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
+                        <a href="{{ route('assessments.show', $linkedRA) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
+                            {{ $linkedRA->status === 'PLANNED' ? 'Rencana (Bulan 54)' : $linkedRA->status }} &rarr;
+                        </a>
+                    </div>
+                @endif
             </div>
             @if(auth()->user()?->isAdmin())
                 <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin-top: 12px;">
@@ -241,28 +279,57 @@
         </dl>
     </section>
 
-    @if(auth()->user()?->isAdmin())
-        <section class="panel" style="align-self: start;">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <section class="panel" style="align-self: stretch;">
             <div class="panel-head">
                 <div>
-                    <span class="eyebrow">AKREDITASI</span>
-                    <h2>Proses terkait</h2>
+                    <span class="eyebrow">PROGRAM ASESMEN</span>
+                    <h2>Daftar Asesmen Surveilen</h2>
                 </div>
-                <a href="{{ route('accreditations.index') }}">Semua proses</a>
+                <a href="{{ route('assessments.index', ['lpk_id' => $lpk->id]) }}">Semua asesmen</a>
             </div>
 
-            @forelse($lpk->accreditations as $item)
-                <a class="list-row" href="{{ route('accreditations.show', $item) }}">
+            @forelse($lpk->assessments->sortBy('start_at') as $item)
+                <a class="list-row" href="{{ route('assessments.show', $item) }}">
                     <div>
-                        <strong>Proses akreditasi #{{ $item->id }}</strong>
-                        <span>Target {{ $item->target_date?->format('d M Y') ?: 'Belum ditentukan' }}</span>
+                        <strong>{{ $item->title }}</strong>
+                        <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
                     </div>
-                    <x-status :value="$item->status" />
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px;">
+                        <x-status :value="$item->status" />
+                        @if($item->is_submission_overdue)
+                            <span class="badge-tp badge-tp-danger" style="font-size: 10px;">Lewat Toleransi</span>
+                        @endif
+                    </div>
                 </a>
             @empty
-                <div class="empty">Belum ada proses akreditasi.</div>
+                <div class="empty">Belum ada agenda asesmen untuk LPK ini.</div>
             @endforelse
         </section>
-    @endif
+
+        @if(auth()->user()?->isAdmin())
+            <section class="panel" style="align-self: stretch;">
+                <div class="panel-head">
+                    <div>
+                        <span class="eyebrow">AKREDITASI</span>
+                        <h2>Proses terkait</h2>
+                    </div>
+                    <a href="{{ route('accreditations.index') }}">Semua proses</a>
+                </div>
+
+                @forelse($lpk->accreditations as $item)
+                    <a class="list-row" href="{{ route('accreditations.show', $item) }}">
+                        <div>
+                            <strong>Proses akreditasi #{{ $item->id }}</strong>
+                            <span>Target {{ $item->target_date?->format('d M Y') ?: 'Belum ditentukan' }}</span>
+                        </div>
+                        <x-status :value="$item->status" />
+                    </a>
+                @empty
+                    <div class="empty">Belum ada proses akreditasi.</div>
+                @endforelse
+            </section>
+        @endif
+    </div>
 </div>
 @endsection
