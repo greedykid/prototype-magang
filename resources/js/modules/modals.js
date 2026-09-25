@@ -14,6 +14,8 @@ export function returnModalToPlaceholder(modal) {
     }
 }
 
+let savedModalScrollY = 0;
+
 export function openModal(modalId) {
     let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) {
@@ -30,6 +32,11 @@ export function openModal(modalId) {
             }
             modal = document.getElementById(modalId);
         }
+    }
+
+    // Capture current scroll offset before body scroll-lock applies
+    if (!document.querySelector('.simasadi-modal.is-active')) {
+        savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     }
 
     // Teleport to document.body so modal escapes any ancestor containing block,
@@ -59,7 +66,7 @@ export function openModal(modalId) {
             setTimeout(() => {
                 try {
                     focusable.focus({ preventScroll: true });
-                } catch (_) {
+                } catch {
                     focusable.focus();
                 }
             }, 60);
@@ -75,6 +82,9 @@ export function closeModal(modalIdOrEl) {
         });
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
+        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+        }
         return;
     }
 
@@ -99,6 +109,9 @@ export function closeModal(modalIdOrEl) {
     if (!document.querySelector('.simasadi-modal.is-active')) {
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
+        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+        }
     }
 }
 

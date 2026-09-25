@@ -139,11 +139,82 @@ class AssessmentController extends Controller
         $lpksQuery = Lpk::orderBy('name');
         if ($user && $user->isPic()) {
             $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)->orWhereNull('pic_id');
+                $q->where('pic_user_id', $user->id)
+                    ->orWhere('pic_id', $user->id)
+                    ->orWhereNull('pic_user_id');
             });
         }
 
-        return view('assessments.form', ['assessment' => new Assessment, 'lpks' => $lpksQuery->get()]);
+        $assessment = new Assessment;
+
+        if ($request->filled('lpk_id')) {
+            $lpk = Lpk::find($request->input('lpk_id'));
+            if ($lpk) {
+                $assessment->lpk_id = $lpk->id;
+                $assessment->location = $lpk->address ?: '';
+
+                $alertCode = strtoupper((string) $request->input('alert_code', ''));
+                $targetDateStr = $request->input('target_date');
+
+                if ($alertCode === 'S1') {
+                    $assessment->assessment_type = 'SURVEILLANCE';
+                    $assessment->title = 'Surveilen 1 Siklus KAN - ' . $lpk->name;
+                } elseif ($alertCode === 'S2') {
+                    $assessment->assessment_type = 'SURVEILLANCE_2';
+                    $assessment->title = 'Surveilen 2 Siklus KAN - ' . $lpk->name;
+                } elseif ($alertCode === 'RA') {
+                    $assessment->assessment_type = 'REASSESSMENT';
+                    $assessment->title = 'Re-asesmen Siklus KAN - ' . $lpk->name;
+                } elseif ($request->filled('assessment_type')) {
+                    $assessment->assessment_type = $request->input('assessment_type');
+                    $assessment->title = ($assessment->assessment_type ?: 'Asesmen') . ' - ' . $lpk->name;
+                } else {
+                    $assessment->assessment_type = 'SURVEILLANCE';
+                    $assessment->title = 'Asesmen Surveilen KAN - ' . $lpk->name;
+                }
+
+                if ($targetDateStr) {
+                    try {
+                        $targetDate = Carbon::parse($targetDateStr);
+                        $assessment->start_at = $targetDate->copy()->setTime(9, 0);
+                        $assessment->end_at = $targetDate->copy()->addDays(2)->setTime(17, 0);
+                    } catch (\Throwable $e) {
+                        // Abaikan error parsing tanggal
+                    }
+                } else {
+                    $defaultStart = now()->addDays(14)->setTime(9, 0);
+                    $assessment->start_at = $defaultStart;
+                    $assessment->end_at = $defaultStart->copy()->addDays(2)->setTime(17, 0);
+                }
+
+                $assessment->status = 'PLANNED';
+            }
+        }
+
+        if ($request->filled('title')) {
+            $assessment->title = $request->input('title');
+        }
+        if ($request->filled('assessment_type')) {
+            $assessment->assessment_type = $request->input('assessment_type');
+        }
+        if ($request->filled('location')) {
+            $assessment->location = $request->input('location');
+        }
+        if ($request->filled('start_at')) {
+            try {
+                $assessment->start_at = Carbon::parse($request->input('start_at'));
+            } catch (\Throwable $e) {}
+        }
+        if ($request->filled('end_at')) {
+            try {
+                $assessment->end_at = Carbon::parse($request->input('end_at'));
+            } catch (\Throwable $e) {}
+        }
+        if ($request->filled('status')) {
+            $assessment->status = $request->input('status');
+        }
+
+        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
     }
 
     public function store(Request $request): RedirectResponse

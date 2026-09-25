@@ -23,6 +23,22 @@ return new class extends Migration
             $table->string('status')->default('PLANNED');
             $table->string('lead_assessor')->nullable();
             $table->text('notes')->nullable();
+
+            // SLA Tindakan Perbaikan (TP & VTP) KAN
+            $table->string('tp_status')->default('NONE');
+            $table->date('tp_due_date')->nullable();
+            $table->boolean('tp_has_extension')->default(false);
+            $table->unsignedTinyInteger('tp_extension_months')->default(0);
+            $table->string('tp_extension_letter_no')->nullable();
+            $table->date('tp_extension_date')->nullable();
+            $table->text('tp_extension_notes')->nullable();
+            $table->date('tp_satisfied_at')->nullable();
+            $table->text('tp_notes')->nullable();
+
+            // Surat Keputusan (SK) KAN
+            $table->string('sk_number')->nullable();
+            $table->date('sk_date')->nullable();
+
             $table->timestamps();
         });
     }

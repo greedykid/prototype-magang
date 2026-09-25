@@ -16,7 +16,11 @@ return new class extends Migration
             $table->foreignId('lpk_id')->constrained()->cascadeOnDelete();
             $table->string('status')->default('NOT_STARTED');
             $table->date('start_date')->nullable();
+            $table->date('pantek_at')->nullable();
             $table->date('target_date')->nullable();
+            $table->date('target_output_at')->nullable();
+            $table->date('output_released_at')->nullable();
+            $table->string('pic')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

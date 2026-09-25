@@ -402,3 +402,29 @@
 .notif-footer-link:hover {
     color: #4738b8;
 }
+
+/* Modal Open: Maintain topbar fixed position relative to viewport */
+@media (min-width: 901px) {
+    body.modal-open .topbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 260px !important;
+        right: 0 !important;
+        z-index: 40 !important;
+    }
+
+    html.sidebar-is-collapsed body.modal-open .topbar,
+    .app-shell.sidebar-collapsed body.modal-open .topbar {
+        left: 72px !important;
+    }
+}
+
+@media (max-width: 900px) {
+    body.modal-open .topbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 40 !important;
+    }
+}
