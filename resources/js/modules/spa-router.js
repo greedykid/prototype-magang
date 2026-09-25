@@ -322,32 +322,6 @@ const getSkeletonFormHtml = () => `
 </div>
 `;
 
-const getSkeletonServicesHtml = () => `
-<div class="skeleton-wrapper">
-    <div class="skeleton-heading">
-        <div class="skeleton-heading-content">
-            <span class="skeleton-box" style="width: 130px; height: 12px;"></span>
-            <span class="skeleton-box" style="width: 230px; height: 36px; margin-top: 4px;"></span>
-            <span class="skeleton-box" style="width: 400px; height: 15px; margin-top: 4px;"></span>
-        </div>
-    </div>
-
-    <div class="panel">
-        <div style="display: flex; flex-direction: column;">
-            ${[1, 2, 3, 4, 5].map(() => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line);">
-                    <div>
-                        <span class="skeleton-box" style="width: 190px; height: 16px; display: block; margin-bottom: 5px;"></span>
-                        <span class="skeleton-box" style="width: 260px; height: 12px; display: block;"></span>
-                    </div>
-                    <span class="skeleton-box" style="width: 80px; height: 24px; border-radius: 999px;"></span>
-                </div>
-            `).join('')}
-        </div>
-    </div>
-</div>
-`;
-
 // ==========================================================================
 // Route Matcher & Layout Selector
 // ==========================================================================
@@ -356,9 +330,6 @@ const getPageTypeAndTitle = (url) => {
 
     if (path === '/' || path === '/dashboard') {
         return { type: 'dashboard', title: 'Ringkasan' };
-    }
-    if (path.startsWith('/monitoring/services')) {
-        return { type: 'services', title: 'Layanan KANMIS' };
     }
     if (path.startsWith('/monitoring/backups')) {
         return { type: 'table', title: 'Riwayat Backup' };
@@ -377,24 +348,18 @@ const getPageTypeAndTitle = (url) => {
         if (path.startsWith('/lpks')) title = 'Data LPK';
         else if (path.startsWith('/accreditations')) title = 'Proses Akreditasi';
         else if (path.startsWith('/assessments')) title = 'Program Asesmen';
-        else if (path.startsWith('/issues')) title = 'Masalah';
-        else if (path.startsWith('/amendments')) title = 'Amandemen';
         return { type: 'form', title };
     }
-    if (path.match(/\/(lpks|accreditations|assessments|issues|amendments)\/\d+$/)) {
+    if (path.match(/\/(lpks|accreditations|assessments)\/\d+$/)) {
         let title = 'Detail Data';
         if (path.startsWith('/lpks')) title = 'Data LPK';
         else if (path.startsWith('/accreditations')) title = 'Proses Akreditasi';
         else if (path.startsWith('/assessments')) title = 'Program Asesmen';
-        else if (path.startsWith('/issues')) title = 'Masalah';
-        else if (path.startsWith('/amendments')) title = 'Amandemen';
         return { type: 'detail', title };
     }
     if (path.startsWith('/assessments')) return { type: 'table', title: 'Program Asesmen' };
     if (path.startsWith('/lpks')) return { type: 'table', title: 'Data LPK' };
     if (path.startsWith('/accreditations')) return { type: 'table', title: 'Proses Akreditasi' };
-    if (path.startsWith('/issues')) return { type: 'table', title: 'Masalah' };
-    if (path.startsWith('/amendments')) return { type: 'table', title: 'Amandemen' };
 
     return { type: 'table', title: 'Workspace' };
 };
@@ -403,8 +368,6 @@ const renderSkeletonForType = (type) => {
     switch (type) {
         case 'dashboard':
             return getSkeletonDashboardHtml();
-        case 'services':
-            return getSkeletonServicesHtml();
         case 'calendar':
             return getSkeletonCalendarHtml();
         case 'detail':
@@ -455,6 +418,7 @@ const navigateTo = async (url, pushState = true) => {
                 m.remove();
             }
         });
+        document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
 
         const currentUrlObj = new URL(window.location.href);
@@ -611,12 +575,22 @@ const navigateTo = async (url, pushState = true) => {
         // Swap content into page wrapper
         pageWrap.innerHTML = newContent.innerHTML;
 
+        // Re-execute script tags within swapped content (since innerHTML disables scripts)
+        pageWrap.querySelectorAll('script').forEach((oldScript) => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+
         // Re-initialize all interactive components (tables, calendars, filters)
         if (typeof onNavigateCallback === 'function') {
             onNavigateCallback();
         } else if (typeof window.initPageComponents === 'function') {
             window.initPageComponents();
         }
+
+        window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
 
         if (pushState) {
             window.history.pushState({ url }, '', url);

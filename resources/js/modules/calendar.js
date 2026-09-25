@@ -278,6 +278,66 @@ function quickAddAt(dateStr, timeStr = '09:00') {
 }
 window.quickAddAt = quickAddAt;
 
+function toggleCreateDropdown(btn) {
+    const menu = document.getElementById('gcal-create-menu');
+    const toggleBtn = btn || document.getElementById('gcal-btn-create-toggle');
+    if (!menu) return;
+
+    const isVisible = menu.style.display !== 'none';
+    if (isVisible) {
+        menu.style.display = 'none';
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+    } else {
+        menu.style.display = 'block';
+        toggleBtn?.setAttribute('aria-expanded', 'true');
+    }
+}
+window.toggleCreateDropdown = toggleCreateDropdown;
+
+function closeCreateDropdown() {
+    const menu = document.getElementById('gcal-create-menu');
+    const toggleBtn = document.getElementById('gcal-btn-create-toggle');
+    if (menu && menu.style.display !== 'none') {
+        menu.style.display = 'none';
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+    }
+}
+window.closeCreateDropdown = closeCreateDropdown;
+
+function updateQuickAddType(type) {
+    const titleInput = document.getElementById('quick-input-title');
+    if (!titleInput) return;
+
+    if (type === 'PRL') {
+        titleInput.placeholder = 'Contoh: PRL - Penambahan Ruang Lingkup Laboratorium';
+        if (!titleInput.value || titleInput.value.startsWith('STT') || titleInput.value.startsWith('PRL') || titleInput.value.startsWith('Rapat')) {
+            titleInput.value = 'PRL - ';
+        }
+    } else if (type === 'STT') {
+        titleInput.placeholder = 'Contoh: STT - Surveilen Tidak Terjadwal Lapangan';
+        if (!titleInput.value || titleInput.value.startsWith('PRL') || titleInput.value.startsWith('STT') || titleInput.value.startsWith('Rapat')) {
+            titleInput.value = 'STT - ';
+        }
+    } else {
+        titleInput.placeholder = 'Contoh: Rapat Internal Koordinasi Tim';
+        if (titleInput.value.startsWith('PRL - ') || titleInput.value.startsWith('STT - ')) {
+            titleInput.value = '';
+        }
+    }
+}
+window.updateQuickAddType = updateQuickAddType;
+
+function openQuickAddWithType(type = 'PRL') {
+    closeCreateDropdown();
+    const typeSelect = document.getElementById('quick-input-type');
+    if (typeSelect) {
+        typeSelect.value = type;
+        updateQuickAddType(type);
+    }
+    openModal('modal-quick-add-event');
+}
+window.openQuickAddWithType = openQuickAddWithType;
+
 // Mini-calendar date cell click: highlight selected date
 document.addEventListener('click', (e) => {
     const miniCell = e.target.closest('.gcal-mini-cell');
@@ -289,6 +349,14 @@ document.addEventListener('click', (e) => {
 
 // Global click & Escape handlers for popover closing
 document.addEventListener('click', (e) => {
+    const createMenu = document.getElementById('gcal-create-menu');
+    const createBtn = document.getElementById('gcal-btn-create-toggle');
+    if (createMenu && createMenu.style.display !== 'none') {
+        if (!createMenu.contains(e.target) && e.target !== createBtn && !createBtn?.contains(e.target)) {
+            closeCreateDropdown();
+        }
+    }
+
     const activePopovers = Array.from(document.querySelectorAll('.gcal-popover')).filter(
         (p) => p.style.display !== 'none' && p.getAttribute('aria-hidden') !== 'true'
     );
@@ -322,6 +390,7 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        closeCreateDropdown();
         closeEventPopover();
     }
 });
@@ -476,4 +545,17 @@ function initGcalComponents() {
     initGcalMonthYearPicker();
 }
 
-export { showEventPopover, returnPopoverToPlaceholder, closeEventPopover, quickAddAt, initGcalLiveTimeLine, initGcalFilters, initGcalMonthYearPicker, initGcalComponents };
+export {
+    showEventPopover,
+    returnPopoverToPlaceholder,
+    closeEventPopover,
+    quickAddAt,
+    toggleCreateDropdown,
+    closeCreateDropdown,
+    openQuickAddWithType,
+    updateQuickAddType,
+    initGcalLiveTimeLine,
+    initGcalFilters,
+    initGcalMonthYearPicker,
+    initGcalComponents
+};

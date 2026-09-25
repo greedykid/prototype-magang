@@ -18,12 +18,10 @@
                 Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Reakreditasi 2 bulan. Perpanjangan maksimal 1 bulan melalui surat permohonan resmi.
             </p>
         </div>
-        @if(auth()->user()?->isAdmin())
-            <button type="button" class="button secondary" onclick="window.openModal('modal-tp-tracking')">
-                <x-icon name="edit" size="15" />
-                <span>Perbarui status TP</span>
-            </button>
-        @endif
+        <button type="button" class="button secondary" onclick="window.openModal('modal-tp-tracking')">
+            <x-icon name="edit" size="15" />
+            <span>Perbarui status TP</span>
+        </button>
     </div>
 
     {{-- SLA Metrics Grid --}}

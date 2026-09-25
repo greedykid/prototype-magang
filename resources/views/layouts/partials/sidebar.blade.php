@@ -34,14 +34,6 @@
                     <span class="nav-label">Kalender Pengawasan</span>
                 </a>
             </div>
-
-            <div class="nav-section">
-                <span class="nav-section-title">Dukungan</span>
-                <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Pusat Kendala">
-                    <x-icon name="issues" size="18" />
-                    <span class="nav-label">Pusat Kendala</span>
-                </a>
-            </div>
         @else
             {{-- Menu Administrator Unit Akreditasi Laboratorium --}}
             <div class="nav-section">
@@ -62,10 +54,6 @@
                     <x-icon name="accreditations" size="18" />
                     <span class="nav-label">Akreditasi</span>
                 </a>
-                <a href="{{ route('amendments.index') }}" class="{{ request()->routeIs('amendments.*') ? 'active' : '' }}" data-tooltip="Amandemen">
-                    <x-icon name="amendments" size="18" />
-                    <span class="nav-label">Amandemen</span>
-                </a>
             </div>
 
             <div class="nav-section">
@@ -85,27 +73,6 @@
                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}" data-tooltip="Manajemen Pengguna">
                     <x-icon name="users" size="18" />
                     <span class="nav-label">Manajemen Pengguna</span>
-                </a>
-            </div>
-
-            <div class="nav-section">
-                <span class="nav-section-title">Dukungan</span>
-                {{-- Fitur Monitoring Layanan KANMIS & Backup disembunyikan sementara --}}
-                {{--
-                @if(auth()->user()?->isAdmin())
-                    <a href="{{ route('monitoring.services') }}" class="{{ request()->routeIs('monitoring.services') ? 'active' : '' }}" data-tooltip="Layanan KANMIS">
-                        <x-icon name="services" size="18" />
-                        <span class="nav-label">Layanan KANMIS</span>
-                    </a>
-                    <a href="{{ route('monitoring.backups') }}" class="{{ request()->routeIs('monitoring.backups') ? 'active' : '' }}" data-tooltip="Backup">
-                        <x-icon name="backup" size="18" />
-                        <span class="nav-label">Backup</span>
-                    </a>
-                @endif
-                --}}
-                <a href="{{ route('issues.index') }}" class="{{ request()->routeIs('issues.*') ? 'active' : '' }}" data-tooltip="Pusat Kendala">
-                    <x-icon name="issues" size="18" />
-                    <span class="nav-label">Pusat Kendala</span>
                 </a>
             </div>
         @endif

@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('issue_followups', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('issue_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained();
-            $table->text('note');
-            $table->timestamps();
+        Schema::table('calendar_events', function (Blueprint $table): void {
+            $table->string('event_type', 30)->nullable()->after('title');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('issue_followups');
+        Schema::table('calendar_events', function (Blueprint $table): void {
+            $table->dropColumn('event_type');
+        });
     }
 };

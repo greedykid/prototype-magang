@@ -83,13 +83,14 @@ class CalendarEventController extends Controller
         $unifiedEvents = collect();
 
         foreach ($calendarEvents as $item) {
+            $isPrlOrStt = in_array($item->event_type, ['PRL', 'STT'], true);
             $unifiedEvents->push([
                 'id' => $item->id,
                 'source' => 'calendar_event',
-                'category' => 'AGENDA_INTERNAL',
-                'category_label' => 'Agenda Internal',
-                'color_theme' => 'indigo',
-                'title' => $item->title,
+                'category' => $isPrlOrStt ? 'ASESMEN_LAPANGAN' : 'AGENDA_INTERNAL',
+                'category_label' => $isPrlOrStt ? ($item->event_type === 'PRL' ? 'Penambahan Ruang Lingkup (PRL)' : 'Surveilen Tidak Terjadwal (STT)') : 'Agenda Internal',
+                'color_theme' => $isPrlOrStt ? 'emerald' : 'indigo',
+                'title' => $isPrlOrStt ? $item->event_type : $item->title,
                 'lpk_id' => $item->lpk_id,
                 'lpk_name' => $item->lpk?->name ?? 'Internal SIMASADI',
                 'start_at' => $item->start_at,
@@ -105,21 +106,42 @@ class CalendarEventController extends Controller
         }
 
         foreach ($assessments as $item) {
+            $shortType = match (strtoupper(trim((string)$item->assessment_type))) {
+                'S1', 'SURVEILEN 1', 'SURVEILLANCE 1' => 'S1',
+                'SURVEILEN 1 + PRL', 'S1 + PRL', 'S1+PRL' => 'S1+PRL',
+                'S2', 'SURVEILEN 2', 'SURVEILLANCE 2' => 'S2',
+                'SURVEILEN 2 + PRL', 'S2 + PRL', 'S2+PRL' => 'S2+PRL',
+                'RA', 'RE-AKREDITASI', 'REAKREDITASI', 'RE-ASESMEN', 'REASSESSMENT', 'RE-AKREDITASI (AKREDITASI ULANG)' => 'RA',
+                'PRL', 'PERLUASAN RUANG LINGKUP', 'PERLUASAN LINGKUP', 'PERLUASAN RUANG LINGKUP (PRL)' => 'PRL',
+                'STT', 'SURVEILEN TIDAK TERJADWAL', 'SURVEILEN TIDAK TERJADWAL (STT)' => 'STT',
+                'AA', 'ASESMEN AWAL', 'INITIAL', 'AKREDITASI AWAL' => 'AA',
+                default => $item->assessment_type ?: 'Asesmen',
+            };
+
+            if (in_array($shortType, ['Surveilen', 'Asesmen'], true) && preg_match('/\b(S1|S2|RA|PRL|STT|AA)\b/i', (string)$item->title, $m)) {
+                $shortType = strtoupper($m[1]);
+            }
+
+            $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
+            $lpkReg = $item->lpk?->registration_number;
+            $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
+
             $unifiedEvents->push([
                 'id' => $item->id,
                 'source' => 'assessment',
                 'category' => 'ASESMEN_LAPANGAN',
-                'category_label' => 'Asesmen Lapangan',
-                'color_theme' => 'purple',
-                'title' => $item->title . ($item->assessment_type ? ' (' . $item->assessment_type . ')' : ''),
+                'category_label' => 'Pelaksanaan',
+                'color_theme' => 'emerald',
+                'title' => $shortType,
                 'lpk_id' => $item->lpk_id,
-                'lpk_name' => $item->lpk?->name ?? 'LPK Terakreditasi',
+                'lpk_name' => $fullLpkName,
+                'lpk_reg' => $lpkReg,
                 'start_at' => $item->start_at,
                 'end_at' => $item->end_at,
                 'location' => $item->location ?: 'Lokasi Lapangan LPK',
                 'status' => $item->status,
                 'notes' => $item->notes,
-                'description' => 'Program asesmen akreditasi ' . ($item->assessment_type ?: ''),
+                'description' => 'Program asesmen akreditasi ' . $shortType . '. Lead Asesor: ' . ($item->lead_assessor ?: 'Asesor KAN'),
                 'lead' => $item->lead_assessor ?: 'Asesor KAN',
                 'url' => route('assessments.show', $item),
                 'edit_url' => route('assessments.edit', $item),
@@ -134,46 +156,118 @@ class CalendarEventController extends Controller
 
         foreach ($tpAssessments as $item) {
             $effectiveDueDate = $item->effective_tp_due_date;
-            if (! $effectiveDueDate) {
-                continue;
+            if ($effectiveDueDate) {
+                $dueStart = CarbonImmutable::parse($effectiveDueDate)->setTime(9, 0);
+                $dueEnd = $dueStart->setTime(17, 0);
+
+                if ($dueStart->gte($queryStart->startOfDay()) && $dueStart->lte($queryEnd->endOfDay())) {
+                    $statusLabel = match ($item->tp_status) {
+                        Assessment::TP_STATUS_SATISFIED => 'Memenuhi Syarat (Selesai)',
+                        default => $item->is_tp_overdue ? 'Melewati Batas Waktu' : (($item->days_remaining_tp !== null && $item->days_remaining_tp <= 14) ? 'Jatuh Tempo Segera' : 'Penyusunan Perbaikan'),
+                    };
+
+                    $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
+                    $lpkReg = $item->lpk?->registration_number;
+                    $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
+
+                    $unifiedEvents->push([
+                        'id' => 'tp_' . $item->id,
+                        'source' => 'assessment_tp',
+                        'category' => 'BATAS_TP',
+                        'category_label' => 'Batas TP',
+                        'color_theme' => 'cyan',
+                        'title' => 'Batas TP',
+                        'lpk_id' => $item->lpk_id,
+                        'lpk_name' => $fullLpkName,
+                        'lpk_reg' => $lpkReg,
+                        'start_at' => $dueStart,
+                        'end_at' => $dueEnd,
+                        'location' => $item->location ?: 'Daring / Online',
+                        'status' => $item->tp_status,
+                        'notes' => 'Tenggat penyelesaian tindakan perbaikan KAN (' . $item->assessment_type_label . '). ' .
+                            ($item->tp_has_extension ? 'Perpanjangan surat +1 bulan aktif (' . ($item->tp_extension_letter_no ?: 'Ada surat') . '). ' : '') .
+                            'Status: ' . $statusLabel,
+                        'description' => 'Target batas waktu penyelesaian tindakan perbaikan KAN: 3 bulan untuk AA, 2 bulan untuk Survailen/PRL/RA. ' . ($item->tp_notes ?: ''),
+                        'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                        'url' => route('assessments.show', $item),
+                        'edit_url' => route('assessments.show', $item),
+                        'action_label' => 'Buka Detail Asesmen',
+                    ]);
+                }
             }
 
-            $dueStart = CarbonImmutable::parse($effectiveDueDate)->setTime(9, 0);
-            $dueEnd = $dueStart->setTime(17, 0);
+            // 2c. Reminder TP dan VTP (1,5 bulan / 45 hari dari end_at) jika belum SATISFIED
+            if ($item->tp_status !== Assessment::TP_STATUS_SATISFIED && $item->end_at) {
+                $tpReminderDate = $item->calculateDefaultTpReminderDate();
+                if ($tpReminderDate) {
+                    $remStart = CarbonImmutable::parse($tpReminderDate)->setTime(9, 0);
+                    $remEnd = $remStart->setTime(17, 0);
 
-            if ($dueStart->gte($queryStart->startOfDay()) && $dueStart->lte($queryEnd->endOfDay())) {
-                $colorTheme = match ($item->tp_status) {
-                    Assessment::TP_STATUS_SATISFIED => 'emerald',
-                    default => $item->is_tp_overdue ? 'rose' : (($item->days_remaining_tp !== null && $item->days_remaining_tp <= 14) ? 'amber' : 'emerald'),
-                };
+                    if ($remStart->gte($queryStart->startOfDay()) && $remStart->lte($queryEnd->endOfDay())) {
+                        $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
+                        $lpkReg = $item->lpk?->registration_number;
+                        $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
 
-                $statusLabel = match ($item->tp_status) {
-                    Assessment::TP_STATUS_SATISFIED => 'Memenuhi Syarat (Selesai)',
-                    default => $item->is_tp_overdue ? 'Melewati Batas Waktu' : (($item->days_remaining_tp !== null && $item->days_remaining_tp <= 14) ? 'Jatuh Tempo Segera' : 'Penyusunan Perbaikan'),
-                };
+                        $unifiedEvents->push([
+                            'id' => 'reminder_tp_' . $item->id,
+                            'source' => 'assessment_tp_reminder',
+                            'category' => 'REMINDER',
+                            'category_label' => 'Reminder',
+                            'color_theme' => 'amber',
+                            'title' => 'Reminder TP',
+                            'lpk_id' => $item->lpk_id,
+                            'lpk_name' => $fullLpkName,
+                            'lpk_reg' => $lpkReg,
+                            'start_at' => $remStart,
+                            'end_at' => $remEnd,
+                            'location' => $item->location ?: 'Daring / Online',
+                            'status' => $item->tp_status,
+                            'notes' => 'Pengingat 1,5 bulan (45 hari) dari tanggal selesai kunjungan untuk penyelesaian tindakan perbaikan (TP & VTP).',
+                            'description' => 'Pengingat progres penyelesaian temuan asesmen ' . ($item->assessment_type ?: '') . ' agar tidak melebihi batas waktu 2 bulan.',
+                            'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                            'url' => route('assessments.show', $item),
+                            'edit_url' => route('assessments.show', $item),
+                            'action_label' => 'Buka Detail Asesmen',
+                        ]);
+                    }
+                }
+            }
 
-                $unifiedEvents->push([
-                    'id' => 'tp_' . $item->id,
-                    'source' => 'assessment_tp',
-                    'category' => 'TINDAKAN_PERBAIKAN',
-                    'category_label' => 'Batas Waktu TP & VTP',
-                    'color_theme' => $colorTheme,
-                    'title' => '[Batas TP] ' . ($item->lpk?->name ?? 'LPK') . ' - ' . $item->title,
-                    'lpk_id' => $item->lpk_id,
-                    'lpk_name' => $item->lpk?->name ?? 'LPK Terakreditasi',
-                    'start_at' => $dueStart,
-                    'end_at' => $dueEnd,
-                    'location' => $item->location ?: 'Daring / KANMIS',
-                    'status' => $item->tp_status,
-                    'notes' => 'Tenggat penyelesaian tindakan perbaikan KAN (' . $item->assessment_type_label . '). ' .
-                        ($item->tp_has_extension ? 'Perpanjangan surat +1 bulan aktif (' . ($item->tp_extension_letter_no ?: 'Ada surat') . '). ' : '') .
-                        'Status: ' . $statusLabel,
-                    'description' => 'Target batas waktu penyelesaian tindakan perbaikan KAN: 3 bulan untuk AA, 2 bulan untuk Survailen/PRL/RA. ' . ($item->tp_notes ?: ''),
-                    'lead' => $item->lead_assessor ?: 'Asesor KAN',
-                    'url' => route('assessments.show', $item),
-                    'edit_url' => route('assessments.show', $item),
-                    'action_label' => 'Buka Detail Asesmen',
-                ]);
+            // 2d. Reminder Penerbitan SK (10 hari setelah tp_satisfied_at jika sk_number kosong)
+            if (empty($item->sk_number) && $item->tp_satisfied_at) {
+                $skReminderDate = $item->calculateDefaultSkReminderDate();
+                if ($skReminderDate) {
+                    $skRemStart = CarbonImmutable::parse($skReminderDate)->setTime(9, 0);
+                    $skRemEnd = $skRemStart->setTime(17, 0);
+
+                    if ($skRemStart->gte($queryStart->startOfDay()) && $skRemStart->lte($queryEnd->endOfDay())) {
+                        $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
+                        $lpkReg = $item->lpk?->registration_number;
+                        $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
+
+                        $unifiedEvents->push([
+                            'id' => 'reminder_sk_' . $item->id,
+                            'source' => 'assessment_sk_reminder',
+                            'category' => 'REMINDER',
+                            'category_label' => 'Reminder',
+                            'color_theme' => 'amber',
+                            'title' => 'Reminder SK',
+                            'lpk_id' => $item->lpk_id,
+                            'lpk_name' => $fullLpkName,
+                            'lpk_reg' => $lpkReg,
+                            'start_at' => $skRemStart,
+                            'end_at' => $skRemEnd,
+                            'location' => $item->location ?: 'Sekretariat KAN',
+                            'status' => 'PENDING_SK',
+                            'notes' => 'Pengingat 10 hari setelah verifikasi perbaikan memenuhi syarat untuk memantau penerbitan SK Akreditasi KAN.',
+                            'description' => 'Pemantauan penerbitan SK Akreditasi KAN untuk asesmen ' . ($item->assessment_type ?: '') . '.',
+                            'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                            'url' => route('assessments.show', $item),
+                            'edit_url' => route('assessments.show', $item),
+                            'action_label' => 'Buka Detail Asesmen',
+                        ]);
+                    }
+                }
             }
         }
 
@@ -187,65 +281,109 @@ class CalendarEventController extends Controller
 
         foreach ($lpksWithMilestones as $lpkItem) {
             $milestones = $lpkItem->surveillance_milestones;
+            $lpkReg = $lpkItem->registration_number;
+            $fullLpkName = $lpkReg ? ($lpkItem->name . ' (' . $lpkReg . ')') : $lpkItem->name;
+
             foreach ($milestones as $key => $milestone) {
-                if (empty($milestone['target_date'])) {
-                    continue;
+                $isCompleted = ($milestone['status'] === 'COMPLETED_OR_SCHEDULED');
+
+                // 3a. Reminder Siklus (Kuning / theme-amber) pada notice_date
+                if (!empty($milestone['notice_date']) && !$isCompleted) {
+                    $remDate = CarbonImmutable::parse($milestone['notice_date'])->setTime(9, 0);
+                    $remDateEnd = $remDate->setTime(17, 0);
+
+                    if ($remDate->gte($queryStart->startOfDay()) && $remDate->lte($queryEnd->endOfDay())) {
+                        $unifiedEvents->push([
+                            'id' => 'lpk_rem_' . $key . '_' . $lpkItem->id,
+                            'source' => 'lpk_milestone_reminder',
+                            'category' => 'REMINDER',
+                            'category_label' => 'Reminder',
+                            'color_theme' => 'amber',
+                            'title' => 'Reminder ' . strtoupper($key),
+                            'lpk_id' => $lpkItem->id,
+                            'lpk_name' => $fullLpkName,
+                            'lpk_reg' => $lpkReg,
+                            'start_at' => $remDate,
+                            'end_at' => $remDateEnd,
+                            'location' => $lpkItem->address ?: 'Lokasi Lapangan LPK',
+                            'status' => $milestone['status'],
+                            'notes' => $milestone['description'] . ' (Periode pengingat siklus KAN)',
+                            'description' => 'Target reminder siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name,
+                            'lead' => null,
+                            'url' => route('lpks.show', $lpkItem),
+                            'edit_url' => route('assessments.create', [
+                                'lpk_id' => $lpkItem->id,
+                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'start_at' => $remDate->format('Y-m-d\T09:00'),
+                                'end_at' => $remDateEnd->format('Y-m-d\T17:00'),
+                            ]),
+                            'action_label' => 'Jadwalkan Asesmen',
+                        ]);
+                    }
                 }
 
-                $targetDate = CarbonImmutable::parse($milestone['target_date'])->setTime(9, 0);
-                $targetDateEnd = $targetDate->setTime(17, 0);
+                // 3b. Jatuh Tempo Siklus (Merah / theme-rose) pada target_date
+                if (!empty($milestone['target_date']) && !$isCompleted) {
+                    $targetDate = CarbonImmutable::parse($milestone['target_date'])->setTime(9, 0);
+                    $targetDateEnd = $targetDate->setTime(17, 0);
 
-                if ($targetDate->gte($queryStart->startOfDay()) && $targetDate->lte($queryEnd->endOfDay())) {
-                    $isExpiry = ($key === 'ra');
-                    $catCode = $isExpiry ? 'KEDALUWARSA' : 'SURVEILEN';
-                    $catLabel = $isExpiry ? 'Kedaluwarsa Akreditasi' : 'Jatuh Tempo Surveilen';
-                    $colorTheme = $isExpiry ? 'rose' : 'amber';
+                    if ($targetDate->gte($queryStart->startOfDay()) && $targetDate->lte($queryEnd->endOfDay())) {
+                        $unifiedEvents->push([
+                            'id' => 'lpk_jt_' . $key . '_' . $lpkItem->id,
+                            'source' => 'lpk_milestone_jt',
+                            'category' => 'JATUH_TEMPO',
+                            'category_label' => 'Jatuh Tempo',
+                            'color_theme' => 'rose',
+                            'title' => 'JT ' . strtoupper($key),
+                            'lpk_id' => $lpkItem->id,
+                            'lpk_name' => $fullLpkName,
+                            'lpk_reg' => $lpkReg,
+                            'start_at' => $targetDate,
+                            'end_at' => $targetDateEnd,
+                            'location' => $lpkItem->address ?: 'Lokasi Lapangan LPK',
+                            'status' => $milestone['status'],
+                            'notes' => $milestone['description'] . ' (Batas waktu jatuh tempo siklus pengawasan KAN)',
+                            'description' => 'Batas jatuh tempo siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name,
+                            'lead' => null,
+                            'url' => route('lpks.show', $lpkItem),
+                            'edit_url' => route('assessments.create', [
+                                'lpk_id' => $lpkItem->id,
+                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'start_at' => $targetDate->format('Y-m-d\T09:00'),
+                                'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
+                            ]),
+                            'action_label' => 'Jadwalkan Asesmen',
+                        ]);
+                    }
+                }
+            }
 
-                    $typePrefix = match ($key) {
-                        's1' => '[S1] Surveilen 1: ',
-                        's2' => '[S2] Surveilen 2: ',
-                        default => '[Kedaluwarsa] Akreditasi: ',
-                    };
+            // 3c. Kedaluwarsa Akreditasi pada expired_at (Merah / theme-rose)
+            if ($lpkItem->expired_at) {
+                $expDate = CarbonImmutable::parse($lpkItem->expired_at)->setTime(9, 0);
+                $expDateEnd = $expDate->setTime(17, 0);
 
-                    $statusNote = match ($milestone['status']) {
-                        'COMPLETED_OR_SCHEDULED' => ' (Asesmen telah dijadwalkan atau dilaksanakan)',
-                        'OVERDUE' => ' (Perhatian: Melewati target siklus pengawasan KAN)',
-                        'DUE' => ' (Periode notifikasi pengawasan aktif)',
-                        'EXPIRED' => ' (Sertifikat akreditasi telah kedaluwarsa)',
-                        default => ' (Target siklus terjadwal)',
-                    };
-
-                    $assessmentTypeParam = match ($key) {
-                        's1', 's2' => 'Surveilen',
-                        default => 'Re-asesmen',
-                    };
-
-                    $createAssessmentUrl = route('assessments.create', [
-                        'lpk_id' => $lpkItem->id,
-                        'assessment_type' => $assessmentTypeParam,
-                        'start_at' => $targetDate->format('Y-m-d\T09:00'),
-                        'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
-                    ]);
-
+                if ($expDate->gte($queryStart->startOfDay()) && $expDate->lte($queryEnd->endOfDay())) {
                     $unifiedEvents->push([
-                        'id' => 'lpk_' . $key . '_' . $lpkItem->id,
-                        'source' => 'lpk_milestone',
-                        'category' => $catCode,
-                        'category_label' => $catLabel,
-                        'color_theme' => $colorTheme,
-                        'title' => $typePrefix . $lpkItem->name,
+                        'id' => 'lpk_exp_' . $lpkItem->id,
+                        'source' => 'lpk_expired',
+                        'category' => 'JATUH_TEMPO',
+                        'category_label' => 'Jatuh Tempo',
+                        'color_theme' => 'rose',
+                        'title' => 'Kedaluwarsa',
                         'lpk_id' => $lpkItem->id,
-                        'lpk_name' => $lpkItem->name,
-                        'start_at' => $targetDate,
-                        'end_at' => $targetDateEnd,
-                        'location' => $lpkItem->address ?: 'Lokasi Lapangan LPK',
-                        'status' => $milestone['status'],
-                        'notes' => $milestone['description'] . $statusNote,
-                        'description' => 'Target siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name . ' (' . $lpkItem->registration_number . ')',
+                        'lpk_name' => $fullLpkName,
+                        'lpk_reg' => $lpkReg,
+                        'start_at' => $expDate,
+                        'end_at' => $expDateEnd,
+                        'location' => $lpkItem->address ?: 'Kantor LPK',
+                        'status' => 'EXPIRED',
+                        'notes' => 'Masa berlaku sertifikat akreditasi KAN berakhir pada ' . $lpkItem->expired_at->format('d/m/Y'),
+                        'description' => 'Masa berlaku sertifikat akreditasi KAN untuk ' . $lpkItem->name . ' telah habis.',
                         'lead' => null,
                         'url' => route('lpks.show', $lpkItem),
-                        'edit_url' => $createAssessmentUrl,
-                        'action_label' => 'Jadwalkan Asesmen',
+                        'edit_url' => route('lpks.edit', $lpkItem),
+                        'action_label' => 'Perpanjang Akreditasi',
                     ]);
                 }
             }
@@ -325,6 +463,7 @@ class CalendarEventController extends Controller
         return $request->validate([
             'lpk_id' => ['required', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:255'],
+            'event_type' => ['nullable', 'string', 'in:PRL,STT,AGENDA_INTERNAL'],
             'description' => ['nullable', 'string'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
             'start_time' => $usesSplitDateFields ? ['required', 'date_format:H:i'] : ['nullable'],

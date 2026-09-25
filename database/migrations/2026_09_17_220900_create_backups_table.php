@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('backups', function (Blueprint $table): void {
             $table->id();
-            $table->string('system')->default('KANMIS');
+            $table->string('system')->default('SIMASADI');
             $table->string('status')->default('UNKNOWN');
             $table->dateTime('started_at')->nullable();
             $table->dateTime('finished_at')->nullable();

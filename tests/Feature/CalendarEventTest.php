@@ -106,24 +106,33 @@ class CalendarEventTest extends TestCase
             'expired_at' => '2026-10-20',
         ]);
 
-        // 1. Visit calendar for September 2026: S1 milestone should appear
-        $responseSept = $this->actingAs($user)->get('/calendar?view=month&month=2026-09');
-        $responseSept->assertOk();
-        $responseSept->assertSee('Jatuh Tempo Surveilen (S1/S2)');
-        $responseSept->assertSee('Kedaluwarsa Akreditasi');
-        $responseSept->assertSee('[S1] Surveilen 1: Laboratorium Kalibrasi Uji Akurat');
-        $responseSept->assertSee('theme-amber');
+        // 1. Visit calendar for July 2026: S1 Reminder (Month 13) should appear with amber theme
+        $responseJuly = $this->actingAs($user)->get('/calendar?view=month&month=2026-07');
+        $responseJuly->assertOk();
+        $responseJuly->assertSee('Reminder');
+        $responseJuly->assertSee('Reminder S1');
+        $responseJuly->assertSee('Laboratorium Kalibrasi Uji Akurat');
+        $responseJuly->assertSee('theme-amber');
 
-        // 2. Visit calendar for October 2026: Expired_at milestone should appear
+        // 2. Visit calendar for December 2026: S1 Jatuh Tempo (Month 18) should appear with rose theme
+        $responseDec = $this->actingAs($user)->get('/calendar?view=month&month=2026-12');
+        $responseDec->assertOk();
+        $responseDec->assertSee('Jatuh Tempo');
+        $responseDec->assertSee('JT S1');
+        $responseDec->assertSee('Laboratorium Kalibrasi Uji Akurat');
+        $responseDec->assertSee('theme-rose');
+
+        // 3. Visit calendar for October 2026: Expired_at milestone should appear
         $responseOct = $this->actingAs($user)->get('/calendar?view=month&month=2026-10');
         $responseOct->assertOk();
-        $responseOct->assertSee('[Kedaluwarsa] Akreditasi: Laboratorium Kalibrasi Uji Akurat');
+        $responseOct->assertSee('Kedaluwarsa');
+        $responseOct->assertSee('Laboratorium Kalibrasi Uji Akurat');
         $responseOct->assertSee('theme-rose');
 
-        // 3. Check agenda view displays the synchronized milestone
-        $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2026-09-15');
+        // 4. Check agenda view displays the synchronized reminder milestone
+        $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2026-07-15');
         $responseAgenda->assertOk();
-        $responseAgenda->assertSee('Jatuh Tempo Surveilen');
+        $responseAgenda->assertSee('Reminder');
         $responseAgenda->assertSee('Laboratorium Kalibrasi Uji Akurat');
     }
 
@@ -177,5 +186,47 @@ class CalendarEventTest extends TestCase
 
         // The year 2014 should dynamically appear in the options
         $response->assertSee('<option value="2014">2014</option>', false);
+    }
+
+    public function test_calendar_renders_all_four_matrix_color_categories_and_reminders(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create([
+            'name' => 'PT Kalibrasi Mandiri Presisi',
+            'certificate_date' => '2026-01-10',
+        ]);
+
+        // 1. Asesmen Pelaksanaan (emerald)
+        $assessment = \App\Models\Assessment::create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $user->id,
+            'title' => 'Asesmen Lapangan S1 - PT Kalibrasi Mandiri Presisi',
+            'assessment_type' => 'S1',
+            'start_at' => '2026-09-10 09:00',
+            'end_at' => '2026-09-12 17:00',
+            'status' => 'COMPLETED',
+            'tp_status' => \App\Models\Assessment::TP_STATUS_IN_PROGRESS,
+        ]);
+
+        // Visit calendar for September 2026: Pelaksanaan Asesmen (emerald)
+        $responseSept = $this->actingAs($user)->get('/calendar?view=month&month=2026-09');
+        $responseSept->assertOk();
+        $responseSept->assertSee('theme-emerald');
+        $responseSept->assertSee('S1');
+        $responseSept->assertSee('PT Kalibrasi Mandiri Presisi');
+
+        // Visit calendar for October 2026: Reminder TP (45 days from end_at: 2026-10-27) (amber)
+        $responseOct = $this->actingAs($user)->get('/calendar?view=month&month=2026-10');
+        $responseOct->assertOk();
+        $responseOct->assertSee('theme-amber');
+        $responseOct->assertSee('Reminder TP');
+        $responseOct->assertSee('PT Kalibrasi Mandiri Presisi');
+
+        // Visit calendar for November 2026: Batas Waktu TP (2 months from end_at: 2026-11-12) (cyan)
+        $responseNov = $this->actingAs($user)->get('/calendar?view=month&month=2026-11');
+        $responseNov->assertOk();
+        $responseNov->assertSee('theme-cyan');
+        $responseNov->assertSee('Batas TP');
+        $responseNov->assertSee('PT Kalibrasi Mandiri Presisi');
     }
 }

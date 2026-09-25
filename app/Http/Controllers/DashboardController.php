@@ -3,13 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Accreditation;
-use App\Models\Amendment;
 use App\Models\Assessment;
 use App\Models\Backup;
-use App\Models\Issue;
-use App\Models\IssueFollowup;
 use App\Models\Lpk;
-use App\Models\Service;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -35,11 +31,6 @@ class DashboardController extends Controller
                 ->selectRaw('status, count(*) as total')
                 ->groupBy('status')
                 ->pluck('total', 'status'),
-            'openIssueCount' => Issue::whereIn('status', ['OPEN', 'IN_PROGRESS'])->count(),
-            'overdueIssueCount' => Issue::whereIn('status', ['OPEN', 'IN_PROGRESS'])->whereDate('due_date', '<', now())->count(),
-            'recentIssues' => Issue::with('lpk')->latest()->take(5)->get(),
-            'recentFollowups' => IssueFollowup::with(['issue', 'user'])->latest()->take(4)->get(),
-            'amendmentCount' => Amendment::whereNotIn('status', ['COMPLETED', 'REJECTED'])->count(),
             'assessmentCount' => Assessment::whereBetween('start_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
             'upcomingAssessments' => Assessment::with('lpk')
                 ->where('start_at', '>=', now()->startOfDay())
@@ -48,7 +39,6 @@ class DashboardController extends Controller
                 ->get(),
             'unpaidBillingCount' => \App\Models\AccreditationBilling::where('status', 'UNPAID')->count(),
             'pendingExpenseCount' => \App\Models\AssessmentExpense::where('status', 'MENUNGGU_VERIFIKASI')->count(),
-            'serviceIssueCount' => Service::whereIn('status', ['DEGRADED', 'DOWN'])->count(),
             'lastBackup' => Backup::latest('finished_at')->first(),
             'activeTpCount' => $activeTpCount,
             'overdueTpCount' => $overdueTpCount,

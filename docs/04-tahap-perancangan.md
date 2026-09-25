@@ -5,396 +5,376 @@
 
 ### 4.1 Struktur Navigasi (Sitemap)
 
-Struktur navigasi menggambarkan alur perpindahan antarmuka pengguna dalam mengakses seluruh menu dan fitur pada sistem SIMASADI. Sesuai dengan konvensi perancangan sistem informasi, struktur navigasi dibagi menjadi:
-1. **Struktur Navigasi Tingkat Utama (Menu Bar & Sidebar):** Menggambarkan hubungan dari halaman Login, menuju Dashboard utama, hingga ke seluruh menu tingkat satu yang saling terhubung secara horizontal (*bi-directional*).
-2. **Struktur Navigasi Hierarki Lengkap (Sub-Menu & Aksi CRUD):** Menggambarkan pohon navigasi dari setiap menu utama hingga ke halaman formulir penambahan, pengubahan, dan halaman detail data.
+Struktur navigasi menggambarkan alur perpindahan antarmuka pengguna dalam mengakses seluruh menu dan fitur pada sistem SIMASADI. Sesuai dengan pembagian hak akses 4 peran nyata, struktur navigasi dibagi menjadi:
+1. **Navigasi Utama Admin & PIC**: Menggambarkan hubungan dari halaman Login, menuju Dashboard utama, hingga ke seluruh menu operasional tingkat satu yang saling terhubung secara horizontal (*bi-directional*).
+2. **Navigasi Khusus Portal Asesor & Portal LPK**: Menggambarkan antarmuka terfokus untuk Asesor Lapangan (`/assessor`) dan perwakilan LPK mandiri (`/portal`).
+3. **Struktur Navigasi Hierarki Sub-Halaman**: Menggambarkan pohon navigasi dari setiap menu utama hingga ke halaman formulir penambahan, pengubahan, import massal, dan halaman detail data.
 
-#### 4.1.1 Struktur Navigasi Tingkat Utama (Admin & Pengguna)
-Diagram di bawah mengadopsi model navigasi hierarki dengan bus transfer horizontal antarmenu (dapat berpindah antarmenu secara langsung melalui navigasi sidebar):
+#### 4.1.1 Struktur Navigasi Tingkat Utama (Admin & PIC)
 
 ```mermaid
 graph TD
-    AdminLogin["Admin Login"] <--> DashboardAdmin["Dashboard Admin"]
+    UserLogin["Login (/login)"] <--> Dashboard["Dashboard (/dashboard)"]
 
-    DashboardAdmin --- BusTrunk[" "]
+    Dashboard --- BusTrunk[" "]
     style BusTrunk width:0px,height:0px,stroke:none,fill:none
 
-    BusTrunk --- M1["Data LPK"]
-    BusTrunk --- M2["Proses Akreditasi"]
-    BusTrunk --- M3["Pengajuan Amandemen"]
-    BusTrunk --- M4["Program Asesmen"]
-    BusTrunk --- M5["Kalender Kegiatan"]
-    BusTrunk --- M6["Laporan Masalah"]
-    BusTrunk --- M7["Layanan KANMIS"]
-    BusTrunk --- M8["Histori Backup"]
+    BusTrunk --- M1["Data Master LPK"]
+    BusTrunk --- M2["Program Asesmen"]
+    BusTrunk --- M3["Kalender Kegiatan"]
+    BusTrunk --- M4["Kepatuhan & Finansial"]
+    BusTrunk --- M5["Manajemen Pengguna"]
+    BusTrunk --- M6["Histori Backup"]
 
     M1 <--> M2
     M2 <--> M3
     M3 <--> M4
     M4 <--> M5
     M5 <--> M6
-    M6 <--> M7
-    M7 <--> M8
 
     classDef navBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:13px;
     classDef invisibleTrunk fill:none,stroke:none;
-    class AdminLogin,DashboardAdmin,M1,M2,M3,M4,M5,M6,M7,M8 navBox;
+    class UserLogin,Dashboard,M1,M2,M3,M4,M5,M6 navBox;
     class BusTrunk invisibleTrunk;
 ```
 
-<p align="center"><b>Gambar 3. 1 Struktur Navigasi Admin SIMASADI</b></p>
+<p align="center"><b>Gambar 4. 1 Struktur Navigasi Utama SIMASADI</b></p>
 
 ---
 
 #### 4.1.2 Struktur Navigasi Hierarki Sub-Halaman Lengkap
-Diagram berikut merinci sub-halaman formulir aksi (*Create, Read, Update, Detail*) yang dapat diakses dari masing-masing menu utama:
 
 ```mermaid
 graph TD
     Login["Halaman Login (/login)"] <--> Dash["Dashboard (/dashboard)"]
 
     Dash --> LPK["Data LPK (/lpks)"]
-    LPK <--> LPK_Add["Tambah LPK (/create)"]
-    LPK <--> LPK_Detail["Detail Profil (/show)"]
-    LPK_Detail <--> LPK_Edit["Ubah Profil (/edit)"]
-
-    Dash --> AKR["Proses Akreditasi (/accreditations)"]
-    AKR <--> AKR_Detail["Detail Akreditasi (/show)"]
-
-    Dash --> AMD["Amandemen (/amendments)"]
-    AMD <--> AMD_Add["Tambah Amandemen (/create)"]
-    AMD <--> AMD_Detail["Detail Amandemen (/show)"]
-    AMD_Detail <--> AMD_Edit["Ubah Amandemen (/edit)"]
+    LPK <--> LPK_Add["Tambah LPK (/lpks/create)"]
+    LPK <--> LPK_Import["Impor LPK (/lpks/import)"]
+    LPK <--> LPK_Detail["Detail Profil LPK (/lpks/{id})"]
+    LPK_Detail <--> LPK_Edit["Ubah Profil LPK (/lpks/{id}/edit)"]
 
     Dash --> ASM["Program Asesmen (/assessments)"]
-    ASM <--> ASM_Add["Tambah Asesmen (/create)"]
-    ASM <--> ASM_Detail["Detail Asesmen (/show)"]
-    ASM_Detail <--> ASM_Edit["Ubah Asesmen (/edit)"]
+    ASM <--> ASM_Add["Jadwalkan Asesmen (/assessments/create)"]
+    ASM <--> ASM_Import["Impor Asesmen (/assessments/import)"]
+    ASM <--> ASM_Detail["Detail Asesmen (/assessments/{id})"]
+    ASM_Detail <--> ASM_Edit["Ubah Asesmen (/assessments/{id}/edit)"]
+    ASM_Detail <--> ASM_Cost["Pelaporan & Verifikasi Biaya SBM"]
+    ASM_Detail <--> ASM_TP["Pelacakan Tindakan Perbaikan (SLA)"]
+    ASM_Detail <--> ASM_EHA["Evaluasi Hasil Asesmen (EHA)"]
 
     Dash --> CAL["Kalender Kegiatan (/calendar)"]
-    CAL <--> CAL_Add["Klik Tanggal -> Tambah (/events/create)"]
-    CAL <--> CAL_Detail["Detail Agenda (/events/show)"]
-    CAL_Detail <--> CAL_Edit["Ubah Agenda (/events/edit)"]
+    CAL <--> CAL_Add["Klik Tanggal -> Tambah Agenda (/calendar/events/create)"]
+    CAL <--> CAL_Detail["Detail Agenda Event (/calendar/events/{id})"]
 
-    Dash --> ISS["Laporan Masalah (/issues)"]
-    ISS <--> ISS_Add["Buat Laporan (/create)"]
-    ISS <--> ISS_Detail["Detail & Form Follow-Up (/show)"]
+    Dash --> FIN["Kepatuhan & Finansial"]
+    FIN <--> FIN_Bill["Penerbitan Billing SIMPONI & Pembayaran"]
+    FIN <--> FIN_Sign["Tanda Tangan Elektronik Dokumen SK (BSrE)"]
+    FIN <--> FIN_Gate["Quality Gate Kesiapan Rilis SK"]
 
-    Dash --> SRV["Layanan KANMIS (/monitoring/services)"]
+    Dash --> USR["Manajemen Pengguna (/users)"]
+    USR <--> USR_Add["Tambah Pengguna (/users/create)"]
+    USR <--> USR_Edit["Ubah Pengguna (/users/{id}/edit)"]
+
     Dash --> BCK["Histori Backup (/monitoring/backups)"]
 
+    Dash --> PORTAL_LPK["Portal LPK (/portal) + QR Code"]
+    Dash --> PORTAL_ASR["Portal Asesor (/assessor)"]
+
     classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Detail,LPK_Edit,AKR,AKR_Detail,AMD,AMD_Add,AMD_Detail,AMD_Edit,ASM,ASM_Add,ASM_Detail,ASM_Edit,CAL,CAL_Add,CAL_Detail,CAL_Edit,ISS,ISS_Add,ISS_Detail,SRV,BCK pageBox;
+    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_Cost,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,FIN,FIN_Bill,FIN_Sign,FIN_Gate,USR,USR_Add,USR_Edit,BCK,PORTAL_LPK,PORTAL_ASR pageBox;
 ```
 
-<p align="center"><b>Gambar 3. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
+<p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
 
 ---
 
 ### 4.2 Use Case Diagram
 
-Diagram Use Case memodelkan fungsi-fungsi sistem dari sudut pandang pengguna luar (*aktor*). Notasi yang digunakan merujuk pada standar UML (*Unified Modeling Language*), di mana:
-* **Aktor (*Actor*):** Pengguna yang berinteraksi dengan sistem (Staf Administrasi Akreditasi, Asesor/Auditor, Administrator Sistem).
-* **Use Case:** Fungsi atau skenario kerja sistem yang digambarkan dalam bentuk elips (*oval*).
-* **Asosiasi (*Association*):** Garis lurus yang menghubungkan aktor dengan use case utama.
-* **`<<include>>`:** Relasi ketergantungan di mana suatu use case wajib memanggil use case lain untuk menyelesaikan fungsinya.
-* **`<<extend>>`:** Relasi perluasan opsional di mana suatu use case dapat diperluas fungsinya dalam kondisi tertentu.
-
-#### 4.2.1 Use Case Diagram Pengguna / Asesor SIMASADI
-Diagram di bawah menyajikan seluruh fungsionalitas operasional yang dapat diakses oleh pengguna internal sistem:
+Diagram Use Case memodelkan fungsi-fungsi sistem dari sudut pandang 4 peran pengguna (*aktor*). Notasi yang digunakan merujuk pada standar UML (*Unified Modeling Language*):
+* **Admin Unit Akreditasi Lab (`admin`)**: Pengelola operasional dengan akses menyeluruh.
+* **PIC Laboratorium / Unit Teknis (`pic`)**: Pendamping LPK kelolaan.
+* **Asesor KAN (`assessor`)**: Tenaga ahli pelaksana asesmen lapangan.
+* **Lembaga Penilaian Kesesuaian (`lpk`)**: Entitas pemegang akreditasi KAN.
 
 ```mermaid
 flowchart LR
     %% Definisi Aktor
-    Pengguna["👤<br/><b>Pengguna</b><br/>(Staf / Asesor)"]:::actorBox
+    Admin["👤 Admin Unit Lab"]:::actorBox
+    PIC["👤 PIC Unit Teknis"]:::actorBox
+    Asesor["👤 Asesor KAN"]:::actorBox
+    LPK["🏢 Lembaga (LPK)"]:::actorBox
 
-    %% Definisi Use Case Utama (Ovals)
-    UC_Login(["Melakukan Login"]):::ucMain
-    UC_Dash(["Melihat Dashboard & Ringkasan KPI"]):::ucMain
-    UC_LPK(["Mengelola Data LPK"]):::ucMain
-    UC_Akr(["Memantau Siklus Akreditasi"]):::ucMain
-    UC_Asm(["Mengelola Program Asesmen"]):::ucMain
-    UC_Cal(["Mengelola Kalender & Agenda Kerja"]):::ucMain
-    UC_Amd(["Mengajukan Amandemen Ruang Lingkup"]):::ucMain
-    UC_Iss(["Melaporkan Masalah Operasional"]):::ucMain
-    UC_Mon(["Memantau Layanan KANMIS & Backup"]):::ucMain
-    UC_View(["Mengubah Mode Tampilan Data"]):::ucMain
-    UC_Filter(["Memfilter Data Server-Side"]):::ucMain
+    %% Use Case Kelompok Utama
+    UC_Login(["Melakukan Login Sesi"]):::ucMain
+    UC_Dash(["Melihat Dashboard & Alert Persisten"]):::ucMain
+    UC_LPK_Manage(["Mengelola Data Master LPK"]):::ucMain
+    UC_LPK_Import(["Mengimpor Massal LPK & Asesmen"]):::ucMain
+    UC_Asm_Manage(["Mengelola 8 Tipe Asesmen KAN"]):::ucMain
+    UC_Tolerance(["Memantau Toleransi 3 Tahap & Pembekuan"]):::ucMain
+    UC_TP_SLA(["Mengelola SLA Tindakan Perbaikan (TP & VTP)"]): extension:::ucMain
+    UC_EHA(["Mencatat Alur Sidang EHA & Lead Time SK"]):::ucMain
+    UC_Cal(["Mengelola Kalender Interaktif 5 Event"]):::ucMain
+    UC_SBM(["Melaporkan & Memverifikasi Biaya SBM"]):::ucMain
+    UC_PNBP(["Menerbitkan Billing SIMPONI & Pelunasan"]):::ucMain
+    UC_ESign(["Membubuhi e-Sign BSrE & Rilis SK"]):::ucMain
+    UC_QR(["Memverifikasi Status via QR Code"]):::ucMain
+    UC_User_Mgmt(["Mengelola Pengguna & Hak Akses"]):::ucMain
 
-    %% Definisi Sub Use Case (Include & Extend)
-    UC_Logout(["Melakukan Logout Sesi"]):::ucSub
-    UC_StatusChart(["Melihat Analisis Status Akreditasi"]):::ucSub
-    UC_LPK_CRUD(["Menambah & Mengubah Data LPK"]):::ucSub
-    UC_LPK_Detail(["Melihat Detail Profil & Asesmen Terkait"]):::ucSub
-    UC_Akr_Stage(["Melihat Tahapan Monitoring & Target"]):::ucSub
-    UC_Asm_Sched(["Menjadwalkan Asesmen Surveilen & Awal"]):::ucSub
-    UC_Asm_Status(["Mengubah Status Pelaksanaan Asesmen"]):::ucSub
-    UC_Cal_Click(["Klik Kotak Tanggal Buat Agenda Otomatis"]):::ucSub
-    UC_Cal_Agenda(["Beralih ke Tampilan Mode Agenda Mobile"]):::ucSub
-    UC_Amd_Input(["Menginput Nomor Surat & Target"]):::ucSub
-    UC_Iss_Follow(["Mencatat Catatan Tindak Lanjut"]):::ucSub
-    UC_Iss_Resolve(["Mengubah Status Masalah ke Resolved"]):::ucSub
-    UC_View_Toggle(["Beralih Antara Mode Tabel dan Grid Card"]):::ucSub
-    UC_Filter_Drawer(["Menggunakan Mobile Slide-Out Drawer"]):::ucSub
-    UC_Filter_Chips(["Menghapus Filter per Chip Aktif"]):::ucSub
+    %% Relasi Admin
+    Admin --- UC_Login
+    Admin --- UC_Dash
+    Admin --- UC_LPK_Manage
+    Admin --- UC_LPK_Import
+    Admin --- UC_Asm_Manage
+    Admin --- UC_Tolerance
+    Admin --- UC_TP_SLA
+    Admin --- UC_EHA
+    Admin --- UC_Cal
+    Admin --- UC_SBM
+    Admin --- UC_PNBP
+    Admin --- UC_ESign
+    Admin --- UC_User_Mgmt
 
-    %% Relasi Aktor ke Use Case Utama (Solid lines)
-    Pengguna --- UC_Login
-    Pengguna --- UC_Dash
-    Pengguna --- UC_LPK
-    Pengguna --- UC_Akr
-    Pengguna --- UC_Asm
-    Pengguna --- UC_Cal
-    Pengguna --- UC_Amd
-    Pengguna --- UC_Iss
-    Pengguna --- UC_Mon
-    Pengguna --- UC_View
-    Pengguna --- UC_Filter
+    %% Relasi PIC
+    PIC --- UC_Login
+    PIC --- UC_Dash
+    PIC --- UC_Tolerance
+    PIC --- UC_TP_SLA
+    PIC --- UC_Cal
+    PIC --- UC_SBM
 
-    %% Relasi Extend & Include (Dashed arrows with stereotypes)
-    UC_Login -.->|"<<extend>>"| UC_Logout
-    UC_Dash -.->|"<<include>>"| UC_StatusChart
-    UC_LPK -.->|"<<include>>"| UC_LPK_CRUD
-    UC_LPK -.->|"<<extend>>"| UC_LPK_Detail
-    UC_Akr -.->|"<<include>>"| UC_Akr_Stage
-    UC_Asm -.->|"<<include>>"| UC_Asm_Sched
-    UC_Asm -.->|"<<extend>>"| UC_Asm_Status
-    UC_Cal -.->|"<<include>>"| UC_Cal_Click
-    UC_Cal -.->|"<<extend>>"| UC_Cal_Agenda
-    UC_Amd -.->|"<<include>>"| UC_Amd_Input
-    UC_Iss -.->|"<<include>>"| UC_Iss_Follow
-    UC_Iss -.->|"<<extend>>"| UC_Iss_Resolve
-    UC_View -.->|"<<include>>"| UC_View_Toggle
-    UC_Filter -.->|"<<include>>"| UC_Filter_Drawer
-    UC_Filter -.->|"<<extend>>"| UC_Filter_Chips
+    %% Relasi Asesor
+    Asesor --- UC_Login
+    Asesor --- UC_Asm_Manage
+    Asesor --- UC_SBM
+    Asesor --- UC_TP_SLA
 
-    %% Styling Kelas
-    classDef actorBox fill:#fdfcfa,stroke:#1a1a1a,stroke-width:2px,color:#1a1a1a,font-size:13px;
-    classDef ucMain fill:#ffffff,stroke:#1a1a1a,stroke-width:1.8px,color:#111111,font-size:12.5px;
-    classDef ucSub fill:#f5f3ff,stroke:#5645d4,stroke-width:1.4px,stroke-dasharray: 4 4,color:#322394,font-size:11.5px;
+    %% Relasi LPK
+    LPK --- UC_Login
+    LPK --- UC_Tolerance
+    LPK --- UC_TP_SLA
+    LPK --- UC_QR
+
+    classDef actorBox fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a,font-weight:bold;
+    classDef ucMain fill:#ffffff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-size:12px;
 ```
 
-<p align="center"><b>Gambar 3. 3 Use Case Diagram Pengguna SIMASADI</b></p>
+<p align="center"><b>Gambar 4. 3 Use Case Diagram Sistem SIMASADI</b></p>
 
 ---
 
-#### 4.2.2 Tabel Spesifikasi Use Case Kunci
+### 4.3 Activity Diagram
 
-| ID Use Case | Nama Use Case | Aktor | Pre-kondisi | Skenario Alur Utama | Post-kondisi |
-|---|---|---|---|---|---|
-| **UC-01** | Melakukan Login | Semua Pengguna | Pengguna memiliki email dan password terdaftar. | 1. Buka `/login`.<br/>2. Isi email dan password.<br/>3. Klik Masuk.<br/>4. Sistem memverifikasi kredensial. | Sesi terbuat, diarahkan ke Dashboard. |
-| **UC-02** | Melihat Dashboard & Ringkasan KPI | Semua Pengguna | Pengguna telah login. | 1. Akses `/dashboard`.<br/>2. Sistem mengambil agregasi metrik dari database.<br/>3. Sistem merender kartu statistik dan progress bar status akreditasi. | Pengguna melihat statistik dan isu prioritas terkini. |
-| **UC-03** | Mengelola Data LPK | Staf / Admin | Pengguna telah login. | 1. Akses `/lpks`.<br/>2. Klik Tambah LPK.<br/>3. Isi nomor registrasi, nama lembaga, kategori, dan kota.<br/>4. Simpan. | LPK baru tersimpan di database dan tampil di daftar. |
-| **UC-05** | Mengelola Program Asesmen | Auditor / Staf | Data LPK telah ada di sistem. | 1. Akses `/assessments/create`.<br/>2. Pilih LPK, jenis asesmen, tanggal mulai, dan tanggal selesai.<br/>3. Sistem memvalidasi waktu selesai >= waktu mulai.<br/>4. Simpan. | Jadwal asesmen tersimpan dan tercatat di kalender. |
-| **UC-06** | Mengelola Kalender Kerja | Auditor / Staf | Pengguna telah login. | 1. Buka `/calendar`.<br/>2. Klik kotak tanggal tertentu (misal: 24 September).<br/>3. Sistem membuka form dengan tanggal terisi otomatis.<br/>4. Isi judul dan jam kegiatan lalu simpan. | Agenda muncul pada tanggal terkait di kalender. |
-| **UC-08** | Melaporkan Masalah & Follow-up | Semua Pengguna | Pengguna menemukan kendala operasional. | 1. Buka `/issues/create`.<br/>2. Pilih LPK, judul, dan tingkat prioritas (High/Medium/Low).<br/>3. Simpan laporan.<br/>4. Pada detail masalah, tulis catatan follow-up dan simpan. | Log tindak lanjut bertambah berantai secara kronologis. |
-| **UC-11** | Mengubah Mode Tampilan | Semua Pengguna | Berada pada halaman berdata master (LPK/Asesmen/dll). | 1. Klik tombol toggle [ Grid ] pada toolbar.<br/>2. Layout tabel berganti menjadi kartu 2-kolom terstruktur.<br/>3. Preferensi disimpan ke `localStorage`. | Tampilan data tetap dalam mode Grid saat halaman dimuat ulang. |
-| **UC-12** | Memfilter Data Server-Side | Semua Pengguna | Berada pada halaman berdata master. | 1. Pada mobile, klik [ Filter data ] untuk membuka drawer kanan.<br/>2. Pilih kriteria filter dan klik Terapkan.<br/>3. Sistem merefresh data sesuai filter dan menampilkan active chips. | Data tersaring akurat; chip filter dapat dihapus satu per satu. |
+#### 4.3.1 Activity Diagram: Penegakan Siklus Hidup 3 Tahap Surveilen KAN
+Diagram ini memodelkan transisi status pengawasan dari kunjungan asesmen sampai keputusan akhir:
 
----
-
-### 4.3 Activity Diagram (Diagram Aktivitas)
-
-#### 4.3.1 Activity Diagram: Autentikasi Pengguna (Login)
 ```mermaid
 stateDiagram-v2
-    [*] --> BukaHalamanLogin: Akses URL /login
-    BukaHalamanLogin --> InputKredensial: Masukkan Email & Password
-    InputKredensial --> SubmitLogin: Klik Tombol "Masuk ke workspace"
-    SubmitLogin --> ValidasiData: Server memvalidasi form
+    [*] --> KunjunganAsesmen: Asesmen Lapangan Selesai (end_at)
+    KunjunganAsesmen --> HitungToleransi: submission_due_date = end_at->endOfMonth()
     
-    state ValidasiData <<choice>>
-    ValidasiData --> GagalLogin: Format tidak valid / Password salah
-    GagalLogin --> InputKredensial: Tampilkan pesan error & SweetAlert2
+    state CekBulanKunjungan <<choice>>
+    HitungToleransi --> CekBulanKunjungan: Evaluasi Tanggal Saat Ini
+    CekBulanKunjungan --> StatusNormal: Tanggal <= submission_due_date
+    StatusNormal --> SelesaiNormal: Dokumen Asesmen Diselesaikan (Status: COMPLETED)
+    SelesaiNormal --> [*]
     
-    ValidasiData --> SuksesLogin: Kredensial Cocok
-    SuksesLogin --> GenerateSession: Regenerasi session ID
-    GenerateSession --> RedirectDashboard: Redirect ke /dashboard
-    RedirectDashboard --> [*]
-```
-
-#### 4.3.2 Activity Diagram: Pembuatan Agenda dari Kalender Interaktif
-```mermaid
-stateDiagram-v2
-    [*] --> BukaKalender: Buka Halaman /calendar
-    BukaKalender --> PilihTanggal: Klik kotak tanggal pada grid kalender
-    PilihTanggal --> BukaFormAgenda: Sistem membuka /calendar/events/create?date=YYYY-MM-DD
-    BukaFormAgenda --> FormAutoFilled: Input start_date & end_date otomatis terisi tanggal yang diklik
-    FormAutoFilled --> InputDetail: Pilih LPK, Judul Agenda, Jam Mulai & Selesai
-    InputDetail --> SubmitForm: Klik Simpan Agenda
-    SubmitForm --> ValidasiWaktu: Validasi end_at >= start_at
+    CekBulanKunjungan --> StatusDibekukan: Tanggal > submission_due_date & Belum Selesai
     
-    state ValidasiWaktu <<choice>>
-    ValidasiWaktu --> ErrorWaktu: Jam selesai lebih awal dari jam mulai
-    ErrorWaktu --> InputDetail: Tampilkan notifikasi validasi
-    
-    ValidasiWaktu --> SimpanDatabase: Valid
-    SimpanDatabase --> TampilkanDetailAgenda: Redirect ke /calendar/events/{id}
-    TampilkanDetailAgenda --> [*]
-```
-
-#### 4.3.3 Activity Diagram: Pelaporan Masalah & Penambahan Follow-Up
-```mermaid
-stateDiagram-v2
-    [*] --> BukaDaftarMasalah: Buka /issues
-    BukaDaftarMasalah --> KlikTambahMasalah: Klik "Buat laporan"
-    KlikTambahMasalah --> IsiFormMasalah: Pilih LPK, Judul, Prioritas, & Deskripsi
-    IsiFormMasalah --> SimpanMasalah: Submit Form
-    SimpanMasalah --> HalamanDetailMasalah: Masalah tersimpan (Status: OPEN)
-    
-    state SiklusFollowUp {
-        HalamanDetailMasalah --> TulisFollowUp: Tulis catatan tindakan di form follow-up
-        TulisFollowUp --> SubmitFollowUp: Klik "Simpan catatan"
-        SubmitFollowUp --> CatatLog: Sistem mencatat note, user_id, timestamp
-        CatatLog --> UpdateTampilanLog: Catatan tampil berantai di halaman detail
+    state TahapPembekuan {
+        StatusDibekukan --> AktifkanSuspension: Status LPK & Asesmen = SUSPENDED (Badge Ungu)
+        AktifkanSuspension --> BeriJendela1Tahun: suspension_deadline = submission_due_date + 1 Tahun
+        BeriJendela1Tahun --> HitungMundur: Tampilkan countdown hari & bulan tersisa
+        
+        state CekPenyelesaian1Tahun <<choice>>
+        HitungMundur --> CekPenyelesaian1Tahun: Apakah LPK Menyelesaikan Kewajiban?
+        CekPenyelesaian1Tahun --> PemulihanAkreditasi: Ya, Asesmen Selesai
+        PemulihanAkreditasi --> StatusAktifKembali: Status Pulih Menjadi ACTIVE
+        StatusAktifKembali --> [*]
+        
+        CekPenyelesaian1Tahun --> BatasWaktuHabis: Tidak (Waktu > 1 Tahun)
     }
     
-    UpdateTampilanLog --> [*]
+    BatasWaktuHabis --> CabutAkreditasi: Status LPK Berubah Otomatis Menjadi REVOKED (Badge Merah)
+    CabutAkreditasi --> [*]
 ```
 
 ---
 
-### 4.4 Sequence Diagram (Diagram Urutan)
+#### 4.3.2 Activity Diagram: Alur Pengajuan & Validasi Perpanjangan Waktu SLA Tindakan Perbaikan (TP)
 
-#### 4.4.1 Sequence Diagram: Server-Side Filtering & Toggle Mode Tampilan
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Pengguna (Browser)
-    participant DOM as Frontend UI (app.js)
-    participant Ctrl as AssessmentController
-    participant Model as Assessment (Eloquent)
-    participant DB as Database SQLite
-
-    User->>DOM: Klik [ Filter data ] & pilih status="COMPLETED"
-    User->>DOM: Klik [ Terapkan filter ]
-    DOM->>Ctrl: HTTP GET /assessments?status=COMPLETED
-    Ctrl->>Model: Assessment::query()->where('status', 'COMPLETED')
-    Model->>DB: SELECT * FROM assessments WHERE status = 'COMPLETED' ...
-    DB-->>Model: Return data baris
-    Model-->>Ctrl: Collection + LengthAwarePaginator
-    Ctrl-->>DOM: Render Blade View (Tabel / Card)
-    DOM->>DOM: Render Active Filter Chip: "Status: Selesai"
-    DOM-->>User: Tampilan daftar hasil filter muncul
-
-    User->>DOM: Klik tombol toggle [ Grid ]
-    DOM->>DOM: tableWrap.classList.add('table-mode-grid')
-    DOM->>DOM: localStorage.setItem('table-view-assessments', 'grid')
-    DOM-->>User: Tampilan berganti seketika ke Mode Grid Cards 2-kolom
+stateDiagram-v2
+    [*] --> AsesmenSelesai: Laporan Asesmen Diserahkan
+    AsesmenSelesai --> HitungSLA: Tentukan SLA Dasar (AA: 3 Bulan, Lainnya: 2 Bulan)
+    HitungSLA --> StatusBerlangsung: Status TP Otomatis "Sedang Berlangsung"
+    
+    state CekProgresTemuan <<choice>>
+    StatusBerlangsung --> CekProgresTemuan: Menjelang Batas SLA, Ada Permohonan Perpanjangan?
+    
+    CekProgresTemuan --> TolakPerpanjangan: Tidak Ada Perbaikan Sama Sekali (Kosong)
+    TolakPerpanjangan --> OtomatisDibekukan: Perpanjangan Ditolak -> Status Menjadi SUSPENDED (Badge Ungu)
+    OtomatisDibekukan --> [*]
+    
+    CekProgresTemuan --> IzinkanPerpanjangan: Ada Bukti Perbaikan Sebagian Temuan + Surat Resmi
+    IzinkanPerpanjangan --> InputNomorSurat: Input tp_extension_letter_no & Aktifkan Perpanjangan 1 Bulan
+    InputNomorSurat --> SLAExtended: tp_extended_due_date = tp_due_date + 1 Bulan
+    
+    state CekPemenuhan <<choice>>
+    SLAExtended --> CekPemenuhan: Evaluasi Tanggal Pemenuhan (tp_satisfied_at)
+    CekPemenuhan --> StatusMemenuhi: Tanggal Terisi -> Status Otomatis "Memenuhi / Selesai"
+    StatusMemenuhi --> HitungLeadTimeSK: Trigger Pengingat SK 10 Hari
+    HitungLeadTimeSK --> [*]
+    
+    CekPemenuhan --> LewatBatasExtended: Tanggal Kosong & Melewati SLA Perpanjangan
+    LewatBatasExtended --> OtomatisDibekukan
 ```
 
-#### 4.4.2 Sequence Diagram: Penambahan Catatan Tindak Lanjut (Follow-Up)
+---
+
+### 4.4 Sequence Diagram
+
+#### 4.4.1 Sequence Diagram: Realisasi Pembayaran SIMPONI & Quality Gate Rilis SK
+
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Asesor / Staf
-    participant View as View (issues/show.blade.php)
-    participant Ctrl as IssueController
-    participant Model as IssueFollowup
-    participant DB as Database SQLite
-
-    User->>View: Buka detail masalah /issues/{id}
-    User->>View: Isi input catatan: "Sudah dikonfirmasi ke LPK"
-    User->>View: Klik tombol [ Simpan catatan ]
-    View->>Ctrl: HTTP POST /issues/{id}/follow-ups (payload: note, CSRF)
-    Ctrl->>Ctrl: Validasi input (note wajib diisi string)
-    Ctrl->>Model: IssueFollowup::create([...])
-    Model->>DB: INSERT INTO issue_followups (issue_id, user_id, note, created_at...)
-    DB-->>Model: Success ID
-    Ctrl-->>View: Redirect back() with session flash success
-    View->>View: Tampilkan Toast SweetAlert2 "Catatan tindak lanjut berhasil ditambahkan."
-    View-->>User: Riwayat follow-up baru muncul di urutan teratas
-```
-
-#### 4.4.4 Sequence Diagram: Alur Kepatuhan SIMASADI (Biaya Asesor, Billing PNBP, dan e-Sign BSrE)
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Asesor / Petugas KAN
+    actor Admin as Admin Unit Lab
     participant View as Detail Page (Blade)
-    participant Ctrl as Controller
-    participant Model as Eloquent Model
+    participant Ctrl as AssessmentController
+    participant Model as Assessment / Billing
     participant DB as SQLite Database
 
-    Note over User,DB: 1. Pelaporan & Verifikasi Biaya Perjalanan Dinas Asesor
-    User->>View: Input Uang Harian, Transport, Akomodasi, Paket Data
-    View->>Ctrl: POST /assessments/{id}/expenses
-    Ctrl->>Model: AssessmentExpense::updateOrCreate([...])
-    Model->>DB: INSERT/UPDATE assessment_expenses (status: MENUNGGU_VERIFIKASI)
+    Admin->>View: Buka Detail Asesmen / Akreditasi
+    Admin->>View: Klik [ Terbitkan Billing SIMPONI ]
+    View->>Ctrl: POST /accreditations/{id}/billings (nominal tarif KAN)
+    Ctrl->>Model: AccreditationBilling::create(code: 15-digit, status: UNPAID)
+    Model->>DB: INSERT INTO accreditation_billings
     DB-->>Ctrl: Saved
-    User->>View: Verifikator KAN klik [ Verifikasi SBM ]
-    View->>Ctrl: POST /assessments/{id}/expenses/verify (status: TERVERIFIKASI)
-    Ctrl->>Model: Expense->update(['status' => 'TERVERIFIKASI', 'verified_by' => user_id])
-    Model->>DB: UPDATE assessment_expenses
-    DB-->>Ctrl: Saved
+    Ctrl-->>View: Tampilkan Kode Billing SIMPONI
 
-    Note over User,DB: 2. Realisasi Billing PNBP (SIMPONI Kemenkeu)
-    User->>View: Klik [ Terbitkan Kode Billing SIMPONI ]
-    View->>Ctrl: POST /accreditations/{id}/billings
-    Ctrl->>Model: AccreditationBilling::create([...])
-    Model->>DB: INSERT INTO accreditation_billings (status: UNPAID, 15-digit code)
-    DB-->>Ctrl: Saved
-    User->>View: Konfirmasi Setoran Kas Negara (Input Channel & NTPN)
+    Note over Admin,DB: Konfirmasi Setoran Kas Negara
+    Admin->>View: Input Nomor NTPN 16-Karakter & Bank
     View->>Ctrl: POST /accreditations/{id}/billings/{billing}/pay
-    Ctrl->>Model: Billing->update(['status' => 'PAID', 'ntpn' => 'NTPN...', 'paid_at' => now()])
+    Ctrl->>Model: Billing->update(status: PAID, paid_at: now(), ntpn)
     Model->>DB: UPDATE accreditation_billings
     DB-->>Ctrl: Saved
 
-    Note over User,DB: 3. Pembubuhan Tanda Tangan Elektronik SK (BSrE)
-    User->>View: Klik [ Tandatangani SK Secara Digital ]
-    View->>Ctrl: POST /accreditations/{id}/esign (Passphrase Token)
-    Ctrl->>Ctrl: Generate SHA-256 Hash Integritas Dokumen & Nomor Seri BSrE
-    Ctrl->>Model: AccreditationSignature::create([...])
-    Model->>DB: INSERT INTO accreditation_signatures (is_signed: true, verify_hash)
-    Ctrl->>Model: Accreditation->update(['status' => 'COMPLETED', 'output_released_at' => now()])
-    Model->>DB: UPDATE accreditations
-    DB-->>Ctrl: Release Output Success
-    Ctrl-->>View: Redirect back() dengan Cap Segel Digital BSrE Aktif
+    Note over Admin,DB: Pengujian Quality Gate Kesiapan Terbit Dokumen
+    Admin->>View: Klik [ Rilis SK Akreditasi ]
+    View->>Ctrl: POST /accreditations/{id}/release
+    Ctrl->>Ctrl: isReleaseReady() (Cek: Billing PAID && Biaya SBM TERVERIFIKASI)
+    alt Syarat Belum Lengkap
+        Ctrl-->>View: Return 422: SK Terkunci (Quality Gate Lock)
+        View-->>Admin: Pop-up SweetAlert2: Syarat SBM/PNBP Belum Terpenuhi
+    else Syarat Lengkap
+        Ctrl->>Model: Generate SHA-256 Hash & Nomor Seri BSrE
+        Model->>DB: UPDATE accreditations SET output_released_at = now()
+        DB-->>Ctrl: Saved
+        Ctrl-->>View: Status Rilis Aktif & QR Code Keabsahan Terbentuk
+        View-->>Admin: Toast Sukses: SK Akreditasi Resmi Dirilis
+    end
 ```
 
 ---
 
 ### 4.5 Rancangan Basis Data (Entity Relationship Diagram - ERD)
 
-SIMASADI menggunakan skema relasional dengan 14 tabel yang saling terintegrasi mencakup master data, agenda kerja, log kendala, hingga administrasi finansial dan sertifikasi digital:
+Skema basis data SIMASADI terdiri dari 9 entitas tabel relasional terpadu yang memadukan data master lembaga, agenda lapangan, penegakan regulasi KAN U-01, kepatuhan finansial, serta jejak audit:
 
 ```mermaid
 erDiagram
+    USERS ||--o{ LPKS : "assigned_as_pic"
+    USERS ||--o{ ASSESSMENTS : "creates"
+    USERS ||--o{ ASSESSMENT_EXPENSES : "reports_or_verifies"
     USERS ||--o{ CALENDAR_EVENTS : "creates"
-    USERS ||--o{ ISSUE_FOLLOWUPS : "records"
-    USERS ||--o{ BACKUPS : "logs"
-    USERS ||--o{ ASSESSMENT_EXPENSES : "reports/verifies"
-    
-    LPKS ||--o{ ACCREDITATIONS : "possesses"
+    USERS ||--o{ BACKUPS : "records"
+
     LPKS ||--o{ ASSESSMENTS : "undergoes"
-    LPKS ||--o{ AMENDMENTS : "applies"
-    LPKS ||--o{ ISSUES : "has"
+    LPKS ||--o{ ACCREDITATIONS : "possesses"
     LPKS ||--o{ CALENDAR_EVENTS : "associated_with"
 
     ASSESSMENTS ||--o| ASSESSMENT_EXPENSES : "incurs"
     ACCREDITATIONS ||--o{ ACCREDITATION_BILLINGS : "billed_by"
     ACCREDITATIONS ||--o| ACCREDITATION_SIGNATURES : "certified_by"
 
-    ISSUES ||--o{ ISSUE_FOLLOWUPS : "followed_up_by"
-    SERVICES ||--o{ SERVICE_CHECKS : "checked_by"
-
     USERS {
         int id PK
         string name
         string email
         string password
+        string role "admin | pic | assessor | lpk"
         datetime created_at
     }
 
     LPKS {
         int id PK
+        string no_reg "Nomor Registrasi KAN unik"
         string registration_number
         string name
+        string kan_schema "Skema Akreditasi KAN"
+        text scope "Ruang Lingkup Akreditasi"
         string category
         string city
         string province
-        int scope_count
-        string status
+        string address
+        string email
+        string phone
+        string status "ACTIVE | SUSPENDED | REVOKED | INACTIVE"
+        date certificate_date
+        date expired_at
+        string drive_url
+        int pic_user_id FK "Relasi ke Users"
+        datetime last_surveillance_notified_at
+        text notes
+        datetime created_at
+    }
+
+    ASSESSMENTS {
+        int id PK
+        int lpk_id FK
+        int created_by FK
+        string title
+        string assessment_type "8 Tipe KAN U-01"
+        datetime start_at
+        datetime end_at
+        string location
+        string lead_assessor
+        string status "PLANNED | IN_PROGRESS | SUSPENDED | COMPLETED | CANCELLED"
+        text notes
+        int tp_sla_months "3 bln AA, 2 bln lainnya"
+        date tp_due_date "Batas Waktu Awal SLA"
+        boolean tp_has_extension
+        int tp_extension_months "Max 1 bulan"
+        string tp_extension_letter_no
+        date tp_extended_due_date
+        date tp_submitted_at
+        date tp_satisfied_at "Tanggal Pemenuhan TP"
+        text tp_unresolved_notes
+        date sk_issued_at
+        string sk_number
+        int sk_lead_time_days
+        date eha_scheduled_date
+        date eha_completed_at
+        text eha_notes
+        datetime created_at
+    }
+
+    ASSESSMENT_EXPENSES {
+        int id PK
+        int assessment_id FK
+        int reported_by FK
+        int transport_cost
+        int accommodation_cost
+        int daily_allowance
+        int package_data_cost
+        int total_cost
+        string receipt_note
+        string status "BELUM_DILAPORKAN | MENUNGGU_VERIFIKASI | TERVERIFIKASI | PERLU_REVISI"
+        text verification_notes
+        int verified_by FK
+        datetime verified_at
         datetime created_at
     }
 
@@ -412,48 +392,14 @@ erDiagram
         datetime created_at
     }
 
-    ASSESSMENTS {
-        int id PK
-        int lpk_id FK
-        int created_by FK
-        string title
-        string assessment_type
-        datetime start_at
-        datetime end_at
-        string location
-        string lead_assessor
-        string status
-        text notes
-        datetime created_at
-    }
-
-    ASSESSMENT_EXPENSES {
-        int id PK
-        int assessment_id FK
-        int reported_by FK
-        int transport_cost
-        int accommodation_cost
-        int daily_allowance
-        int package_data_cost
-        int total_cost
-        string receipt_note
-        string status
-        text verification_notes
-        int verified_by FK
-        datetime verified_at
-        datetime created_at
-    }
-
     ACCREDITATION_BILLINGS {
         int id PK
         int accreditation_id FK
-        string billing_code
-        string tariff_name
+        string billing_code "15-digit SIMPONI"
         int amount
-        datetime issued_at
-        datetime expired_at
-        string status
-        string ntpn
+        date expired_at
+        string status "UNPAID | PAID | EXPIRED"
+        string ntpn "16-digit Nomor Transaksi Negara"
         string ntb
         string payment_channel
         datetime paid_at
@@ -463,46 +409,13 @@ erDiagram
     ACCREDITATION_SIGNATURES {
         int id PK
         int accreditation_id FK
-        string sk_number
         string signer_name
-        string signer_title
+        string signer_role
         string signer_nip
-        boolean is_signed
+        string cert_serial
         datetime signed_at
-        string certificate_series
-        string verify_hash
-        datetime created_at
-    }
-
-    AMENDMENTS {
-        int id PK
-        int lpk_id FK
-        string submission_number
-        string reference_number
-        string amendment_type
-        date submitted_at
-        date target_date
-        string status
-        text notes
-        datetime created_at
-    }
-
-    ISSUES {
-        int id PK
-        int lpk_id FK
-        string title
-        text description
-        string priority
-        string status
-        date due_date
-        datetime created_at
-    }
-
-    ISSUE_FOLLOWUPS {
-        int id PK
-        int issue_id FK
-        int user_id FK
-        text note
+        string verify_hash "SHA-256 Hash"
+        boolean is_signed
         datetime created_at
     }
 
@@ -511,339 +424,175 @@ erDiagram
         int lpk_id FK
         int created_by FK
         string title
-        text description
+        string event_type "assessment | surveillance_reminder | tp_reminder | tp_overdue | sk_reminder"
         datetime start_at
         datetime end_at
-        string status
-        datetime created_at
-    }
-
-    SERVICES {
-        int id PK
-        string name
-        string system
-        string status
-        datetime last_checked_at
-        datetime created_at
-    }
-
-    SERVICE_CHECKS {
-        int id PK
-        int service_id FK
-        string status
-        string message
+        string location
+        boolean is_all_day
+        text notes
         datetime created_at
     }
 
     BACKUPS {
         int id PK
         int recorded_by FK
-        string system
-        string status
-        string size
-        datetime finished_at
+        string filename
+        int size_bytes
+        boolean is_successful
+        text notes
         datetime created_at
     }
 ```
+
+<p align="center"><b>Gambar 4. 4 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
 
 ---
 
 ### 4.6 Class Diagram
 
-Diagram kelas menyajikan struktur Model Eloquent, Relasi, dan Controller utama dalam aplikasi Laravel:
+Class diagram menggambarkan arsitektur berbasis objek pada layer Model dan Controller di Laravel:
 
 ```mermaid
 classDiagram
-    direction TB
-
     class User {
         +int id
         +string name
         +string email
-        +calendarEvents() HasMany
-        +issueFollowups() HasMany
-        +backups() HasMany
+        +string role
+        +isAdmin() bool
+        +isPic() bool
+        +isAssessor() bool
+        +isLpk() bool
+        +lpks() HasMany
+        +assessments() HasMany
     }
 
     class Lpk {
         +int id
-        +string registration_number
+        +string no_reg
         +string name
-        +string category
-        +string status
-        +accreditations() HasMany
+        +string kan_schema
+        +date certificate_date
+        +date expired_at
+        +int pic_user_id
+        +getDynamicStatusAttribute() string
+        +getDynamicKeteranganAttribute() string
+        +getSurveillanceMilestonesAttribute() array
         +assessments() HasMany
-        +amendments() HasMany
-        +issues() HasMany
-        +calendarEvents() HasMany
-    }
-
-    class Accreditation {
-        +int id
-        +int lpk_id
-        +string status
-        +date start_date
-        +date target_date
-        +lpk() BelongsTo
+        +picUser() BelongsTo
     }
 
     class Assessment {
         +int id
-        +int lpk_id
-        +string title
         +string assessment_type
         +datetime start_at
         +datetime end_at
         +string status
+        +int tp_sla_months
+        +date tp_due_date
+        +date tp_satisfied_at
+        +getEffectiveTpDueDateAttribute() Carbon
+        +getIsTpOverdueAttribute() bool
+        +getTpDynamicStatusAttribute() string
+        +getIsSubmissionOverdueAttribute() bool
+        +getIsSuspensionExpiredAttribute() bool
         +lpk() BelongsTo
-    }
-
-    class CalendarEvent {
-        +int id
-        +int lpk_id
-        +int created_by
-        +string title
-        +datetime start_at
-        +datetime end_at
-        +string status
-        +lpk() BelongsTo
-        +creator() BelongsTo
-    }
-
-    class Issue {
-        +int id
-        +int lpk_id
-        +string title
-        +string priority
-        +string status
-        +lpk() BelongsTo
-        +followups() HasMany
-    }
-
-    class IssueFollowup {
-        +int id
-        +int issue_id
-        +int user_id
-        +text note
-        +issue() BelongsTo
-        +user() BelongsTo
+        +expense() HasOne
     }
 
     class AssessmentExpense {
         +int id
-        +int assessment_id
-        +int daily_allowance
-        +int transport_cost
-        +int accommodation_cost
-        +int package_data_cost
         +int total_cost
         +string status
-        +string receipt_note
-        +assessment() BelongsTo
+        +calculateTotal() int
         +isVerified() bool
+        +assessment() BelongsTo
     }
 
-    class AccreditationBilling {
+    class Accreditation {
         +int id
-        +int accreditation_id
-        +string billing_code
-        +int amount
         +string status
-        +string ntpn
-        +accreditation() BelongsTo
-        +isPaid() bool
+        +isReleaseReady() bool
+        +lpk() BelongsTo
+        +billings() HasMany
+        +signature() HasOne
     }
 
-    class AccreditationSignature {
+    class CalendarEvent {
         +int id
-        +int accreditation_id
-        +string sk_number
-        +string signer_name
-        +boolean is_signed
-        +string verify_hash
-        +accreditation() BelongsTo
+        +string event_type
+        +datetime start_at
+        +datetime end_at
+        +lpk() BelongsTo
     }
 
-    class LpkController {
-        +index(Request) View
-        +create() View
-        +store(Request) Redirect
-        +show(Lpk) View
-        +edit(Lpk) View
-        +update(Request, Lpk) Redirect
-    }
-
-    class AssessmentController {
-        +index(Request) View
-        +create() View
-        +store(Request) Redirect
-        +show(Assessment) View
-        +edit(Assessment) View
-        +update(Request, Assessment) Redirect
-    }
-
-    class AssessmentExpenseController {
-        +storeOrUpdate(Request, Assessment) Redirect
-        +verify(Request, Assessment) Redirect
-    }
-
-    class AccreditationBillingController {
-        +store(Request, Accreditation) Redirect
-        +pay(Request, Accreditation, AccreditationBilling) Redirect
-    }
-
-    class AccreditationSignatureController {
-        +sign(Request, Accreditation) Redirect
-        +verifyPublic(string) View
-    }
-
-    class CalendarEventController {
-        +index(Request) View
-        +create(Request) View
-        +store(Request) Redirect
-        +show(CalendarEvent) View
-        +edit(CalendarEvent) View
-        +update(Request, CalendarEvent) Redirect
-    }
-
-    class IssueController {
-        +index(Request) View
-        +create() View
-        +store(Request) Redirect
-        +show(Issue) View
-        +update(Request, Issue) Redirect
-        +storeFollowup(Request, Issue) Redirect
-    }
-
-    Lpk "1" -- "*" Accreditation : has
-    Lpk "1" -- "*" Assessment : undergoes
-    Lpk "1" -- "*" CalendarEvent : scheduled
-    Lpk "1" -- "*" Issue : reports
-    Assessment "1" -- "0..1" AssessmentExpense : incurs
-    Accreditation "1" -- "*" AccreditationBilling : billed
-    Accreditation "1" -- "0..1" AccreditationSignature : signed
-    Issue "1" -- "*" IssueFollowup : contains
-    User "1" -- "*" IssueFollowup : writes
-    User "1" -- "*" CalendarEvent : creates
-
-    LpkController ..> Lpk : uses
-    AssessmentController ..> Assessment : uses
-    AssessmentExpenseController ..> AssessmentExpense : uses
-    AccreditationBillingController ..> AccreditationBilling : uses
-    AccreditationSignatureController ..> AccreditationSignature : uses
-    CalendarEventController ..> CalendarEvent : uses
-    IssueController ..> Issue : uses
-    IssueController ..> IssueFollowup : uses
+    User "1" --> "*" Lpk : assigns
+    User "1" --> "*" Assessment : creates
+    Lpk "1" --> "*" Assessment : undergoes
+    Lpk "1" --> "*" Accreditation : holds
+    Assessment "1" --> "1" AssessmentExpense : has
+    Accreditation "1" --> "*" CalendarEvent : schedules
 ```
 
 ---
 
-### 4.7 Rancangan Antarmuka Pengguna (Wireframe)
+### 4.7 Rancangan Antarmuka Pengguna (Wireframe Desktop & Mobile)
 
-Berikut adalah representasi tata letak antarmuka halaman-halaman kunci aplikasi SIMASADI:
-
-#### 4.7.1 Wireframe: Dashboard Ringkasan (Desktop)
+#### 4.7.1 Wireframe Halaman Detail Asesmen (Desktop)
 ```text
-+----------------------------------------------------------------------------------------------------+
-| [Logo BSN] SIMASADI | Sistem Informasi & Administrasi Akreditasi       [Admin (Staf) v] [Logout]   |
-+----------------------------------------------------------------------------------------------------+
-| [SIDEBAR]       | Ringkasan Operasional                                                            |
-| - Ringkasan     | Pantau status LPK, akreditasi, dan jadwal kerja.                                 |
-| - Data LPK      | +------------------+ +------------------+ +------------------+ +---------------+ |
-| - Akreditasi    | | Total LPK        | | Akreditasi Aktif | | Asesmen Terjadwal| | Masalah Open  | |
-| - Amandemen     | | 128              | | 42               | | 18               | | 5             | |
-| - Program Ases. | +------------------+ +------------------+ +------------------+ +---------------+ |
-| - Kalender      |                                                                                  |
-| - Masalah       | +------------------------------------------------------------------------------+ |
-| - Layanan       | | Analisis Status Akreditasi                                                   | |
-| - Backup        | | [======== 25% Belum Mulai ========][====== 50% Berjalan ======][= 25% Sels=] | |
-|                 | +------------------------------------------------------------------------------+ |
-|                 | +------------------------------------+ +-------------------------------------+ |
-|                 | | Masalah Prioritas Tinggi           | | Aktivitas Asesmen Terkini           | |
-|                 | | - PT Qualis (High, Due: 24 Sep)    | | - Surveilen PT Citrabuana (24 Sep)  | |
-|                 | | - PT Petrokimia (High, Due: 28 Sep)| | - Asesmen Awal PT Sucofindo (28 Sep)| |
-|                 | +------------------------------------+ +-------------------------------------+ |
-+----------------------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------+
+|  [LOGO BSN/KAN] SIMASADI Workspace                       [Lonceng: 2] [User: Admin Unit Lab v]    |
++---------------------------------------------------------------------------------------------------+
+|  <- Kembali ke Daftar Asesmen | No. Reg: LP-001-IDN | Status: [ DIBEKUKAN ] (Badge Ungu)          |
++---------------------------------------------------------------------------------------------------+
+|  RINGKASAN ASESMEN                                                                                |
+|  * Tipe Asesmen   : Surveilen 1 (S1)           * Tanggal Pelaksanaan : 29/03/2027 s/d 30/03/2027   |
+|  * Lead Assessor  : Dr. Ir. Budi Santoso       * Toleransi Pengisian : 31/03/2027 (Lewat Batas)    |
+|  * Sisa Pembekuan : 312 Hari (10 Bulan)        * Batas Pencabutan    : 31/03/2028                 |
++---------------------------------------------------------------------------------------------------+
+|  [TAB: RINCIAN ASESMEN] | [TAB: TINDAKAN PERBAIKAN (TP)] | [TAB: BIAYA SBM] | [TAB: ALUR EHA & SK] |
++---------------------------------------------------------------------------------------------------+
+|  PELACAKAN TINDAKAN PERBAIKAN (SLA KAN):                                                          |
+|  * Status TP Otomatis : [ DIBEKUKAN ] (Melewati SLA dasar 2 bulan tanpa pemenuhan)                |
+|  * Batas Awal SLA     : 30/05/2027             * Perpanjangan Waktu  : [ Ya ] (Max 1 Bulan)       |
+|  * No. Surat Permohonan : 142/LPK-EXT/V/2027   * Batas Perpanjangan  : 30/06/2027                 |
+|  * Tanggal Memenuhi   : [ DD/MM/YYYY ] (Input saat perbaikan disetujui lead assessor)             |
++---------------------------------------------------------------------------------------------------+
+|  BIAYA PERJALANAN DINAS ASESOR (SBM PMK):                                                         |
+|  * Transportasi: Rp 1.500.000  * Uang Harian: Rp 860.000  * Total: Rp 2.360.000                   |
+|  * Status Verifikasi: [ TERVERIFIKASI SBM ] (Diverifikasi oleh: Admin pada 01/04/2027)            |
++---------------------------------------------------------------------------------------------------+
+|  EVALUASI HASIL ASESMEN & SK KAN:                                                                 |
+|  * Tanggal Sidang EHA : 10/07/2027             * No. SK KAN          : 452/KAN/SK/07/2027         |
+|  * Tanggal Terbit SK  : 15/07/2027             * Lead Time Terbit SK : 15 Hari                    |
++---------------------------------------------------------------------------------------------------+
 ```
 
-#### 4.7.2 Wireframe: Tampilan Tabel Data dengan Tombol Detail Interaktif (Desktop)
+#### 4.7.2 Wireframe Tampilan Mobile (Responsif & Filter Drawer)
 ```text
-+----------------------------------------------------------------------------------------------------+
-| Program Asesmen                                                            [+ Tambah Asesmen]      |
-| Jadwal dan progres asesmen semua LPK.                                                              |
-+----------------------------------------------------------------------------------------------------+
-| [Filter: Cari agenda...] [LPK: Semua v] [Jenis: Semua v] [Status: Semua v] [Terapkan Filter] [Reset]|
-+----------------------------------------------------------------------------------------------------+
-| FILTER AKTIF:  [ Status: Selesai (x) ]   [ Jenis: Surveilen (x) ]                 Reset Filter      |
-+----------------------------------------------------------------------------------------------------+
-| Show [ 10 v ] entries                                                      [ [=] Tabel | [::] Grid ]|
-+----------------------------------------------------------------------------------------------------+
-| AGENDA                     | LPK                       | WAKTU             | STATUS       | AKSI   |
-+----------------------------+---------------------------+-------------------+--------------+--------+
-| Surveilen                  | PT Citrabuana Indoloka    | 24 Sep 2026, 09:00| [Direncanak] |[Detail→|
-| REASSESSMENT               |                           |                   |              |        |
-+----------------------------+---------------------------+-------------------+--------------+--------+
-| Asesmen Awal               | PT Qualis Indonesia       | 25 Sep 2026, 09:00| [Terjadwal ] |[Detail→|
-| INITIAL                    |                           |                   |              |        |
-+----------------------------+---------------------------+-------------------+--------------+--------+
-| Showing 1 to 10 of 18 entries                                                 [<] [1] [2] [>]      |
-+----------------------------------------------------------------------------------------------------+
-```
-
-#### 4.7.3 Wireframe: Tampilan Mode Grid Card & Penataan Sejajar Mobile (Mobile <= 600px)
-```text
-+------------------------------------------+
-| [=] SIMASADI                    [User v] |
-+------------------------------------------+
-| Program Asesmen                          |
-| [+ Tambah Asesmen]                       |
-+------------------------------------------+
-| [ ☩ Filter data ]       [ [=]Tab | [::]Grd] |  <-- Sejajar (Side-by-Side)
-|                                          |
-| Show [ 10 v ] entries                    |
-+------------------------------------------+
-| +--------------------------------------+ |
-| | HEADER: Surveilen                    | |
-| | [ REASSESSMENT ]                     | |  <-- Lavender pill badge
-| +--------------------------------------+ |
-| | LPK     : PT Citrabuana Indoloka     | |
-| |           Laboratorium LSPro         | |  <-- Kolom 84px rata rapi
-| | WAKTU   : 24 Sep 2026, 09:00         | |
-| | STATUS  : [ Direncanakan ]           | |
-| +--------------------------------------+ |
-| | FOOTER:                 [ Detail → ] | |  <-- Card footer bar
-| +--------------------------------------+ |
-|                                          |
-| +--------------------------------------+ |
-| | HEADER: Asesmen Awal                 | |
-| | [ INITIAL ]                          | |
-| +--------------------------------------+ |
-| | LPK     : PT Qualis Indonesia        | |
-| | WAKTU   : 25 Sep 2026, 09:00         | |
-| | STATUS  : [ Terjadwal ]              | |
-| +--------------------------------------+ |
-| | FOOTER:                 [ Detail → ] | |
-| +--------------------------------------+ |
-+------------------------------------------+
-```
-
-#### 4.7.4 Wireframe: Kalender Interaktif (Desktop)
-```text
-+----------------------------------------------------------------------------------------------------+
-| Kalender Kegiatan                                           [Mode Kalender | Mode Agenda]          |
-| Klik kotak tanggal untuk membuat agenda langsung.                                                  |
-+----------------------------------------------------------------------------------------------------+
-| < September 2026 >                                                                                 |
-+------------+------------+------------+------------+------------+------------+----------------------+
-| SEN        | SEL        | RAB        | KAM        | JUM        | SAB        | MIN                  |
-+------------+------------+------------+------------+------------+------------+----------------------+
-| 1          | 2          | 3          | 4          | 5          | 6          | 7                    |
-|            |            |            | [Surveilen]|            |            |                      |
-+------------+------------+------------+------------+------------+------------+----------------------+
-| 8          | 9          | 10         | 11         | 12         | 13         | 14                   |
-|            |            | [Rapat KAN]|            |            |            |                      |
-+------------+------------+------------+------------+------------+------------+----------------------+
-| 15         | 16         | 17         | 18         | 19 (TODAY) | 20         | 21 (KLIK TANGGAL)    |
-|            |            |            |            | [Review]   |            | [ + Buat Agenda... ] |
-+------------+------------+------------+------------+------------+------------+----------------------+
++-----------------------------+
+| [=] SIMASADI        [Avatar]|
++-----------------------------+
+| ALERT PERSISTEN PRIORITAS   |
+| ! 3 Pengawasan Butuh Aksi   |
+| [ Tinjau LPK Jatuh Tempo ->]|
++-----------------------------+
+| DAFTAR MASTER LPK           |
+| [ Filter Data ] [Tabel|Grid]|
+| Menampilkan: 10 per halaman |
++-----------------------------+
+| +-------------------------+ |
+| | LP-001-IDN              | |
+| | Balai Besar Pengujian   | |
+| | Skema: Lab Uji ISO 17025| |
+| | Status: [ DIBEKUKAN ]   | |
+| | Sisa Waktu: 10 Bulan    | |
+| | [ Detail Asesmen -> ]   | |
+| +-------------------------+ |
+| | LK-015-IDN              | |
+| | Laboratorium Kalibrasi  | |
+| | Status: [ AKTIF ]       | |
+| | [ Detail Asesmen -> ]   | |
+| +-------------------------+ |
++-----------------------------+
 ```

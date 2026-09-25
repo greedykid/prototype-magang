@@ -8,11 +8,17 @@
         <a class="back-link" href="{{ route('lpks.index') }}">Semua LPK</a>
         <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 23px; line-height: 1.35; font-weight: 700; word-break: break-word; max-width: 950px;">{{ $lpk->name }}</h1>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-            <p class="lede" style="margin-bottom: 0;">{{ $lpk->registration_number }} &middot; Lembaga Penilaian Kesesuaian Terakreditasi</p>
+            <span style="background: #e2e8f0; color: #0f172a; font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 4px;">No Reg: {{ $lpk->no_reg ?: $lpk->registration_number }}</span>
+            @if($lpk->accreditation_number)
+                <span style="background: #f1f5f9; color: #0f172a; font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">No Akreditasi: {{ $lpk->accreditation_number }}</span>
+            @endif
+            @if($lpk->accreditation_type)
+                <span style="background: #eef2ff; color: #4338ca; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 4px;">{{ $lpk->accreditation_type }}</span>
+            @endif
             <x-status :value="$lpk->dynamic_status" />
         </div>
     </div>
-    @if(auth()->user()?->isAdmin())
+    @if(auth()->user()?->isAdmin() || (auth()->user()?->isPic() && $lpk->isManagedBy(auth()->user())))
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px;">
             <a class="button secondary" href="{{ route('lpks.edit', $lpk) }}" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 16px;">
                 <x-icon name="edit" size="16" />
@@ -26,14 +32,16 @@
                     <span>Hapus LPK</span>
                 </button>
             </form>
-            <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin: 0; display: inline-block;">
-                @csrf
-                <input type="hidden" name="is_simulation" value="1">
-                <button type="submit" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 16px; border-color: #6366f1; color: #4338ca; background: #eef2ff;" title="Simulasikan pengiriman notifikasi pengawasan ke Mailtrap Sandbox">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                    <span>Simulasi Notifikasi Email</span>
-                </button>
-            </form>
+            @if(auth()->user()?->isAdmin())
+                <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin: 0; display: inline-block;">
+                    @csrf
+                    <input type="hidden" name="is_simulation" value="1">
+                    <button type="submit" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 16px; border-color: #6366f1; color: #4338ca; background: #eef2ff;" title="Simulasikan pengiriman notifikasi pengawasan ke Mailtrap Sandbox">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <span>Simulasi Notifikasi Email</span>
+                    </button>
+                </form>
+            @endif
         </div>
     @endif
 </div>
@@ -136,7 +144,7 @@
                     <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
                         <a href="{{ route('assessments.show', $linkedS1) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedS1->status === 'PLANNED' ? 'Rencana (Bulan 15)' : $linkedS1->status }} &rarr;
+                            {{ $linkedS1->status === 'PLANNED' ? 'Rencana (Bulan 15)' : $linkedS1->status_label }} &rarr;
                         </a>
                     </div>
                 @endif
@@ -178,7 +186,7 @@
                     <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
                         <a href="{{ route('assessments.show', $linkedS2) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedS2->status === 'PLANNED' ? 'Rencana (Bulan 36)' : $linkedS2->status }} &rarr;
+                            {{ $linkedS2->status === 'PLANNED' ? 'Rencana (Bulan 36)' : $linkedS2->status_label }} &rarr;
                         </a>
                     </div>
                 @endif
@@ -220,7 +228,7 @@
                     <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
                         <a href="{{ route('assessments.show', $linkedRA) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedRA->status === 'PLANNED' ? 'Rencana (Bulan 54)' : $linkedRA->status }} &rarr;
+                            {{ $linkedRA->status === 'PLANNED' ? 'Rencana (Bulan 54)' : $linkedRA->status_label }} &rarr;
                         </a>
                     </div>
                 @endif
@@ -245,9 +253,33 @@
         <span class="eyebrow">INFORMASI DASAR</span>
         <dl class="detail-list">
             <div>
-                <dt>Status</dt>
+                <dt>No Reg LPK (ID Unik KAN)</dt>
+                <dd><strong style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: 14px; color: #0f172a;">{{ $lpk->no_reg ?: $lpk->registration_number }}</strong></dd>
+            </div>
+            <div>
+                <dt>No Akreditasi KAN</dt>
+                <dd>
+                    @if($lpk->accreditation_number)
+                        <strong style="color: #0f172a; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 14px;">{{ $lpk->accreditation_number }}</strong>
+                    @else
+                        <span style="color: var(--muted);">-</span>
+                    @endif
+                </dd>
+            </div>
+            <div>
+                <dt>Jenis Akreditasi</dt>
+                <dd>{{ $lpk->accreditation_type ?: 'Laboratorium Penguji' }}</dd>
+            </div>
+            <div>
+                <dt>Status Akreditasi</dt>
                 <dd><x-status :value="$lpk->dynamic_status" /></dd>
             </div>
+            @if($lpk->pic)
+                <div>
+                    <dt>PIC Penanggung Jawab</dt>
+                    <dd><strong>{{ $lpk->pic->name }}</strong> <span style="font-size: 12px; color: var(--muted);">({{ $lpk->pic->email }})</span></dd>
+                </div>
+            @endif
             <div style="align-items: start;">
                 <dt style="padding-top: 2px;">Ruang Lingkup Akreditasi</dt>
                 <dd>@if($lpk->scope)<div style="white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line, #e2e8f0); border-radius: 6px; padding: 10px 14px; max-height: 280px; overflow-y: auto;">{{ $lpk->scope }}</div>@else<span style="color: var(--muted);">Belum diisi</span>@endif</dd>
@@ -270,11 +302,46 @@
             </div>
             <div>
                 <dt style="white-space: nowrap;">Masa Berlaku Akreditasi</dt>
-                <dd>@if($lpk->expired_at)<strong>{{ $lpk->expired_at->format('d M Y') }}</strong>@if($lpk->isExpired())<span class="status status-danger" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Kedaluwarsa</span>@elseif($lpk->isExpiringSoon())<span class="status status-warn" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Mendekati Kedaluwarsa</span>@endif @else<span style="color: var(--muted);">Belum ditentukan</span>@endif</dd>
+                <dd>
+                    <strong>{{ $lpk->masa_akreditasi_label }}</strong>
+                    @if($lpk->isExpired())
+                        <span class="status status-danger" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Kedaluwarsa</span>
+                    @elseif($lpk->isExpiringSoon())
+                        <span class="status status-warn" style="margin-left: 8px; font-size: 11px; vertical-align: middle;">Mendekati Kedaluwarsa</span>
+                    @endif
+                </dd>
             </div>
-            <div>
-                <dt style="white-space: nowrap;" title="Sertifikat, Amandemen & Lampiran">Berkas Akreditasi</dt>
-                <dd>@if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))<a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 12px; min-height: 32px;" title="Buka Berkas Sertifikat, Amandemen & Lampiran di Google Drive"><x-icon name="sheets" size="14" /><span>Buka Berkas di Google Drive &rarr;</span></a>@else<span style="color: var(--muted);">Belum ada tautan berkas</span>@endif</dd>
+            <div style="align-items: start;">
+                <dt style="padding-top: 6px;">Keterangan</dt>
+                <dd style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    {{-- Status Operasional Otomatis --}}
+                    <div style="font-size: 13.5px; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 9px 12px; line-height: 1.5;">
+                        @if(str_contains($lpk->dynamic_keterangan, ':'))
+                            @php
+                                [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
+                            @endphp
+                            <strong style="color: #0f172a; font-weight: 700;">{{ $processName }}:</strong><span style="color: #334155; font-weight: 500;">{{ $statusDetail }}</span>
+                        @else
+                            <strong style="color: #0f172a; font-weight: 700;">{{ $lpk->dynamic_keterangan }}</strong>
+                        @endif
+                    </div>
+
+                    {{-- Catatan Manual PIC --}}
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; background: {{ $lpk->notes ? '#fefce8' : '#f8fafc' }}; border: 1px solid {{ $lpk->notes ? '#fef08a' : '#e2e8f0' }}; border-radius: 6px; padding: 8px 12px;">
+                        <div style="flex: 1 1 auto; font-size: 13px; color: {{ $lpk->notes ? '#713f12' : 'var(--muted, #64748b)' }}; line-height: 1.5; word-break: break-word;">
+                            <strong style="display: block; font-size: 11px; text-transform: uppercase; color: {{ $lpk->notes ? '#854d0e' : 'var(--muted)' }}; margin-bottom: 2px;">Catatan Khusus PIC:</strong>
+                            @if($lpk->notes)
+                                {!! nl2br(e(trim($lpk->notes))) !!}
+                            @else
+                                <em>Belum ada keterangan.</em>
+                            @endif
+                        </div>
+                        <button type="button" class="button secondary" onclick="window.openModal('modal-input-keterangan')" style="font-size: 12px; padding: 4px 12px; min-height: 30px; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
+                            <x-icon name="edit" size="13" />
+                            <span>{{ $lpk->notes ? 'Ubah Keterangan' : 'Input Keterangan' }}</span>
+                        </button>
+                    </div>
+                </dd>
             </div>
         </dl>
     </section>
@@ -342,6 +409,57 @@
                 @endforelse
             </section>
         @endif
+    </div>
+</div>
+
+{{-- Modal: Input / Ubah Keterangan LPK --}}
+<div class="simasadi-modal" id="modal-input-keterangan" role="dialog" aria-modal="true">
+    <div class="simasadi-modal-box" style="max-width: 540px;">
+        <div class="simasadi-modal-head">
+            <h4>{{ $lpk->notes ? 'Ubah Keterangan LPK' : 'Input Keterangan LPK' }}</h4>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-input-keterangan')" aria-label="Tutup modal">&times;</button>
+        </div>
+        <form method="POST" action="{{ route('lpks.notes.update', $lpk) }}">
+            @csrf
+            <div style="display: grid; gap: 14px;">
+                <p style="font-size: 13px; color: var(--muted); margin: 0;">
+                    Keterangan atau catatan monitoring internal untuk <strong>{{ $lpk->name }}</strong> (No Reg: {{ $lpk->no_reg ?: $lpk->registration_number }}).
+                </p>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                        <span style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">
+                            Keterangan Otomatis:
+                        </span>
+                        <button type="button" class="button secondary" style="font-size: 11px; padding: 2px 8px; min-height: 24px;" onclick="document.getElementById('input-notes-textarea').value = {{ json_encode($lpk->dynamic_keterangan) }};">
+                            Gunakan Keterangan Otomatis
+                        </button>
+                    </div>
+                    <div style="font-size: 13px; color: #0f172a; line-height: 1.45;">
+                        @if(str_contains($lpk->dynamic_keterangan, ':'))
+                            @php
+                                [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
+                            @endphp
+                            <strong style="color: #0f172a; font-weight: 700;">{{ $processName }}:</strong><span style="color: #334155; font-weight: 500;">{{ $statusDetail }}</span>
+                        @else
+                            <strong style="color: #0f172a; font-weight: 700;">{{ $lpk->dynamic_keterangan }}</strong>
+                        @endif
+                    </div>
+                </div>
+
+                <label>
+                    <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Catatan Khusus PIC (Opsional)</span>
+                    <textarea id="input-notes-textarea" name="notes" rows="4" placeholder="Masukkan catatan tambahan PIC jika ada..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-family: inherit; font-size: 13.5px; line-height: 1.5; resize: vertical;">{{ old('notes', $lpk->notes) }}</textarea>
+                    <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Catatan manual akan selalu ditampilkan berdampingan dengan status otomatis sistem.</small>
+                </label>
+            </div>
+            <div class="modal-form-actions" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-input-keterangan')">Batal</button>
+                <button type="submit" class="button primary">
+                    <span>Simpan Keterangan</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

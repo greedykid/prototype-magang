@@ -15,7 +15,7 @@ class ErrorPageTest extends TestCase
         $pic = User::factory()->pic()->create(['name' => 'Budi PIC']);
 
         // PIC attempting to access admin-only route
-        $response = $this->actingAs($pic)->get(route('lpks.create'));
+        $response = $this->actingAs($pic)->get(route('users.index'));
 
         $response->assertForbidden();
         $response->assertSee('403 &bull; Batasan Akses', false);

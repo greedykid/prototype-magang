@@ -1,3 +1,5 @@
+{{-- MODAL BIAYA ASESOR SEMENTARA DISEMBUNYIKAN SESUAI PERMINTAAN USER --}}
+@if(false)
 {{-- Modal 1: Input / Perbarui Laporan Biaya Asesor --}}
 <div class="simasadi-modal" id="modal-report-expense" role="dialog" aria-modal="true">
     <div class="simasadi-modal-box">
@@ -75,9 +77,9 @@
     </div>
 </div>
 @endif
+@endif
 
 {{-- Modal 3: Kelola Tindakan Perbaikan (TP & VTP) KAN --}}
-@if(auth()->user()?->isAdmin())
 <div class="simasadi-modal" id="modal-tp-tracking" role="dialog" aria-modal="true">
     <div class="simasadi-modal-box" style="max-width: 580px;">
         <div class="simasadi-modal-head">
@@ -92,15 +94,29 @@
                     AA (3 bulan), Surveilen/PRL/RA (2 bulan). Perpanjangan masa perbaikan maksimal 1 bulan berbasis surat permohonan resmi LPK.
                 </div>
 
-                <label style="position: relative; z-index: 30; display: block;">
-                    <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Tindakan Perbaikan</span>
-                    <select name="tp_status" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
-                        <option value="NONE" @selected(old('tp_status', $assessment->tp_status) === 'NONE')>Nihil / Tidak Ada Temuan</option>
-                        <option value="IN_PROGRESS" @selected(old('tp_status', $assessment->tp_status) === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
-                        <option value="UNDER_VERIFICATION" @selected(old('tp_status', $assessment->tp_status) === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
-                        <option value="SATISFIED" @selected(old('tp_status', $assessment->tp_status) === 'SATISFIED')>Dinyatakan Memenuhi (Selesai)</option>
-                    </select>
-                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 30;">
+                    <label style="display: block;">
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Pelaksanaan Asesmen</span>
+                        <select name="status" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                            <option value="PLANNED" @selected(old('status', $assessment->status) === 'PLANNED')>Direncanakan</option>
+                            <option value="SCHEDULED" @selected(old('status', $assessment->status) === 'SCHEDULED')>Terjadwal</option>
+                            <option value="IN_PROGRESS" @selected(old('status', $assessment->status) === 'IN_PROGRESS')>Sedang Berlangsung</option>
+                            <option value="SUSPENDED" @selected(old('status', $assessment->status) === 'SUSPENDED')>Dibekukan</option>
+                            <option value="COMPLETED" @selected(old('status', $assessment->status) === 'COMPLETED' || $assessment->tp_status === 'SATISFIED' || !empty($assessment->sk_number))>Selesai</option>
+                            <option value="CANCELLED" @selected(old('status', $assessment->status) === 'CANCELLED')>Dibatalkan</option>
+                        </select>
+                    </label>
+
+                    <label style="display: block;">
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Tindakan Perbaikan</span>
+                        <select name="tp_status" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                            <option value="NONE" @selected(old('tp_status', $assessment->tp_status) === 'NONE')>Nihil / Tidak Ada Temuan</option>
+                            <option value="IN_PROGRESS" @selected(old('tp_status', $assessment->tp_status) === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
+                            <option value="UNDER_VERIFICATION" @selected(old('tp_status', $assessment->tp_status) === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
+                            <option value="SATISFIED" @selected(old('tp_status', $assessment->tp_status) === 'SATISFIED')>Dinyatakan Memenuhi (Selesai)</option>
+                        </select>
+                    </label>
+                </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 10;">
                     <label>
@@ -141,6 +157,40 @@
                     </div>
                 </div>
 
+                {{-- Bagian Laporan Asesmen & EHA --}}
+                <div style="padding: 10px 12px; background: #f8fafc; border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 12.5px; color: var(--text); display: block;">Laporan Asesmen &amp; Evaluasi Hasil Asesmen (EHA)</strong>
+                        <small style="color: var(--muted); font-size: 11px;">Pencatatan tanggal laporan dan evaluasi panitia teknis.</small>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tgl Laporan Asesmen</span>
+                            <input type="date" name="report_date" value="{{ old('report_date', $assessment->report_date?->format('Y-m-d')) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                        </label>
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tgl EHA (Panitia Teknis)</span>
+                            <input type="date" name="eha_date" value="{{ old('eha_date', $assessment->eha_date?->format('Y-m-d')) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                        </label>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Status Hasil EHA</span>
+                            <select name="eha_status" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                                @foreach(\App\Models\Assessment::EHA_STATUSES as $ehaVal => $ehaText)
+                                    <option value="{{ $ehaVal }}" @selected(old('eha_status', $assessment->eha_status ?: \App\Models\Assessment::EHA_STATUS_BELUM) === $ehaVal)>
+                                        {{ $ehaText }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <label>
+                            <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Catatan Hasil EHA</span>
+                            <input type="text" name="eha_notes" placeholder="Catatan atau rekomendasi panitia teknis..." value="{{ old('eha_notes', $assessment->eha_notes) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
+                        </label>
+                    </div>
+                </div>
+
                 {{-- Bagian SK Hasil Asesmen --}}
                 <div style="padding: 10px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; display: grid; gap: 8px;">
                     <div>
@@ -177,4 +227,4 @@
         </form>
     </div>
 </div>
-@endif
+

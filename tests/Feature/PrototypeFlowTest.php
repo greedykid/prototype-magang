@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Accreditation;
-use App\Models\Amendment;
 use App\Models\Assessment;
 use App\Models\Backup;
-use App\Models\Issue;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,9 +30,7 @@ class PrototypeFlowTest extends TestCase
         $this->get('/dashboard')->assertOk()
             ->assertSee('Selamat datang')
             ->assertSee('Asesmen Terdekat')
-            ->assertSee('Finansial &amp; Administrasi', false)
-            ->assertSee('Keandalan Sistem')
-            ->assertSee('Semua Aman &amp; Kepatuhan Terkendali', false);
+            ->assertSee('Tidak Ada Tindakan Mendesak', false);
     }
 
     public function test_user_can_create_lpk(): void
@@ -50,50 +46,22 @@ class PrototypeFlowTest extends TestCase
         $this->assertDatabaseHas('lpks', ['registration_number' => 'LPK-TEST-001']);
     }
 
-    public function test_user_can_create_issue_and_followup(): void
-    {
-        $user = User::factory()->create();
-        $lpk = Lpk::factory()->create();
-
-        $response = $this->actingAs($user)->post('/issues', [
-            'lpk_id' => $lpk->id,
-            'title' => 'Dokumen belum lengkap',
-            'description' => 'Ada data yang perlu ditinjau.',
-            'priority' => 'HIGH',
-            'status' => 'OPEN',
-        ]);
-
-        $issue = Issue::firstOrFail();
-        $response->assertRedirect('/issues/'.$issue->id);
-
-        $this->post('/issues/'.$issue->id.'/follow-ups', ['note' => 'Sudah diminta untuk melengkapi data.'])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('issue_followups', ['issue_id' => $issue->id, 'user_id' => $user->id]);
-    }
-
-    public function test_table_filters_work_across_all_six_index_pages(): void
+    public function test_table_filters_work_across_index_pages(): void
     {
         $user = User::factory()->create(['name' => 'Filter User']);
         $matchingLpk = Lpk::factory()->create(['name' => 'LPK Filter Cocok', 'status' => 'ACTIVE']);
         $otherLpk = Lpk::factory()->create(['name' => 'LPK Filter Lain', 'status' => 'INACTIVE']);
         $assessment = Assessment::factory()->create(['lpk_id' => $matchingLpk->id, 'title' => 'Agenda Filter Cocok', 'status' => 'COMPLETED', 'start_at' => '2026-09-20 09:00', 'end_at' => '2026-09-20 12:00']);
         Assessment::factory()->create(['lpk_id' => $otherLpk->id, 'title' => 'Agenda Filter Lain', 'status' => 'PLANNED']);
-        $issue = Issue::factory()->create(['lpk_id' => $matchingLpk->id, 'title' => 'Masalah Filter Cocok', 'status' => 'RESOLVED', 'due_date' => '2026-09-20']);
-        Issue::factory()->create(['lpk_id' => $otherLpk->id, 'title' => 'Masalah Filter Lain', 'status' => 'OPEN']);
         $backup = Backup::factory()->create(['status' => 'FAILED', 'finished_at' => '2026-09-20 12:00', 'size' => 'FILTER-FAILED', 'recorded_by' => $user->id]);
         Backup::factory()->create(['status' => 'SUCCESS', 'finished_at' => '2026-08-20 12:00', 'size' => 'FILTER-SUCCESS', 'recorded_by' => $user->id]);
         $accreditation = Accreditation::factory()->create(['lpk_id' => $matchingLpk->id, 'status' => 'COMPLETED', 'start_date' => '2026-09-20', 'target_date' => '2026-09-30']);
         Accreditation::factory()->create(['lpk_id' => $otherLpk->id, 'status' => 'NOT_STARTED']);
-        $amendment = Amendment::factory()->create(['lpk_id' => $matchingLpk->id, 'submission_number' => 'AMD-FILTER-001', 'status' => 'APPROVED', 'submitted_at' => '2026-09-20', 'target_date' => '2026-09-30']);
-        Amendment::factory()->create(['lpk_id' => $otherLpk->id, 'submission_number' => 'AMD-FILTER-002', 'status' => 'SUBMITTED']);
 
         $this->actingAs($user)->get('/lpks?status=ACTIVE')->assertOk()->assertSee($matchingLpk->name);
         $this->actingAs($user)->get('/assessments?lpk_id='.$matchingLpk->id.'&status=COMPLETED&start_from=2026-09-20')->assertOk()->assertSee($assessment->title);
-        $this->actingAs($user)->get('/issues?lpk_id='.$matchingLpk->id.'&status=RESOLVED&due_to=2026-09-20')->assertOk()->assertSee($issue->title);
         $this->actingAs($user)->get('/monitoring/backups?status=FAILED&finished_from=2026-09-20')->assertOk()->assertSee($backup->size)->assertDontSee('FILTER-SUCCESS');
         $this->actingAs($user)->get('/accreditations?lpk_id='.$matchingLpk->id.'&status=COMPLETED&target_to=2026-09-30')->assertOk()->assertSee($matchingLpk->name);
-        $this->actingAs($user)->get('/amendments?search=AMD-FILTER-001&status=APPROVED')->assertOk()->assertSee($amendment->submission_number);
     }
 
     public function test_table_filter_query_string_is_preserved_by_pagination(): void
@@ -128,8 +96,7 @@ class PrototypeFlowTest extends TestCase
         $showResponse = $this->actingAs($user)->get(route('lpks.show', $lpk));
         $showResponse->assertOk()
             ->assertSee('Pengujian Mikrobiologi dan Toksikologi')
-            ->assertSee('15 Oct 2028')
-            ->assertSee('Buka Berkas di Google Drive');
+            ->assertSee('15 Oct 2028');
     }
 
     public function test_lpk_scope_can_be_searched_and_exported_to_csv(): void
@@ -144,11 +111,10 @@ class PrototypeFlowTest extends TestCase
             'expired_at' => '2029-01-01',
         ]);
 
-        // Test search by scope
-        $searchResponse = $this->actingAs($user)->get('/lpks?search=Akustik');
+        // Test search by scope (query matching word only present in scope)
+        $searchResponse = $this->actingAs($user)->get('/lpks?search=Vibrasi');
         $searchResponse->assertOk()
-            ->assertSee('Kalibrasi Presisi Akustik')
-            ->assertSee('Laboratorium Kalibrasi Akustik dan Vibrasi');
+            ->assertSee('Kalibrasi Presisi Akustik');
 
         // Test CSV export contains scope header and scope value
         $csvResponse = $this->actingAs($user)->get(route('reports.lpks.export'));
@@ -337,30 +303,64 @@ class PrototypeFlowTest extends TestCase
             'certificate_date' => '2025-01-15',
             'expired_at' => '2030-01-15',
             'drive_url' => 'https://drive.google.com/drive/folders/test-folder-lpk-99',
+            'notes' => 'Catatan khusus monitoring internal',
         ]);
 
         $response = $this->actingAs($admin)->get(route('lpks.index'));
 
         $response->assertOk();
-        // Assert exactly matching headers as requested
-        $response->assertSee('NO. AKREDITASI');
+        // Assert exactly matching headers as requested in reference image
+        $response->assertSee('NO AKREDITASI');
         $response->assertSee('NAMA LPK');
-        $response->assertSee('ALAMAT');
-        $response->assertSee('TELEPON / FAX');
-        $response->assertSee('EMAIL');
-        $response->assertSee('LINGKUP');
-        $response->assertSee('MASA BERLAKU AKREDITASI (EXPIRED)');
-        $response->assertSee('LINK');
+        $response->assertSee('MASA BERLAKU AKREDITASI (AWAL DAN AKHIR)');
+        $response->assertSee('KETERANGAN');
 
         // Assert cell data rendered
         $response->assertSee('LP-TABEL-99');
         $response->assertSee('Laboratorium Kalibrasi Uji KAN');
-        $response->assertSee('Jl. Pengujian Presisi No. 99, Jakarta');
-        $response->assertSee('021-99887766');
-        $response->assertSee('lab.uji99@kan.or.id');
-        $response->assertSee('Pengujian Kimia, Fisika, dan Lingkungan Air Bersih');
+        $response->assertSee('15/01/2025');
         $response->assertSee('15/01/2030');
-        $response->assertSee('https://drive.google.com/drive/folders/test-folder-lpk-99', false);
+        $response->assertSee('Catatan khusus monitoring internal');
+    }
+
+    public function test_user_can_input_and_update_keterangan_in_lpk_detail(): void
+    {
+        $pic = User::factory()->create(['role' => User::ROLE_PIC]);
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-KET-001',
+            'name' => 'Lab Pengujian Keterangan',
+            'status' => 'ACTIVE',
+            'notes' => null,
+        ]);
+
+        // Detail page initially shows "Belum ada keterangan." and "Input Keterangan"
+        $showResponse = $this->actingAs($pic)->get(route('lpks.show', $lpk));
+        $showResponse->assertOk()
+            ->assertSee('Belum ada keterangan.')
+            ->assertSee('Input Keterangan')
+            ->assertDontSee('Buka Berkas di Google Drive');
+
+        // User posts updated keterangan
+        $updateResponse = $this->actingAs($pic)->post(route('lpks.notes.update', $lpk), [
+            'notes' => 'Catatan penting: Laboratorium sedang dalam evaluasi penambahan ruang lingkup kalibrasi massa.',
+        ]);
+
+        $updateResponse->assertRedirect(route('lpks.show', $lpk));
+        $updateResponse->assertSessionHas('success');
+
+        $lpk->refresh();
+        $this->assertSame('Catatan penting: Laboratorium sedang dalam evaluasi penambahan ruang lingkup kalibrasi massa.', $lpk->notes);
+
+        // Verify updated keterangan appears on detail page and index page
+        $updatedShowResponse = $this->actingAs($pic)->get(route('lpks.show', $lpk));
+        $updatedShowResponse->assertOk()
+            ->assertSee('Catatan penting: Laboratorium sedang dalam evaluasi penambahan ruang lingkup kalibrasi massa.')
+            ->assertSee('Ubah Keterangan');
+
+        $indexResponse = $this->actingAs($pic)->get(route('lpks.index'));
+        $indexResponse->assertOk()
+            ->assertSee('Catatan penting: Laboratorium sedang dalam evaluasi penambahan ruang lingkup kalibrasi massa.');
     }
 
     public function test_lpk_is_expiring_soon_status_accuracy(): void
@@ -535,13 +535,13 @@ class PrototypeFlowTest extends TestCase
 
     public function test_lpk_dynamic_status_identifies_overdue_surveillance_and_expired(): void
     {
-        // 1. LPK whose S1 target date has passed (16 months ago) without assessment -> SURVEILLANCE_OVERDUE
+        // 1. LPK whose S1 target date has passed (19 months ago, JT is month 18) without assessment -> SURVEILLANCE_OVERDUE
         $overdueLpk = Lpk::create([
             'registration_number' => 'LP-TEST-OVERDUE',
             'name' => 'Lab Overdue S1',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subMonths(16)->toDateString(),
-            'expired_at' => now()->addMonths(44)->toDateString(),
+            'certificate_date' => now()->subMonths(19)->toDateString(),
+            'expired_at' => now()->addMonths(41)->toDateString(),
         ]);
         $this->assertSame('SURVEILLANCE_OVERDUE', $overdueLpk->dynamic_status);
         $this->assertSame('Lewat Jadwal Surveilen', $overdueLpk->dynamic_status_label);
@@ -679,21 +679,21 @@ class PrototypeFlowTest extends TestCase
         // 1. Asesmen Surveilen 1 (S1) - Bulan 15
         $s1 = $assessments[0];
         $this->assertStringContainsString('Surveilen 1', $s1->title);
-        $this->assertEquals('Surveilen', $s1->assessment_type);
+        $this->assertEquals(Assessment::TYPE_SURVEILEN_1, $s1->assessment_type);
         $this->assertEquals('PLANNED', $s1->status);
         $this->assertEquals(now()->addMonths(15)->format('Y-m'), $s1->start_at->format('Y-m'));
 
         // 2. Asesmen Surveilen 2 (S2) - Bulan 36
         $s2 = $assessments[1];
         $this->assertStringContainsString('Surveilen 2', $s2->title);
-        $this->assertEquals('Surveilen', $s2->assessment_type);
+        $this->assertEquals(Assessment::TYPE_SURVEILEN_2, $s2->assessment_type);
         $this->assertEquals('PLANNED', $s2->status);
         $this->assertEquals(now()->addMonths(36)->format('Y-m'), $s2->start_at->format('Y-m'));
 
         // 3. Asesmen Re-Akreditasi (RA) - Bulan 54
         $ra = $assessments[2];
         $this->assertStringContainsString('Re-Akreditasi', $ra->title);
-        $this->assertEquals('Re-asesmen', $ra->assessment_type);
+        $this->assertEquals(Assessment::TYPE_RE_AKREDITASI, $ra->assessment_type);
         $this->assertEquals('PLANNED', $ra->status);
         $this->assertEquals(now()->addMonths(54)->format('Y-m'), $ra->start_at->format('Y-m'));
 
@@ -702,7 +702,7 @@ class PrototypeFlowTest extends TestCase
             ->assertOk()
             ->assertSee('Asesmen Surveilen 1 (S1) - Lab Otomatis Asesmen')
             ->assertSee('Asesmen Surveilen 2 (S2) - Lab Otomatis Asesmen')
-            ->assertSee('Asesmen Re-Akreditasi (Re-asesmen) - Lab Otomatis Asesmen');
+            ->assertSee('Asesmen Re-Akreditasi (RA) - Lab Otomatis Asesmen');
 
         // Pastikan muncul pada halaman detail LPK
         $this->actingAs($admin)->get(route('lpks.show', $lpk))

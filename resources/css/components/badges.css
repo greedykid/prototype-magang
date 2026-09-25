@@ -5,7 +5,8 @@
 .status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--mint); border-color: #9bcda8; color: var(--green); }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }
 .status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due { background: #fff8e6; border-color: #f3d18c; color: #925400; }
-.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut { background: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
+.status-suspended, .status-dibekukan { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
 .badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; max-width: 100%; box-sizing: border-box; flex-shrink: 0; }
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -21,4 +22,5 @@
 .badge-tp-success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
 .badge-tp-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
 .badge-tp-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
-.badge-tp-danger { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+.badge-tp-danger, .badge-tp-revoked { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+.badge-tp-suspended { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }

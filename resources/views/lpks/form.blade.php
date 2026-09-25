@@ -14,13 +14,28 @@
 <form class="panel form-grid" method="POST" action="{{ $lpk->exists ? route('lpks.update', $lpk) : route('lpks.store') }}">
     @csrf
     @if($lpk->exists) @method('PUT') @endif
-    <label>
-        Nomor registrasi
-        <input name="registration_number" value="{{ old('registration_number', $lpk->registration_number) }}" required>
+    <label class="full">
+        Nama LPK / Laboratorium
+        <input name="name" value="{{ old('name', $lpk->name) }}" required placeholder="Contoh: Balai Besar Pengujian Eksplorasi Minyak dan Gas Bumi LEMIGAS">
     </label>
     <label>
-        Nama LPK
-        <input name="name" value="{{ old('name', $lpk->name) }}" required>
+        Jenis Akreditasi
+        <select name="accreditation_type">
+            @foreach(\App\Models\Lpk::ACCREDITATION_TYPES as $key => $label)
+                <option value="{{ $key }}" @selected(old('accreditation_type', $lpk->accreditation_type ?: 'Laboratorium Penguji') === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Skema akreditasi resmi KAN.</small>
+    </label>
+    <label>
+        No Reg LPK (ID Unik KAN)
+        <input name="no_reg" value="{{ old('no_reg', $lpk->no_reg) }}" placeholder="Contoh: 3344">
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Nomor registrasi identitas unik LPK di sistem KAN.</small>
+    </label>
+    <label>
+        No Akreditasi KAN
+        <input name="accreditation_number" value="{{ old('accreditation_number', $lpk->accreditation_number ?: $lpk->registration_number) }}" placeholder="Contoh: LP-1519-IDN">
+        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Kosongkan jika sertifikat belum terbit (masih Asesmen Awal).</small>
     </label>
     <label class="full">
         Ruang Lingkup Akreditasi (Scope)
@@ -39,9 +54,22 @@
         Status
         <select name="status">
             <option value="ACTIVE" @selected(old('status', $lpk->status ?: 'ACTIVE') === 'ACTIVE')>Aktif</option>
+            <option value="SUSPENDED" @selected(old('status', $lpk->status) === 'SUSPENDED')>Dibekukan</option>
             <option value="INACTIVE" @selected(old('status', $lpk->status) === 'INACTIVE')>Tidak Aktif</option>
         </select>
     </label>
+    @if(auth()->user()?->isAdmin() && isset($pics) && $pics->isNotEmpty())
+        <label>
+            PIC Penanggung Jawab
+            <select name="pic_id">
+                <option value="">-- Belum Ditugaskan --</option>
+                @foreach($pics as $p)
+                    <option value="{{ $p->id }}" @selected(old('pic_id', $lpk->pic_id) == $p->id)>{{ $p->name }} ({{ $p->email }})</option>
+                @endforeach
+            </select>
+            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Pilih PIC laboratorium penanggung jawab.</small>
+        </label>
+    @endif
     <label class="full">
         Alamat
         <textarea name="address" rows="3">{{ old('address', $lpk->address) }}</textarea>
@@ -52,7 +80,7 @@
         <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Tanggal SK / sertifikat akreditasi terbit.</small>
     </label>
     <label>
-        Masa berlaku akreditasi (Expired)
+        Masa berlaku akreditasi
         <input type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}">
         <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Otomatis +5 tahun jika dikosongkan dan tanggal terbit diisi.</small>
     </label>

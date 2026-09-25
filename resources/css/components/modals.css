@@ -1,7 +1,19 @@
 /* Modal Dialog Styles */
-body.modal-open {
+html.modal-open {
     overflow: hidden !important;
 }
+
+body.modal-open {
+    overflow: visible !important;
+}
+
+html.modal-open .app-shell,
+html.modal-open .sidebar,
+body.modal-open .app-shell,
+body.modal-open .sidebar {
+    transition: none !important;
+}
+
 
 .simasadi-modal {
     background: rgba(15, 12, 28, 0.58);

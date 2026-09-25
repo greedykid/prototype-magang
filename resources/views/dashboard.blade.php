@@ -6,9 +6,7 @@
     {{-- Notifikasi Hijau Tanda Kondisi Aman (Simple & Compact di Paling Atas) --}}
     @php
         $isAllClear = empty($globalSurveillanceAlerts)
-            && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty())
-            && empty($overdueIssueCount)
-            && empty($serviceIssueCount);
+            && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty());
     @endphp
 
     @if($isAllClear)
@@ -21,7 +19,7 @@
                     </svg>
                 </span>
                 <span class="dashboard-safe-banner-text">
-                    <strong>Semua Aman &amp; Kepatuhan Terkendali:</strong> Tidak ada tindakan mendesak yang diperlukan. Seluruh siklus pengawasan dan operasional berjalan optimal.
+                    <strong>Tidak Ada Tindakan Mendesak:</strong> Semua siklus surveilen dan pemenuhan perbaikan asesmen saat ini berjalan sesuai jadwal.
                 </span>
             </div>
             <span class="dashboard-safe-banner-badge">
@@ -41,7 +39,6 @@
                 <a class="button secondary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a>
             @endif
             <a class="button secondary" href="{{ route('calendar.index') }}"><x-icon name="calendar" size="16" /><span>Kalender Kerja</span></a>
-            <a class="button primary" href="{{ route('issues.create') }}"><x-icon name="plus" size="16" /><span>Lapor Masalah</span></a>
         </div>
     </div>
 
@@ -62,10 +59,10 @@
             <strong style="{{ !empty($overdueTpCount) ? 'color: var(--terracotta);' : '' }}">{{ $assessmentCount }}</strong>
             <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' TP melewati batas waktu KAN' : (!empty($dueSoonTpCount) ? $dueSoonTpCount . ' TP jatuh tempo segera' : 'Agenda penugasan asesor') }}</small>
         </a>
-        <a href="{{ route('issues.index') }}" class="metric {{ $overdueIssueCount ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
-            <span>Masalah terbuka</span>
-            <strong>{{ $openIssueCount }}</strong>
-            <small>{{ $overdueIssueCount ? $overdueIssueCount . ' melewati target' : 'Semua dalam target' }}</small>
+        <a href="{{ route('assessments.index') }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
+            <span>Tindakan perbaikan (TP)</span>
+            <strong style="{{ !empty($overdueTpCount) ? 'color: var(--terracotta);' : '' }}">{{ $activeTpCount }}</strong>
+            <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' melewati batas KAN' : 'Pemenuhan temuan asesmen' }}</small>
         </a>
     </section>
 
@@ -76,7 +73,7 @@
 
     {{-- Balanced 2-Column Responsive Workspace --}}
     <div class="dashboard-main-grid">
-        {{-- Left Column: Core Operations, Surveillance Alerts & Field Agenda --}}
+        {{-- Left Column: Core Operations, Surveillance Alerts & TP Alerts --}}
         <div class="dashboard-column">
             @if(!empty($globalSurveillanceAlerts))
                 <section class="panel surveillance-alert-panel" aria-labelledby="surveillance-heading">
@@ -178,11 +175,42 @@
                 </section>
             @endif
 
+            @if(empty($globalSurveillanceAlerts) && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty()))
+                <section class="panel" aria-labelledby="status-kepatuhan-heading">
+                    <div class="panel-head">
+                        <div>
+                            <h2 id="status-kepatuhan-heading">Status Pengawasan &amp; TP KAN</h2>
+                        </div>
+                    </div>
+                    <div class="empty" style="text-align: left; padding: 24px;">
+                        <div style="display: flex; align-items: flex-start; gap: 14px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <div>
+                                <strong style="font-size: 15px; color: #0f172a; display: block; margin-bottom: 4px;">Siklus &amp; Tindakan Perbaikan Terkendali</strong>
+                                <p style="margin: 0 0 12px 0; font-size: 13px; color: #64748b; line-height: 1.5;">Tidak ada surveilen (S1/S2/RA) yang jatuh tempo atau tindakan perbaikan (TP &amp; VTP) yang mendekati batas waktu KAN saat ini.</p>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <a href="{{ route('lpks.index') }}" class="button secondary button-sm">
+                                        <span>Daftar LPK</span>
+                                    </a>
+                                    <a href="{{ route('calendar.index') }}" class="button secondary button-sm">
+                                        <span>Kalender Kerja</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            @endif
+        </div>
+
+        {{-- Right Column: Field Agenda (Asesmen Terdekat) --}}
+        <div class="dashboard-column">
             {{-- Upcoming Assessments Widget --}}
             <section class="panel" aria-labelledby="upcoming-assessments-heading">
                 <div class="panel-head">
                     <div>
-                        <span class="eyebrow">AGENDA LAPANGAN</span>
                         <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
                     </div>
                     <a href="{{ route('assessments.index') }}">Buka agenda &rarr;</a>
@@ -214,163 +242,6 @@
                 @else
                     <div class="empty">Belum ada agenda asesmen mendatang.@if(auth()->user()?->isAdmin()) <a href="{{ route('assessments.create') }}">Jadwalkan asesmen</a>.@endif</div>
                 @endif
-            </section>
-        </div>
-
-        {{-- Right Column: Accreditation Distribution, Financial Compliance, Issues & Follow-ups, and System Health --}}
-        <div class="dashboard-column">
-            {{-- Distribution Chart Panel --}}
-            <section class="panel chart-panel" aria-labelledby="accreditation-chart-title">
-                <div class="panel-head">
-                    <div>
-                        <span class="eyebrow">ANALISIS PROSES</span>
-                        <h2 id="accreditation-chart-title">Distribusi proses akreditasi</h2>
-                    </div>
-                    @if(auth()->user()?->isAdmin())
-                        <a href="{{ route('accreditations.index') }}">Lihat proses &rarr;</a>
-                    @endif
-                </div>
-                @if($accreditationTotal)
-                    <div class="chart-bars" role="img" aria-label="Distribusi proses akreditasi berdasarkan status">
-                        @foreach($accreditationStatuses as $status => $label)
-                            @php($total = $accreditationStatusCounts->get($status, 0))
-                            @php($width = max(2, round(($total / $accreditationTotal) * 100)))
-                            <div class="chart-bar-row">
-                                <div class="chart-bar-label"><span>{{ $label }}</span><strong>{{ $total }} ({{ $width }}%)</strong></div>
-                                <div class="chart-bar-track" aria-hidden="true"><span class="chart-bar-fill chart-bar-{{ strtolower($status) }}" style="width: {{ $width }}%"></span></div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <ul class="sr-only">
-                        @foreach($accreditationStatuses as $status => $label)
-                            <li>{{ $label }}: {{ $accreditationStatusCounts->get($status, 0) }}</li>
-                        @endforeach
-                    </ul>
-                @else
-                    <div class="empty">Belum ada data proses akreditasi untuk dianalisis.</div>
-                @endif
-            </section>
-
-            {{-- Operational, Financial & Administrative Compliance --}}
-            @if(auth()->user()?->isAdmin())
-                <section class="panel" aria-labelledby="compliance-heading">
-                    <div class="panel-head">
-                        <div>
-                            <span class="eyebrow">KEPATUHAN OPERASIONAL</span>
-                            <h2 id="compliance-heading">Finansial &amp; Administrasi</h2>
-                        </div>
-                    </div>
-                    <div class="compliance-summary-grid">
-                        <a href="{{ route('accreditations.index') }}" class="compliance-item">
-                            <div class="compliance-item-info">
-                                <strong>PNBP SIMPONI</strong>
-                                <span>Tagihan belum lunas</span>
-                            </div>
-                            <span class="compliance-item-badge" style="background: {{ $unpaidBillingCount ? '#fee2e2' : '#f1f5f9' }}; color: {{ $unpaidBillingCount ? '#991b1b' : '#334155' }};">
-                                {{ $unpaidBillingCount }} Tagihan
-                            </span>
-                        </a>
-                        <a href="{{ route('assessments.index') }}" class="compliance-item">
-                            <div class="compliance-item-info">
-                                <strong>Pertanggungjawaban SBM</strong>
-                                <span>Biaya asesmen menunggu verifikasi</span>
-                            </div>
-                            <span class="compliance-item-badge" style="background: {{ $pendingExpenseCount ? '#fef3c7' : '#f1f5f9' }}; color: {{ $pendingExpenseCount ? '#92400e' : '#334155' }};">
-                                {{ $pendingExpenseCount }} Berkas
-                            </span>
-                        </a>
-                        <a href="{{ route('amendments.index') }}" class="compliance-item">
-                            <div class="compliance-item-info">
-                                <strong>Amandemen Lingkup</strong>
-                                <span>Pengajuan aktif</span>
-                            </div>
-                            <span class="compliance-item-badge" style="background: #f1f5f9; color: #334155;">
-                                {{ $amendmentCount }} Pengajuan
-                            </span>
-                        </a>
-                    </div>
-                </section>
-            @endif
-
-            {{-- Recent Issues & Follow-ups --}}
-            <section class="panel" aria-labelledby="recent-issues-heading">
-                <div class="panel-head">
-                    <div>
-                        <span class="eyebrow">KENDALA &amp; TINDAK LANJUT</span>
-                        <h2 id="recent-issues-heading">Hal yang perlu diikuti</h2>
-                    </div>
-                    <a href="{{ route('issues.index') }}">Lihat semua &rarr;</a>
-                </div>
-                @forelse($recentIssues as $issue)
-                    <a class="list-row" href="{{ route('issues.show', $issue) }}">
-                        <div>
-                            <strong>{{ $issue->title }}</strong>
-                            <span>{{ $issue->lpk->name }}</span>
-                        </div>
-                        <x-status :value="$issue->status" />
-                    </a>
-                @empty
-                    <div class="empty">Belum ada laporan masalah terbuka. <a href="{{ route('issues.create') }}">Buat laporan pertama</a>.</div>
-                @endforelse
-            </section>
-
-            <section class="panel" aria-labelledby="recent-followups-heading">
-                <div class="panel-head">
-                    <div>
-                        <span class="eyebrow">CATATAN TIM</span>
-                        <h2 id="recent-followups-heading">Tindak lanjut</h2>
-                    </div>
-                </div>
-                @forelse($recentFollowups as $followup)
-                    <div class="note-row">
-                        <div class="note-row-header">
-                            <a href="{{ route('issues.show', $followup->issue) }}" class="note-row-title">
-                                {{ $followup->issue->title }}
-                            </a>
-                            <div class="note-row-meta">
-                                <span class="note-row-author">{{ $followup->user->name }}</span>
-                                <span class="note-row-dot" aria-hidden="true">&bull;</span>
-                                <span class="note-row-time">{{ $followup->created_at->diffForHumans() }}</span>
-                            </div>
-                        </div>
-                        <div class="note-row-body">
-                            <p>{{ $followup->note }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty">Belum ada catatan tindak lanjut.</div>
-                @endforelse
-            </section>
-
-            {{-- System Reliability & Backup --}}
-            <section class="panel" aria-labelledby="system-health-heading">
-                <div class="panel-head">
-                    <div>
-                        <span class="eyebrow">PEMELIHARAAN</span>
-                        <h2 id="system-health-heading">Keandalan Sistem</h2>
-                    </div>
-                    @if(auth()->user()?->isAdmin())
-                        <a href="{{ route('monitoring.services') }}">Status layanan &rarr;</a>
-                    @endif
-                </div>
-                <div class="system-health-grid">
-                    <div class="system-health-row">
-                        <span>Layanan Sistem KANMIS</span>
-                        <span class="badge" style="background: {{ $serviceIssueCount ? '#fee2e2' : '#dcfce7' }}; color: {{ $serviceIssueCount ? '#991b1b' : '#166534' }}; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">
-                            {{ $serviceIssueCount ? $serviceIssueCount . ' Perlu Perhatian' : 'Semua Normal' }}
-                        </span>
-                    </div>
-                    <div class="system-health-row">
-                        <span>Pencadangan Terakhir</span>
-                        <strong>{{ $lastBackup?->finished_at?->format('d/m/Y H:i') ?: '-' }}</strong>
-                    </div>
-                    <div class="system-health-row">
-                        <span>Status Cadangan</span>
-                        <span class="badge" style="background: {{ ($lastBackup?->status === 'SUCCESS') ? '#dcfce7' : '#fef3c7' }}; color: {{ ($lastBackup?->status === 'SUCCESS') ? '#166534' : '#92400e' }}; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">
-                            {{ $lastBackup?->status ? str_replace(['SUCCESS', 'FAILED', 'RUNNING', 'SCHEDULED', 'UNKNOWN'], ['Berhasil', 'Gagal', 'Sedang Berjalan', 'Terjadwal', 'Tidak Diketahui'], $lastBackup->status) : 'Belum dicatat' }}
-                        </span>
-                    </div>
-                </div>
             </section>
         </div>
     </div>

@@ -23,7 +23,9 @@ class LpkImportController extends Controller
         $format = strtolower((string) $request->query('format', 'csv'));
 
         $columns = [
-            'nomor_registrasi',
+            'nomor_registrasi_lpk',
+            'no_akreditasi',
+            'jenis_akreditasi',
             'nama_lpk',
             'ruang_lingkup',
             'alamat',
@@ -37,7 +39,9 @@ class LpkImportController extends Controller
 
         $samples = [
             [
+                '3340',
                 'LP-101-IDN',
+                'Laboratorium Penguji',
                 'Balai Pengujian Lingkungan Sejahtera',
                 'Laboratorium Pengujian Kimia, Fisika, dan Lingkungan Hidup',
                 'Jl. M.H. Thamrin No. 12, Jakarta Pusat',
@@ -49,7 +53,9 @@ class LpkImportController extends Controller
                 'https://drive.google.com/drive/folders/1demo-berkas-lp101',
             ],
             [
+                '3341',
                 'LK-202-IDN',
+                'Laboratorium Kalibrasi',
                 'Pusat Kalibrasi Presisi Bandung',
                 'Laboratorium Kalibrasi Suhu, Tekanan, dan Massa',
                 'Jl. Ir. H. Juanda No. 88, Bandung',
@@ -61,7 +67,9 @@ class LpkImportController extends Controller
                 'https://drive.google.com/drive/folders/1demo-berkas-lk202',
             ],
             [
+                '3342',
                 'LI-303-IDN',
+                'Lembaga Inspeksi',
                 'Lembaga Inspeksi Teknik Terpadu',
                 'Lembaga Inspeksi Instalasi Pipa dan Bejana Tekan',
                 'Jl. Pemuda No. 45, Surabaya',
@@ -210,8 +218,12 @@ class LpkImportController extends Controller
             return back()->with('error', 'Silakan unggah berkas Excel/CSV atau masukkan tautan Google Sheets.');
         }
 
-        if (! in_array('registration_number', $headers, true) || ! in_array('name', $headers, true)) {
-            return back()->with('error', 'Format kolom tidak sesuai. Kolom "nomor_registrasi" (atau "NO. AKREDITASI") dan "nama_lpk" wajib ada. Silakan periksa kembali judul kolom spreadsheet.');
+        $hasIdentifier = in_array('registration_number', $headers, true)
+            || in_array('accreditation_number', $headers, true)
+            || in_array('no_reg', $headers, true);
+
+        if (! $hasIdentifier || ! in_array('name', $headers, true)) {
+            return back()->with('error', 'Format kolom tidak sesuai. Kolom nomor/registrasi ("no_reg_lpk", "no_akreditasi", atau "nomor_registrasi") dan "nama_lpk" wajib ada. Silakan periksa kembali judul kolom spreadsheet.');
         }
 
         $createdCount = 0;
@@ -232,17 +244,30 @@ class LpkImportController extends Controller
                 $data[$key] = isset($row[$index]) ? trim((string) $row[$index]) : null;
             }
 
+            $noReg = $data['no_reg'] ?? null;
+            $accreditationNumber = $data['accreditation_number'] ?? null;
             $regNo = $data['registration_number'] ?? null;
+            $accreditationType = $data['accreditation_type'] ?? null;
             $name = $data['name'] ?? null;
 
-            if (! $regNo || ! $name) {
+            if ((! $noReg && ! $accreditationNumber && ! $regNo) || ! $name) {
                 $skippedCount++;
                 continue;
             }
 
+            if (! $regNo && $accreditationNumber) {
+                $regNo = $accreditationNumber;
+            } elseif (! $accreditationNumber && $regNo) {
+                $accreditationNumber = $regNo;
+            }
+
             // Normalisasi otomatis nomor akreditasi numerik murni (misal: 077 -> LP-077-IDN)
-            if (preg_match('/^\d+$/', $regNo)) {
+            if ($regNo && preg_match('/^\d+$/', $regNo)) {
+                if (! $noReg) {
+                    $noReg = $regNo;
+                }
                 $regNo = 'LP-' . str_pad($regNo, 3, '0', STR_PAD_LEFT) . '-IDN';
+                $accreditationNumber = $regNo;
             }
 
             $status = strtoupper($data['status'] ?? 'ACTIVE');
@@ -274,10 +299,28 @@ class LpkImportController extends Controller
                 }
             }
 
-            $existing = Lpk::where('registration_number', $regNo)->first();
+            $existing = null;
+            if (! empty($noReg)) {
+                $existing = Lpk::where('no_reg', $noReg)->first();
+            }
+            if (! $existing && ! empty($accreditationNumber)) {
+                $existing = Lpk::where('accreditation_number', $accreditationNumber)
+                    ->orWhere('registration_number', $accreditationNumber)
+                    ->first();
+            }
+            if (! $existing && ! empty($regNo)) {
+                $existing = Lpk::where('registration_number', $regNo)
+                    ->orWhere('accreditation_number', $regNo)
+                    ->orWhere('no_reg', $regNo)
+                    ->first();
+            }
 
             if ($existing) {
                 $existing->update([
+                    'no_reg' => $noReg ?: $existing->no_reg,
+                    'accreditation_number' => $accreditationNumber ?: ($existing->accreditation_number ?: $existing->registration_number),
+                    'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
+                    'registration_number' => $accreditationNumber ?: ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
                     'name' => $name,
                     'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
                     'certificate_date' => $certificateDate ?: $existing->certificate_date,
@@ -293,7 +336,10 @@ class LpkImportController extends Controller
                 $updatedCount++;
             } else {
                 Lpk::create([
-                    'registration_number' => $regNo,
+                    'no_reg' => $noReg,
+                    'accreditation_number' => $accreditationNumber ?: $regNo,
+                    'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',
+                    'registration_number' => $regNo ?: ($accreditationNumber ?: $noReg),
                     'name' => $name,
                     'scope' => $data['scope'] ?? null,
                     'certificate_date' => $certificateDate,
@@ -445,7 +491,10 @@ class LpkImportController extends Controller
             $clean = str_replace([' ', '-', '_', '.', '/', '(', ')', ':', ',', '\\'], '', $clean);
 
             return match ($clean) {
-                'nomorregistrasi', 'noreg', 'registrationnumber', 'nomorreg', 'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor', 'no' => 'registration_number',
+                'noreglpk', 'noreg', 'nomorreglpk', 'nomorreg', 'idreg', 'idunik', 'noregister' => 'no_reg',
+                'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor' => 'accreditation_number',
+                'nomorregistrasi', 'registrationnumber', 'no' => 'registration_number',
+                'jenisakreditasi', 'tipeakreditasi', 'skema', 'skemaakreditasi', 'jenis' => 'accreditation_type',
                 'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk' => 'name',
                 'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi', 'ruanglingkupuji' => 'scope',
                 'alamat', 'address', 'lokasi' => 'address',

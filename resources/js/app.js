@@ -14,6 +14,10 @@ import {
     returnPopoverToPlaceholder,
     closeEventPopover,
     quickAddAt,
+    toggleCreateDropdown,
+    closeCreateDropdown,
+    openQuickAddWithType,
+    updateQuickAddType,
     initGcalLiveTimeLine,
     initGcalFilters,
     initGcalComponents
@@ -31,6 +35,10 @@ window.showEventPopover = showEventPopover;
 window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
 window.quickAddAt = quickAddAt;
+window.toggleCreateDropdown = toggleCreateDropdown;
+window.closeCreateDropdown = closeCreateDropdown;
+window.openQuickAddWithType = openQuickAddWithType;
+window.updateQuickAddType = updateQuickAddType;
 window.navigateTo = navigateTo;
 window.toggleSidebarState = toggleSidebarState;
 
@@ -148,6 +156,61 @@ export const initPageComponents = () => {
 window.initPageComponents = initPageComponents;
 
 // ==========================================================================
+// Clickable Table Rows (Row/Cell Navigation to Details)
+// ==========================================================================
+export const initClickableRows = () => {
+    document.addEventListener('click', (event) => {
+        const row = event.target.closest('tr.clickable-row, tr[data-href]');
+        if (!row) return;
+
+        // Ignore clicks on nested interactive elements
+        if (event.target.closest('a, button, input, select, textarea, label, [data-no-row-click]')) {
+            return;
+        }
+
+        // Ignore text selection
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+            return;
+        }
+
+        const href = row.getAttribute('data-href');
+        if (!href) return;
+
+        // Middle click or modifier key click -> open in new tab
+        if (event.button === 1 || event.ctrlKey || event.metaKey) {
+            window.open(href, '_blank');
+            return;
+        }
+
+        // Left click
+        if (event.button === 0) {
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo(href);
+            } else {
+                window.location.href = href;
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const row = event.target.closest('tr.clickable-row[tabindex], tr[data-href][tabindex]');
+        if (!row || event.target !== row) return;
+
+        const href = row.getAttribute('data-href');
+        if (!href) return;
+
+        event.preventDefault();
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(href);
+        } else {
+            window.location.href = href;
+        }
+    });
+};
+
+// ==========================================================================
 // Application Bootstrap
 // ==========================================================================
 initMobileDrawer();
@@ -156,6 +219,7 @@ initModalListeners();
 initButtonLoader();
 initAuthTransitions();
 initConfirmations();
+initClickableRows();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

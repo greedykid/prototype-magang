@@ -177,7 +177,9 @@ class GoogleSheetsReportController extends Controller
 
         $columns = [
             'ID LPK',
-            'Nomor Registrasi',
+            'Nomor Registrasi / No Reg LPK',
+            'No Akreditasi',
+            'Jenis Akreditasi',
             'Nama Lembaga Penilaian Kesesuaian',
             'Ruang Lingkup Akreditasi',
             'Status Operasional',
@@ -185,7 +187,6 @@ class GoogleSheetsReportController extends Controller
             'Masa Berlaku Akreditasi',
             'Tautan Drive Dokumen (Sertifikat & Amandemen)',
             'Total Akreditasi',
-            'Total Kendala / Isu',
             'Tanggal Terdaftar',
         ];
 
@@ -194,14 +195,16 @@ class GoogleSheetsReportController extends Controller
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
-            $lpks = Lpk::withCount(['accreditations', 'issues'])
+            $lpks = Lpk::withCount(['accreditations'])
                 ->orderBy('name')
                 ->cursor();
 
             foreach ($lpks as $lpk) {
                 $row = [
                     'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
-                    $lpk->registration_number,
+                    $lpk->no_reg ?: $lpk->registration_number,
+                    $lpk->accreditation_number ?: $lpk->registration_number,
+                    $lpk->accreditation_type ?: 'Laboratorium Penguji',
                     $lpk->name,
                     $lpk->scope ?: '-',
                     $lpk->status,
@@ -209,7 +212,6 @@ class GoogleSheetsReportController extends Controller
                     $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
                     $lpk->drive_url ?: '-',
                     $lpk->accreditations_count,
-                    $lpk->issues_count,
                     $lpk->created_at ? $lpk->created_at->format('d/m/Y') : '-',
                 ];
 

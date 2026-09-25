@@ -4,62 +4,64 @@
 ---
 
 ### 2.1 Metodologi Pengembangan Perangkat Lunak
-Pengembangan sistem SIMASADI mengadopsi metodologi **Iterative Prototyping** dengan pendekatan kerja lincah (**Agile SDLC**). Pendekatan ini dipilih karena karakteristik proyek prototype yang berfokus pada validasi cepat alur kerja, iterasi desain antarmuka, dan umpan balik pengguna langsung.
+Pengembangan sistem SIMASADI mengadopsi metodologi **Iterative Prototyping** dengan pendekatan kerja lincah (**Agile SDLC**). Pendekatan ini dipilih karena karakteristik domain akreditasi KAN yang sarat dengan aturan regulasi spesifik (seperti pedoman KAN U-01, Standar Biaya Masukan PMK, dan batasan SLA tindakan perbaikan), sehingga membutuhkan validasi berkelanjutan dan penyempurnaan alur secara cepat.
 
 ```mermaid
 flowchart LR
-    A["1. Identifikasi Kebutuhan Awal"] --> B["2. Perancangan Cepat (Quick Design)"]
-    B --> C["3. Pembangunan Prototype (Build)"]
-    C --> D["4. Evaluasi & Uji Pengguna (Review)"]
-    D --> E{"Apakah Alur & Tampilan Sesuai?"}
-    E -- "Belum / Butuh Penyesuaian" --> B
-    E -- "Sesuai" --> F["5. Finalisasi & Dokumentasi Rilis"]
+    A["1. Identifikasi Regulasi & Kebutuhan KAN"] --> B["2. Perancangan Cepat Logika & Antarmuka"]
+    B --> C["3. Pembangunan Prototype & Rule Engine"]
+    C --> D["4. Evaluasi, Uji Otomatis, & Simulasi"]
+    D --> E{"Apakah Alur & Aturan Kepatuhan Sesuai?"}
+    E -- "Butuh Penyesuaian Aturan" --> B
+    E -- "Sesuai Regulasi KAN" --> F["5. Finalisasi, Uji Regresi, & Dokumentasi"]
 ```
 
 #### Prinsip Kerja yang Diterapkan:
-1. **Siklus Cepat & Berkelanjutan:** Setiap modul (LPK, Asesmen, Kalender, dll.) dibangun sebagai satu unit kerja kecil yang dapat langsung dioperasikan dan diuji.
-2. **Umpan Balik Cepat (*Fast Feedback Loop*):** Penyesuaian antarmuka (seperti pemindahan posisi toggle di mobile, mode grid card, dan tombol detail) dapat langsung dievaluasi dalam hitungan iterasi singkat.
-3. **Anti-Slop Quality Gate:** Setiap tampilan yang dibangun wajib melewati filter kualitas visual (bebas layout generik, responsif di semua ukuran layar, kontras teks memadai, navigasi keyboard berfungsi).
+1. **Iterasi Berbasis Regulasi:** Setiap aturan bisnis baru (misalnya siklus toleransi pengisian surveilen 3 tahap, SLA tindakan perbaikan, dan skema import massal) diimplementasikan dan diverifikasi langsung melalui unit & feature test sebelum melangkah ke modul berikutnya.
+2. **Umpan Balik Cepat (*Fast Feedback Loop*):** Penyesuaian antarmuka (seperti pemisahan badge warna pembekuan menjadi ungu, penghapusan awalan teks redundan pada keterangan operasional, dan peletakan kontrol filter mobile) diuji secara interaktif pada desktop dan layar sentuh.
+3. **Standar Kualitas Visual Bebas Slop (*Anti-Slop Quality Gate*):** Setiap komponen visual wajib memenuhi rasio kontras warna tinggi (WCAG AA), struktur data yang bersih tanpa dekorasi artifisial, tipografi Instrument Sans yang jelas, serta navigasi tabel interaktif yang intuitif.
 
 ---
 
 ### 2.2 Rencana Jadwal & Garis Waktu Pengembangan (Timeline)
 
-Proses pengembangan prototype SIMASADI dibagi ke dalam 6 fase utama:
+Proses pengembangan sistem SIMASADI dilaksanakan dalam 6 fase terstruktur:
 
-| Fase | Durasi | Target Capaian (Deliverables) | Status |
+| Fase | Durasi | Target Capaian (*Deliverables*) | Status |
 |---|---|---|---|
-| **Fase 1: Inisiasi & Analisis Kebutuhan** | Minggu 1 | Pengumpulan masalah operasional KAN, perumusan batasan prototype, spesifikasi kebutuhan fungsional & non-fungsional. | Selesai |
-| **Fase 2: Perancangan Arsitektur & Database** | Minggu 2 | Desain ERD SQLite, perancangan skema relasi tabel, penentuan struktur MVC Laravel 13, dan pembuatan baseline seeder data. | Selesai |
-| **Fase 3: Implementasi Modul Inti** | Minggu 3 | Pembuatan Controller, Model, dan Form untuk: Otentikasi, Profil LPK, Proses Akreditasi, dan Program Asesmen. | Selesai |
-| **Fase 4: Implementasi Modul Pendukung & Pelacak** | Minggu 4 | Pembangunan Kalender Kegiatan interaktif (klik tanggal otomatis isi form), Pelaporan Masalah & Follow-up, Amandemen, serta Monitoring Layanan KANMIS & Riwayat Backup. | Selesai |
-| **Fase 5: Modernisasi Antarmuka & UX Mobile** | Minggu 5 | Penerapan dual-mode (Tabel vs Grid Card), Mobile Slide-out Filter Drawer, Custom Searchable Select, Active Filter Chips, dan integrasi SweetAlert2. | Selesai |
-| **Fase 6: Pengujian, Optimasi, & Dokumentasi** | Minggu 6 | Pelaksanaan pengujian otomatis (PHPUnit feature tests), audit responsivitas mobile, penyusunan dokumentasi teknis SDLC dan panduan README. | Selesai |
+| **Fase 1: Inisiasi & Analisis Kebutuhan KAN** | Minggu 1 | Pengumpulan regulasi akreditasi KAN (KAN U-01), perumusan kebutuhan fungsional 8 tipe asesmen, serta penetapan batasan prototype operasional. | Selesai |
+| **Fase 2: Perancangan Arsitektur Basis Data** | Minggu 2 | Perancangan skema relasional terpadu (LPK, Asesmen, Biaya SBM, Billing, Akreditasi, dan Kalender Event), pembersihan tabel usang, serta penyiapan baseline seeder data. | Selesai |
+| **Fase 3: Implementasi Modul Inti & 8 Tipe Asesmen** | Minggu 3 | Implementasi Model Eloquent dan Controller untuk pengelolaan master LPK, penjadwalan 8 tipe asesmen KAN, kalender kegiatan interaktif 5 tipe event, dan navigasi multi-peran. | Selesai |
+| **Fase 4: Penegakan Toleransi Surveilen & SLA Tindakan Perbaikan** | Minggu 4 | Pembangunan mesin status dinamis: toleransi akhir bulan kunjungan, pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan otomatis (REVOKED), auto-realisasi data lampau LPK aktif, serta aturan ketat perpanjangan SLA TP maksimal 1 bulan bersurat resmi. | Selesai |
+| **Fase 5: Kepatuhan Finansial, e-Sign, & Alur EHA** | Minggu 5 | Integrasi pelaporan biaya perjalanan dinas berbasis SBM PMK, penerbitan billing SIMPONI 15 digit ber-NTPN sah, Quality Gate kesiapan rilis SK, simulasi e-Sign BSrE dengan hash SHA-256, alur EHA, dan portal publik ber-QR Code. | Selesai |
+| **Fase 6: Impor Massal, Live Feed Google Sheets, & Uji Komprehensif** | Minggu 6 | Implementasi smart importer (CSV/XLSX/Google Sheets) untuk LPK dan Asesmen, penyediaan live feed CSV terotentikasi, pelaksanaan automated feature test suite (119 pengujian, 680 assertions, 100% pass rate), serta finalisasi dokumentasi SDLC. | Selesai |
 
 ---
 
 ### 2.3 Analisis Kelayakan Sistem (*Feasibility Study*)
 
 #### 2.3.1 Kelayakan Teknis (*Technical Feasibility*)
-* **Kesiapan Infrastruktur:** Menggunakan PHP 8.3 dan Laravel 13 yang stabil dengan fitur typing modern, Eloquent ORM, dan Blade components.
-* **Basis Data Ringan:** Database SQLite berjalan secara serverless (berbasis file `database.sqlite`), menjamin kemudahan pemindahan (*portability*) tanpa membutuhkan konfigurasi RDBMS terpisah (seperti MySQL/PostgreSQL) selama masa validasi prototype.
-* **Frontend Nir-Ketergantungan Berat:** Menggunakan Vanilla CSS dengan design tokens dan Vanilla JS modular, menghindari overhead framework JavaScript raksasa dan menjamin kecepatan render instan pada browser modern.
+* **Kesiapan Backend:** Menggunakan PHP 8.2+ / PHP 8.3+ dan Laravel 12/13 yang menyediakan arsitektur MVC matang, query builder tangguh, Eloquent ORM dengan eager loading, serta test runner terintegrasi.
+* **Basis Data Ringan & Portabel:** Menggunakan SQLite 3 single-file (`database/database.sqlite`), menjamin kemudahan deployment di server pengembang lokal, docker container, maupun lingkungan intranet instansi tanpa konfigurasi RDBMS terpisah.
+* **Frontend Efisien & Nir-Overhead:** Menggunakan Vanilla CSS modern dengan Design Tokens dan Vanilla JS modular yang dikompilasi oleh Vite, menghasilkan bundle aset yang sangat ringan (< 150 kB) dan waktu muat instan tanpa ketergantungan framework JavaScript klien yang masif.
 
 #### 2.3.2 Kelayakan Operasional (*Operational Feasibility*)
-* **Kemudahan Penggunaan (*Usability*):** Antarmuka dirancang mengikuti kaidah desain korporat BSN yang bersih, kontras tinggi, dan ramah pengguna non-teknis.
-* **Akses Lintas Perangkat (*Multi-device Support*):** Sistem dapat diakses mulus baik melalui komputer desktop kantor maupun smartphone/tablet asesor saat bertugas di lokasi LPK.
-* **Peralihan Tampilan Fleksibel:** Pengguna dapat memilih tampilan tabel padat (*dense data table*) saat menganalisis banyak entri, atau tampilan kartu (*grid cards*) yang lebih visual di layar sentuh.
+* **Pemisahan Peran Tegas (RBAC 4 Peran):** Hak akses dikelompokkan secara proporsional sesuai tugas operasional nyata di instansi: Admin Unit Lab, PIC Unit Teknis, Asesor KAN, dan LPK pemegang akreditasi.
+* **Otomasi Status Tanpa Beban Input Manual:** Status tindakan perbaikan (TP) dan status pengawasan LPK dihitung secara otomatis oleh sistem, mencegah inkonsistensi data akibat kelalaian pembaruan manual oleh operator.
+* **Dukungan Lintas Perangkat:** Antarmuka responsif penuh dari layar monitor desktop kerja kantor, tablet verifikator, hingga smartphone staf di lapangan.
 
 #### 2.3.3 Kelayakan Hukum & Kebijakan (*Legal & Compliance*)
-* **Kepatuhan Data:** Seluruh data yang di-seed pada prototype merupakan data simulasi fiktif (*dummy data*) yang tidak melanggar kerahasiaan sertifikasi LPK nyata sesuai prinsip integritas BSN/KAN.
+* **Kepatuhan Pedoman KAN U-01:** Seluruh batas waktu, jenis kegiatan surveilen, toleransi pengisian dokumen, dan sanksi pembekuan hingga pencabutan disusun mengacu langsung pada pedoman resmi Komite Akreditasi Nasional.
+* **Kepatuhan SBM PMK & PNBP Kemenkeu:** Format pelaporan biaya perjalanan dinas dan billing SIMPONI mematuhi regulasi perbendaharaan negara Republik Indonesia.
 
 ---
 
 ### 2.4 Manajemen Risiko & Rencana Mitigasi
 
-| Risiko Potensial | Dampak | Probabilitas | Rencana Mitigasi |
+| Risiko Potensial | Tingkat Dampak | Probabilitas | Rencana Mitigasi |
 |---|---|---|---|
-| **Fragmentasi Layout pada Layar Kecil (Mobile)** | Tinggi | Sedang | Menerapkan media query presisi (breakpoint 600px), mengubah filter menjadi drawer slide-out dari kanan, dan menyusun tombol filter sejajar toggle grid/table. |
-| **Kehilangan Status Filter saat Berpindah Halaman (Pagination)** | Sedang | Tinggi | Menjaga seluruh query string URL pada pagination link menggunakan `$data->withQueryString()->links()` dan sinkronisasi server-side form. |
-| **Ketergantungan Data Eksternal (KANMIS API)** | Sedang | Rendah | Menggunakan arsitektur representasional internal (model `Service` dan `Backup`) sehingga sistem tetap dapat didemonstrasikan secara mandiri tanpa bergantung pada endpoint eksternal aktif. |
-| **Kueri Lambat pada Tabel dengan Banyak Data** | Sedang | Rendah | Menggunakan pagination standar Laravel (default 10 baris per halaman dengan opsi dinamis 25, 50, 100 entries) dan pengindeksan foreign key pada SQLite. |
+| **Loop Rekursif pada Accessor Status Model** | Tinggi | Rendah | Menggunakan pembacaan langsung dari `$this->attributes['status']` pada getter pembantu (`getIsSuspensionExpiredAttribute`, `getIsSubmissionOverdueAttribute`) sebelum memanggil properti dinamis. |
+| **Status Masa Lalu LPK Aktif Menggantung sebagai Dibekukan** | Tinggi | Sedang | Menerapkan aturan auto-realisasi data historis: jika LPK berstatus aktif saat ini, seluruh asesmen surveilen dan TP tahun-tahun sebelumnya (`end_at < now()->startOfYear()`) otomatis berstatus selesai (`COMPLETED` dan `SATISFIED`). |
+| **Penyalahgunaan Fasilitas Perpanjangan Waktu Tindakan Perbaikan** | Sedang | Rendah | Mengunci opsi perpanjangan waktu pada sistem: perpanjangan hanya diizinkan maksimal 1 bulan jika ada tindak lanjut nyata terhadap temuan ketidaksesuaian dan menyertakan nomor surat permohonan resmi. |
+| **Kehilangan Status Filter saat Navigasi Halaman** | Sedang | Rendah | Menjaga seluruh query string filter aktif menggunakan `$data->withQueryString()->links()` pada seluruh kontrol pagination Blade. |
+| **Kegagalan Pemrosesan Impor Data Berbeda Format** | Sedang | Rendah | Menerapkan deteksi cerdas pemisah delimiter (koma dan titik koma) serta normalisasi format tanggal fleksibel pada `LpkImportController` dan `AssessmentImportController`. |

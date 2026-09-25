@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lpk;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,18 +12,28 @@ class LpkController extends Controller
 {
     public function index(Request $request): View
     {
+        $user = $request->user();
         $search = $request->string('search')->trim()->toString();
         $status = $request->string('status')->toString();
         $surveillance = $request->string('surveillance')->toString();
         $expiry = $request->string('expiry')->toString();
+        $picFilter = $request->string('pic_id')->toString();
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
 
         $query = Lpk::query()
+            ->when($user && $user->isPic(), fn ($query) => $query->where(function ($q) use ($user) {
+                $q->where('pic_id', $user->id)
+                  ->orWhereNull('pic_id');
+            }))
+            ->when($user && $user->isAdmin() && $picFilter, fn ($query) => $query->where('pic_id', $picFilter))
             ->when($search, fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
+                ->orWhere('no_reg', 'like', "%{$search}%")
+                ->orWhere('accreditation_number', 'like', "%{$search}%")
+                ->orWhere('accreditation_type', 'like', "%{$search}%")
                 ->orWhere('registration_number', 'like', "%{$search}%")
                 ->orWhere('scope', 'like', "%{$search}%")
                 ->orWhere('address', 'like', "%{$search}%")
@@ -31,6 +42,9 @@ class LpkController extends Controller
             ));
         if ($status === 'INACTIVE') {
             $query->where('status', 'INACTIVE');
+        } elseif ($status === 'SUSPENDED') {
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SUSPENDED')->pluck('id');
+            $query->whereIn('id', $matchingIds);
         } elseif ($status === 'SURVEILLANCE_OVERDUE') {
             $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_OVERDUE')->pluck('id');
             $query->whereIn('id', $matchingIds);
@@ -73,42 +87,89 @@ class LpkController extends Controller
             $query->whereIn('id', $matchingIds);
         }
 
-        $lpks = $query->with(['assessments'])->withCount(['accreditations', 'issues'])->latest()->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
+        $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
 
-        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage'));
+        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'pics', 'perPage'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('lpks.form', ['lpk' => new Lpk, 'formTitle' => 'Tambah LPK']);
+        $user = $request->user();
+        $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
+
+        return view('lpks.form', ['lpk' => new Lpk, 'formTitle' => 'Tambah LPK', 'pics' => $pics]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $lpk = Lpk::create($this->validated($request));
+        $data = $this->validated($request);
+        $user = $request->user();
+        if ($user && $user->isPic()) {
+            $data['pic_id'] = $user->id;
+        }
+
+        $lpk = Lpk::create($data);
 
         return redirect()->route('lpks.show', $lpk)->with('success', 'LPK berhasil ditambahkan.');
     }
 
     public function show(Lpk $lpk): View
     {
-        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'issues' => fn ($q) => $q->latest(), 'assessments'])]);
+        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'assessments', 'pic'])]);
     }
 
-    public function edit(Lpk $lpk): View
+    public function edit(Lpk $lpk, Request $request): View
     {
-        return view('lpks.form', ['lpk' => $lpk, 'formTitle' => 'Ubah Data LPK']);
+        $user = $request->user();
+        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
+        }
+
+        $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
+
+        return view('lpks.form', ['lpk' => $lpk, 'formTitle' => 'Ubah Data LPK', 'pics' => $pics]);
     }
 
     public function update(Request $request, Lpk $lpk): RedirectResponse
     {
-        $lpk->update($this->validated($request, $lpk));
+        $user = $request->user();
+        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
+        }
+
+        $data = $this->validated($request, $lpk);
+        if ($user && $user->isPic()) {
+            $data['pic_id'] = $lpk->pic_id ?: $user->id;
+        }
+
+        $lpk->update($data);
 
         return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
     }
 
-    public function destroy(Lpk $lpk): RedirectResponse
+    public function updateNotes(Request $request, Lpk $lpk): RedirectResponse
     {
+        $data = $request->validate([
+            'notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $notes = isset($data['notes']) ? trim($data['notes']) : null;
+
+        $lpk->update([
+            'notes' => $notes !== '' ? $notes : null,
+        ]);
+
+        return redirect()->route('lpks.show', $lpk)->with('success', 'Keterangan LPK berhasil diperbarui.');
+    }
+
+    public function destroy(Lpk $lpk, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini.');
+        }
+
         $name = $lpk->name;
         $reg = $lpk->registration_number;
         $lpk->delete();
@@ -243,18 +304,40 @@ class LpkController extends Controller
 
     private function validated(Request $request, ?Lpk $lpk = null): array
     {
+        $id = $lpk?->id ?? 'NULL';
         $data = $request->validate([
-            'registration_number' => ['required', 'string', 'max:50', 'unique:lpks,registration_number,'.($lpk?->id ?? 'NULL')],
+            'no_reg' => ['nullable', 'string', 'max:50', 'unique:lpks,no_reg,'.$id],
+            'accreditation_number' => ['nullable', 'string', 'max:50'],
+            'accreditation_type' => ['nullable', 'string', 'max:100'],
+            'registration_number' => ['nullable', 'string', 'max:50', 'unique:lpks,registration_number,'.$id],
             'name' => ['required', 'string', 'max:255'],
             'scope' => ['nullable', 'string', 'max:50000'],
             'certificate_date' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
-            'status' => ['required', 'in:ACTIVE,INACTIVE'],
+            'status' => ['required', 'in:ACTIVE,INACTIVE,SUSPENDED'],
+            'notes' => ['nullable', 'string', 'max:5000'],
             'expired_at' => ['nullable', 'date'],
             'drive_url' => ['nullable', 'url', 'max:1000'],
+            'pic_id' => ['nullable', 'exists:users,id'],
         ]);
+
+        if (empty($data['no_reg']) && !empty($data['registration_number']) && preg_match('/^\d+$/', (string) $data['registration_number'])) {
+            $data['no_reg'] = $data['registration_number'];
+        }
+
+        if (empty($data['accreditation_number']) && !empty($data['registration_number'])) {
+            $data['accreditation_number'] = $data['registration_number'];
+        }
+
+        if (empty($data['registration_number'])) {
+            $data['registration_number'] = $data['accreditation_number'] ?: ($data['no_reg'] ?? 'LPK-' . time());
+        }
+
+        if (empty($data['accreditation_type'])) {
+            $data['accreditation_type'] = 'Laboratorium Penguji';
+        }
 
         if (! empty($data['certificate_date']) && empty($data['expired_at'])) {
             $data['expired_at'] = \Carbon\Carbon::parse($data['certificate_date'])->addYears(5)->toDateString();

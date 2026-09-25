@@ -48,14 +48,21 @@ export function openModal(modalId) {
     initCustomSelects(modal);
 
     modal.classList.add('is-active');
+    document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
 
-    // Auto-focus first input on non-touch devices
+    // Auto-focus first input on non-touch devices without causing scroll jumps
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
     if (!isTouch) {
-        const focusable = modal.querySelector('input:not([type="hidden"]), select, textarea, button.primary');
+        const focusable = modal.querySelector('.custom-select-trigger, input:not([type="hidden"]):not(.custom-select-native), select:not(.custom-select-native), textarea, button.primary:not([data-modal-close])');
         if (focusable) {
-            setTimeout(() => focusable.focus(), 60);
+            setTimeout(() => {
+                try {
+                    focusable.focus({ preventScroll: true });
+                } catch (_) {
+                    focusable.focus();
+                }
+            }, 60);
         }
     }
 }
@@ -66,6 +73,7 @@ export function closeModal(modalIdOrEl) {
             m.classList.remove('is-active');
             returnModalToPlaceholder(m);
         });
+        document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
         return;
     }
@@ -87,8 +95,9 @@ export function closeModal(modalIdOrEl) {
         });
     }
 
-    // Remove body.modal-open only if no other modal is currently active
+    // Remove modal-open only if no other modal is currently active
     if (!document.querySelector('.simasadi-modal.is-active')) {
+        document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
     }
 }

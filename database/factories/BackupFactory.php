@@ -19,7 +19,7 @@ class BackupFactory extends Factory
     public function definition(): array
     {
         return [
-            'system' => 'KANMIS', 'status' => fake()->randomElement(['SUCCESS', 'SUCCESS', 'FAILED']), 'started_at' => now()->subHours(3), 'finished_at' => now()->subHours(3)->addMinutes(12), 'size' => fake()->randomElement(['240 MB', '512 MB', '1.2 GB']), 'message' => null, 'recorded_by' => User::factory(),
+            'system' => 'SIMASADI Database', 'status' => fake()->randomElement(['SUCCESS', 'SUCCESS', 'FAILED']), 'started_at' => now()->subHours(3), 'finished_at' => now()->subHours(3)->addMinutes(12), 'size' => fake()->randomElement(['240 MB', '512 MB', '1.2 GB']), 'message' => null, 'recorded_by' => User::factory(),
         ];
     }
 }

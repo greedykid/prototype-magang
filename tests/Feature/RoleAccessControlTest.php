@@ -29,7 +29,6 @@ class RoleAccessControlTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         // Dapat mengakses monitoring
-        $this->actingAs($admin)->get(route('monitoring.services'))->assertOk();
         $this->actingAs($admin)->get(route('monitoring.backups'))->assertOk();
 
         // Dapat mengakses form tambah LPK
@@ -39,61 +38,75 @@ class RoleAccessControlTest extends TestCase
         $this->actingAs($admin)->get(route('dashboard'))->assertOk();
     }
 
-    public function test_pic_role_can_view_dashboard_and_labs_but_forbidden_from_administrative_write(): void
+    public function test_pic_role_can_manage_own_lpks_and_assessments_but_forbidden_from_other_pic_lpks_and_administrative_tools(): void
     {
         $pic = User::factory()->pic()->create();
-        $lpk = Lpk::factory()->create();
+        $ownLpk = Lpk::factory()->create(['pic_id' => $pic->id]);
+        $otherPic = User::factory()->pic()->create();
+        $otherLpk = Lpk::factory()->create(['pic_id' => $otherPic->id]);
+
         $assessment = Assessment::factory()->create([
-            'lpk_id' => $lpk->id,
+            'lpk_id' => $ownLpk->id,
             'created_by' => $pic->id,
         ]);
 
-        // 1. PIC DAPAT melihat dashboard, daftar lab, dan detail lab
+        // 1. PIC DAPAT melihat dashboard, daftar lab, dan detail lab miliknya
         $this->actingAs($pic)->get(route('dashboard'))->assertOk();
         $this->actingAs($pic)->get(route('lpks.index'))->assertOk();
-        $this->actingAs($pic)->get(route('lpks.show', $lpk))->assertOk();
+        $this->actingAs($pic)->get(route('lpks.show', $ownLpk))->assertOk();
         $this->actingAs($pic)->get(route('assessments.index'))->assertOk();
         $this->actingAs($pic)->get(route('calendar.index'))->assertOk();
 
-        // 2. PIC DITOLAK (403) membuat atau mengubah LPK (wewenang Admin Unit)
-        $this->actingAs($pic)->get(route('lpks.create'))->assertForbidden();
-        $this->actingAs($pic)->get(route('lpks.edit', $lpk))->assertForbidden();
+        // 2. PIC DAPAT membuat LPK miliknya sendiri
+        $this->actingAs($pic)->get(route('lpks.create'))->assertOk();
         $this->actingAs($pic)->post(route('lpks.store'), [
-            'registration_number' => 'LP-UNAUTH-01',
-            'name' => 'Lab Ilegal',
+            'registration_number' => 'LP-OWN-01',
+            'name' => 'Lab Binaan PIC',
             'status' => 'ACTIVE',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-OWN-01',
+            'pic_id' => $pic->id,
+        ]);
+
+        // Tombol Tambah LPK MUNCUL pada antarmuka PIC
+        $lpkIndexResponse = $this->actingAs($pic)->get(route('lpks.index'));
+        $lpkIndexResponse->assertOk()->assertSee('Tambah LPK');
+
+        // Ubah data MUNCUL untuk LPK miliknya sendiri
+        $ownLpkShowResponse = $this->actingAs($pic)->get(route('lpks.show', $ownLpk));
+        $ownLpkShowResponse->assertOk()->assertSee('Ubah data');
+
+        // 3. PIC DITOLAK (403) mengubah LPK milik PIC lain
+        $this->actingAs($pic)->get(route('lpks.edit', $otherLpk))->assertForbidden();
+        $this->actingAs($pic)->put(route('lpks.update', $otherLpk), [
+            'name' => 'Lab Bajakan',
         ])->assertForbidden();
 
-        // Tombol Tambah LPK dan Ubah data TIDAK MUNCUL pada antarmuka PIC
-        $lpkIndexResponse = $this->actingAs($pic)->get(route('lpks.index'));
-        $lpkIndexResponse->assertOk()->assertDontSee('Tambah LPK');
+        // 4. PIC DAPAT memasukkan dan mengelola agenda asesmen (wewenang tim internal unit)
+        $this->actingAs($pic)->get(route('assessments.create'))->assertOk();
+        $this->actingAs($pic)->get(route('assessments.edit', $assessment))->assertOk();
 
-        $lpkShowResponse = $this->actingAs($pic)->get(route('lpks.show', $lpk));
-        $lpkShowResponse->assertOk()
-            ->assertDontSee('Ubah data')
-            ->assertDontSee('Semua proses')
-            ->assertDontSee(route('accreditations.index'));
-
-        // 3. PIC DITOLAK (403) mengakses manajemen asesmen resmi (create/edit)
-        $this->actingAs($pic)->get(route('assessments.create'))->assertForbidden();
-        $this->actingAs($pic)->get(route('assessments.edit', $assessment))->assertForbidden();
-
-        // Tombol Tambah asesmen dan Ubah asesmen TIDAK MUNCUL untuk PIC
+        // Tombol Tambah asesmen dan Ubah asesmen MUNCUL untuk PIC
         $this->actingAs($pic)->get(route('assessments.index'))
             ->assertOk()
-            ->assertDontSee('Tambah asesmen');
+            ->assertSee('Tambah asesmen');
 
         $this->actingAs($pic)->get(route('assessments.show', $assessment))
             ->assertOk()
-            ->assertDontSee('Ubah asesmen')
+            ->assertSee('Ubah asesmen')
             ->assertDontSee('Verifikasi SBM')
             ->assertDontSee('modal-verify-expense');
 
-        // 4. PIC DITOLAK (403) mengakses monitoring server teknis
-        $this->actingAs($pic)->get(route('monitoring.services'))->assertForbidden();
+        // Verifikasi biaya SBM tetap dibatasi hanya untuk Administrator
+        $this->actingAs($pic)->post(route('assessments.expenses.verify', $assessment), [
+            'status' => 'TERVERIFIKASI',
+        ])->assertForbidden();
+
+        // 5. PIC DITOLAK (403) mengakses monitoring server teknis
         $this->actingAs($pic)->get(route('monitoring.backups'))->assertForbidden();
 
-        // 5. PIC DITOLAK (403) mengakses proses akreditasi internal
+        // 6. PIC DITOLAK (403) mengakses proses akreditasi internal
         $this->actingAs($pic)->get(route('accreditations.index'))->assertForbidden();
 
         // Tampilan Dashboard PIC TIDAK memuat tombol atau tautan yang dibatasi (403)
@@ -105,11 +118,6 @@ class RoleAccessControlTest extends TestCase
             ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
             ->assertDontSee('<span class="nav-label">Backup</span>', false)
             ->assertDontSee(route('accreditations.index'))
-            ->assertDontSee(route('amendments.index'))
-            ->assertDontSee('Tambah LPK')
-            ->assertDontSee('Jadwalkan Kunjungan')
-            ->assertDontSee('Jadwalkan asesmen')
-            ->assertDontSee('Lihat proses &rarr;', false)
             ->assertDontSee('Finansial &amp; Administrasi', false);
     }
 
@@ -141,15 +149,24 @@ class RoleAccessControlTest extends TestCase
         $this->assertDatabaseMissing('lpks', ['id' => $lpk->id]);
     }
 
-    public function test_pic_is_forbidden_from_deleting_lpk(): void
+    public function test_pic_can_delete_own_lpk_but_forbidden_from_deleting_other_pic_lpk(): void
     {
         $pic = User::factory()->pic()->create();
-        $lpk = Lpk::factory()->create();
+        $otherPic = User::factory()->pic()->create();
 
-        $response = $this->actingAs($pic)->delete(route('lpks.destroy', $lpk));
+        $ownLpk = Lpk::factory()->create(['pic_id' => $pic->id]);
+        $otherLpk = Lpk::factory()->create(['pic_id' => $otherPic->id]);
 
-        $response->assertForbidden();
-        $this->assertDatabaseHas('lpks', ['id' => $lpk->id]);
+        // PIC dilarang menghapus LPK milik PIC lain (403)
+        $responseForbidden = $this->actingAs($pic)->delete(route('lpks.destroy', $otherLpk));
+        $responseForbidden->assertForbidden();
+        $this->assertDatabaseHas('lpks', ['id' => $otherLpk->id]);
+
+        // PIC dapat menghapus LPK miliknya sendiri
+        $responseOwn = $this->actingAs($pic)->delete(route('lpks.destroy', $ownLpk));
+        $responseOwn->assertRedirect(route('lpks.index'))
+            ->assertSessionHas('success');
+        $this->assertDatabaseMissing('lpks', ['id' => $ownLpk->id]);
     }
 }
 

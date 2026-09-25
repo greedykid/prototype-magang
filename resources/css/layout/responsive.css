@@ -532,7 +532,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .gcal-main {
         min-width: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         width: 100% !important;
     }
 }

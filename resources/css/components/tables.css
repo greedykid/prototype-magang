@@ -396,6 +396,28 @@ tbody tr:hover {
     background-color: #faf9f6;
 }
 
+/* Clickable Table Rows */
+tbody tr.clickable-row,
+table tr[data-href] {
+    cursor: pointer;
+}
+
+tbody tr.clickable-row:hover > td,
+table tr[data-href]:hover > td {
+    background-color: #f1f5f9;
+}
+
+.table-lpks-custom tbody tr.clickable-row:hover > td,
+.table-lpks-custom tr[data-href]:hover > td {
+    background-color: #f1f7fe;
+}
+
+tbody tr.clickable-row:focus-visible,
+table tr[data-href]:focus-visible {
+    outline: 2px solid var(--maroon, #e11d48);
+    outline-offset: -2px;
+}
+
 td {
     border-bottom: 1px solid #e7e5e0;
     border-right: 1px solid #e7e5e0;

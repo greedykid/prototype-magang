@@ -6,6 +6,8 @@ use App\Models\Assessment;
 use App\Models\Lpk;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AssessmentController extends Controller
@@ -24,22 +26,88 @@ class AssessmentController extends Controller
             $perPage = 10;
         }
 
+        // Sinkronisasi otomatis status asesmen yang melewati batas SLA KAN menjadi SUSPENDED
+        Assessment::query()
+            ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
+            ->tpOverdue()
+            ->update(['status' => 'SUSPENDED']);
+
         $assessments = Assessment::query()
             ->with(['lpk', 'expense'])
             ->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))
             ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
             ->when($assessmentType, function ($query) use ($assessmentType) {
-                if ($assessmentType === 'Asesmen Awal') {
-                    $query->whereIn('assessment_type', ['Asesmen Awal', 'INITIAL']);
+                if ($assessmentType === Assessment::TYPE_AKREDITASI_AWAL || $assessmentType === 'Asesmen Awal') {
+                    $query->whereIn('assessment_type', [Assessment::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA']);
+                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1) {
+                    $query->where(function ($q) {
+                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, 'S1'])
+                            ->orWhere(function ($sq) {
+                                $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
+                                    ->where(function ($titleQ) {
+                                        $titleQ->where('title', 'like', '%Surveilen 1%')
+                                            ->orWhere('title', 'like', '%(S1)%')
+                                            ->orWhere('title', 'like', '% S1 %');
+                                    })
+                                    ->where('title', 'not like', '%PRL%');
+                            });
+                    });
+                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1_PRL) {
+                    $query->where(function ($q) {
+                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1_PRL, 'S1 + PRL'])
+                            ->orWhere(function ($sq) {
+                                $sq->where('title', 'like', '%Surveilen 1%')
+                                    ->where('title', 'like', '%PRL%');
+                            });
+                    });
+                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2) {
+                    $query->where(function ($q) {
+                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2, 'S2'])
+                            ->orWhere(function ($sq) {
+                                $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
+                                    ->where(function ($titleQ) {
+                                        $titleQ->where('title', 'like', '%Surveilen 2%')
+                                            ->orWhere('title', 'like', '%(S2)%')
+                                            ->orWhere('title', 'like', '% S2 %');
+                                    })
+                                    ->where('title', 'not like', '%PRL%');
+                            });
+                    });
+                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2_PRL) {
+                    $query->where(function ($q) {
+                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2_PRL, 'S2 + PRL'])
+                            ->orWhere(function ($sq) {
+                                $sq->where('title', 'like', '%Surveilen 2%')
+                                    ->where('title', 'like', '%PRL%');
+                            });
+                    });
+                } elseif ($assessmentType === Assessment::TYPE_STT) {
+                    $query->whereIn('assessment_type', [Assessment::TYPE_STT, 'STT', 'Surveilen Tidak Terjadwal']);
+                } elseif ($assessmentType === Assessment::TYPE_PRL) {
+                    $query->whereIn('assessment_type', [Assessment::TYPE_PRL, 'PRL', 'Perluasan Ruang Lingkup', 'Perluasan Lingkup']);
+                } elseif ($assessmentType === Assessment::TYPE_RE_AKREDITASI || $assessmentType === 'Re-asesmen') {
+                    $query->whereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'RA', 'Re-asesmen', 'REASSESSMENT']);
                 } elseif ($assessmentType === 'Surveilen') {
-                    $query->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE']);
-                } elseif ($assessmentType === 'Re-asesmen') {
-                    $query->whereIn('assessment_type', ['Re-asesmen', 'REASSESSMENT']);
+                    $query->where(function ($q) {
+                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, Assessment::TYPE_SURVEILEN_2, 'Surveilen', 'SURVEILLANCE', 'S1', 'S2']);
+                    });
                 } else {
                     $query->where('assessment_type', $assessmentType);
                 }
             })
-            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($status, function ($query, $status) {
+                if ($status === 'SUSPENDED') {
+                    $query->where(function ($q) {
+                        $q->where('status', 'SUSPENDED')
+                            ->orWhere(fn ($sub) => $sub->tpOverdue());
+                    });
+                } elseif ($status === 'IN_PROGRESS') {
+                    $query->where('status', 'IN_PROGRESS')
+                        ->whereNotIn('id', Assessment::select('id')->tpOverdue());
+                } else {
+                    $query->where('status', $status);
+                }
+            })
             ->when($tpFilter, function ($query) use ($tpFilter) {
                 if ($tpFilter === 'OVERDUE') {
                     $query->tpOverdue();
@@ -65,17 +133,32 @@ class AssessmentController extends Controller
         ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('assessments.form', ['assessment' => new Assessment, 'lpks' => Lpk::orderBy('name')->get()]);
+        $user = $request->user();
+        $lpksQuery = Lpk::orderBy('name');
+        if ($user && $user->isPic()) {
+            $lpksQuery->where(function ($q) use ($user) {
+                $q->where('pic_id', $user->id)->orWhereNull('pic_id');
+            });
+        }
+
+        return view('assessments.form', ['assessment' => new Assessment, 'lpks' => $lpksQuery->get()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
         $data['tp_has_extension'] = $request->boolean('tp_has_extension');
-        if ($data['tp_has_extension'] && empty($data['tp_extension_months'])) {
-            $data['tp_extension_months'] = 1;
+        if ($data['tp_has_extension']) {
+            if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
+                throw ValidationException::withMessages([
+                    'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
+                ]);
+            }
+            if (empty($data['tp_extension_months'])) {
+                $data['tp_extension_months'] = 1;
+            }
         }
 
         $assessment = Assessment::create($data + ['created_by' => $request->user()->id]);
@@ -88,17 +171,32 @@ class AssessmentController extends Controller
         return view('assessments.show', ['assessment' => $assessment->load(['lpk', 'expense.verifier'])]);
     }
 
-    public function edit(Assessment $assessment): View
+    public function edit(Assessment $assessment, Request $request): View
     {
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => Lpk::orderBy('name')->get()]);
+        $user = $request->user();
+        $lpksQuery = Lpk::orderBy('name');
+        if ($user && $user->isPic()) {
+            $lpksQuery->where(function ($q) use ($user) {
+                $q->where('pic_id', $user->id)->orWhereNull('pic_id');
+            });
+        }
+
+        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
     }
 
     public function update(Request $request, Assessment $assessment): RedirectResponse
     {
-        $data = $this->validated($request);
+        $data = $this->validated($request, $assessment);
         $data['tp_has_extension'] = $request->boolean('tp_has_extension');
-        if ($data['tp_has_extension'] && empty($data['tp_extension_months'])) {
-            $data['tp_extension_months'] = 1;
+        if ($data['tp_has_extension']) {
+            if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
+                throw ValidationException::withMessages([
+                    'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
+                ]);
+            }
+            if (empty($data['tp_extension_months'])) {
+                $data['tp_extension_months'] = 1;
+            }
         }
 
         $assessment->update($data);
@@ -109,6 +207,7 @@ class AssessmentController extends Controller
     public function updateTp(Request $request, Assessment $assessment): RedirectResponse
     {
         $validated = $request->validate([
+            'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
             'tp_status' => ['required', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
@@ -118,31 +217,69 @@ class AssessmentController extends Controller
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
             'tp_notes' => ['nullable', 'string'],
+            'report_date' => ['nullable', 'date'],
+            'eha_date' => ['nullable', 'date'],
+            'eha_status' => ['nullable', 'string', 'in:BELUM_EHA,DIREKOMENDASIKAN,PERLU_VERIFIKASI,CATATAN_KHUSUS'],
+            'eha_notes' => ['nullable', 'string'],
             'sk_number' => ['nullable', 'string', 'max:150'],
             'sk_date' => ['nullable', 'date'],
         ]);
 
         $validated['tp_has_extension'] = $request->boolean('tp_has_extension');
-        if ($validated['tp_has_extension'] && empty($validated['tp_extension_months'])) {
-            $validated['tp_extension_months'] = 1;
+        if ($validated['tp_has_extension']) {
+            if ($validated['tp_status'] === Assessment::TP_STATUS_NONE) {
+                throw ValidationException::withMessages([
+                    'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
+                ]);
+            }
+            if (empty($validated['tp_extension_months'])) {
+                $validated['tp_extension_months'] = 1;
+            }
+        }
+
+        if (empty($validated['status'])) {
+            $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
+            $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
+            $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);
+            $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : $assessment->tp_satisfied_at;
+
+            $validated['status'] = Assessment::determineStatusFromDates(
+                $assessment->start_at,
+                $assessment->end_at,
+                $assessment->status,
+                $validated['tp_status'] ?? null,
+                $validated['sk_number'] ?? null,
+                ! empty($validated['report_date']) ? Carbon::parse($validated['report_date']) : $assessment->report_date,
+                ! empty($validated['eha_date']) ? Carbon::parse($validated['eha_date']) : $assessment->eha_date,
+                $tpDueDate,
+                $tpHasExtension,
+                $tpExtensionMonths,
+                $tpSatisfiedAt,
+                $assessment->assessment_type
+            );
         }
 
         $assessment->update($validated);
 
-        return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) berhasil diperbarui.');
+        return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) serta milestone asesmen berhasil diperbarui.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?Assessment $assessment = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'lpk_id' => ['required', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:255'],
             'assessment_type' => ['required', 'string', 'max:80'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED'],
-            'lead_assessor' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
+            'lead_assessor' => ['nullable', 'string', 'max:1000'],
+            'assessment_team' => ['nullable', 'string', 'max:1000'],
+            'report_date' => ['nullable', 'date'],
+            'eha_date' => ['nullable', 'date'],
+            'eha_status' => ['nullable', 'string', 'in:BELUM_EHA,DIREKOMENDASIKAN,PERLU_VERIFIKASI,CATATAN_KHUSUS'],
+            'eha_notes' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'tp_status' => ['nullable', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
             'tp_due_date' => ['nullable', 'date'],
@@ -156,5 +293,35 @@ class AssessmentController extends Controller
             'sk_number' => ['nullable', 'string', 'max:150'],
             'sk_date' => ['nullable', 'date'],
         ]);
+
+        if (! empty($data['assessment_team'])) {
+            $data['lead_assessor'] = $data['assessment_team'];
+        } elseif (! empty($data['lead_assessor'])) {
+            $data['assessment_team'] = $data['lead_assessor'];
+        }
+
+        $startAt = ! empty($data['start_at']) ? Carbon::parse($data['start_at']) : null;
+        $endAt = ! empty($data['end_at']) ? Carbon::parse($data['end_at']) : null;
+        $tpDueDate = ! empty($data['tp_due_date']) ? Carbon::parse($data['tp_due_date']) : $assessment?->tp_due_date;
+        $tpHasExtension = (bool) ($data['tp_has_extension'] ?? $assessment?->tp_has_extension ?? false);
+        $tpExtensionMonths = (int) ($data['tp_extension_months'] ?? $assessment?->tp_extension_months ?? 0);
+        $tpSatisfiedAt = ! empty($data['tp_satisfied_at']) ? Carbon::parse($data['tp_satisfied_at']) : $assessment?->tp_satisfied_at;
+
+        $data['status'] = Assessment::determineStatusFromDates(
+            $startAt,
+            $endAt,
+            $assessment?->status ?? ($data['status'] ?? null),
+            $data['tp_status'] ?? $assessment?->tp_status,
+            $data['sk_number'] ?? $assessment?->sk_number,
+            ! empty($data['report_date']) ? Carbon::parse($data['report_date']) : $assessment?->report_date,
+            ! empty($data['eha_date']) ? Carbon::parse($data['eha_date']) : $assessment?->eha_date,
+            $tpDueDate,
+            $tpHasExtension,
+            $tpExtensionMonths,
+            $tpSatisfiedAt,
+            $data['assessment_type'] ?? $assessment?->assessment_type
+        );
+
+        return $data;
     }
 }

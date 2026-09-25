@@ -12,8 +12,17 @@
             @csrf
             <div class="form-grid" style="gap: 12px;">
                 <label class="full">
+                    Jenis Agenda / Proses
+                    <select name="event_type" id="quick-input-type" onchange="window.updateQuickAddType ? window.updateQuickAddType(this.value) : null">
+                        <option value="PRL" selected>PRL (Penambahan Ruang Lingkup)</option>
+                        <option value="STT">STT (Surveilen Tidak Terjadwal)</option>
+                        <option value="AGENDA_INTERNAL">Agenda Umum / Rapat Internal</option>
+                    </select>
+                </label>
+
+                <label class="full">
                     Judul Kegiatan
-                    <input type="text" name="title" id="quick-input-title" required placeholder="Contoh: Rapat Komite Akreditasi Laboratorium">
+                    <input type="text" name="title" id="quick-input-title" required placeholder="Contoh: PRL - Penambahan Ruang Lingkup">
                 </label>
 
                 <label class="full">

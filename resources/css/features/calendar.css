@@ -233,6 +233,11 @@
     background: #059669;
 }
 
+.gcal-cat-indicator.cyan {
+    background: #00ffff;
+    border: 1px solid #00b4d8;
+}
+
 .gcal-lpk-select {
     background: #ffffff;
     border: 1px solid #c8c4be;
@@ -249,18 +254,23 @@
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
 }
 
 .gcal-toolbar {
     align-items: center;
     background: #ffffff;
     border-bottom: 1px solid var(--line);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
     justify-content: space-between;
     padding: 12px 18px;
+    position: relative;
+    z-index: 50;
 }
 
 .gcal-toolbar-left {
@@ -334,6 +344,7 @@
     display: inline-flex;
     position: relative;
     vertical-align: middle;
+    z-index: 60;
 }
 
 .gcal-select-wrapper-month {
@@ -414,10 +425,10 @@
     border-radius: 8px !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
     box-sizing: border-box !important;
-    max-height: 240px !important;
+    max-height: 280px !important;
     min-width: 100% !important;
     overflow-y: auto !important;
-    z-index: 100 !important;
+    z-index: 1060 !important;
 }
 
 .gcal-select-wrapper-month .custom-select-menu {
@@ -558,7 +569,10 @@
 
 /* VIEW 1: MONTH VIEW */
 .gcal-month-wrap {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     min-width: 0;
+    overflow: hidden;
 }
 
 .gcal-month-headings {
@@ -711,6 +725,13 @@
     color: #065f46;
 }
 
+.gcal-event-chip.theme-cyan {
+    background: #00ffff;
+    border-left: 3px solid #0891b2;
+    color: #042f2e;
+    font-weight: 600;
+}
+
 .gcal-chip-time {
     font-weight: 700;
     opacity: 0.85;
@@ -737,6 +758,8 @@
 
 /* VIEW 2: WEEK VIEW */
 .gcal-week-wrap {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     min-width: 0;
     overflow-x: auto;
 }
@@ -928,6 +951,12 @@
     color: #065f46;
 }
 
+.gcal-timed-card.theme-cyan {
+    background: #cffafe;
+    border-left: 3.5px solid #00b4d8;
+    color: #042f2e;
+}
+
 .gcal-card-inner {
     display: flex;
     flex-direction: column;
@@ -959,7 +988,10 @@
 
 /* VIEW 3: DAY VIEW */
 .gcal-day-wrap {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     min-width: 0;
+    overflow: hidden;
 }
 
 .gcal-day-header {
@@ -1007,10 +1039,20 @@
 
 /* VIEW 4: AGENDA / SCHEDULE VIEW */
 .gcal-agenda-wrap {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px;
     gap: 20px;
+    min-height: 440px;
+    padding: 16px 20px;
+}
+
+.gcal-agenda-wrap > .empty {
+    margin: auto 0;
+    padding: 36px 20px;
+    text-align: center;
 }
 
 .gcal-agenda-group {
@@ -1108,6 +1150,11 @@
     border-left: 4px solid #059669;
 }
 
+.gcal-agenda-row.theme-cyan {
+    background: #f0fdff;
+    border-left: 4px solid #00b4d8;
+}
+
 .gcal-agenda-time-col strong {
     color: var(--ink);
     display: block;
@@ -1164,6 +1211,11 @@
 .gcal-badge-pill.theme-emerald {
     background: #d1fae5;
     color: #065f46;
+}
+
+.gcal-badge-pill.theme-cyan {
+    background: #00ffff;
+    color: #042f2e;
 }
 
 .gcal-agenda-meta {
@@ -1274,6 +1326,11 @@
 .gcal-popover-cat-pill.theme-sky {
     background: #e0f2fe;
     color: #0369a1;
+}
+
+.gcal-popover-cat-pill.theme-cyan {
+    background: #00ffff;
+    color: #042f2e;
 }
 
 .gcal-popover-close {

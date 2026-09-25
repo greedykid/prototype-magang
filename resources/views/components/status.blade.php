@@ -2,6 +2,10 @@
     $labels = [
         'ACTIVE' => 'Aktif',
         'INACTIVE' => 'Tidak Aktif',
+        'SUSPENDED' => 'Dibekukan',
+        'DIBEKUKAN' => 'Dibekukan',
+        'REVOKED' => 'Dicabut',
+        'DICABUT' => 'Dicabut',
         'NOT_STARTED' => 'Belum Dimulai',
         'IN_PROGRESS' => 'Sedang Berlangsung',
         'IN_PROCESS' => 'Dalam Proses',

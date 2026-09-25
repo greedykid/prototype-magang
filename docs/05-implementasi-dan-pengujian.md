@@ -10,14 +10,14 @@ Sistem SIMASADI diimplementasikan dengan spesifikasi lingkungan teknis sebagai b
 
 | Komponen | Spesifikasi / Library | Versi | Peran dalam Sistem |
 |---|---|---|---|
-| **Bahasa Pemrograman** | PHP | 8.3+ | Logika backend server, kontroler, dan pengolahan data model. |
-| **Framework Backend** | Laravel Framework | 13.x | Routing, Middleware, Eloquent ORM, Autentikasi sesi, Blade engine. |
-| **Basis Data** | SQLite | 3.x | Database file lokal nir-server (`database/database.sqlite`). |
-| **Asset Bundler** | Vite | 8.x | Kompilasi SCSS/CSS dan bundling JavaScript instan Hot Module Replacement (HMR). |
+| **Bahasa Pemrograman** | PHP | 8.2+ / 8.3+ | Logika backend server, kontroler MVC, dan accessor bisnis pada Model Eloquent. |
+| **Framework Backend** | Laravel Framework | 12.x / 13.x | Routing, Middleware RBAC, Eloquent ORM, Autentikasi sesi, Blade templating engine. |
+| **Basis Data** | SQLite | 3.x | Database file lokal terpadu nir-konfigurasi (`database/database.sqlite`). |
+| **Asset Bundler** | Vite | 6.x / 8.x | Kompilasi SCSS/CSS dan bundling JavaScript Hot Module Replacement (HMR). |
 | **Desain Antarmuka** | Vanilla CSS (CSS Variables) | Native CSS3 | Sistem desain kustom (Design Tokens), flexbox, CSS grid, dan responsif media queries. |
 | **Tipografi** | Instrument Sans | WOFF2 / WOFF | Font korporat modern untuk kejelasan baca data pada antarmuka. |
-| **Notifikasi Interaktif** | SweetAlert2 | 11.x | Modal dialog dan toast notifikasi feedback aksi (sukses, validasi, konfirmasi). |
-| **Test Runner** | PHPUnit | 11.x | Pengujian otomatis alur fungsional backend (*Feature Testing*). |
+| **Notifikasi Interaktif** | SweetAlert2 | 11.x | Modal dialog konfirmasi dan toast feedback aksi (sukses, validasi, konfirmasi). |
+| **Test Runner** | PHPUnit | 11.x | Pengujian otomatis alur fungsional, logika regulasi KAN, dan RBAC (*Feature Testing*). |
 
 #### 5.1.2 Struktur Direktori Proyek
 ```text
@@ -25,121 +25,231 @@ prototype-magang/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/          # Pengendali logika alur (LpkController, AssessmentController, dll.)
+│   │   ├── Middleware/           # Middleware proteksi peran (RoleMiddleware)
 │   │   └── Requests/             # Validasi request formulir
-│   └── Models/                   # Model Eloquent (Lpk, Assessment, Issue, CalendarEvent, dll.)
+│   └── Models/                   # Model Eloquent (Lpk, Assessment, AssessmentExpense, User, dll.)
 ├── database/
-│   ├── migrations/               # 14 file migrasi skema tabel relasional
-│   ├── seeders/                  # Seeder akun awal dan data dummy operasional
+│   ├── migrations/               # File migrasi skema tabel relasional
+│   ├── seeders/                  # Seeder akun 4 peran, data master LPK, dan riwayat asesmen
 │   └── database.sqlite           # File basis data lokal
-├── docs/                         # Seluruh dokumentasi perancangan SDLC (.md)
+├── docs/                         # Seluruh dokumentasi perancangan SDLC komprehensif (.md)
 ├── resources/
 │   ├── css/
-│   │   └── app.css               # Seluruh aturan desain antarmuka, variabel token, dan media query
+│   │   ├── base/                 # Reset dan token desain variabel warna/tipografi
+│   │   ├── components/           # Badges, custom select, modal dialog, tabel, clickable rows
+│   │   ├── features/             # Kalender kegiatan, dashboard, dan laporan biaya
+│   │   └── layout/               # Shell navigasi sidebar, topbar, dan responsivitas mobile
 │   ├── js/
-│   │   └── app.js                # Modul JavaScript: SPA navigation, sync toggle, filter drawer, custom select
+│   │   ├── modules/              # Kalender interaktif, custom select, modal, SPA router
+│   │   └── app.js                # Inisialisasi utama JavaScript antarmuka
 │   └── views/
-│       ├── components/           # Blade components: icon, status, priority
+│       ├── components/           # Blade components: icon, status badge, alert
 │       ├── layouts/              # Template master (app.blade.php) & app-shell
-│       ├── lpks/                 # Halaman index, create, edit, show LPK
-│       ├── assessments/          # Halaman program asesmen
-│       ├── accreditations/       # Halaman proses akreditasi
-│       ├── amendments/           # Halaman pengajuan amandemen
-│       ├── calendar/             # Halaman kalender dan agenda kerja
-│       ├── issues/               # Halaman pelaporan dan log follow-up masalah
-│       └── monitoring/           # Halaman layanan KANMIS dan histori backup
+│       ├── lpks/                 # Halaman index, create, edit, show LPK, dan import
+│       ├── assessments/          # Halaman program asesmen, pelacakan TP, SBM, dan EHA
+│       ├── calendar/             # Halaman kalender interaktif dan modal quick add
+│       ├── users/                # Halaman manajemen pengguna dan profil
+│       └── portal/               # Portal LPK mandiri dengan kode QR keabsahan dokumen
 ├── routes/
-│   └── web.php                   # Definisi rute aplikasi terproteksi sesi
+│   ├── console.php               # Perintah terjadwal CLI (check-surveillance)
+│   └── web.php                   # Definisi rute aplikasi terproteksi sesi dan peran
 └── tests/
-    └── Feature/                  # Test suite otomatis (PrototypeFlowTest, CalendarEventTest)
+    └── Feature/                  # Test suite otomatis komprehensif (14 file test)
 ```
 
 #### 5.1.3 Fitur Teknis Kunci yang Diimplementasikan
-1. **Penyelarasan Posisi Toggle di Mobile (`syncViewToggleLocation`):**
-   * Menggunakan pendeteksi media query JavaScript `window.matchMedia('(max-width: 600px)')`.
-   * Pada resolusi mobile, elemen `.table-view-toggle` dipindahkan secara otomatis ke dalam baris `.table-controls` di samping tombol filter.
-   * Pada desktop, posisi dikembalikan secara presisi ke toolbar tabel utama.
-2. **Arsitektur Grid Card 2-Kolom Terstruktur:**
-   * Diimplementasikan murni menggunakan CSS Grid (`grid-template-columns: 84px minmax(0, 1fr)`) untuk memastikan seluruh label dan nilai teratur dalam sumbu vertikal yang konsisten, menghilangkan tampilan zig-zag pada versi sebelumnya.
-   * Dilengkapi header badge bertema lavender (`#f0edff` / `#5645d4`) serta footer aksi dengan tombol `Detail →`.
-3. **Tombol Detail Interaktif pada Tampilan Tabel:**
-   * Ditata sebagai action badge berlatar `#f5f3ff` dengan border `#dcd7fa` dan panah chevron CSS.
-   * Dilengkapi efek transisi hover ke latar ungu solid `#5645d4` dengan teks putih dan animasi micro-nudge.
-4. **Preservasi Status Filter pada Navigasi Halaman:**
-   * Setiap pagination URL mengikat query string aktif menggunakan `$data->withQueryString()->links()`.
-   * Pilihan jumlah baris (*entries per page*) disinkronkan ke input tersembunyi formulir pencarian.
+1. **Mesin Toleransi Surveilen 3 Tahap & Pembekuan Bertahap:**
+   * Menghitung batas toleransi pengisian dokumen surveilen sampai akhir bulan tanggal kunjungan (`submission_due_date = end_at->endOfMonth()`).
+   * Mengubah status asesmen dan LPK seketika menjadi DIBEKUKAN (`SUSPENDED`, badge ungu kontras `#f3e8ff` dengan teks `#6b21a8`) bila melewati toleransi tanpa penyelesaian, memberikan jendela hak penyelesaian 1 tahun, dan mencabut status akreditasi (`REVOKED`) jika batas 1 tahun terlampaui.
+   * Auto-realisasi data historis: bila LPK aktif saat ini, seluruh asesmen surveilen dan TP masa lalu (`end_at < now()->startOfYear()`) otomatis berstatus selesai (`COMPLETED` dan `SATISFIED`).
+2. **Mesin Penegakan SLA Tindakan Perbaikan (TP & VTP):**
+   * Menghitung otomatis SLA dasar (3 bulan untuk AA, 2 bulan untuk proses lainnya).
+   * Membatasi perpanjangan maksimal 1 bulan hanya jika ada progres tindak lanjut nyata terhadap temuan ketidaksesuaian serta menyertakan nomor surat permohonan resmi. Jika perbaikan kosong, perpanjangan ditolak dan LPK langsung dibekukan.
+   * Status TP dihitung sepenuhnya oleh sistem tanpa input manual: Sedang Berlangsung, Dibekukan (ungu) bila lewat batas waktu, dan Memenuhi bila telah diselesaikan.
+3. **Penyederhanaan Keterangan Operasional Otomatis (`dynamic_keterangan`):**
+   * Keterangan diformat langsung pada teks kegiatan inti yang dicetak tebal (contoh: **Surveilen 1: Terjadwal 29/03/2027**), menghapus awalan teks administratif redundan.
+4. **Interaktivitas Tabel Penuh (*Clickable Rows*):**
+   * Baris tabel pada modul LPK dan Asesmen dapat diklik langsung untuk menuju halaman detail, mempercepat navigasi pengguna tanpa harus mengklik tombol teks kecil.
+5. **Penyelarasan Posisi Toggle di Layar Ponsel & Filter Drawer:**
+   * Pada resolusi mobile (`<= 600px`), tombol toggle mode tampilan sejajar secara presisi di samping tombol filter data, dan panel filter meluncur mulus dari sisi kanan layar (*slide-out drawer*).
 
 ---
 
 ### 5.2 Pengujian Sistem (Testing)
 
 #### 5.2.1 Strategi Pengujian
-Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasis PHPUnit & Database Refresh) untuk memverifikasi fungsionalitas backend, serta **Manual Cross-Device Testing** untuk menguji ketepatan interaksi visual dan antarmuka.
+Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasis PHPUnit & Database Refresh) untuk memverifikasi fungsionalitas backend, aturan regulasi KAN, dan RBAC 4 peran, serta **Manual Cross-Device Testing** untuk menguji ketepatan interaksi visual dan antarmuka.
 
 #### 5.2.2 Matriks Kasus Uji Otomatis (PHPUnit Feature Tests)
 
-Semua kasus uji berikut tercakup dalam berkas pengujian di `tests/Feature/`:
+Semua pengujian berikut tercakup dalam 14 berkas test di `tests/Feature/`:
 
-| ID Uji | File Test | Skenario Pengujian | Input / Kondisi | Ekspektasi Hasil | Status |
-|---|---|---|---|---|---|
-| **TEST-01** | `PrototypeFlowTest` | Pengguna tamu (*guest*) dilarang mengakses dashboard. | Akses URL `GET /dashboard` tanpa login. | HTTP Status 302 Redirect ke `/login`. | **PASSED** |
-| **TEST-02** | `PrototypeFlowTest` | Login pengguna internal berhasil dan membuka dashboard. | POST `/login` dengan email valid & password benar. | HTTP Status 302 Redirect ke `/dashboard`, teks "Selamat datang" tampil. | **PASSED** |
-| **TEST-03** | `PrototypeFlowTest` | Penambahan data LPK baru ke basis data. | POST `/lpks` (registration_number: `LPK-TEST-001`, name: `LPK Uji Coba`, status: `ACTIVE`). | Redirect sukses, data tersimpan di tabel `lpks`. | **PASSED** |
-| **TEST-04** | `PrototypeFlowTest` | Pelaporan masalah operasional dan pencatatan riwayat follow-up. | POST `/issues` lalu dilanjutkan POST `/issues/{id}/follow-ups` dengan catatan tindakan. | Masalah tercatat, follow-up tersimpan di tabel `issue_followups` terhubung ke `user_id`. | **PASSED** |
-| **TEST-05** | `PrototypeFlowTest` | Filter data *server-side* berjalan akurat di seluruh 6 tabel master. | Request filter: status LPK, status asesmen + tanggal mulai, masalah due date, backup status, dll. | Hanya baris data yang cocok dengan kriteria filter yang tampil di halaman. | **PASSED** |
-| **TEST-06** | `PrototypeFlowTest` | Query string filter tetap terjaga saat navigasi pagination. | Request `/lpks?status=ACTIVE&page=2`. | Link halaman berikutnya tetap menyertakan parameter `status=ACTIVE`. | **PASSED** |
-| **TEST-07** | `CalendarEventTest` | Pengguna terotentikasi dapat membuka halaman kalender kegiatan. | Akses `GET /calendar`. | HTTP Status 200 OK, teks "Kalender kegiatan" tampil. | **PASSED** |
-| **TEST-08** | `CalendarEventTest` | Pembuatan agenda kegiatan baru pada kalender. | POST `/calendar/events` dengan parameter lpk_id, title, start_at, end_at, status. | Redirect ke detail agenda, data tersimpan di tabel `calendar_events`. | **PASSED** |
-| **TEST-09** | `CalendarEventTest` | Klik kotak tanggal kalender otomatis mengisi form pembuatan agenda. | Akses `GET /calendar/events/create?date=2026-09-21`. | Form terbuka dengan input `start_date` dan `end_date` terisi nilai `2026-09-21`. | **PASSED** |
-| **TEST-10** | `CalendarEventTest` | Validasi penolakan jam selesai lebih awal dari jam mulai agenda. | POST `/calendar/events` dengan jam selesai < jam mulai. | Sistem menolak submission dengan error validasi waktu. | **PASSED** |
-| **TEST-11** | `CalendarEventTest` | Pengguna dapat memperbarui agenda kegiatan yang sudah ada. | PUT `/calendar/events/{id}` dengan status `COMPLETED`. | Data agenda terbarui di basis data. | **PASSED** |
-| **TEST-12** | `ExampleTest` | Verifikasi dasar responsivitas lingkungan pengujian. | Akses halaman publik root. | Redirect berjalan normal tanpa exception. | **PASSED** |
-| **TEST-13** | `SimasadiFeaturesTest` | Pelaporan rincian biaya perjalanan dinas asesor dan verifikasi kepatuhan SBM Kementerian Keuangan. | POST `/assessments/{id}/expenses` dilanjutkan POST `/assessments/{id}/expenses/verify` (status: `TERVERIFIKASI`). | Total biaya Rp 2.910.000 terhitung otomatis, status berubah menjadi `Terverifikasi SBM`, nama verifikator tercatat. | **PASSED** |
-| **TEST-14** | `SimasadiFeaturesTest` | Penerbitan kode billing SIMPONI 15 digit dan simulasi pelunasan kas negara. | POST `/accreditations/{id}/billings` lalu POST `/accreditations/{id}/billings/{billing}/pay`. | Kode 15 digit berawalan '8' terbit, status `UNPAID` $\rightarrow$ `PAID` dengan nomor transaksi NTPN sah tercatat. | **PASSED** |
-| **TEST-15** | `SimasadiFeaturesTest` | Pembubuhan tanda tangan elektronik SK Akreditasi bersertifikat BSrE dan verifikasi integritas publik. | POST `/accreditations/{id}/esign` dengan passphrase, lalu akses `GET /verify-sk/{hash}`. | Hash SHA-256 dan nomor seri BSrE terbentuk, status akreditasi `COMPLETED`, halaman publik memvalidasi keaslian dokumen. | **PASSED** |
-| **TEST-16** | `SimasadiFeaturesTest` | Logika audit kesiapan rilis output akreditasi (*Release Readiness Quality Gate*). | Evaluasi `$accreditation->isReleaseReady()`. | Mengembalikan `false` jika billing belum bayar atau belum TTE, dan `true` saat PNBP lunas & dokumen bertanda tangan digital. | **PASSED** |
+| No | File Test | Fokus Skenario Pengujian | Hasil |
+|---|---|---|---|
+| 1 | `AssessmentImportTest` | Menguji pengunduhan template impor asesmen, validasi header kolom wajib, dan impor massal dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | **PASSED** |
+| 2 | `AssessmentStatusAutoTest` | Menguji siklus toleransi akhir bulan kunjungan, pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan akreditasi (REVOKED), dan auto-realisasi data lampau LPK aktif. | **PASSED** |
+| 3 | `AssessmentTpVtpTest` | Menguji SLA dasar 3 bulan (AA) dan 2 bulan (lainnya), perpanjangan 1 bulan bersyarat, larangan perpanjangan jika perbaikan kosong, sinkronisasi kalender, dan pengingat SK 10 hari. | **PASSED** |
+| 4 | `CalendarEventTest` | Menguji tampilan kalender, pembuatan agenda event, validasi waktu (selesai >= mulai), pemilih langsung bulan dan tahun dinamis, serta rendering 5 tipe kategori warna event. | **PASSED** |
+| 5 | `ClickableTableRowsTest` | Menguji interaktivitas seluruh baris tabel master LPK dan program asesmen yang dapat diklik langsung menuju tautan detail. | **PASSED** |
+| 6 | `ErrorPageTest` | Menguji rendering halaman kustom 403 Forbidden (pembatasan hak akses) dan 404 Not Found baik untuk sesi login maupun pengunjung publik. | **PASSED** |
+| 7 | `ExampleTest` | Menguji pengalihan akses halaman publik utama ke portal login dengan status 302 Redirect yang aman. | **PASSED** |
+| 8 | `GoogleSheetsIntegrationTest` | Menguji ekspor CSV terotentikasi, endpoint live feed CSV (`/feeds/*`) dengan validasi secret API key, serta tampilan modal panduan formula `=IMPORTDATA`. | **PASSED** |
+| 9 | `LpkImportTest` | Menguji impor massal master LPK dari file CSV, file XLSX, dan live link Google Sheets menggunakan logika *Smart Upsert* serta pembatasan peran PIC dari aksi impor. | **PASSED** |
+| 10 | `PrototypeFlowTest` | Menguji alur operasional end-to-end: login, dashboard metrik, pembuatan LPK dengan otomasi masa berlaku (+5 tahun), filter server-side, pengiriman email peringatan surveilen, dan perhitungan lead time SK. | **PASSED** |
+| 11 | `RoleAccessControlTest` | Menguji pembatasan hak akses RBAC: Admin unit memiliki akses penuh, PIC laboratorium terisolasi hanya pada LPK kelolaan sendiri dan dilarang mengelola LPK milik PIC lain. | **PASSED** |
+| 12 | `SimasadiFeaturesTest` | Menguji pelaporan dan verifikasi biaya perjalanan dinas asesor (SBM PMK), penerbitan billing SIMPONI 15 digit, pencatatan nomor NTPN sah, e-Sign BSrE, dan Quality Gate rilis SK. | **PASSED** |
+| 13 | `UserManagementTest` | Menguji manajemen akun pengguna internal oleh Administrator Unit: pencarian, filter, penambahan user baru, pembaruan password, dan proteksi larangan menghapus akun sendiri. | **PASSED** |
+| 14 | `UserProfileTest` | Menguji pembaruan profil mandiri pengguna: pengubahan nama, verifikasi keunikan email, dan validasi kecocokan kata sandi lama saat mengganti kata sandi. | **PASSED** |
 
 #### 5.2.3 Bukti Hasil Eksekusi Uji Otomatis
+
 Perintah eksekusi:
 ```bash
-php artisan test
+docker exec prototype-magang-laravel php artisan test
 ```
+
 Hasil eksekusi:
 ```text
-  PASS  Tests\Feature\CalendarEventTest
-  ✓ authenticated user can view calendar                                 0.42s  
-  ✓ authenticated user can create calendar event                         0.12s  
-  ✓ calendar date opens create form with selected date                   0.08s  
-  ✓ event rejects end time before start time                             0.09s  
-  ✓ authenticated user can update calendar event                         0.10s  
+   PASS  Tests\Feature\AssessmentImportTest
+  ✓ admin can download import template                                   0.28s  
+  ✓ admin can import assessments from csv file                           0.12s  
+  ✓ import validates required assessment headers                         0.05s  
+  ✓ import matches lpk by registration number                            0.08s  
 
-  PASS  Tests\Feature\ExampleTest
-  ✓ the application returns a successful response                        0.05s  
+   PASS  Tests\Feature\AssessmentStatusAutoTest
+  ✓ assessment tolerance within visit month stays in progress            0.15s  
+  ✓ assessment overdue tolerance auto changes to suspended               0.08s  
+  ✓ suspended assessment gives lpk one year resolution window            0.08s  
+  ✓ lpk is revoked after one year suspension expires                     0.07s  
+  ✓ active lpk past year assessments auto resolve to completed           0.18s  
 
-  PASS  Tests\Feature\PrototypeFlowTest
-  ✓ guest is sent to login                                               0.06s  
-  ✓ user can login and view dashboard                                    0.11s  
-  ✓ user can create lpk                                                  0.09s  
-  ✓ user can create issue and followup                                   0.15s  
-  ✓ table filters work across all six index pages                        0.28s  
-  ✓ table filter query string is preserved by pagination                 0.12s  
+   PASS  Tests\Feature\AssessmentTpVtpTest
+  ✓ authenticated user can view tp tracking tab in assessment show      0.18s  
+  ✓ admin can update tp tracking and sla calculation                     0.09s  
+  ✓ guest cannot update tp tracking                                      0.09s  
+  ✓ assessments index filters by tp status                               0.30s  
+  ✓ dashboard surfaces urgent tp alerts                                  0.22s  
+  ✓ tp deadlines are synchronized with calendar                          0.28s  
+  ✓ tp extension is disallowed when tp status is none                    0.09s  
+  ✓ tp extension is allowed when tp status is in progress or under veri… 0.10s  
+  ✓ assessment report date and eha fields can be saved and viewed        0.18s  
 
-  PASS  Tests\Feature\SimasadiFeaturesTest
-  ✓ can report and verify assessment expenses                            0.18s  
-  ✓ can generate and pay pnbp billing                                    0.14s  
-  ✓ can sign accreditation with bsre esign and verify publicly           0.16s  
-  ✓ accreditation release readiness gate logic                           0.11s  
+   PASS  Tests\Feature\CalendarEventTest
+  ✓ authenticated user can view calendar                                 0.19s  
+  ✓ authenticated user can create calendar event                         0.08s  
+  ✓ calendar date opens create form with selected date                   0.07s  
+  ✓ event rejects end time before start time                             0.10s  
+  ✓ calendar month navigation does not carry over circle highlight unle… 0.32s  
+  ✓ calendar displays lpk surveillance and reaccreditation milestones    0.90s  
+  ✓ calendar renders month and year direct selectors                     0.13s  
+  ✓ calendar year selector dynamically includes years from lpk expiry d… 0.25s  
+  ✓ calendar year selector dynamically includes earlier years from lpk…  0.23s  
+  ✓ calendar renders all four matrix color categories and reminders      0.82s  
 
-  Tests:    16 passed (73 assertions)
-  Duration: 2.03s
+   PASS  Tests\Feature\ClickableTableRowsTest
+  ✓ lpk index table rows are clickable with show link                    0.42s  
+  ✓ assessments index table rows are clickable with show link            0.25s  
+
+   PASS  Tests\Feature\ErrorPageTest
+  ✓ 403 forbidden page renders custom access restriction view            0.09s  
+  ✓ 404 not found page renders custom view                               0.07s  
+  ✓ guest 404 renders standalone layout                                  0.04s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application sends visitors to login                              0.05s  
+
+   PASS  Tests\Feature\GoogleSheetsIntegrationTest
+  ✓ authenticated user can export expenses csv                           0.15s  
+  ✓ authenticated user can export lpks csv                               0.10s  
+  ✓ authenticated user can export assessments csv                        0.13s  
+  ✓ google sheets live feed endpoint with valid key                      0.13s  
+  ✓ google sheets live feed endpoint rejects invalid key                 0.04s  
+  ✓ ui renders google sheets modal and formula                           0.56s  
+
+   PASS  Tests\Feature\LpkImportTest
+  ✓ admin can download import template                                   0.08s  
+  ✓ admin can download import template xlsx                              0.05s  
+  ✓ admin can import lpks from xlsx file                                 0.08s  
+  ✓ pic is forbidden from importing or downloading template              0.11s  
+  ✓ admin can import lpks from csv file                                  0.06s  
+  ✓ import with semicolon delimiter and smart upsert                     0.13s  
+  ✓ import validates required headers                                    0.05s  
+  ✓ import from google sheets url                                        0.13s  
+  ✓ ui renders import button for admin and hides for pic                 0.11s  
+  ✓ import with custom spreadsheet headers and numeric numbers           0.11s  
+  ✓ import with plain text link does not save invalid relative url       0.14s  
+
+   PASS  Tests\Feature\PrototypeFlowTest
+  ✓ guest is sent to login                                               0.10s  
+  ✓ user can login and view dashboard                                    0.16s  
+  ✓ user can create lpk                                                  0.06s  
+  ✓ table filters work across index pages                                0.78s  
+  ✓ table filter query string is preserved by pagination                 1.03s  
+  ✓ user can create lpk with expiry and drive link                       0.72s  
+  ✓ lpk scope can be searched and exported to csv                        0.37s  
+  ✓ lpk calculates correct surveillance and reaccreditation milestones   0.07s  
+  ✓ surveillance reminder email can be sent to lab pic                   0.14s  
+  ✓ simulation notification can be sent even without active alerts       0.19s  
+  ✓ persistent notification renders on ui and cannot be dismissed        0.87s  
+  ✓ artisan check surveillance command                                   0.12s  
+  ✓ lpk index table headers and columns                                  0.41s  
+  ✓ user can input and update keterangan in lpk detail                   0.27s  
+  ✓ lpk is expiring soon status accuracy                                 0.05s  
+  ✓ lpk index filters by expiry status                                   1.12s  
+  ✓ lpk index filters by surveillance status                             1.31s  
+  ✓ surveillance notification buttons link to filtered lpk index         3.37s  
+  ✓ surveillance reminder simulation email sends successfully            0.15s  
+  ✓ lpk dynamic status identifies overdue surveillance and expired       0.36s  
+  ✓ lpk index and show render dynamic status badge                       2.22s  
+  ✓ lpk automatically generates surveillance and reaccreditation assess… 0.96s  
+  ✓ user can input sk number and date when tp completed                  0.75s  
+  ✓ assessment sk lead time calculation and display                      0.76s  
+
+   PASS  Tests\Feature\RoleAccessControlTest
+  ✓ quick login page renders all role options                            0.13s  
+  ✓ admin has full access to monitoring and administration               0.14s  
+  ✓ pic role can manage own lpks and assessments but forbidden from oth… 3.86s  
+  ✓ role helpers and attributes work correctly                           0.05s  
+  ✓ admin can delete lpk                                                 0.08s  
+  ✓ pic can delete own lpk but forbidden from deleting other pic lpk     0.20s  
+
+   PASS  Tests\Feature\SimasadiFeaturesTest
+  ✓ can report and verify assessment expenses                            0.31s  
+  ✓ can generate and pay pnbp billing                                    0.23s  
+  ✓ can sign accreditation with bsre esign and verify publicly           0.10s  
+  ✓ accreditation release readiness gate logic                           0.06s  
+
+   PASS  Tests\Feature\UserManagementTest
+  ✓ guest cannot access user management                                  0.06s  
+  ✓ pic cannot access user management                                    0.09s  
+  ✓ admin can view user management list                                  0.10s  
+  ✓ admin can search and filter users                                    0.11s  
+  ✓ admin can create new user                                            0.05s  
+  ✓ admin can update user info and password                              0.06s  
+  ✓ admin cannot degrade own role                                        0.05s  
+  ✓ admin can delete other user                                          0.05s  
+  ✓ admin cannot delete own account                                      0.04s  
+
+   PASS  Tests\Feature\UserProfileTest
+  ✓ guest cannot access profile                                          0.08s  
+  ✓ authenticated user can view profile page                             0.12s  
+  ✓ user can update profile info                                         0.05s  
+  ✓ user cannot update email to already taken email                      0.05s  
+  ✓ user can update password with correct current password               0.05s  
+  ✓ user cannot update password with incorrect current password          0.05s  
+  ✓ user cannot update password with mismatched confirmation             0.05s  
+
+  Tests:    119 passed (680 assertions)
+  Duration: 35.78s
 ```
 
 #### 5.2.4 Matriks Pengujian Antarmuka & Responsivitas Manual
 
 | Skenario Antarmuka | Kondisi Uji / Resolusi | Hasil yang Diamati | Status |
 |---|---|---|---|
-| **Penempatan Sejajar Toggle & Filter di Layar Mobile** | Layar ponsel (lebar <= 600px) pada halaman Asesmen/LPK | Tombol `[ Filter data ]` dan toggle `[ Tabel \| Grid ]` berposisi sejajar horizontal di baris atas. Dropdown entries berada di bawahnya. | **VALID** |
-| **Perapihan Struktur Kartu pada Mode Grid** | Mode Grid pada halaman Asesmen & LPK | Kartu memiliki header abu-abu halus, teks kategori dibungkus lavender pill badge, label & value sejajar dalam grid 2-kolom, footer memiliki tombol `Detail →`. | **VALID** |
-| **Tombol Detail Interaktif pada Mode Tabel** | Mode Tabel pada desktop | Tautan "Detail" tampil sebagai action badge berlatar `#f5f3ff` dengan panah chevron. Saat di-hover berubah menjadi ungu solid dengan micro-nudge. | **VALID** |
-| **Interaksi Drawer Filter Mobile** | Klik tombol `Filter data` di mobile | Filter drawer meluncur mulus dari sisi kanan layar (*slide-out* 240ms) dengan backdrop gelap, tombol tutup (x) berfungsi, dan tombol ESC dapat menutup drawer. | **VALID** |
-| **Persistensi Pilihan Mode Tampilan** | Pengguna memilih mode Grid lalu me-refresh halaman | Preferensi tersimpan di `localStorage`, halaman tetap terbuka dalam mode Grid tanpa kembali ke Tabel. | **VALID** |
-| **Kompilasi Asset Vite Tanpa Error** | Eksekusi `npm run build` | Seluruh berkas CSS (142 kB) dan JS (124 kB) terkompilasi sempurna dalam 2.03 detik tanpa peringatan fatal. | **VALID** |
+| **Pembedaan Warna Badge Pembekuan** | Halaman detail LPK & Asesmen dengan status Dibekukan | Badge berlatar ungu `#f3e8ff` dengan teks `#6b21a8` tampil kontras dan membedakan dengan jelas status dibekukan dari status merah (kedaluwarsa). | **VALID** |
+| **Keterangan Operasional Otomatis** | Kartu profil LPK dan tabel asesmen | Keterangan langsung menampilkan kegiatan inti dalam teks tebal tanpa imbuhan awalan teks redundan. | **VALID** |
+| **Klik Baris Tabel (*Clickable Table Rows*)** | Klik pada sembarang area baris data pada tabel LPK / Asesmen | Sistem langsung merespons dan membuka halaman detail data terkait dengan kursor pointer interaktif. | **VALID** |
+| **Penyelarasan Kontrol Filter & Toggle di Mobile** | Layar smartphone (lebar <= 600px) | Tombol `[ Filter data ]` dan toggle `[ Tabel \| Grid ]` berposisi berdampingan horizontal rapi di baris atas. | **VALID** |
+| **Interaksi Drawer Filter Mobile** | Klik tombol `Filter data` di mobile | Filter drawer meluncur mulus dari sisi kanan layar (*slide-out* 240ms) dengan backdrop gelap dan tombol tutup berfungsi baik. | **VALID** |
+| **Kompilasi Aset Frontend Vite** | Eksekusi `npm run build` | Seluruh berkas CSS dan JavaScript terkompilasi bersih tanpa ada kesalahan kompilasi. | **VALID** |

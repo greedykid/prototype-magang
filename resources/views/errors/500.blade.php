@@ -49,10 +49,6 @@
                         <x-icon name="dashboard" size="16" />
                         <span>Kembali ke Ringkasan</span>
                     </a>
-                    <a href="{{ route('issues.create') }}" class="button secondary">
-                        <x-icon name="issues" size="16" />
-                        <span>Laporkan Kendala</span>
-                    </a>
                 @else
                     <a href="{{ route('login') }}" class="button secondary">
                         <span>Menuju Halaman Masuk</span>

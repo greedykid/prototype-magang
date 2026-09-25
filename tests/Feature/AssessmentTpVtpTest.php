@@ -137,7 +137,7 @@ class AssessmentTpVtpTest extends TestCase
 
         $this->assertTrue($assessment->is_tp_overdue);
         $this->assertLessThan(0, $assessment->days_remaining_tp);
-        $this->assertEquals('danger', $assessment->tp_sla_badge['type']);
+        $this->assertEquals('suspended', $assessment->tp_sla_badge['type']);
         $this->assertStringContainsString('Terlambat', $assessment->tp_sla_badge['label']);
 
         // Selesaikan tindakan perbaikan
@@ -184,12 +184,12 @@ class AssessmentTpVtpTest extends TestCase
         $this->assertEquals('Permohonan dispensasi 1 bulan resmi disetujui.', $assessment->tp_extension_notes);
     }
 
-    public function test_non_admin_cannot_update_tp_tracking(): void
+    public function test_pic_can_update_tp_tracking(): void
     {
         $assessment = Assessment::create([
             'lpk_id' => $this->lpk->id,
             'created_by' => $this->admin->id,
-            'title' => 'Asesmen Non Admin Test',
+            'title' => 'Asesmen PIC Update Test',
             'assessment_type' => 'Surveilen',
             'start_at' => now()->subDays(5),
             'end_at' => now()->subDays(4),
@@ -199,9 +199,31 @@ class AssessmentTpVtpTest extends TestCase
 
         $response = $this->actingAs($this->staff)->post(route('assessments.tp.update', $assessment), [
             'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_notes' => 'Catatan perbaikan diisi oleh tim internal PIC.',
         ]);
 
-        $response->assertForbidden();
+        $response->assertRedirect();
+        $this->assertEquals(Assessment::TP_STATUS_IN_PROGRESS, $assessment->fresh()->tp_status);
+    }
+
+    public function test_guest_cannot_update_tp_tracking(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Guest Test',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subDays(5),
+            'end_at' => now()->subDays(4),
+            'status' => 'COMPLETED',
+            'tp_status' => Assessment::TP_STATUS_NONE,
+        ]);
+
+        $response = $this->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+        ]);
+
+        $response->assertRedirect(route('login'));
     }
 
     public function test_assessments_index_filters_by_tp_status(): void
@@ -279,8 +301,87 @@ class AssessmentTpVtpTest extends TestCase
 
         $response = $this->actingAs($this->admin)->get(route('calendar.index', ['view' => 'agenda']));
         $response->assertOk();
-        $response->assertSee('[Batas TP]');
+        $response->assertSee('Batas TP');
         $response->assertSee('Laboratorium Uji Presisi');
-        $response->assertSee('TINDAKAN_PERBAIKAN');
+        $response->assertSee('BATAS_TP');
+    }
+
+    public function test_tp_extension_is_disallowed_when_tp_status_is_none(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Tanpa TP Aktif',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subDays(10),
+            'end_at' => now()->subDays(8),
+            'status' => 'COMPLETED',
+            'tp_status' => Assessment::TP_STATUS_NONE,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_NONE,
+            'tp_has_extension' => '1',
+            'tp_extension_letter_no' => 'EXT-INVALID/2026',
+        ]);
+
+        $response->assertSessionHasErrors(['tp_has_extension']);
+        $this->assertFalse($assessment->fresh()->tp_has_extension);
+    }
+
+    public function test_tp_extension_is_allowed_when_tp_status_is_in_progress_or_under_verification(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Dengan Usaha TP',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subDays(10),
+            'end_at' => now()->subDays(8),
+            'status' => 'COMPLETED',
+            'tp_status' => Assessment::TP_STATUS_UNDER_VERIFICATION,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_UNDER_VERIFICATION,
+            'tp_has_extension' => '1',
+            'tp_extension_letter_no' => 'EXT-VALID-01/2026',
+            'tp_extension_date' => now()->toDateString(),
+            'tp_extension_notes' => 'Ada perbaikan namun belum tuntas seluruh klausul.',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertTrue($assessment->fresh()->tp_has_extension);
+        $this->assertEquals('EXT-VALID-01/2026', $assessment->fresh()->tp_extension_letter_no);
+    }
+
+    public function test_assessment_report_date_and_eha_fields_can_be_saved_and_viewed(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Siklus dengan EHA',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subDays(15),
+            'end_at' => now()->subDays(12),
+            'status' => 'COMPLETED',
+            'assessment_team' => 'Dr. Budi Santoso (Ketua), Ir. Siti Aminah (Anggota)',
+            'report_date' => now()->subDays(5)->toDateString(),
+            'eha_date' => now()->subDays(2)->toDateString(),
+            'eha_status' => Assessment::EHA_STATUS_DIREKOMENDASIKAN,
+            'eha_notes' => 'Seluruh temuan minor telah diverifikasi dan disetujui komite.',
+        ]);
+
+        $this->assertEquals('Dr. Budi Santoso (Ketua), Ir. Siti Aminah (Anggota)', $assessment->assessment_team);
+        $this->assertEquals(Assessment::EHA_STATUS_DIREKOMENDASIKAN, $assessment->eha_status);
+        $this->assertEquals('Direkomendasikan (Memenuhi)', $assessment->eha_status_label);
+
+        $response = $this->actingAs($this->admin)->get(route('assessments.show', $assessment));
+        $response->assertOk();
+        $response->assertSee('Dr. Budi Santoso (Ketua), Ir. Siti Aminah (Anggota)');
+        $response->assertSee('Evaluasi Hasil Asesmen (EHA)');
+        $response->assertSee('Laporan Asesmen');
+        $response->assertSee('Direkomendasikan (Memenuhi)');
+        $response->assertSee('Seluruh temuan minor telah diverifikasi dan disetujui komite.');
     }
 }

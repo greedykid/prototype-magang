@@ -80,29 +80,19 @@ class User extends Authenticatable
         };
     }
 
-    public function issues(): HasMany
-    {
-        return $this->hasMany(Issue::class, 'created_by');
-    }
-
-    public function followups(): HasMany
-    {
-        return $this->hasMany(IssueFollowup::class);
-    }
-
     public function calendarEvents(): HasMany
     {
         return $this->hasMany(CalendarEvent::class, 'created_by');
     }
 
-    public function amendments(): HasMany
-    {
-        return $this->hasMany(Amendment::class, 'created_by');
-    }
-
     public function assessments(): HasMany
     {
         return $this->hasMany(Assessment::class, 'created_by');
+    }
+
+    public function lpks(): HasMany
+    {
+        return $this->hasMany(Lpk::class, 'pic_id');
     }
 
     /**

@@ -3,17 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Backup;
-use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MonitoringController extends Controller
 {
-    public function services(): View
-    {
-        return view('monitoring.services', ['services' => Service::withCount('checks')->latest()->get()]);
-    }
 
     public function backups(Request $request): View
     {

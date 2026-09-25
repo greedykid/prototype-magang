@@ -13,10 +13,9 @@
                 request()->routeIs('dashboard') => 'Ringkasan Eksekutif',
                 request()->routeIs('profile.*') => 'Pengaturan Profil Pengguna',
                 request()->routeIs('users.*') => 'Manajemen Pengguna & PIC',
-                request()->routeIs('lpks.*', 'accreditations.*', 'amendments.*') => 'Manajemen Akreditasi LPK',
+                request()->routeIs('lpks.*', 'accreditations.*') => 'Manajemen Akreditasi LPK',
                 request()->routeIs('assessments.*', 'calendar.*') => 'Jadwal & Penugasan Asesmen',
                 request()->routeIs('monitoring.*') => 'Monitoring Sistem & Infrastruktur',
-                request()->routeIs('issues.*') => 'Pusat Kendala & Tindak Lanjut',
                 default => 'Workspace',
             }){{ $moduleCategory }}</strong>
         </div>
@@ -117,10 +116,6 @@
                                 <span>Manajemen Pengguna</span>
                             </a>
                         @endif
-                        <a href="{{ route('issues.index') }}" class="user-dropdown-item">
-                            <x-icon name="issues" size="15" />
-                            <span>Pusat Kendala &amp; Bantuan</span>
-                        </a>
                     </div>
 
                     <div class="user-dropdown-divider"></div>

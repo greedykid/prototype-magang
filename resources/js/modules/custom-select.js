@@ -214,9 +214,13 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar');
+        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar, .gcal-main');
         if (parentContainer) {
             parentContainer.classList.add('has-open-select');
+        }
+        const gcalMain = wrapper.closest('.gcal-main');
+        if (gcalMain) {
+            gcalMain.classList.add('has-open-select');
         }
         const parentForm = wrapper.closest('.inline-form, form');
         if (parentForm) {
