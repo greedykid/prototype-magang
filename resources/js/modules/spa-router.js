@@ -438,9 +438,17 @@ const navigateTo = async (url, pushState = true) => {
                 curShell.classList.add('gcal-is-updating');
             }
 
+            // Preserve active category checkbox filters and selected LPK
+            const activeCatStates = {};
+            document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
+                activeCatStates[cb.dataset.filterCat] = cb.checked;
+            });
+            const selectedLpk = document.getElementById('gcal-filter-lpk')?.value;
+
             const response = await fetch(url, {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-Partial-Content': 'calendar'
                 }
             });
 
@@ -450,40 +458,74 @@ const navigateTo = async (url, pushState = true) => {
             }
 
             const htmlText = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlText, 'text/html');
-
-            const newShell = doc.querySelector('.gcal-shell');
             const activeShell = document.querySelector('.gcal-shell');
+
+            let newShell = null;
+            let activeDateVal = null;
+            let pageTitleVal = null;
+
+            // Fast parse: Check if partial view was returned directly
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlText.trim();
+            newShell = tempDiv.querySelector('.gcal-shell') ||
+                (tempDiv.firstElementChild?.classList?.contains('gcal-shell') ? tempDiv.firstElementChild : null);
+
+            if (newShell) {
+                activeDateVal = newShell.dataset.activeDate;
+                if (newShell.dataset.monthLabel) {
+                    pageTitleVal = `Kalender Kegiatan (${newShell.dataset.monthLabel}) | SIMASADI`;
+                }
+            } else {
+                // Fallback in case a full page was returned
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                newShell = doc.querySelector('.gcal-shell');
+                if (doc.title) pageTitleVal = doc.title;
+                const newStartDate = doc.querySelector('#quick-input-start-date');
+                if (newStartDate) activeDateVal = newStartDate.value;
+            }
+
             if (newShell && activeShell) {
                 activeShell.replaceWith(newShell);
             } else {
-                const newContent = doc.querySelector('#page-content-wrapper') || doc.querySelector('.page-wrap');
+                const newContent = tempDiv.querySelector('#page-content-wrapper') || tempDiv.querySelector('.page-wrap');
                 if (newContent) {
                     pageWrap.innerHTML = newContent.innerHTML;
+                    pageWrap.classList.remove('page-enter-active');
+                    void pageWrap.offsetWidth;
+                    pageWrap.classList.add('page-enter-active');
                 }
             }
 
             // Sync date in quick-add modal
-            const newStartDate = doc.querySelector('#quick-input-start-date');
-            const curStartDate = document.getElementById('quick-input-start-date');
-            if (newStartDate && curStartDate) {
-                curStartDate.value = newStartDate.value;
-            }
-            const newEndDate = doc.querySelector('#quick-input-end-date');
-            const curEndDate = document.getElementById('quick-input-end-date');
-            if (newEndDate && curEndDate) {
-                curEndDate.value = newEndDate.value;
+            if (activeDateVal) {
+                const curStartDate = document.getElementById('quick-input-start-date');
+                if (curStartDate) curStartDate.value = activeDateVal;
+                const curEndDate = document.getElementById('quick-input-end-date');
+                if (curEndDate) curEndDate.value = activeDateVal;
             }
 
             // Update document title
-            if (doc.title) {
-                document.title = doc.title;
+            if (pageTitleVal) {
+                document.title = pageTitleVal;
             }
 
-            // Re-initialize calendar components
+            // Restore active filter checkbox states and LPK selection
+            document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
+                if (cb.dataset.filterCat in activeCatStates) {
+                    cb.checked = activeCatStates[cb.dataset.filterCat];
+                }
+            });
+            const lpkSelect = document.getElementById('gcal-filter-lpk');
+            if (lpkSelect && selectedLpk !== undefined) {
+                lpkSelect.value = selectedLpk;
+            }
+
+            // Re-initialize calendar components and custom dropdowns
             if (typeof initGcalComponents === 'function') initGcalComponents();
             if (typeof initCustomSelects === 'function') initCustomSelects(document);
+
+            window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
 
             if (pushState) {
                 window.history.pushState({ url }, '', url);
@@ -575,6 +617,11 @@ const navigateTo = async (url, pushState = true) => {
         // Swap content into page wrapper
         pageWrap.innerHTML = newContent.innerHTML;
 
+        // Re-trigger buttery-smooth page-enter animation
+        pageWrap.classList.remove('page-enter-active');
+        void pageWrap.offsetWidth;
+        pageWrap.classList.add('page-enter-active');
+
         // Re-execute script tags within swapped content (since innerHTML disables scripts)
         pageWrap.querySelectorAll('script').forEach((oldScript) => {
             const newScript = document.createElement('script');
@@ -639,14 +686,19 @@ export const initSpaRouter = (callback) => {
         // Skip form-submitting links or logout buttons
         if (link.closest('form')) return;
 
+        // Skip pagination clicks inside partial table containers (handled by live-filter module)
+        if (link.closest('.lpk-table-container .pagination, .lpk-table-container nav[role="navigation"]')) return;
+
         event.preventDefault();
         navigateTo(link.href);
     });
 
     // Intercept GET filter forms for smooth skeleton transitions
     document.addEventListener('submit', (event) => {
+        if (event.defaultPrevented) return;
         const form = event.target.closest('form');
         if (!form || form.method.toUpperCase() !== 'GET') return;
+        if (form.hasAttribute('data-partial-filter')) return;
 
         const url = new URL(form.action || window.location.href, window.location.origin);
         const formData = new FormData(form);

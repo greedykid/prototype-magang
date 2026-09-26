@@ -156,7 +156,7 @@
         </div>
 
         <!-- Notification Banner -->
-        <div class="notice-banner" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; border-left: 5px solid {{ $alert['is_urgent'] ? '#ef4444' : '#f59e0b' }}; padding: 14px 20px; word-break: break-word;">
+        <div class="notice-banner" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; border: 1px solid {{ $alert['is_urgent'] ? '#fca5a5' : '#fde68a' }}; border-radius: 6px; padding: 14px 20px; word-break: break-word;">
             <strong style="color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 14px; text-transform: uppercase; display: block;">
                 {{ $alert['status_label'] }}: {{ $alert['name'] }}
             </strong>

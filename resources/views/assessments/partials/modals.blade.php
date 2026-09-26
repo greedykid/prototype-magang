@@ -80,18 +80,22 @@
 @endif
 
 {{-- Modal 3: Kelola Tindakan Perbaikan (TP & VTP) KAN --}}
-<div class="simasadi-modal" id="modal-tp-tracking" role="dialog" aria-modal="true">
+<div class="simasadi-modal" id="modal-tp-tracking" role="dialog" aria-modal="true" aria-labelledby="modal-tp-tracking-heading">
     <div class="simasadi-modal-box" style="max-width: 580px;">
         <div class="simasadi-modal-head">
-            <h4>Kelola Tindakan Perbaikan (TP &amp; VTP)</h4>
+            <h4 id="modal-tp-tracking-heading">Kelola Tindakan Perbaikan (TP &amp; VTP)</h4>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-tp-tracking')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('assessments.tp.update', $assessment) }}">
             @csrf
             <div style="display: grid; gap: 14px;">
-                <div style="padding: 10px 12px; background: var(--lavender, #f5f3ff); border: 1px solid #ddd6fe; border-radius: 6px; font-size: 12.5px; color: #5b21b6; line-height: 1.4;">
-                    <strong>Regulasi Dokumen KAN:</strong>
-                    AA (3 bulan), Surveilen/PRL/RA (2 bulan). Perpanjangan masa perbaikan maksimal 1 bulan berbasis surat permohonan resmi LPK.
+                <div style="padding: 12px 14px; background: var(--lavender, #f5f3ff); border: 1px solid #ddd6fe; border-radius: 8px; font-size: 12.5px; color: #5b21b6; line-height: 1.5;">
+                    <strong style="display: block; margin-bottom: 4px;">Ketentuan Waktu Tindakan Perbaikan (Dokumen KAN U-01):</strong>
+                    <ul style="margin: 0; padding-left: 18px; line-height: 1.5;">
+                        <li><strong>Asesmen Awal (AA):</strong> Batas waktu penyelesaian 3 bulan kalender.</li>
+                        <li><strong>Survailen, PRL, STT, dan Re-Akreditasi:</strong> Batas waktu penyelesaian 2 bulan kalender.</li>
+                        <li><strong>Perpanjangan (+1 Bulan):</strong> Berbasis surat permohonan resmi LPK, hanya diberikan jika ada bukti progres perbaikan nyata.</li>
+                    </ul>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 30;">
@@ -109,7 +113,7 @@
 
                     <label style="display: block;">
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Tindakan Perbaikan</span>
-                        <select name="tp_status" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <select name="tp_status" id="modal_tp_status_select" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
                             <option value="NONE" @selected(old('tp_status', $assessment->tp_status) === 'NONE')>Nihil / Tidak Ada Temuan</option>
                             <option value="IN_PROGRESS" @selected(old('tp_status', $assessment->tp_status) === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
                             <option value="UNDER_VERIFICATION" @selected(old('tp_status', $assessment->tp_status) === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
@@ -120,24 +124,29 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 10;">
                     <label>
-                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal</span>
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal SLA (KAN)</span>
                         <input type="date" name="tp_due_date" value="{{ old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: '')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
-                        <small style="color: var(--muted); font-size: 11px;">Otomatis +2 / +3 bulan jika kosong.</small>
+                        <small style="color: var(--muted); font-size: 11px;">Otomatis +2 atau +3 bulan jika dikosongkan.</small>
                     </label>
 
                     <label>
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Tanggal Dinyatakan Memenuhi</span>
-                        <input type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
-                        <small style="color: var(--muted); font-size: 11px;">Diisi jika status telah selesai / memenuhi.</small>
+                        <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <small style="color: var(--muted); font-size: 11px;">Status otomatis beralih ke Memenuhi saat tanggal diisi.</small>
                     </label>
                 </div>
 
                 {{-- Bagian Permohonan Perpanjangan --}}
-                <div style="padding: 12px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px; position: relative; z-index: 5;">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600;">
-                        <input type="checkbox" name="tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('extension-fields').style.display = this.checked ? 'grid' : 'none'" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
-                        <span>Ajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Aturan KAN)</span>
-                    </label>
+                <div style="padding: 12px 14px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px; position: relative; z-index: 5;">
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; min-height: 44px;">
+                            <input type="checkbox" name="tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('extension-fields').style.display = this.checked ? 'grid' : 'none'" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
+                            <span>Ajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Aturan KAN)</span>
+                        </label>
+                        <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px;">
+                            Perpanjangan ditolak bila laboratorium belum memulai perbaikan sama sekali dalam batas awal.
+                        </small>
+                    </div>
 
                     <div id="extension-fields" style="display: {{ old('tp_has_extension', $assessment->tp_has_extension) ? 'grid' : 'none' }}; gap: 10px;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">

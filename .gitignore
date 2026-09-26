@@ -23,6 +23,7 @@
 /.opencode
 /opencode.json
 /boost.json
+/.impeccable
 /AGENTS.md
 /CLAUDE.md
 /node_modules

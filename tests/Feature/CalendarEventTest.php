@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Assessment;
 use App\Models\CalendarEvent;
 use App\Models\Lpk;
 use App\Models\User;
@@ -228,5 +229,118 @@ class CalendarEventTest extends TestCase
         $responseNov->assertSee('theme-cyan');
         $responseNov->assertSee('Batas TP');
         $responseNov->assertSee('PT Kalibrasi Mandiri Presisi');
+    }
+
+    public function test_calendar_partial_ajax_request_returns_calendar_shell_without_app_layout(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/calendar?view=month&month=2026-10', [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Partial-Content' => 'calendar',
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('class="gcal-shell"', false);
+        $response->assertSee('data-active-date="2026-10-01"', false);
+        $response->assertSee('data-month-label="Oktober 2026"', false);
+        $response->assertSee('class="gcal-toolbar"', false);
+        $response->assertSee('class="gcal-mini-cal"', false);
+        // Verify full app layout shell is omitted
+        $response->assertDontSee('<!DOCTYPE html>', false);
+        $response->assertDontSee('id="app-sidebar"', false);
+        $response->assertDontSee('id="modal-quick-add-event"', false);
+    }
+
+    public function test_calendar_partial_ajax_request_renders_events_in_month_view(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create(['name' => 'Lab Penguji Presisi Utama']);
+
+        CalendarEvent::create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Rapat Evaluasi Survailen',
+            'start_at' => '2026-10-12 09:00',
+            'end_at' => '2026-10-12 11:00',
+            'status' => 'PLANNED',
+            'created_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->get('/calendar?view=month&month=2026-10', [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Partial-Content' => 'calendar',
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('Rapat Evaluasi Survailen');
+        $response->assertSee('Lab Penguji Presisi Utama');
+        $response->assertSee('class="gcal-month-grid"', false);
+    }
+
+    public function test_calendar_deep_link_with_date_and_highlight_selects_day_and_marks_target(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create(['name' => 'Lab Penguji Presisi Riau']);
+
+        $futureAssessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Re-Akreditasi (RA) - Lab Penguji Presisi Riau',
+            'assessment_type' => 'Re-Akreditasi (Akreditasi Ulang)',
+            'start_at' => '2027-11-22 09:00:00',
+            'end_at' => '2027-11-25 17:00:00',
+            'status' => 'PLANNED',
+        ]);
+
+        $response = $this->actingAs($user)->get("/calendar?view=month&date=2027-11-22&highlight={$futureAssessment->id}&selected=1");
+
+        $response->assertOk();
+        $response->assertSee('data-highlight-id="' . $futureAssessment->id . '"', false);
+        $response->assertSee('data-active-date="2027-11-22"', false);
+        $response->assertSee('data-month-label="November 2027"', false);
+        $response->assertSee('is-highlight-target', false);
+        $response->assertSee('is-selected', false);
+    }
+
+    public function test_calendar_deep_link_auto_resolves_future_date_from_assessment_highlight_alone(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create(['name' => 'Lab Masa Depan KAN']);
+
+        $distantAssessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Surveilen 2 (S2) - Lab Masa Depan KAN',
+            'assessment_type' => 'Surveilen 2',
+            'start_at' => '2028-06-15 09:00:00',
+            'end_at' => '2028-06-18 17:00:00',
+            'status' => 'PLANNED',
+        ]);
+
+        // Access calendar without date param, only highlight param
+        $response = $this->actingAs($user)->get("/calendar?highlight=assessment-{$distantAssessment->id}");
+
+        $response->assertOk();
+        $response->assertSee('data-active-date="2028-06-15"', false);
+        $response->assertSee('data-month-label="Juni 2028"', false);
+        $response->assertSee('is-highlight-target', false);
+    }
+
+    public function test_lpk_show_view_renders_direct_calendar_deep_links_for_milestones(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-TEST-CAL-LINK',
+            'name' => 'Lab Link Kalender Mandiri',
+            'status' => 'ACTIVE',
+            'certificate_date' => '2025-01-10',
+            'expired_at' => '2030-01-10',
+            'address' => 'Jl. Pengujian No. 1, Riau',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('lpks.show', $lpk));
+
+        $response->assertOk();
+        $response->assertSee('/calendar?view=month&amp;date=', false);
+        $response->assertSee('highlight=', false);
+        $response->assertSee('Kalender', false);
     }
 }

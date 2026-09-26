@@ -1,5 +1,6 @@
 * { box-sizing: border-box; }
 html {
+    scroll-behavior: smooth;
     scrollbar-gutter: stable;
 }
 html, body {
@@ -22,4 +23,18 @@ body.modal-open .app-shell,
 body.modal-open .sidebar {
     transition: none !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    .metric-grid > .metric,
+    .panel,
+    .page-wrap {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+
+
 

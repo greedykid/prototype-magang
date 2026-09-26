@@ -35,11 +35,11 @@
 </div>
 
 <section class="panel">
-    <form class="table-filters" method="GET">
+    <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
         <div class="table-filter-grid">
             <label>
                 Cari LPK
-                <input name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat...">
+                <input type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
             </label>
             <label>
                 Status LPK
@@ -74,125 +74,80 @@
                 </select>
             </label>
         </div>
-        <div class="table-filter-actions">
-            <button class="button secondary" type="submit">Terapkan filter</button>
-            @if($search || $status || $surveillance || $expiry)
-                <a class="button ghost" href="{{ route('lpks.index') }}">Reset</a>
-            @endif
+        <div class="table-filter-actions" id="lpk-filter-actions" style="margin-top: 8px;">
+            <span id="lpk-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
+                <span class="filter-live-spinner"></span>
+                <span>Memperbarui data...</span>
+            </span>
         </div>
     </form>
 
-    @if($lpks->count())
-        <div class="table-wrap">
-            <table class="table-lpks-custom">
-                <thead>
-                    <tr style="background-color: #eef4fc;">
-                        <th data-label="No Akreditasi" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NO AKREDITASI</th>
-                        <th data-label="Nama LPK" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">NAMA LPK</th>
-                        <th data-label="Masa Berlaku Akreditasi" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">MASA BERLAKU AKREDITASI (AWAL DAN AKHIR)</th>
-                        <th data-label="Keterangan" style="background-color: #eef4fc; color: #0f172a; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; padding: 13px 14px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;">KETERANGAN</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lpks as $lpk)
-                        <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
-                            <!-- 1. NO AKREDITASI -->
-                            <td class="col-lpk-no" style="white-space: nowrap; vertical-align: top; padding: 12px 14px;">
-                                <div class="lpk-card-reg-wrap">
-                                    <a href="{{ route('lpks.show', $lpk) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; color: {{ $lpk->accreditation_number ? '#0f172a' : 'var(--muted)' }}; text-decoration: none;" class="hover-underline lpk-reg-link" title="Buka rincian LPK">
-                                        {{ $lpk->accreditation_number ?: $lpk->registration_number }}
-                                    </a>
-                                </div>
-                                @php
-                                    $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
-                                @endphp
-                                @if(!empty($lpkAlerts))
-                                    <div class="lpk-card-alerts" style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
-                                        @foreach($lpkAlerts as $alt)
-                                            <span class="badge lpk-alert-badge" style="background-color: {{ $alt['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alt['is_urgent'] ? '#991b1b' : '#92400e' }}; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;" title="{{ $alt['description'] }}">
-                                                ⚠ {{ $alt['name'] }}
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </td>
+    @php
+        $activeFiltersCount = 0;
+        if ($search) $activeFiltersCount++;
+        if ($status) $activeFiltersCount++;
+        if ($surveillance) $activeFiltersCount++;
+        if ($expiry) $activeFiltersCount++;
+    @endphp
 
-                            <!-- 2. NAMA LPK -->
-                            <td class="col-lpk-name" style="vertical-align: top; min-width: 250px; padding: 12px 14px;">
-                                <a href="{{ route('lpks.show', $lpk) }}" style="font-weight: 600; color: #0f172a; text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;" class="hover-underline lpk-name-link" title="Buka rincian LPK">
-                                    {{ $lpk->name }}
-                                </a>
-                                <div class="lpk-status-wrap" style="margin-top: 5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                    <x-status :value="$lpk->dynamic_status" />
-                                    @if($lpk->pic)
-                                        <span style="font-size: 11px; color: var(--muted); background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">
-                                            PIC: {{ $lpk->pic->name }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <!-- 5. MASA BERLAKU AKREDITASI (AWAL DAN AKHIR) -->
-                            <td class="col-lpk-validity" style="vertical-align: top; white-space: nowrap; padding: 12px 14px;">
-                                @if($lpk->certificate_date || $lpk->expired_at)
-                                    <div style="font-size: 13px; line-height: 1.45;">
-                                        <div>
-                                            <span style="color: #64748b; font-size: 11.5px; display: inline-block; min-width: 42px;">Awal:</span>
-                                            <strong style="color: #0f172a;">{{ $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-' }}</strong>
-                                        </div>
-                                        <div style="margin-top: 2px;">
-                                            <span style="color: #64748b; font-size: 11.5px; display: inline-block; min-width: 42px;">Akhir:</span>
-                                            <strong style="{{ $lpk->isExpired() ? 'color: #dc2626;' : 'color: #0f172a;' }}">{{ $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-' }}</strong>
-                                        </div>
-                                    </div>
-                                    @if($lpk->isExpired())
-                                        <span class="status status-danger" style="font-size: 10px; padding: 1px 6px; margin-top: 4px; display: inline-block;">Kedaluwarsa</span>
-                                    @elseif($lpk->isExpiringSoon())
-                                        <span class="status status-warn" style="font-size: 10px; padding: 1px 6px; margin-top: 4px; display: inline-block;">Mendekati Kedaluwarsa</span>
-                                    @endif
-                                @else
-                                    <span style="color: var(--muted); font-size: 12px;">-</span>
-                                @endif
-                            </td>
-
-                            <!-- 6. KETERANGAN (OTOMATIS + MANUAL PIC) -->
-                            <td class="col-lpk-notes" style="vertical-align: top; min-width: 250px; padding: 12px 14px;">
-                                {{-- Status Siklus / Proses Berjalan Otomatis --}}
-                                <div class="lpk-auto-status" style="font-size: 12.5px; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 10px; line-height: 1.45; margin-bottom: {{ $lpk->notes ? '6px' : '0' }};">
-                                    @if(str_contains($lpk->dynamic_keterangan, ':'))
-                                        @php
-                                            [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
-                                        @endphp
-                                        <strong style="color: #0f172a; font-weight: 700;">{{ $processName }}:</strong><span style="color: #334155; font-weight: 500;">{{ $statusDetail }}</span>
-                                    @else
-                                        <strong style="color: #0f172a; font-weight: 700;">{{ $lpk->dynamic_keterangan }}</strong>
-                                    @endif
-                                </div>
-
-                                {{-- Catatan Manual PIC (Bila Ada) --}}
-                                @if($lpk->notes)
-                                    <div class="lpk-manual-notes" style="font-size: 11.5px; color: #713f12; background: #fefce8; border: 1px solid #fef08a; border-radius: 6px; padding: 5px 8px; line-height: 1.35;">
-                                        <strong style="font-size: 10px; color: #854d0e; text-transform: uppercase; display: block; margin-bottom: 2px;">Catatan PIC:</strong>
-                                        <div style="white-space: pre-line;">{{ $lpk->notes }}</div>
-                                    </div>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        {{ $lpks->links() }}
-    @else
-        <div class="empty">
-            {{ $search || $status || $surveillance || $expiry ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
-            @if($search || $status || $surveillance || $expiry)
-                <a class="button ghost empty-action" href="{{ route('lpks.index') }}">Reset filter</a>
-            @elseif(auth()->user()?->isAdmin())
-                <a href="{{ route('lpks.create') }}">Tambah LPK pertama</a>.
-            @endif
+    @if($activeFiltersCount > 0)
+        @php
+            $statusLabels = [
+                'ACTIVE' => 'Aktif',
+                'SUSPENDED' => 'Dibekukan',
+                'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
+                'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
+                'EXPIRED' => 'Kedaluwarsa',
+                'INACTIVE' => 'Tidak aktif',
+            ];
+            $survLabels = [
+                'NEEDS_ACTION' => 'Perlu Tindak Lanjut',
+                'DUE_S1' => 'Jatuh Tempo S1 (Bulan 14)',
+                'DUE_S2' => 'Jatuh Tempo S2 (Bulan 35)',
+                'DUE_RA' => 'Jatuh Tempo Re-Akreditasi',
+                'OVERDUE' => 'Melewati Jadwal',
+            ];
+            $expLabels = [
+                'VALID' => 'Masih berlaku',
+                'EXPIRING_SOON' => 'Mendekati kedaluwarsa (&le; 90 hari)',
+                'EXPIRED' => 'Kedaluwarsa',
+            ];
+        @endphp
+        <div class="active-filters-bar">
+            <span class="active-filters-heading">FILTER AKTIF</span>
+            <div class="active-filters-chips">
+                @if($search)
+                    <span class="filter-chip" data-field="search" title="Cari: {{ $search }}">
+                        <span class="filter-chip-text">Cari: {{ $search }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Cari">&times;</button>
+                    </span>
+                @endif
+                @if($status)
+                    <span class="filter-chip" data-field="status" title="Status: {{ $statusLabels[$status] ?? $status }}">
+                        <span class="filter-chip-text">Status: {{ $statusLabels[$status] ?? $status }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Status">&times;</button>
+                    </span>
+                @endif
+                @if($surveillance)
+                    <span class="filter-chip" data-field="surveillance" title="Pengawasan: {{ $survLabels[$surveillance] ?? $surveillance }}">
+                        <span class="filter-chip-text">Pengawasan: {{ $survLabels[$surveillance] ?? $surveillance }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Pengawasan">&times;</button>
+                    </span>
+                @endif
+                @if($expiry)
+                    <span class="filter-chip" data-field="expiry" title="Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}">
+                        <span class="filter-chip-text">Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Masa Berlaku">&times;</button>
+                    </span>
+                @endif
+                <a href="{{ route('lpks.index') }}" class="filter-reset-link" data-role="reset-filter">Reset Filter</a>
+            </div>
         </div>
     @endif
+
+    <div id="lpk-table-container" class="lpk-table-container" aria-live="polite">
+        @include('lpks.partials.table-content')
+    </div>
 </section>
 
 @include('partials.sheets-modal', [

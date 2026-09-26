@@ -146,8 +146,9 @@
             </span>
         </div>
         <div class="modal-form-actions" style="justify-content: center;">
-            <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button primary">
-                Buka Halaman Verifikasi Publik &rarr;
+            <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                <span>Buka Halaman Verifikasi Publik</span>
+                <x-icon name="chevron-right" size="14" />
             </a>
             <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-qr-preview')">
                 Tutup

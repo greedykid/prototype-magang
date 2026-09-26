@@ -34,7 +34,14 @@ class AssessmentController extends Controller
 
         $assessments = Assessment::query()
             ->with(['lpk', 'expense'])
-            ->when($search, fn ($query) => $query->where('title', 'like', "%{$search}%"))
+            ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('sk_number', 'like', "%{$search}%")
+                  ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
+                      ->where('name', 'like', "%{$search}%")
+                      ->orWhere('registration_number', 'like', "%{$search}%")
+                  );
+            }))
             ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
             ->when($assessmentType, function ($query) use ($assessmentType) {
                 if ($assessmentType === Assessment::TYPE_AKREDITASI_AWAL || $assessmentType === 'Asesmen Awal') {
@@ -124,6 +131,10 @@ class AssessmentController extends Controller
             ->orderBy('start_at')
             ->paginate($perPage)
             ->withQueryString();
+
+        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
+            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage'));
+        }
 
         return view('assessments.index', array_merge([
             'assessments' => $assessments,

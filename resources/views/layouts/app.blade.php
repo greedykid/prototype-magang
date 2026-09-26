@@ -44,7 +44,7 @@
                         <div class="persistent-surveillance-banner-action">
                             <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button primary persistent-surveillance-banner-btn">
                                 <span>Tinjau LPK Jatuh Tempo</span>
-                                <span aria-hidden="true">&rarr;</span>
+                                <x-icon name="chevron-right" size="14" />
                             </a>
                         </div>
                     </div>

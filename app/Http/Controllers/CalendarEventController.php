@@ -21,7 +21,73 @@ class CalendarEventController extends Controller
 
         $dateParam = $request->string('date')->trim()->toString();
         $monthParam = $request->string('month')->trim()->toString();
-        $isSelected = $request->boolean('selected') || ($request->has('date') && $viewMode === 'day');
+        $highlightParam = $request->string('highlight')->trim()->toString();
+
+        // Auto-resolve date from highlight if date parameter was not provided
+        if (empty($dateParam) && !empty($highlightParam)) {
+            if (str_starts_with($highlightParam, 'tp_')) {
+                $tpId = (int) substr($highlightParam, 3);
+                $tpAss = Assessment::find($tpId);
+                if ($tpAss) {
+                    $dateParam = ($tpAss->effective_tp_due_date ?: $tpAss->start_at)?->toDateString();
+                }
+            } elseif (str_starts_with($highlightParam, 'reminder_tp_')) {
+                $tpId = (int) substr($highlightParam, 12);
+                $tpAss = Assessment::find($tpId);
+                if ($tpAss && $tpAss->end_at) {
+                    $remDate = $tpAss->calculateDefaultTpReminderDate();
+                    if ($remDate) {
+                        $dateParam = CarbonImmutable::parse($remDate)->toDateString();
+                    }
+                }
+            } elseif (str_starts_with($highlightParam, 'reminder_sk_')) {
+                $skId = (int) substr($highlightParam, 12);
+                $skAss = Assessment::find($skId);
+                if ($skAss) {
+                    $skDate = $skAss->calculateDefaultSkReminderDate();
+                    if ($skDate) {
+                        $dateParam = CarbonImmutable::parse($skDate)->toDateString();
+                    }
+                }
+            } elseif (str_starts_with($highlightParam, 'lpk_jt_') || str_starts_with($highlightParam, 'lpk_rem_')) {
+                $parts = explode('_', $highlightParam);
+                if (count($parts) >= 4) {
+                    $type = $parts[1];
+                    $code = $parts[2];
+                    $lpkId = (int) $parts[3];
+                    $lpkItem = Lpk::find($lpkId);
+                    if ($lpkItem) {
+                        $ms = $lpkItem->surveillance_milestones[$code] ?? null;
+                        if ($ms) {
+                            $target = ($type === 'rem' ? ($ms['notice_date'] ?? $ms['target_date']) : ($ms['target_date'] ?? $ms['notice_date']));
+                            if ($target) {
+                                $dateParam = CarbonImmutable::parse($target)->toDateString();
+                            }
+                        }
+                    }
+                }
+            } elseif (str_starts_with($highlightParam, 'lpk_exp_')) {
+                $lpkId = (int) substr($highlightParam, 8);
+                $lpkItem = Lpk::find($lpkId);
+                if ($lpkItem && $lpkItem->expired_at) {
+                    $dateParam = CarbonImmutable::parse($lpkItem->expired_at)->toDateString();
+                }
+            } elseif (str_starts_with($highlightParam, 'event-')) {
+                $cevId = (int) substr($highlightParam, 6);
+                $cev = CalendarEvent::find($cevId);
+                if ($cev && $cev->start_at) {
+                    $dateParam = $cev->start_at->toDateString();
+                }
+            } else {
+                $assId = (int) str_replace('assessment-', '', $highlightParam);
+                $ass = Assessment::find($assId);
+                if ($ass && $ass->start_at) {
+                    $dateParam = $ass->start_at->toDateString();
+                }
+            }
+        }
+
+        $isSelected = $request->boolean('selected') || !empty($highlightParam) || ($request->has('date') && $viewMode === 'day');
 
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateParam)) {
             $activeDate = CarbonImmutable::createFromFormat('!Y-m-d', $dateParam);
@@ -398,7 +464,7 @@ class CalendarEventController extends Controller
         $lpks = Lpk::orderBy('name')->get(['id', 'name']);
         $hoursRange = range(7, 19);
 
-        return view('calendar.index', compact(
+        $viewData = compact(
             'currentMonth',
             'activeDate',
             'selectedDate',
@@ -413,8 +479,16 @@ class CalendarEventController extends Controller
             'lpks',
             'hoursRange',
             'weeks',
-            'events'
-        ));
+            'events',
+            'highlightParam'
+        );
+        $viewData['highlightId'] = $highlightParam;
+
+        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
+            return view('calendar.partials.calendar-shell', $viewData);
+        }
+
+        return view('calendar.index', $viewData);
     }
 
     public function create(Request $request): View

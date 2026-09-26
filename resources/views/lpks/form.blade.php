@@ -85,7 +85,7 @@
         <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Otomatis +5 tahun jika dikosongkan dan tanggal terbit diisi.</small>
     </label>
 
-    <div class="full" style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--maroon, #5645d4); border-radius: 8px; padding: 12px 16px; margin: -6px 0 2px;">
+    <div class="full" style="background: #f8faff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 14px 16px; margin: -6px 0 2px;">
         <div style="display: flex; align-items: flex-start; gap: 10px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5645d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             <div style="font-size: 12px; line-height: 1.5; color: #334155;">

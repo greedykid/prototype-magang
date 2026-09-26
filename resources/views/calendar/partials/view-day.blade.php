@@ -48,8 +48,15 @@
 
                                 $topPct = ($topMinutes / $totalDayMinutes) * 100;
                                 $heightPct = min(100 - $topPct, ($durationMinutes / $totalDayMinutes) * 100);
+
+                                $rawH = !empty($highlightId) ? preg_replace('/^assessment-/', '', $highlightId) : null;
+                                $isHighlighted = $rawH && (
+                                    (string)$ev['id'] === (string)$highlightId ||
+                                    (string)$ev['id'] === (string)$rawH ||
+                                    (string)$ev['id'] === 'assessment-' . $rawH
+                                );
                             @endphp
-                            <div class="gcal-timed-card theme-{{ $ev['color_theme'] }} is-wide"
+                            <div class="gcal-timed-card theme-{{ $ev['color_theme'] }} is-wide {{ $isHighlighted ? 'is-highlight-target' : '' }}"
                                  style="top: {{ $topPct }}%; height: {{ $heightPct }}%;"
                                  data-event-id="{{ $ev['id'] }}"
                                  data-cat="{{ $ev['category'] }}"

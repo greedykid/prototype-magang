@@ -47,7 +47,7 @@
                                     </div>
                                 @endif
 
-                                {{-- Events placed in this day --}}
+                                 {{-- Events placed in this day --}}
                                 @foreach($dayEvents as $ev)
                                     @php
                                         $startHour = (int)$ev['start_at']->format('H');
@@ -61,8 +61,15 @@
 
                                         $topPct = ($topMinutes / $totalDayMinutes) * 100;
                                         $heightPct = min(100 - $topPct, ($durationMinutes / $totalDayMinutes) * 100);
+
+                                        $rawH = !empty($highlightId) ? preg_replace('/^assessment-/', '', $highlightId) : null;
+                                        $isHighlighted = $rawH && (
+                                            (string)$ev['id'] === (string)$highlightId ||
+                                            (string)$ev['id'] === (string)$rawH ||
+                                            (string)$ev['id'] === 'assessment-' . $rawH
+                                        );
                                     @endphp
-                                    <div class="gcal-timed-card theme-{{ $ev['color_theme'] }}"
+                                    <div class="gcal-timed-card theme-{{ $ev['color_theme'] }} {{ $isHighlighted ? 'is-highlight-target' : '' }}"
                                          style="top: {{ $topPct }}%; height: {{ $heightPct }}%;"
                                          data-event-id="{{ $ev['id'] }}"
                                          data-cat="{{ $ev['category'] }}"

@@ -40,7 +40,15 @@
 
                         <div class="gcal-agenda-items">
                             @foreach($evs as $ev)
-                                <div class="gcal-agenda-row theme-{{ $ev['color_theme'] }}"
+                                @php
+                                    $rawH = !empty($highlightId) ? preg_replace('/^assessment-/', '', $highlightId) : null;
+                                    $isHighlighted = $rawH && (
+                                        (string)$ev['id'] === (string)$highlightId ||
+                                        (string)$ev['id'] === (string)$rawH ||
+                                        (string)$ev['id'] === 'assessment-' . $rawH
+                                    );
+                                @endphp
+                                <div class="gcal-agenda-row theme-{{ $ev['color_theme'] }} {{ $isHighlighted ? 'is-highlight-target' : '' }}"
                                      data-event-id="{{ $ev['id'] }}"
                                      data-cat="{{ $ev['category'] }}"
                                      data-lpk-id="{{ $ev['lpk_id'] }}">

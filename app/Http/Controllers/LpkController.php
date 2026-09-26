@@ -88,6 +88,16 @@ class LpkController extends Controller
         }
 
         $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
+        foreach ($lpks as $lpk) {
+            foreach ($lpk->assessments as $assessment) {
+                $assessment->setRelation('lpk', $lpk);
+            }
+        }
+
+        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
+            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'perPage'));
+        }
+
         $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
 
         return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'pics', 'perPage'));

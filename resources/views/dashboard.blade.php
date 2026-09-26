@@ -44,25 +44,53 @@
 
     {{-- 4 Primary Metric Cards --}}
     <section class="metric-grid" aria-label="Ringkasan angka">
-        <a href="{{ route('lpks.index') }}" class="metric" style="text-decoration: none; color: inherit;">
-            <span>LPK terdaftar</span>
-            <strong>{{ $lpkCount }}</strong>
-            <small>Total laboratorium terdata</small>
+        <a href="{{ route('lpks.index') }}" class="metric">
+            <div class="metric-head">
+                <span class="metric-label">LPK terdaftar</span>
+                <div class="metric-icon" aria-hidden="true">
+                    <x-icon name="lpks" size="18" />
+                </div>
+            </div>
+            <div class="metric-body">
+                <strong>{{ $lpkCount }}</strong>
+                <small>Total laboratorium terdata</small>
+            </div>
         </a>
-        <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="metric {{ !empty($globalSurveillanceAlerts) ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
-            <span>Tindak lanjut surveilen</span>
-            <strong style="{{ !empty($globalSurveillanceAlerts) ? 'color: var(--terracotta);' : '' }}">{{ count($globalSurveillanceAlerts ?? []) }}</strong>
-            <small>{{ !empty($globalSurveillanceAlerts) ? 'Perlu tindakan segera' : 'Siklus pengawasan normal' }}</small>
+        <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="metric {{ !empty($globalSurveillanceAlerts) ? 'warn' : '' }}">
+            <div class="metric-head">
+                <span class="metric-label">Tindak lanjut surveilen</span>
+                <div class="metric-icon" aria-hidden="true">
+                    <x-icon name="alert-circle" size="18" />
+                </div>
+            </div>
+            <div class="metric-body">
+                <strong>{{ count($globalSurveillanceAlerts ?? []) }}</strong>
+                <small>{{ !empty($globalSurveillanceAlerts) ? 'Perlu tindakan segera' : 'Siklus pengawasan normal' }}</small>
+            </div>
         </a>
-        <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
-            <span>Asesmen bulan ini</span>
-            <strong style="{{ !empty($overdueTpCount) ? 'color: var(--terracotta);' : '' }}">{{ $assessmentCount }}</strong>
-            <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' TP melewati batas waktu KAN' : (!empty($dueSoonTpCount) ? $dueSoonTpCount . ' TP jatuh tempo segera' : 'Agenda penugasan asesor') }}</small>
+        <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
+            <div class="metric-head">
+                <span class="metric-label">Asesmen bulan ini</span>
+                <div class="metric-icon" aria-hidden="true">
+                    <x-icon name="calendar" size="18" />
+                </div>
+            </div>
+            <div class="metric-body">
+                <strong>{{ $assessmentCount }}</strong>
+                <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' TP melewati batas waktu KAN' : (!empty($dueSoonTpCount) ? $dueSoonTpCount . ' TP jatuh tempo segera' : 'Agenda penugasan asesor') }}</small>
+            </div>
         </a>
-        <a href="{{ route('assessments.index') }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}" style="text-decoration: none; color: inherit;">
-            <span>Tindakan perbaikan (TP)</span>
-            <strong style="{{ !empty($overdueTpCount) ? 'color: var(--terracotta);' : '' }}">{{ $activeTpCount }}</strong>
-            <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' melewati batas KAN' : 'Pemenuhan temuan asesmen' }}</small>
+        <a href="{{ route('assessments.index') }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
+            <div class="metric-head">
+                <span class="metric-label">Tindakan perbaikan (TP)</span>
+                <div class="metric-icon" aria-hidden="true">
+                    <x-icon name="assessments" size="18" />
+                </div>
+            </div>
+            <div class="metric-body">
+                <strong>{{ $activeTpCount }}</strong>
+                <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' melewati batas KAN' : 'Pemenuhan temuan asesmen' }}</small>
+            </div>
         </a>
     </section>
 
@@ -105,9 +133,20 @@
                                     </div>
                                 </div>
                                 <div class="surveillance-alert-actions">
+                                    @if(!empty($alert['target_date']))
+                                        <a href="{{ route('calendar.index', [
+                                            'view' => 'month',
+                                            'date' => $alert['target_date']->format('Y-m-d'),
+                                            'highlight' => 'lpk_jt_' . strtolower($alert['code']) . '_' . $alert['lpk_id'],
+                                            'selected' => 1,
+                                        ]) }}" class="button ghost button-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Lihat tanggal siklus di kalender">
+                                            <x-icon name="calendar" size="14" />
+                                            <span>Kalender</span>
+                                        </a>
+                                    @endif
                                     <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-sm">
                                         <span>Lihat Detail</span>
-                                        <span aria-hidden="true">&rarr;</span>
+                                        <x-icon name="chevron-right" size="14" />
                                     </a>
                                     @if(auth()->user()?->isAdmin())
                                         <a href="{{ route('assessments.create', [
@@ -124,8 +163,9 @@
                         @endforeach
                         @if(count($globalSurveillanceAlerts) > 5)
                             <div style="text-align: center; margin-top: 6px;">
-                                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none;">
-                                    Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo &rarr;
+                                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span>Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo</span>
+                                    <x-icon name="chevron-right" size="14" />
                                 </a>
                             </div>
                         @endif
@@ -135,7 +175,7 @@
 
             {{-- Panel Peringatan Batas Waktu Tindakan Perbaikan (TP & VTP) KAN --}}
             @if(isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty())
-                <section class="panel surveillance-alert-panel" aria-labelledby="tp-alert-heading" style="border-left: 4px solid #dc2626; margin-bottom: 20px;">
+                <section class="panel surveillance-alert-panel tp-alert-panel" aria-labelledby="tp-alert-heading" style="margin-bottom: 20px;">
                     <div class="surveillance-alert-header">
                         <div>
                             <h2 id="tp-alert-heading" class="surveillance-alert-title" style="color: #991b1b;">
@@ -168,9 +208,18 @@
                                     </div>
                                 </div>
                                 <div class="surveillance-alert-actions">
+                                    <a href="{{ route('calendar.index', [
+                                        'view' => 'month',
+                                        'date' => ($assessment->effective_tp_due_date ?: $assessment->start_at)->format('Y-m-d'),
+                                        'highlight' => 'tp_' . $assessment->id,
+                                        'selected' => 1,
+                                    ]) }}" class="button ghost button-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Lihat batas waktu TP di kalender">
+                                        <x-icon name="calendar" size="14" />
+                                        <span>Kalender</span>
+                                    </a>
                                     <a href="{{ route('assessments.show', $assessment) }}" class="button secondary button-sm">
                                         <span>Periksa TP</span>
-                                        <span aria-hidden="true">&rarr;</span>
+                                        <x-icon name="chevron-right" size="14" />
                                     </a>
                                 </div>
                             </div>
@@ -217,12 +266,15 @@
                     <div>
                         <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
                     </div>
-                    <a href="{{ route('assessments.index') }}">Buka agenda &rarr;</a>
+                    <a href="{{ route('assessments.index') }}" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span>Buka agenda</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
                 </div>
                 @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
                     <div class="agenda-list">
                         @foreach($upcomingAssessments as $assessment)
-                            <a href="{{ route('assessments.index') }}" class="agenda-card">
+                            <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" class="agenda-card" title="Buka dan sorot agenda ini di kalender">
                                 <div class="agenda-card-date">
                                     <span class="day">{{ $assessment->start_at->format('d') }}</span>
                                     <span class="month">{{ $assessment->start_at->translatedFormat('M') }}</span>

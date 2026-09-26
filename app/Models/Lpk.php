@@ -133,6 +133,64 @@ class Lpk extends Model
      */
     public function getActiveOrUpcomingAssessment(): ?Assessment
     {
+        if ($this->relationLoaded('assessments')) {
+            $assessments = $this->assessments;
+            foreach ($assessments as $a) {
+                if (! $a->relationLoaded('lpk')) {
+                    $a->setRelation('lpk', $this);
+                }
+            }
+
+            // 1. Sedang berlangsung, dicabut, dibekukan, TP aktif, tahap EHA berjalan
+            $inProgress = $assessments
+                ->filter(function (Assessment $a) {
+                    return in_array($a->status, ['IN_PROGRESS', 'SUSPENDED', 'REVOKED'], true)
+                        || in_array($a->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true)
+                        || $a->is_tp_overdue
+                        || (! empty($a->eha_status) && $a->eha_status !== Assessment::EHA_STATUS_BELUM && empty($a->sk_number));
+                })
+                ->sortBy('start_at')
+                ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
+
+            if ($inProgress) {
+                return $inProgress;
+            }
+
+            // 2. Lewat jadwal pelaksanaan dan belum selesai (kecuali yang otomatis terealisasi)
+            $now = now();
+            $overdue = $assessments
+                ->filter(function (Assessment $a) use ($now) {
+                    return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
+                        && $a->end_at
+                        && $a->end_at < $now;
+                })
+                ->sortBy('start_at')
+                ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
+
+            if ($overdue) {
+                return $overdue;
+            }
+
+            // 3. Asesmen mendatang terdekat (upcoming)
+            $upcoming = $assessments
+                ->filter(function (Assessment $a) use ($now) {
+                    return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
+                        && $a->start_at
+                        && $a->start_at >= $now;
+                })
+                ->sortBy('start_at')
+                ->first();
+
+            if ($upcoming) {
+                return $upcoming;
+            }
+
+            // 4. Asesmen terakhir
+            return $assessments
+                ->sortByDesc('start_at')
+                ->first();
+        }
+
         // 1. Sedang berlangsung, dicabut, dibekukan, TP aktif, tahap EHA berjalan
         $inProgress = $this->assessments()
             ->where(function ($q) {

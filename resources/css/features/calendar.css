@@ -38,29 +38,238 @@
     gap: 22px;
 }
 
+/* Create Agenda Dropdown */
+.gcal-create-dropdown-wrap {
+    position: relative;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
 .gcal-btn-create {
     align-items: center;
     background: #ffffff;
-    border: 1px solid #d8d4cd;
-    border-radius: 28px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-    color: var(--ink);
+    border: 1px solid var(--line, #cbd5e1);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    color: var(--ink, #0f172a);
     cursor: pointer;
     display: flex;
-    font: 600 14px 'Instrument Sans', sans-serif;
-    gap: 10px;
-    justify-content: center;
-    padding: 11px 20px;
-    transition: all 180ms ease;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    gap: 8px;
+    justify-content: space-between;
+    padding: 9px 12px;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
     width: 100%;
 }
 
 .gcal-btn-create:hover {
-    background: #faf8ff;
-    border-color: var(--maroon);
-    box-shadow: 0 4px 14px rgba(86, 69, 212, 0.18);
-    color: var(--maroon-dark);
+    background: #f8fafc;
+    border-color: #94a3b8;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
+}
+
+.gcal-btn-create:focus-visible {
+    outline: none;
+    border-color: var(--maroon, #7f1d1d);
+    box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.15);
+}
+
+.gcal-btn-create.is-active,
+.gcal-btn-create[aria-expanded="true"] {
+    background: #f8fafc;
+    border-color: var(--maroon, #7f1d1d);
+    box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.12);
+}
+
+.gcal-btn-create-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.gcal-btn-create-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: var(--ink, #0f172a);
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+.gcal-btn-create:hover .gcal-btn-create-icon,
+.gcal-btn-create[aria-expanded="true"] .gcal-btn-create-icon {
+    background: #fee2e2;
+    color: var(--maroon-dark, #7f1d1d);
+}
+
+.gcal-btn-create-chevron {
+    color: var(--muted, #64748b);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), color 160ms ease;
+}
+
+.gcal-btn-create[aria-expanded="true"] .gcal-btn-create-chevron {
+    transform: rotate(180deg);
+    color: var(--ink, #0f172a);
+}
+
+/* Dropdown Menu Container & Smooth Transitions */
+.gcal-create-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    min-width: 240px;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05);
+    z-index: 100;
+    padding: 6px;
+    box-sizing: border-box;
+    display: none;
+    transform-origin: top center;
+    pointer-events: none;
+}
+
+.gcal-create-menu.is-open {
+    display: block;
+    pointer-events: auto;
+    animation: gcal-menu-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.gcal-create-menu.is-open.is-closing {
+    display: block;
+    pointer-events: none;
+    animation: gcal-menu-exit 130ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes gcal-menu-enter {
+    0% {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes gcal-menu-exit {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gcal-create-menu.is-open,
+    .gcal-create-menu.is-open.is-closing {
+        animation: none;
+    }
+    .gcal-btn-create-chevron {
+        transition: none;
+    }
+}
+
+.gcal-create-menu-header {
+    padding: 5px 8px 4px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted, #64748b);
+}
+
+.gcal-create-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 7px 8px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 140ms ease;
+    font-family: inherit;
+    position: relative;
+}
+
+.gcal-create-item:hover {
+    background: #f8fafc;
+}
+
+.gcal-create-item:focus-visible {
+    outline: none;
+    background: #f1f5f9;
+    box-shadow: inset 0 0 0 1.5px var(--maroon, #7f1d1d);
+}
+
+.gcal-create-badge {
+    font-weight: 700;
+    font-size: 10.5px;
+    padding: 2.5px 5.5px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+
+.gcal-create-badge.prl {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.gcal-create-badge.stt {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.gcal-create-badge.agenda {
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+}
+
+.gcal-create-item-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.gcal-create-item-text strong {
+    font-size: 12.5px;
+    color: var(--ink, #0f172a);
+    display: block;
+    line-height: 1.25;
+}
+
+.gcal-create-item-text small {
+    font-size: 11px;
+    color: var(--muted, #64748b);
+    display: block;
+    line-height: 1.25;
+    margin-top: 1.5px;
+}
+
+.gcal-create-menu-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 4px 4px;
 }
 
 /* Mini Calendar */
@@ -221,8 +430,10 @@
     background: #4f46e5;
 }
 
-.gcal-cat-indicator.amber {
-    background: #d97706;
+.gcal-cat-indicator.amber,
+.gcal-cat-indicator.yellow {
+    background: #ffff00;
+    border: 1px solid #ca8a04;
 }
 
 .gcal-cat-indicator.rose {
@@ -644,6 +855,41 @@
     color: #ffffff;
 }
 
+.gcal-day-badge.is-selected:not(.is-today) {
+    background: #0284c7;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.gcal-month-cell.is-selected {
+    background: #f0f9ff;
+}
+
+@keyframes gcal-highlight-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(2, 132, 199, 0.35);
+        transform: scale(1.03);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+        transform: scale(1);
+    }
+}
+
+.gcal-event-chip.is-highlight-target,
+.gcal-timed-card.is-highlight-target,
+.gcal-agenda-row.is-highlight-target {
+    animation: gcal-highlight-pulse 1.3s cubic-bezier(0.16, 1, 0.3, 1) 3;
+    outline: 2px solid var(--primary, #0284c7) !important;
+    outline-offset: 1px;
+    z-index: 25;
+    position: relative;
+}
+
 .gcal-cell-add-btn {
     background: transparent;
     border: none;
@@ -697,38 +943,38 @@
 
 .gcal-event-chip.theme-indigo {
     background: #eef0ff;
-    border-left: 3px solid #4f46e5;
+    border: 1px solid #c7d2fe;
     color: #3730a3;
 }
 
 .gcal-event-chip.theme-purple {
     background: #f5f0ff;
-    border-left: 3px solid #7e22ce;
+    border: 1px solid #ddd6fe;
     color: #581c87;
 }
 
 .gcal-event-chip.theme-amber {
-    background: #fffbeb;
-    border-left: 3px solid #d97706;
-    color: #92400e;
+    background: #fefce8;
+    border: 1px solid #facc15;
+    color: #713f12;
 }
 
 .gcal-event-chip.theme-rose {
     background: #fff1f2;
-    border-left: 3px solid #e11d48;
+    border: 1px solid #fecdd3;
     color: #9f1239;
 }
 
 .gcal-event-chip.theme-emerald {
     background: #ecfdf5;
-    border-left: 3px solid #059669;
+    border: 1px solid #a7f3d0;
     color: #065f46;
 }
 
 .gcal-event-chip.theme-cyan {
-    background: #00ffff;
-    border-left: 3px solid #0891b2;
-    color: #042f2e;
+    background: #ecfeff;
+    border: 1px solid #a5f3fc;
+    color: #0e7490;
     font-weight: 600;
 }
 
@@ -934,9 +1180,9 @@
 }
 
 .gcal-timed-card.theme-amber {
-    background: #fffbeb;
-    border-left: 3.5px solid #d97706;
-    color: #92400e;
+    background: #fefce8;
+    border-left: 3.5px solid #eab308;
+    color: #713f12;
 }
 
 .gcal-timed-card.theme-rose {
@@ -1127,32 +1373,32 @@
 
 .gcal-agenda-row.theme-indigo {
     background: #f8f9ff;
-    border-left: 4px solid #4f46e5;
+    border-color: #c7d2fe;
 }
 
 .gcal-agenda-row.theme-purple {
     background: #fbf8ff;
-    border-left: 4px solid #7e22ce;
+    border-color: #ddd6fe;
 }
 
 .gcal-agenda-row.theme-amber {
-    background: #fffdf5;
-    border-left: 4px solid #d97706;
+    background: #fefce8;
+    border-color: #fde047;
 }
 
 .gcal-agenda-row.theme-rose {
     background: #fff5f5;
-    border-left: 4px solid #e11d48;
+    border-color: #fecdd3;
 }
 
 .gcal-agenda-row.theme-emerald {
     background: #f0fdf4;
-    border-left: 4px solid #059669;
+    border-color: #bbf7d0;
 }
 
 .gcal-agenda-row.theme-cyan {
     background: #f0fdff;
-    border-left: 4px solid #00b4d8;
+    border-color: #bae6fd;
 }
 
 .gcal-agenda-time-col strong {
@@ -1199,8 +1445,9 @@
 }
 
 .gcal-badge-pill.theme-amber {
-    background: #fef3c7;
-    color: #92400e;
+    background: #fef08a;
+    border: 1px solid #facc15;
+    color: #713f12;
 }
 
 .gcal-badge-pill.theme-rose {
@@ -1314,8 +1561,9 @@
 }
 
 .gcal-popover-cat-pill.theme-amber {
-    background: #fef3c7;
-    color: #92400e;
+    background: #fef08a;
+    border: 1px solid #facc15;
+    color: #713f12;
 }
 
 .gcal-popover-cat-pill.theme-rose {

@@ -107,7 +107,7 @@
             $prefilledLpk = $lpks->firstWhere('id', old('lpk_id', $assessment->lpk_id ?: request('lpk_id')));
         @endphp
         @if($prefilledLpk)
-            <div class="full" style="background: #f0fdf4; border: 1px solid #86efac; border-left: 4px solid #16a34a; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div class="full" style="background: #f0fdf4; border: 1px solid #86efac; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <x-icon name="check-circle" size="20" style="color: #16a34a; flex-shrink: 0;" />
                     <div style="font-size: 13px; color: #166534;">

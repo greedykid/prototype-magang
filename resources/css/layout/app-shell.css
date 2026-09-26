@@ -78,25 +78,41 @@
 .page-heading > .button.secondary { background: var(--maroon); border-color: var(--maroon); color: #fff; }
 .page-heading > .button.secondary:hover { background: var(--maroon-dark); border-color: var(--maroon-dark); color: #fff; }
 
-.page-wrap { animation: page-enter 240ms ease forwards; }
+.page-wrap,
+.page-wrap.page-enter-active {
+    animation: page-enter 260ms var(--ease-out-expo) forwards;
+}
 @keyframes page-enter {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.page-heading { animation: heading-enter 240ms ease forwards; }
+.page-heading {
+    animation: heading-enter 260ms var(--ease-out-expo) forwards;
+}
 @keyframes heading-enter {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Persistent Global Surveillance Banner */
 .persistent-surveillance-banner {
-    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    background: #fff1f2;
     border: 1px solid #fecdd3;
-    border-left: 5px solid #e11d48;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.06);
+    box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
     margin-bottom: 22px;
     padding: 14px 18px;
 }

@@ -278,31 +278,58 @@ function quickAddAt(dateStr, timeStr = '09:00') {
 }
 window.quickAddAt = quickAddAt;
 
+function openCreateDropdown(toggleBtn) {
+    const menu = document.getElementById('gcal-create-menu');
+    const btn = toggleBtn || document.getElementById('gcal-btn-create-toggle');
+    if (!menu) return;
+
+    menu.classList.remove('is-closing');
+    menu.classList.add('is-open');
+    menu.style.display = 'block';
+    btn?.setAttribute('aria-expanded', 'true');
+    btn?.classList.add('is-active');
+}
+window.openCreateDropdown = openCreateDropdown;
+
+function closeCreateDropdown() {
+    const menu = document.getElementById('gcal-create-menu');
+    const toggleBtn = document.getElementById('gcal-btn-create-toggle');
+    if (!menu) return;
+
+    if (!menu.classList.contains('is-open') || menu.classList.contains('is-closing')) return;
+
+    menu.classList.add('is-closing');
+    toggleBtn?.setAttribute('aria-expanded', 'false');
+    toggleBtn?.classList.remove('is-active');
+
+    const handleEnd = () => {
+        menu.classList.remove('is-open', 'is-closing');
+        menu.style.display = 'none';
+        menu.removeEventListener('animationend', handleEnd);
+    };
+
+    menu.addEventListener('animationend', handleEnd, { once: true });
+    setTimeout(() => {
+        if (menu.classList.contains('is-closing')) {
+            menu.classList.remove('is-open', 'is-closing');
+            menu.style.display = 'none';
+        }
+    }, 150);
+}
+window.closeCreateDropdown = closeCreateDropdown;
+
 function toggleCreateDropdown(btn) {
     const menu = document.getElementById('gcal-create-menu');
     const toggleBtn = btn || document.getElementById('gcal-btn-create-toggle');
     if (!menu) return;
 
-    const isVisible = menu.style.display !== 'none';
-    if (isVisible) {
-        menu.style.display = 'none';
-        toggleBtn?.setAttribute('aria-expanded', 'false');
+    if (menu.classList.contains('is-open') && !menu.classList.contains('is-closing')) {
+        closeCreateDropdown();
     } else {
-        menu.style.display = 'block';
-        toggleBtn?.setAttribute('aria-expanded', 'true');
+        openCreateDropdown(toggleBtn);
     }
 }
 window.toggleCreateDropdown = toggleCreateDropdown;
-
-function closeCreateDropdown() {
-    const menu = document.getElementById('gcal-create-menu');
-    const toggleBtn = document.getElementById('gcal-btn-create-toggle');
-    if (menu && menu.style.display !== 'none') {
-        menu.style.display = 'none';
-        toggleBtn?.setAttribute('aria-expanded', 'false');
-    }
-}
-window.closeCreateDropdown = closeCreateDropdown;
 
 function updateQuickAddType(type) {
     const titleInput = document.getElementById('quick-input-title');
@@ -351,7 +378,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('click', (e) => {
     const createMenu = document.getElementById('gcal-create-menu');
     const createBtn = document.getElementById('gcal-btn-create-toggle');
-    if (createMenu && createMenu.style.display !== 'none') {
+    if (createMenu && createMenu.classList.contains('is-open') && !createMenu.classList.contains('is-closing')) {
         if (!createMenu.contains(e.target) && e.target !== createBtn && !createBtn?.contains(e.target)) {
             closeCreateDropdown();
         }
@@ -486,6 +513,8 @@ function initGcalFilters() {
         lpkSelect.dataset.gcalFilterInit = 'true';
         lpkSelect.addEventListener('change', applyGcalFilters);
     }
+
+    applyGcalFilters();
 }
 
 // Month & Year Direct Selector Navigation
@@ -539,10 +568,39 @@ function initGcalMonthYearPicker() {
     }
 }
 
+function initCalendarHighlight() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const shell = document.querySelector('.gcal-shell');
+    const highlightId = urlParams.get('highlight') || shell?.dataset?.highlightId;
+    if (!highlightId) return;
+
+    const rawId = highlightId.replace(/^assessment-/, '');
+    const selector = `[data-event-id="${highlightId}"], [data-event-id="${rawId}"], [data-event-id="assessment-${rawId}"]`;
+    const targetEl = document.querySelector(selector);
+
+    if (targetEl) {
+        targetEl.classList.add('is-highlight-target');
+
+        setTimeout(() => {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }, 120);
+
+        setTimeout(() => {
+            const activePopovers = Array.from(document.querySelectorAll('.gcal-popover')).filter(
+                (p) => p.style.display !== 'none' && p.getAttribute('aria-hidden') !== 'true'
+            );
+            if (!activePopovers.length && typeof targetEl.click === 'function') {
+                targetEl.click();
+            }
+        }, 360);
+    }
+}
+
 function initGcalComponents() {
     initGcalLiveTimeLine();
     initGcalFilters();
     initGcalMonthYearPicker();
+    initCalendarHighlight();
 }
 
 export {
@@ -551,11 +609,13 @@ export {
     closeEventPopover,
     quickAddAt,
     toggleCreateDropdown,
+    openCreateDropdown,
     closeCreateDropdown,
     openQuickAddWithType,
     updateQuickAddType,
     initGcalLiveTimeLine,
     initGcalFilters,
     initGcalMonthYearPicker,
+    initCalendarHighlight,
     initGcalComponents
 };

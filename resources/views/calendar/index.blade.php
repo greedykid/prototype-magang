@@ -9,23 +9,7 @@
 />
 
 {{-- Google Calendar Main Shell --}}
-<div class="gcal-shell">
-    @include('calendar.partials.sidebar')
-
-    <main class="gcal-main">
-        @include('calendar.partials.toolbar')
-
-        @if($viewMode === 'month')
-            @include('calendar.partials.view-month')
-        @elseif($viewMode === 'week')
-            @include('calendar.partials.view-week')
-        @elseif($viewMode === 'day')
-            @include('calendar.partials.view-day')
-        @else
-            @include('calendar.partials.view-agenda')
-        @endif
-    </main>
-</div>
+@include('calendar.partials.calendar-shell')
 
 @include('calendar.partials.event-popover')
 @include('calendar.partials.modal-quick-add')

@@ -33,15 +33,124 @@
 
 .metric-grid { display: grid; gap: 14px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 28px; }
 .metric, .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; }
-.metric { min-height: 143px; padding: 20px; transition: transform 220ms var(--ease-out-expo), box-shadow 220ms var(--ease-out-expo), border-color 200ms ease; }.metric:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -6px rgba(26, 26, 26, 0.08); border-color: #d6d2cb; }.metric span, .metric small { color: var(--muted); display: block; }.metric strong { display: block; font: 600 2.5rem/1.1 'Instrument Sans', sans-serif; letter-spacing: -.04em; margin: 13px 0 6px; }.metric.warn strong { color: var(--terracotta); }
-.metric-grid > .metric:nth-child(1) { animation: card-enter 320ms var(--ease-out-expo) 30ms both; }
-.metric-grid > .metric:nth-child(2) { animation: card-enter 320ms var(--ease-out-expo) 70ms both; }
-.metric-grid > .metric:nth-child(3) { animation: card-enter 320ms var(--ease-out-expo) 110ms both; }
-.metric-grid > .metric:nth-child(4) { animation: card-enter 320ms var(--ease-out-expo) 150ms both; }
-@keyframes card-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.metric {
+    box-sizing: border-box;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+    padding: 18px 20px;
+    text-decoration: none;
+    transition: transform 220ms var(--ease-out-expo), box-shadow 220ms var(--ease-out-expo), border-color 200ms ease;
+}
+.metric:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -6px rgba(26, 26, 26, 0.08);
+    border-color: #d6d2cb;
+}
+.metric-head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+.metric-label {
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0;
+}
+.metric-icon {
+    align-items: center;
+    background: #f5f4f0;
+    border: 1px solid #e7e5e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #646059;
+    display: flex !important;
+    flex-shrink: 0;
+    height: 36px;
+    justify-content: center;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    width: 36px;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.metric-icon svg {
+    display: block;
+    flex-shrink: 0;
+    height: 18px;
+    margin: 0 auto;
+    width: 18px;
+}
+.metric:hover .metric-icon {
+    background: #ebe9e3;
+    border-color: #d8d5ce;
+    color: var(--ink);
+}
+.metric.warn .metric-icon {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+.metric.warn:hover .metric-icon {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+.metric-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 14px;
+}
+.metric strong {
+    color: var(--ink);
+    display: block;
+    font: 600 2.25rem/1.1 'Instrument Sans', sans-serif;
+    letter-spacing: -0.04em;
+    margin: 0;
+}
+.metric.warn strong {
+    color: var(--terracotta);
+}
+.metric small {
+    color: var(--muted);
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.35;
+    margin: 0;
+}
+.metric-grid > .metric:nth-child(1) { animation: card-enter 280ms var(--ease-out-expo) 20ms both; }
+.metric-grid > .metric:nth-child(2) { animation: card-enter 280ms var(--ease-out-expo) 60ms both; }
+.metric-grid > .metric:nth-child(3) { animation: card-enter 280ms var(--ease-out-expo) 100ms both; }
+.metric-grid > .metric:nth-child(4) { animation: card-enter 280ms var(--ease-out-expo) 140ms both; }
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .content-grid, .detail-grid { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); }
-.panel { animation: panel-enter 340ms var(--ease-out-expo) 40ms both; padding: clamp(19px, 3vw, 30px); transition: box-shadow 220ms var(--ease-out-expo), border-color 200ms ease; }
-@keyframes panel-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.panel { animation: panel-enter 300ms var(--ease-out-expo) 40ms both; padding: clamp(19px, 3vw, 30px); transition: box-shadow 220ms var(--ease-out-expo), border-color 200ms ease; }
+@keyframes panel-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .dashboard-analysis { margin-bottom: 28px; }.chart-panel { min-width: 0; }.chart-bars { display: grid; gap: 17px; }.chart-bar-row { display: grid; gap: 8px; }.chart-bar-label { align-items: center; display: flex; font-size: 13px; justify-content: space-between; }.chart-bar-label strong { color: var(--ink); font-size: 14px; }.chart-bar-track { background: #eeecf7; border-radius: 999px; height: 10px; overflow: hidden; }.chart-bar-fill { animation: grow-bar 700ms var(--ease-out-expo) both; border-radius: inherit; display: block; height: 100%; min-width: 4px; transform-origin: left center; }.chart-bar-not_started { background: #9a9590; }.chart-bar-in_progress { background: var(--maroon); }.chart-bar-completed { background: var(--green); }
 @keyframes grow-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .panel-head { align-items: start; display: flex; justify-content: space-between; margin-bottom: 17px; }.panel-head a { font-size: 13px; }
@@ -147,13 +256,13 @@
 
 .note-row-body p {
     background: #faf9f6;
-    border-left: 3px solid var(--maroon);
-    border-radius: 4px 6px 6px 4px;
+    border: 1px solid #ebe8e2;
+    border-radius: 6px;
     color: #2e2c29;
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
-    padding: 8px 12px;
+    padding: 10px 14px;
 }
 
 /* Mobile Screen Specific Overrides */
@@ -240,9 +349,16 @@
 }
 
 .surveillance-alert-panel {
-    border-left: 5px solid #e11d48;
+    background: #fff8f8;
+    border: 1px solid #fecdd3;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(225, 29, 72, 0.04);
+}
+
+.surveillance-alert-panel.tp-alert-panel {
+    background: #fffaf0;
+    border-color: #fed7aa;
+    box-shadow: 0 1px 3px rgba(194, 65, 12, 0.04);
 }
 
 .surveillance-alert-header {
@@ -306,7 +422,6 @@
 .dashboard-safe-banner {
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
-    border-left: 4px solid #16a34a;
     border-radius: 8px;
     padding: 10px 16px;
     margin-bottom: 20px;

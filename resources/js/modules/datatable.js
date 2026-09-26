@@ -50,6 +50,12 @@ export const parseCellValue = (rawText) => {
         if (!isNaN(d)) return d;
     }
 
+    // Indonesian / English dates: "DD/MM/YYYY"
+    const dmyMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (dmyMatch) {
+        return new Date(parseInt(dmyMatch[3], 10), parseInt(dmyMatch[2], 10) - 1, parseInt(dmyMatch[1], 10)).getTime();
+    }
+
     // Indonesian / English dates: "DD Mmm YYYY" or "DD Mmm YYYY, HH:mm"
     const months = {
         jan: 0, feb: 1, mar: 2, apr: 3, mei: 4, may: 4, jun: 5,
@@ -92,8 +98,8 @@ export const sortTableByColumn = (table, colIndex, targetTh) => {
         const cellB = rowB.children[colIndex];
         if (!cellA || !cellB) return 0;
 
-        const textA = (cellA.querySelector('strong')?.textContent || cellA.textContent).trim();
-        const textB = (cellB.querySelector('strong')?.textContent || cellB.textContent).trim();
+        const textA = (cellA.dataset.sortValue !== undefined ? cellA.dataset.sortValue : (cellA.querySelector('strong')?.textContent || cellA.textContent)).trim();
+        const textB = (cellB.dataset.sortValue !== undefined ? cellB.dataset.sortValue : (cellB.querySelector('strong')?.textContent || cellB.textContent)).trim();
 
         const valA = parseCellValue(textA);
         const valB = parseCellValue(textB);
@@ -131,6 +137,7 @@ export const initSortableHeaders = (table) => {
 
         const text = th.textContent.trim();
         const isActionCol = !text ||
+            th.dataset.sortable === 'false' ||
             th.querySelector('.sr-only') ||
             /^(aksi|action|buka|detail)$/i.test(text);
 
@@ -411,8 +418,11 @@ export const initDataTables = () => {
                             .filter(Boolean)
                             .join(' ');
                     }
-                    if (!fieldTitle) fieldTitle = field.name;
-                    fieldTitle = fieldTitle.replace(/^(Cari\s+)/i, '').trim() || fieldTitle;
+                    if (field.type === 'search' || field.name === 'search') {
+                        fieldTitle = 'Cari';
+                    } else {
+                        fieldTitle = fieldTitle.replace(/^(Cari\s+)/i, '').trim() || fieldTitle;
+                    }
 
                     let displayVal = val;
                     if (field.tagName === 'SELECT') {
@@ -458,8 +468,8 @@ export const initDataTables = () => {
                     if (!bar) {
                         bar = document.createElement('div');
                         bar.className = 'active-filters-bar';
-                        const tableTarget = parentPanel.querySelector('.table-wrap, .empty');
-                        if (tableTarget) {
+                        const tableTarget = parentPanel.querySelector('.lpk-table-container, .assessment-table-container, .table-wrap, .empty');
+                        if (tableTarget && tableTarget.parentElement === parentPanel) {
                             parentPanel.insertBefore(bar, tableTarget);
                         } else {
                             parentPanel.appendChild(bar);
@@ -468,16 +478,29 @@ export const initDataTables = () => {
 
                     const resetUrl = filter.getAttribute('action') || window.location.pathname;
 
+                    const escapeAttr = (str) => String(str ?? '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+
                     bar.innerHTML = `
                         <span class="active-filters-heading">FILTER AKTIF</span>
                         <div class="active-filters-chips">
-                            ${activeFilters.map((af) => `
-                                <span class="filter-chip" data-field="${af.name}">
-                                    <span class="filter-chip-text">${af.title}: ${af.displayValue}</span>
-                                    <button type="button" class="filter-chip-remove" aria-label="Hapus filter ${af.title}">&times;</button>
+                            ${activeFilters.map((af) => {
+                                const fullLabel = `${af.title}: ${af.displayValue}`;
+                                const safeLabel = escapeAttr(fullLabel);
+                                const safeName = escapeAttr(af.name);
+                                const safeTitle = escapeAttr(af.title);
+                                return `
+                                <span class="filter-chip" data-field="${safeName}" title="${safeLabel}">
+                                    <span class="filter-chip-text">${safeLabel}</span>
+                                    <button type="button" class="filter-chip-remove" aria-label="Hapus filter ${safeTitle}">&times;</button>
                                 </span>
-                            `).join('')}
-                            <a href="${resetUrl}" class="filter-reset-link">Reset Filter</a>
+                                `;
+                            }).join('')}
+                            <a href="${resetUrl}" class="filter-reset-link" ${filter.hasAttribute('data-partial-filter') ? 'data-role="reset-filter"' : ''}>Reset Filter</a>
                         </div>
                     `;
 
@@ -492,8 +515,11 @@ export const initDataTables = () => {
                                 if (targetField.tagName === 'SELECT') {
                                     targetField.selectedIndex = 0;
                                 }
+                                targetField.dispatchEvent(new Event('input', { bubbles: true }));
                                 targetField.dispatchEvent(new Event('change', { bubbles: true }));
-                                filter.submit();
+                                if (!filter.hasAttribute('data-partial-filter')) {
+                                    filter.submit();
+                                }
                             }
                         });
                     });
@@ -502,6 +528,10 @@ export const initDataTables = () => {
                 }
             }
         };
+
+        filter._updateFilterBadges = updateFilterBadges;
+        filter.addEventListener('input', updateFilterBadges);
+        filter.addEventListener('change', updateFilterBadges);
 
         const parentPanel = placeholder.closest('.panel') || filter.closest('.panel');
         const tableWrap = parentPanel?.querySelector('.table-wrap');

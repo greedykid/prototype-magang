@@ -152,8 +152,9 @@
                     <x-icon name="eye" size="14" />
                     <span>Pratinjau QR & Sertifikat</span>
                 </button>
-                <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button ghost">
-                    <span>Verifikasi Publik &rarr;</span>
+                <a href="{{ route('accreditations.esign.verify', $signature->verify_hash) }}" target="_blank" class="button ghost" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <span>Verifikasi Publik</span>
+                    <x-icon name="chevron-right" size="14" />
                 </a>
             @else
                 <x-status value="UNSIGNED" />

@@ -52,10 +52,47 @@
                                 {{ $alertCount }} Laboratorium Memerlukan Perhatian
                             </div>
                             <p class="notif-alert-desc">
-                                Terdapat siklus Surveilen (S1/S2) atau Re-Akreditasi KAN yang telah mendekati batas waktu atau melewati jadwal.
+                                Siklus Surveilen (S1/S2) atau Re-Akreditasi KAN mendekati atau melewati batas regulasi.
                             </p>
-                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-cta-btn">
-                                Tinjau LPK Jatuh Tempo &rarr;
+
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                                @foreach(array_slice($globalSurveillanceAlerts, 0, 3) as $alert)
+                                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                            <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 10.5px; padding: 2px 6px; border-radius: 4px;">
+                                                {{ $alert['code'] }}
+                                            </span>
+                                            <span style="font-size: 11px; color: {{ $alert['is_urgent'] ? '#b91c1c' : '#b45309' }}; font-weight: 600;">
+                                                {{ $alert['target_date'] ? $alert['target_date']->format('d M Y') : '-' }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $alert['lpk_name'] }}">
+                                            {{ $alert['lpk_name'] }}
+                                        </div>
+                                        <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 2px;">
+                                            @if(!empty($alert['target_date']))
+                                                <a href="{{ route('calendar.index', [
+                                                    'view' => 'month',
+                                                    'date' => $alert['target_date']->format('Y-m-d'),
+                                                    'highlight' => 'lpk_jt_' . strtolower($alert['code']) . '_' . $alert['lpk_id'],
+                                                    'selected' => 1,
+                                                ]) }}" class="button ghost button-xs" style="font-size: 11px; padding: 2px 7px; height: 22px; color: var(--primary, #0284c7); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="Lihat di kalender">
+                                                    <x-icon name="calendar" size="11" />
+                                                    <span>Kalender</span>
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-xs" style="font-size: 11px; padding: 2px 7px; height: 22px; display: inline-flex; align-items: center; gap: 3px;">
+                                                <span>Detail</span>
+                                                <x-icon name="chevron-right" size="11" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-cta-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                                <span>Tinjau Seluruh LPK Jatuh Tempo</span>
+                                <x-icon name="chevron-right" size="14" />
                             </a>
                         @else
                             <div class="notif-empty-state">
@@ -67,8 +104,9 @@
                     </div>
 
                     <div class="notif-dropdown-footer">
-                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">
-                            Lihat Semua di Daftar LPK &rarr;
+                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                            <span>Lihat Semua di Daftar LPK</span>
+                            <x-icon name="chevron-right" size="14" />
                         </a>
                     </div>
                 </div>

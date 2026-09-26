@@ -15,6 +15,7 @@ import {
     closeEventPopover,
     quickAddAt,
     toggleCreateDropdown,
+    openCreateDropdown,
     closeCreateDropdown,
     openQuickAddWithType,
     updateQuickAddType,
@@ -23,6 +24,7 @@ import {
     initGcalComponents
 } from './modules/calendar.js';
 import { initSpaRouter, navigateTo } from './modules/spa-router.js';
+import { initLiveFilters } from './modules/live-filter.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -36,11 +38,13 @@ window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
 window.quickAddAt = quickAddAt;
 window.toggleCreateDropdown = toggleCreateDropdown;
+window.openCreateDropdown = openCreateDropdown;
 window.closeCreateDropdown = closeCreateDropdown;
 window.openQuickAddWithType = openQuickAddWithType;
 window.updateQuickAddType = updateQuickAddType;
 window.navigateTo = navigateTo;
 window.toggleSidebarState = toggleSidebarState;
+window.initDataTables = initDataTables;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -134,11 +138,19 @@ if (!window._dropdownsBound) {
 // Page Components Initializer (Idempotent for Initial Load & SPA Transitions)
 // ==========================================================================
 export const initPageComponents = () => {
-    // 1. Data Tables: sorting, pagination per-page toolbar, view mode toggles & filter drawer
-    initDataTables();
+    // 1. Custom Select Dropdowns
+    try {
+        initCustomSelects();
+    } catch (err) {
+        console.error('Error initializing custom selects:', err);
+    }
 
-    // 2. Custom Select Dropdowns
-    initCustomSelects();
+    // 2. Data Tables: sorting, pagination per-page toolbar, view mode toggles & filter drawer
+    try {
+        initDataTables();
+    } catch (err) {
+        console.error('Error initializing datatables:', err);
+    }
 
     // 3. Flash Notifications via SweetAlert2
     handleFlashNotifications();
@@ -160,7 +172,7 @@ window.initPageComponents = initPageComponents;
 // ==========================================================================
 export const initClickableRows = () => {
     document.addEventListener('click', (event) => {
-        const row = event.target.closest('tr.clickable-row, tr[data-href]');
+        const row = event.target.closest('tr.clickable-row, tr[data-href], .clickable-row[data-href]');
         if (!row) return;
 
         // Ignore clicks on nested interactive elements
@@ -195,7 +207,7 @@ export const initClickableRows = () => {
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
-        const row = event.target.closest('tr.clickable-row[tabindex], tr[data-href][tabindex]');
+        const row = event.target.closest('tr.clickable-row[tabindex], tr[data-href][tabindex], .clickable-row[tabindex]');
         if (!row || event.target !== row) return;
 
         const href = row.getAttribute('data-href');
@@ -220,6 +232,7 @@ initButtonLoader();
 initAuthTransitions();
 initConfirmations();
 initClickableRows();
+initLiveFilters();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

@@ -69,7 +69,7 @@
 @endphp
 
 @if(!empty($activeAlerts))
-    <div class="panel" style="background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%); border: 1.5px solid #f43f5e; border-left: 6px solid #e11d48; margin-bottom: 24px; padding: 18px 22px; border-radius: 8px;">
+    <div class="panel" style="background: #fff1f2; border: 1px solid #fecdd3; margin-bottom: 24px; padding: 18px 22px; border-radius: 8px; box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
             <div style="flex: 1 1 480px; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
@@ -141,10 +141,30 @@
                     <div>Target Kunjungan: <strong>{{ $s1['target_date'] ? $s1['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
                 @if($linkedS1)
-                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
-                        <a href="{{ route('assessments.show', $linkedS1) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedS1->status === 'PLANNED' ? 'Rencana (Bulan 15)' : $linkedS1->status_label }} &rarr;
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <a href="{{ route('assessments.show', $linkedS1) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 3px;">
+                                <span>{{ $linkedS1->status === 'PLANNED' ? 'Rencana (Bulan 15)' : $linkedS1->status_label }}</span>
+                                <x-icon name="chevron-right" size="12" />
+                            </a>
+                            <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $linkedS1->start_at->toDateString(), 'highlight' => $linkedS1->id, 'selected' => 1]) }}"
+                               class="assessment-cal-shortcut"
+                               style="height: 22px; padding: 2px 7px; font-size: 11px;"
+                               title="Lihat agenda S1 di kalender">
+                                <x-icon name="calendar" size="11" />
+                                <span>Kalender</span>
+                            </a>
+                        </div>
+                    </div>
+                @elseif(!empty($s1['target_date']))
+                    <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
+                        <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $s1['target_date']->toDateString(), 'highlight' => 'lpk_jt_s1_' . $lpk->id, 'selected' => 1]) }}"
+                           class="assessment-cal-shortcut"
+                           style="height: 22px; padding: 2px 7px; font-size: 11px; color: #475569; background: #f8fafc; border-color: #cbd5e1;"
+                           title="Lihat target S1 di kalender">
+                            <x-icon name="calendar" size="11" />
+                            <span>Buka di Kalender</span>
                         </a>
                     </div>
                 @endif
@@ -191,10 +211,30 @@
                     <div>Target Kunjungan: <strong>{{ $s2['target_date'] ? $s2['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
                 @if($linkedS2)
-                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
-                        <a href="{{ route('assessments.show', $linkedS2) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedS2->status === 'PLANNED' ? 'Rencana (Bulan 36)' : $linkedS2->status_label }} &rarr;
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <a href="{{ route('assessments.show', $linkedS2) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 3px;">
+                                <span>{{ $linkedS2->status === 'PLANNED' ? 'Rencana (Bulan 36)' : $linkedS2->status_label }}</span>
+                                <x-icon name="chevron-right" size="12" />
+                            </a>
+                            <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $linkedS2->start_at->toDateString(), 'highlight' => $linkedS2->id, 'selected' => 1]) }}"
+                               class="assessment-cal-shortcut"
+                               style="height: 22px; padding: 2px 7px; font-size: 11px;"
+                               title="Lihat agenda S2 di kalender">
+                                <x-icon name="calendar" size="11" />
+                                <span>Kalender</span>
+                            </a>
+                        </div>
+                    </div>
+                @elseif(!empty($s2['target_date']))
+                    <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
+                        <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $s2['target_date']->toDateString(), 'highlight' => 'lpk_jt_s2_' . $lpk->id, 'selected' => 1]) }}"
+                           class="assessment-cal-shortcut"
+                           style="height: 22px; padding: 2px 7px; font-size: 11px; color: #475569; background: #f8fafc; border-color: #cbd5e1;"
+                           title="Lihat target S2 di kalender">
+                            <x-icon name="calendar" size="11" />
+                            <span>Buka di Kalender</span>
                         </a>
                     </div>
                 @endif
@@ -241,10 +281,30 @@
                     <div>Masa Berlaku Habis: <strong>{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong></div>
                 </div>
                 @if($linkedRA)
-                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                    <div style="margin-top: 8px; font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
                         <span style="color: var(--muted, #64748b);">Agenda Asesmen:</span>
-                        <a href="{{ route('assessments.show', $linkedRA) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7);">
-                            {{ $linkedRA->status === 'PLANNED' ? 'Rencana (Bulan 54)' : $linkedRA->status_label }} &rarr;
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <a href="{{ route('assessments.show', $linkedRA) }}" style="font-weight: 600; text-decoration: underline; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 3px;">
+                                <span>{{ $linkedRA->status === 'PLANNED' ? 'Rencana (Bulan 54)' : $linkedRA->status_label }}</span>
+                                <x-icon name="chevron-right" size="12" />
+                            </a>
+                            <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $linkedRA->start_at->toDateString(), 'highlight' => $linkedRA->id, 'selected' => 1]) }}"
+                               class="assessment-cal-shortcut"
+                               style="height: 22px; padding: 2px 7px; font-size: 11px;"
+                               title="Lihat agenda RA di kalender">
+                                <x-icon name="calendar" size="11" />
+                                <span>Kalender</span>
+                            </a>
+                        </div>
+                    </div>
+                @elseif(!empty($ra['target_date']))
+                    <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
+                        <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $ra['target_date']->toDateString(), 'highlight' => 'lpk_jt_ra_' . $lpk->id, 'selected' => 1]) }}"
+                           class="assessment-cal-shortcut"
+                           style="height: 22px; padding: 2px 7px; font-size: 11px; color: #475569; background: #f8fafc; border-color: #cbd5e1;"
+                           title="Lihat target RA di kalender">
+                            <x-icon name="calendar" size="11" />
+                            <span>Buka di Kalender</span>
                         </a>
                     </div>
                 @endif
@@ -337,33 +397,73 @@
             </div>
             <div style="align-items: start;">
                 <dt style="padding-top: 6px;">Keterangan</dt>
-                <dd style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                    {{-- Status Operasional Otomatis --}}
-                    <div style="font-size: 13.5px; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 9px 12px; line-height: 1.5;">
-                        @if(str_contains($lpk->dynamic_keterangan, ':'))
-                            @php
-                                [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
-                            @endphp
-                            <strong style="color: #0f172a; font-weight: 700;">{{ $processName }}:</strong><span style="color: #334155; font-weight: 500;">{{ $statusDetail }}</span>
-                        @else
-                            <strong style="color: #0f172a; font-weight: 700;">{{ $lpk->dynamic_keterangan }}</strong>
-                        @endif
-                    </div>
+                <dd style="width: 100%;">
+                    <div class="lpk-detail-keterangan-stack">
+                        {{-- Status Operasional Otomatis --}}
+                        @php
+                            $ketLower = strtolower($lpk->dynamic_keterangan);
+                            if (str_contains($ketLower, 'jatuh tempo') || str_contains($ketLower, 'terlampaui') || str_contains($ketLower, 'lewat jadwal') || str_contains($ketLower, 'kedaluwarsa') || str_contains($ketLower, 'dicabut') || str_contains($ketLower, 'dibekukan')) {
+                                $theme = 'rose';
+                                $catLabel = 'Jatuh Tempo';
+                            } elseif (str_contains($ketLower, 'segera berakhir') || str_contains($ketLower, 'reminder') || str_contains($ketLower, 'mendekati kedaluwarsa') || str_contains($ketLower, 'masa berlaku berakhir')) {
+                                $theme = 'amber';
+                                $catLabel = 'Reminder';
+                            } elseif (str_contains($ketLower, 'batas tp') || str_contains($ketLower, 'penyusunan tp') || str_contains($ketLower, 'verifikasi tp') || str_contains($ketLower, 'perpanjangan tp')) {
+                                $theme = 'cyan';
+                                $catLabel = 'Batas TP';
+                            } else {
+                                $theme = 'emerald';
+                                $catLabel = 'Pelaksanaan';
+                            }
 
-                    {{-- Catatan Manual PIC --}}
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; background: {{ $lpk->notes ? '#fefce8' : '#f8fafc' }}; border: 1px solid {{ $lpk->notes ? '#fef08a' : '#e2e8f0' }}; border-radius: 6px; padding: 8px 12px;">
-                        <div style="flex: 1 1 auto; font-size: 13px; color: {{ $lpk->notes ? '#713f12' : 'var(--muted, #64748b)' }}; line-height: 1.5; word-break: break-word;">
-                            <strong style="display: block; font-size: 11px; text-transform: uppercase; color: {{ $lpk->notes ? '#854d0e' : 'var(--muted)' }}; margin-bottom: 2px;">Catatan Khusus PIC:</strong>
-                            @if($lpk->notes)
-                                {!! nl2br(e(trim($lpk->notes))) !!}
-                            @else
-                                <em>Belum ada keterangan.</em>
-                            @endif
+                            $hasColon = str_contains($lpk->dynamic_keterangan, ':');
+                            if ($hasColon) {
+                                [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
+                                $processName = trim($processName);
+                                $statusDetail = trim($statusDetail);
+                            } else {
+                                $processName = null;
+                                $statusDetail = trim($lpk->dynamic_keterangan);
+                            }
+                        @endphp
+
+                        <div class="lpk-keterangan-card lpk-keterangan-auto theme-{{ $theme }}">
+                            <div class="lpk-keterangan-head">
+                                <div class="lpk-keterangan-head-left">
+                                    <span class="lpk-keterangan-type-label">Status Siklus (Otomatis)</span>
+                                    @if($processName)
+                                        <span class="lpk-keterangan-process-badge theme-{{ $theme }}">{{ $processName }}</span>
+                                    @endif
+                                </div>
+                                <span class="lpk-keterangan-cat-tag theme-{{ $theme }}">
+                                    <span class="lpk-keterangan-cat-dot"></span>
+                                    <span>{{ $catLabel }}</span>
+                                </span>
+                            </div>
+                            <div class="lpk-keterangan-body">
+                                {{ $statusDetail }}
+                            </div>
                         </div>
-                        <button type="button" class="button secondary" onclick="window.openModal('modal-input-keterangan')" style="font-size: 12px; padding: 4px 12px; min-height: 30px; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
-                            <x-icon name="edit" size="13" />
-                            <span>{{ $lpk->notes ? 'Ubah Keterangan' : 'Input Keterangan' }}</span>
-                        </button>
+
+                        {{-- Catatan Manual PIC --}}
+                        <div class="lpk-keterangan-card lpk-keterangan-pic {{ $lpk->notes ? 'has-notes' : 'is-empty' }}">
+                            <div class="lpk-keterangan-head">
+                                <div class="lpk-keterangan-head-left">
+                                    <span class="lpk-keterangan-type-label">Catatan Khusus PIC</span>
+                                </div>
+                                <button type="button" class="button secondary button-xs lpk-keterangan-edit-btn" onclick="window.openModal('modal-input-keterangan')">
+                                    <x-icon name="edit" size="13" />
+                                    <span>{{ $lpk->notes ? 'Ubah Keterangan' : 'Input Keterangan' }}</span>
+                                </button>
+                            </div>
+                            <div class="lpk-keterangan-body {{ $lpk->notes ? '' : 'is-empty' }}">
+                                @if($lpk->notes)
+                                    {!! nl2br(e(trim($lpk->notes))) !!}
+                                @else
+                                    <em>Belum ada keterangan.</em>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </dd>
             </div>
@@ -381,30 +481,38 @@
             </div>
 
             @forelse($lpk->assessments->sortBy('start_at') as $item)
-                <a class="assessment-list-row" href="{{ route('assessments.show', $item) }}">
-                    <div class="assessment-list-top">
-                        <div class="assessment-list-title-wrap">
-                            <strong class="assessment-list-title">{{ $item->title }}</strong>
+                <div class="assessment-list-row clickable-row" data-href="{{ route('assessments.show', $item) }}" tabindex="0" role="link" aria-label="{{ $item->title }}">
+                    <div class="assessment-list-content">
+                        <a href="{{ route('assessments.show', $item) }}" class="assessment-list-title">
+                            {{ $item->title }}
+                        </a>
+                        <div class="assessment-list-meta">
+                            <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
+                            @if($item->sk_number)
+                                <span class="assessment-list-sk">
+                                    SK KAN: {{ $item->sk_number }} @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif
+                                    @if($item->sk_lead_time_days !== null)
+                                        &bull; <span style="font-weight: 500; color: #475569;">Durasi: {{ $item->sk_lead_time_days }} hari</span>
+                                    @endif
+                                </span>
+                            @endif
                         </div>
+                    </div>
+                    <div class="assessment-list-actions">
                         <div class="assessment-list-badges">
                             <x-status :value="$item->status" />
                             @if($item->is_submission_overdue)
                                 <span class="badge-tp badge-tp-danger" style="font-size: 10px;" title="Toleransi pengisian asesmen telah terlampaui">Lewat Toleransi</span>
                             @endif
                         </div>
+                        <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $item->start_at->toDateString(), 'highlight' => $item->id, 'selected' => 1]) }}"
+                           class="assessment-cal-shortcut"
+                           title="Lihat agenda ini di kalender">
+                            <x-icon name="calendar" size="12" />
+                            <span>Kalender</span>
+                        </a>
                     </div>
-                    <div class="assessment-list-meta">
-                        <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
-                        @if($item->sk_number)
-                            <span class="assessment-list-sk">
-                                SK KAN: {{ $item->sk_number }} @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif
-                                @if($item->sk_lead_time_days !== null)
-                                    &bull; <span style="font-weight: 500; color: #475569;">Durasi: {{ $item->sk_lead_time_days }} hari</span>
-                                @endif
-                            </span>
-                        @endif
-                    </div>
-                </a>
+                </div>
             @empty
                 <div class="empty">Belum ada agenda asesmen untuk LPK ini.</div>
             @endforelse

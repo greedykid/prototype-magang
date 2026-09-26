@@ -159,57 +159,66 @@
 
 /* Assessment List Item on LPK Detail Panel */
 .assessment-list-row {
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line, #e2e8f0);
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 14px 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 10px;
+    margin: 0 -10px;
+    border-radius: 8px;
     text-decoration: none;
-    transition: background-color 160ms ease, opacity 160ms ease;
+    transition: background-color 160ms ease;
 }
 
 .assessment-list-row:first-of-type {
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line, #e2e8f0);
+}
+
+.assessment-list-row.clickable-row {
+    cursor: pointer;
+}
+
+.assessment-list-row:hover {
+    background-color: var(--surface-subtle, #f8fafc);
 }
 
 .assessment-list-row:hover .assessment-list-title {
     color: var(--primary, #0284c7);
 }
 
-.assessment-list-top {
-    align-items: flex-start;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
+.assessment-list-row:focus-visible {
+    outline: 2px solid var(--primary, #0284c7);
+    outline-offset: -2px;
+    background-color: var(--surface-subtle, #f8fafc);
 }
 
-.assessment-list-title-wrap {
+.assessment-list-content {
     flex: 1 1 auto;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .assessment-list-title {
-    color: var(--ink);
-    display: block;
+    color: var(--ink, #0f172a);
+    display: inline-block;
     font-size: 13.5px;
     font-weight: 600;
     line-height: 1.45;
     overflow-wrap: break-word;
     word-break: break-word;
+    text-decoration: none;
     transition: color 150ms ease;
 }
 
-.assessment-list-badges {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    gap: 5px;
-    min-width: max-content;
+.assessment-list-title:hover {
+    color: var(--primary, #0284c7);
 }
 
 .assessment-list-meta {
-    color: var(--muted);
+    color: var(--muted, #64748b);
     display: flex;
     flex-direction: column;
     font-size: 12px;
@@ -222,4 +231,65 @@
     font-size: 11.5px;
     font-weight: 600;
 }
+
+.assessment-list-actions {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+    padding-top: 1px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.assessment-list-badges {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.assessment-cal-shortcut {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--primary, #0284c7);
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    padding: 3px 9px;
+    min-height: 24px;
+    text-decoration: none;
+    transition: all 150ms ease;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.assessment-cal-shortcut:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+}
+
+.assessment-cal-shortcut:focus-visible {
+    outline: 2px solid var(--primary, #0284c7);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .assessment-list-row {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 6px;
+        margin: 0 -6px;
+    }
+    .assessment-list-actions {
+        width: 100%;
+        justify-content: space-between;
+        padding-top: 0;
+    }
+}
+
 
