@@ -32,16 +32,16 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
    * Re-Akreditasi / Akreditasi Ulang (RA / `REASSESSMENT`)
 
 2. **Toleransi Pengisian & Siklus Hidup 3 Tahap Surveilen:**
-   * **Tahap 1 (Toleransi Berjalan)**: Batas waktu pengisian dokumen surveilen berlaku hingga akhir bulan tanggal kunjungan (`submission_due_date = end_at->endOfMonth()`).
+   * **Tahap 1 (Toleransi Berjalan)**: Batas waktu pengisian dokumen surveilen berlaku maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan, tersimpan pada kolom `submission_due_date` yang fleksibel dapat diedit sesuai kondisi proses di lapangan.
    * **Tahap 2 (Dibekukan / Jendela Penyelesaian 1 Tahun)**: Jika melewati batas toleransi pengisian tanpa penyelesaian, status asesmen dan LPK otomatis berubah menjadi **DIBEKUKAN** (`SUSPENDED`, badge warna ungu kontras `#f3e8ff` dengan teks `#6b21a8`). LPK diberikan hak dan kesempatan menyelesaikan asesmennya selama 1 tahun penuh dengan indikator hitung mundur (*countdown*).
    * **Tahap 3 (Dicabut)**: Jika setelah 1 tahun masa pembekuan terlampaui asesmen belum selesai, status akreditasi LPK otomatis beralih menjadi **DICABUT** (`REVOKED`, badge merah).
    * **Aturan Auto-Realisasi LPK Aktif**: Seluruh data surveilen dan tindakan perbaikan masa lalu (`end_at < now()->startOfYear()`) dari LPK yang saat ini berstatus AKTIF otomatis dianggap terealisasi (`COMPLETED` dan `SATISFIED`).
 
-3. **Mesin Penegakan SLA Tindakan Perbaikan (TP & VTP):**
-   * **SLA Dasar**: 3 bulan untuk Akreditasi Awal (AA) dan 2 bulan untuk proses asesmen lainnya.
-   * **Perpanjangan Waktu**: Maksimal 1 bulan dengan syarat ketat: LPK telah melakukan perbaikan sebagian dari temuan ketidaksesuaian asesmen (misal 8 dari 10 temuan selesai) dan menyertakan Nomor Surat Permohonan Resmi. Jika tidak ada perbaikan sama sekali (kosong) selama 2 atau 3 bulan awal, proses dihentikan dan LPK langsung dibekukan.
-   * **Status Otomatis**: Tanpa input manual status TP. Status otomatis "Sedang Berlangsung" sebelum jatuh tempo, "Dibekukan" bila melewati SLA tanpa pemenuhan, dan "Selesai/Memenuhi" saat tanggal pemenuhan (`tp_satisfied_at`) dicatat.
-   * **Pengingat Kalender**: Pengingat TP 2 bulan untuk AA, 1 bulan untuk asesmen lain; pengingat jatuh tempo; dan pengingat SK 10 hari kalender setelah pemenuhan TP.
+3. **Mesin Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):**
+   * **Batas Waktu Dasar**: 3 bulan untuk Akreditasi Awal (AA) dan 2 bulan untuk proses asesmen lainnya.
+   * **Perpanjangan Waktu**: Maksimal 1 bulan dengan syarat ketat: LPK telah melakukan perbaikan sebagian dari temuan ketidaksesuaian asesmen dan menyertakan Nomor Surat Permohonan Resmi (otomatis memperpanjang +1 bulan saat nomor surat resmi diinput). Jika tidak ada perbaikan sama sekali (kosong), proses dapat dihentikan oleh PIC dan tidak diperpanjang.
+   * **Status Otomatis**: Tanpa input manual status TP. Status otomatis "Sedang Berlangsung" sebelum jatuh tempo, "Dibekukan" bila melewati batas waktu tanpa pemenuhan, dan "Selesai/Memenuhi" saat tanggal pemenuhan (`tp_satisfied_at`) dicatat.
+   * **Pengingat Kalender**: Pengingat H-1 bulan sebelum batas waktu, notifikasi final berdasarkan tanggal realisasi asesmen, dan pengingat SK 10 hari kalender setelah pemenuhan TP.
 
 4. **Alur Evaluasi Hasil Asesmen (EHA) & Penerbitan SK:**
    * Pencatatan tanggal rencana sidang EHA, tanggal realisasi EHA, dan rekomendasi tim panitia teknis.
@@ -147,8 +147,8 @@ docker exec prototype-magang-laravel php artisan test
 
 **Hasil Pengujian Terkini:**
 ```text
-Tests:    119 passed (680 assertions)
-Duration: ~35s
+Tests:    143 passed (829 assertions)
+Duration: ~69s
 Status:   100% Passed
 ```
 

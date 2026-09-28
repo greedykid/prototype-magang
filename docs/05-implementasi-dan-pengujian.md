@@ -59,12 +59,12 @@ prototype-magang/
 
 #### 5.1.3 Fitur Teknis Kunci yang Diimplementasikan
 1. **Mesin Toleransi Surveilen 3 Tahap & Pembekuan Bertahap:**
-   * Menghitung batas toleransi pengisian dokumen surveilen sampai akhir bulan tanggal kunjungan (`submission_due_date = end_at->endOfMonth()`).
+   * Menghitung batas toleransi pengisian dokumen surveilen maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan, tersimpan permanen pada kolom `submission_due_date` yang fleksibel dapat disesuaikan pada formulir asesmen.
    * Mengubah status asesmen dan LPK seketika menjadi DIBEKUKAN (`SUSPENDED`, badge ungu kontras `#f3e8ff` dengan teks `#6b21a8`) bila melewati toleransi tanpa penyelesaian, memberikan jendela hak penyelesaian 1 tahun, dan mencabut status akreditasi (`REVOKED`) jika batas 1 tahun terlampaui.
    * Auto-realisasi data historis: bila LPK aktif saat ini, seluruh asesmen surveilen dan TP masa lalu (`end_at < now()->startOfYear()`) otomatis berstatus selesai (`COMPLETED` dan `SATISFIED`).
-2. **Mesin Penegakan SLA Tindakan Perbaikan (TP & VTP):**
-   * Menghitung otomatis SLA dasar (3 bulan untuk AA, 2 bulan untuk proses lainnya).
-   * Membatasi perpanjangan maksimal 1 bulan hanya jika ada progres tindak lanjut nyata terhadap temuan ketidaksesuaian serta menyertakan nomor surat permohonan resmi. Jika perbaikan kosong, perpanjangan ditolak dan LPK langsung dibekukan.
+2. **Mesin Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):**
+   * Menghitung otomatis batas waktu dasar (3 bulan untuk AA, 2 bulan untuk proses lainnya).
+   * Membatasi perpanjangan maksimal 1 bulan hanya jika ada progres tindak lanjut nyata terhadap temuan ketidaksesuaian. Pengisian nomor surat permohonan resmi LPK pada form secara otomatis memperpanjang tanggal jatuh tempo +1 bulan (total 4 bulan AA, 3 bulan lainnya). Jika perbaikan kosong sama sekali, perpanjangan tidak diberikan dan proses dapat dihentikan oleh PIC.
    * Status TP dihitung sepenuhnya oleh sistem tanpa input manual: Sedang Berlangsung, Dibekukan (ungu) bila lewat batas waktu, dan Memenuhi bila telah diselesaikan.
 3. **Penyederhanaan Keterangan Operasional Otomatis (`dynamic_keterangan`):**
    * Keterangan diformat langsung pada teks kegiatan inti yang dicetak tebal (contoh: **Surveilen 1: Terjadwal 29/03/2027**), menghapus awalan teks administratif redundan.
@@ -72,6 +72,8 @@ prototype-magang/
    * Baris tabel pada modul LPK dan Asesmen dapat diklik langsung untuk menuju halaman detail, mempercepat navigasi pengguna tanpa harus mengklik tombol teks kecil.
 5. **Penyelarasan Posisi Toggle di Layar Ponsel & Filter Drawer:**
    * Pada resolusi mobile (`<= 600px`), tombol toggle mode tampilan sejajar secara presisi di samping tombol filter data, dan panel filter meluncur mulus dari sisi kanan layar (*slide-out drawer*).
+6. **Kustomisasi Scrollbar & Penegasan Badge:**
+   * Seluruh tampilan aplikasi menggunakan desain scrollbar kustom yang ramping dan modern, termasuk scrollbar di dalam modal. Badge jatuh tempo ditegaskan dengan warna merah, serta badge sistem disederhanakan tanpa bullet/dot dekoratif.
 
 ---
 
@@ -82,24 +84,27 @@ Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasi
 
 #### 5.2.2 Matriks Kasus Uji Otomatis (PHPUnit Feature Tests)
 
-Semua pengujian berikut tercakup dalam 14 berkas test di `tests/Feature/`:
+Semua pengujian berikut tercakup dalam 17 berkas test di `tests/Feature/`:
 
 | No | File Test | Fokus Skenario Pengujian | Hasil |
 |---|---|---|---|
-| 1 | `AssessmentImportTest` | Menguji pengunduhan template impor asesmen, validasi header kolom wajib, dan impor massal dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | **PASSED** |
-| 2 | `AssessmentStatusAutoTest` | Menguji siklus toleransi akhir bulan kunjungan, pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan akreditasi (REVOKED), dan auto-realisasi data lampau LPK aktif. | **PASSED** |
-| 3 | `AssessmentTpVtpTest` | Menguji SLA dasar 3 bulan (AA) dan 2 bulan (lainnya), perpanjangan 1 bulan bersyarat, larangan perpanjangan jika perbaikan kosong, sinkronisasi kalender, dan pengingat SK 10 hari. | **PASSED** |
-| 4 | `CalendarEventTest` | Menguji tampilan kalender, pembuatan agenda event, validasi waktu (selesai >= mulai), pemilih langsung bulan dan tahun dinamis, serta rendering 5 tipe kategori warna event. | **PASSED** |
-| 5 | `ClickableTableRowsTest` | Menguji interaktivitas seluruh baris tabel master LPK dan program asesmen yang dapat diklik langsung menuju tautan detail. | **PASSED** |
-| 6 | `ErrorPageTest` | Menguji rendering halaman kustom 403 Forbidden (pembatasan hak akses) dan 404 Not Found baik untuk sesi login maupun pengunjung publik. | **PASSED** |
-| 7 | `ExampleTest` | Menguji pengalihan akses halaman publik utama ke portal login dengan status 302 Redirect yang aman. | **PASSED** |
-| 8 | `GoogleSheetsIntegrationTest` | Menguji ekspor CSV terotentikasi, endpoint live feed CSV (`/feeds/*`) dengan validasi secret API key, serta tampilan modal panduan formula `=IMPORTDATA`. | **PASSED** |
-| 9 | `LpkImportTest` | Menguji impor massal master LPK dari file CSV, file XLSX, dan live link Google Sheets menggunakan logika *Smart Upsert* serta pembatasan peran PIC dari aksi impor. | **PASSED** |
-| 10 | `PrototypeFlowTest` | Menguji alur operasional end-to-end: login, dashboard metrik, pembuatan LPK dengan otomasi masa berlaku (+5 tahun), filter server-side, pengiriman email peringatan surveilen, dan perhitungan lead time SK. | **PASSED** |
-| 11 | `RoleAccessControlTest` | Menguji pembatasan hak akses RBAC: Admin unit memiliki akses penuh, PIC laboratorium terisolasi hanya pada LPK kelolaan sendiri dan dilarang mengelola LPK milik PIC lain. | **PASSED** |
-| 12 | `SimasadiFeaturesTest` | Menguji pelaporan dan verifikasi biaya perjalanan dinas asesor (SBM PMK), penerbitan billing SIMPONI 15 digit, pencatatan nomor NTPN sah, e-Sign BSrE, dan Quality Gate rilis SK. | **PASSED** |
-| 13 | `UserManagementTest` | Menguji manajemen akun pengguna internal oleh Administrator Unit: pencarian, filter, penambahan user baru, pembaruan password, dan proteksi larangan menghapus akun sendiri. | **PASSED** |
-| 14 | `UserProfileTest` | Menguji pembaruan profil mandiri pengguna: pengubahan nama, verifikasi keunikan email, dan validasi kecocokan kata sandi lama saat mengganti kata sandi. | **PASSED** |
+| 1 | `AccreditationCycleRenewalTest` | Menguji pembaruan otomatis masa akreditasi LPK ke siklus 5 tahun berikutnya saat asesmen Re-Akreditasi selesai dengan SK resmi terbit. | **PASSED** |
+| 2 | `AssessmentImportTest` | Menguji pengunduhan template impor asesmen, validasi header kolom wajib, dan impor massal dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | **PASSED** |
+| 3 | `AssessmentPartialFilterTest` | Menguji request parsial AJAX tabel asesmen, filter pencarian live, status filter, dan state kosong tanpa memuat ulang seluruh layout. | **PASSED** |
+| 4 | `AssessmentStatusAutoTest` | Menguji siklus toleransi pengisian dokumen (default 4 bulan dari bulan ke-15 siklus akreditasi / tanggal kunjungan, serta persistensi input kustom), pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan akreditasi (REVOKED), dan auto-realisasi data lampau LPK aktif. | **PASSED** |
+| 5 | `AssessmentTpVtpTest` | Menguji batas waktu dasar 3 bulan (AA) dan 2 bulan (lainnya), perpanjangan 1 bulan bersyarat, larangan perpanjangan jika perbaikan kosong, sinkronisasi kalender, dan pengingat SK 10 hari. | **PASSED** |
+| 6 | `CalendarEventTest` | Menguji tampilan kalender, pembuatan agenda event, validasi waktu (selesai >= mulai), pemilih langsung bulan dan tahun dinamis, serta rendering 5 tipe kategori warna event. | **PASSED** |
+| 7 | `ClickableTableRowsTest` | Menguji interaktivitas seluruh baris tabel master LPK dan program asesmen yang dapat diklik langsung menuju tautan detail. | **PASSED** |
+| 8 | `ErrorPageTest` | Menguji rendering halaman kustom 403 Forbidden (pembatasan hak akses) dan 404 Not Found baik untuk sesi login maupun pengunjung publik. | **PASSED** |
+| 9 | `ExampleTest` | Menguji pengalihan akses halaman publik utama ke portal login dengan status 302 Redirect yang aman. | **PASSED** |
+| 10 | `GoogleSheetsIntegrationTest` | Menguji ekspor CSV terotentikasi, endpoint live feed CSV (`/feeds/*`) dengan validasi secret API key, serta tampilan modal panduan formula `=IMPORTDATA`. | **PASSED** |
+| 11 | `LpkImportTest` | Menguji impor massal master LPK dari file CSV, file XLSX, dan live link Google Sheets menggunakan logika *Smart Upsert* serta pembatasan peran PIC dari aksi impor. | **PASSED** |
+| 12 | `LpkPartialFilterTest` | Menguji request parsial AJAX tabel master LPK dan filter pencarian live instan tanpa reload halaman. | **PASSED** |
+| 13 | `PrototypeFlowTest` | Menguji alur operasional end-to-end: login, dashboard metrik, pembuatan LPK dengan otomasi masa berlaku (+5 tahun), filter server-side, pengiriman email peringatan surveilen, dan perhitungan lead time SK. | **PASSED** |
+| 14 | `RoleAccessControlTest` | Menguji pembatasan hak akses RBAC: Admin unit memiliki akses penuh, PIC laboratorium terisolasi hanya pada LPK kelolaan sendiri dan dilarang mengelola LPK milik PIC lain. | **PASSED** |
+| 15 | `SimasadiFeaturesTest` | Menguji pelaporan dan verifikasi biaya perjalanan dinas asesor (SBM PMK), penerbitan billing SIMPONI 15 digit, pencatatan nomor NTPN sah, e-Sign BSrE, dan Quality Gate rilis SK. | **PASSED** |
+| 16 | `UserManagementTest` | Menguji manajemen akun pengguna internal oleh Administrator Unit: pencarian, filter, penambahan user baru, pembaruan password, dan proteksi larangan menghapus akun sendiri. | **PASSED** |
+| 17 | `UserProfileTest` | Menguji pembaruan profil mandiri pengguna: pengubahan nama, verifikasi keunikan email, dan validasi kecocokan kata sandi lama saat mengganti kata sandi. | **PASSED** |
 
 #### 5.2.3 Bukti Hasil Eksekusi Uji Otomatis
 
@@ -239,8 +244,8 @@ Hasil eksekusi:
   ✓ user cannot update password with incorrect current password          0.05s  
   ✓ user cannot update password with mismatched confirmation             0.05s  
 
-  Tests:    119 passed (680 assertions)
-  Duration: 35.78s
+  Tests:    143 passed (829 assertions)
+  Duration: 69.27s
 ```
 
 #### 5.2.4 Matriks Pengujian Antarmuka & Responsivitas Manual

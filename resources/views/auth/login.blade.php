@@ -32,10 +32,10 @@
         <div class="role-pills-grid" role="group" aria-label="Pilihan peran" style="grid-template-columns: repeat(2, 1fr);">
             <button type="button" class="role-pill-btn is-active" data-email="admin@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
-                    <span class="role-pill-name">Admin Unit Lab</span>
-                    <span class="badge-role badge-role-admin">Admin</span>
+                    <span class="role-pill-name">Ketua Tim</span>
+                    <span class="badge-role badge-role-admin">Ketua Tim</span>
                 </div>
-                <span class="role-pill-desc">Akses penuh administrasi unit</span>
+                <span class="role-pill-desc">Akses penuh koordinasi tim & supervisi unit</span>
             </button>
             <button type="button" class="role-pill-btn" data-email="pic@simasadi.local" data-pass="password">
                 <div class="role-pill-top">

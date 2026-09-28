@@ -32,21 +32,21 @@ Chosen option: **Option 1 (Rule Engine in Eloquent Accessors with Dynamic Evalua
 
 ### Key Architectural Rules:
 1. **Three-Stage Surveillance Lifecycle**:
-   - *Stage 1 (Normal / In Progress)*: Document submission tolerance valid until the end of the visit month (`submission_due_date = end_at->endOfMonth()`).
+   - *Stage 1 (Normal / In Progress)*: Document submission tolerance valid up to 4 months from month 15 of accreditation cycle (or 4 months from visit date), persisted in `submission_due_date` column with full manual override flexibility on the assessment form.
    - *Stage 2 (Suspended / 1-Year Resolution Window)*: Automatically transitions to `SUSPENDED` (purple badge `#f3e8ff` with text `#6b21a8`) if tolerance passes without completion. The LPK is granted a 1-year resolution opportunity with a countdown display.
    - *Stage 3 (Revocation)*: Automatically transitions to `REVOKED` if the 1-year suspension window expires without resolution.
 2. **Auto-Realization for Currently Active LPKs**:
    - If an LPK is currently `ACTIVE`, historical assessments and TP from past years (`end_at < now()->startOfYear()`) are automatically evaluated as `COMPLETED` and `SATISFIED`.
 3. **Corrective Action SLA Engine**:
    - Base SLA: 3 calendar months for Akreditasi Awal (AA), 2 calendar months for other assessments.
-   - Extension: Exactly 1 month extension allowed only if there is proven progress on finding nonconformities and an official letter number is provided. Extension is strictly disallowed if progress is empty.
+   - Extension: Exactly 1 month extension allowed only if there is proven progress on finding nonconformities and an official letter number is provided. Extension is strictly disallowed if progress is empty. Entering letter number automatically sets +1 month extension.
    - Dynamic status: "Sedang Berlangsung" (in progress) -> "Dibekukan" (suspended, purple) when overdue without satisfaction -> "Memenuhi / Selesai" when satisfied date is recorded. Manual status input is disabled.
 
 ### Positive Consequences
 
 - Status is always 100% synchronized with current real-time dates.
 - Zero risk of operator error in setting or forgetting to update statuses.
-- Complete regulatory traceability across all 119 automated feature tests (680 assertions).
+- Complete regulatory traceability across all 143 automated feature tests (829 assertions).
 
 ### Negative Consequences / Trade-offs
 

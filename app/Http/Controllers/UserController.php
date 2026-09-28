@@ -123,11 +123,11 @@ class UserController extends Controller
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ]);
 
-        // Proteksi keamanan: Admin yang sedang login tidak boleh mendegradasi perannya sendiri
+        // Proteksi keamanan: Ketua Tim yang sedang login tidak boleh mendegradasi perannya sendiri
         if ($request->user()->id === $user->id && $validated['role'] !== User::ROLE_ADMIN) {
             return back()
                 ->withInput()
-                ->with('error', 'Anda tidak dapat menurunkan peran akun Anda sendiri dari Administrator.');
+                ->with('error', 'Anda tidak dapat menurunkan peran akun Anda sendiri dari Ketua Tim.');
         }
 
         $payload = [

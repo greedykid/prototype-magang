@@ -436,6 +436,7 @@ class AssessmentStatusAutoTest extends TestCase
             'assessment_type' => 'Surveilen 1',
             'start_at' => now()->subMonths(4),
             'end_at' => now()->subMonths(4)->addDays(2),
+            'submission_due_date' => now()->subMonths(4)->endOfMonth()->toDateString(),
             'status' => 'IN_PROGRESS',
         ]);
 
@@ -452,6 +453,7 @@ class AssessmentStatusAutoTest extends TestCase
             'assessment_type' => 'Surveilen 1',
             'start_at' => now()->subMonths(15),
             'end_at' => now()->subMonths(15)->addDays(2),
+            'submission_due_date' => now()->subMonths(15)->endOfMonth()->toDateString(),
             'status' => 'IN_PROGRESS',
         ]);
 
@@ -482,10 +484,12 @@ class AssessmentStatusAutoTest extends TestCase
         // Pastikan ada hidden input untuk submit otomatis
         $response->assertSee('name="tp_status"', false);
         $response->assertSee('id="input-auto-tp-status"', false);
-        // Pastikan preview status TP menampilkan Sedang Berlangsung
+        // Pastikan preview status TP menampilkan Sedang Berlangsung dan teks hint tunggal di bawah
         $response->assertSee('id="tp-status-badge-preview"', false);
         $response->assertSee('Sedang Berlangsung');
         $response->assertSee('status-in_progress');
+        $response->assertSee('id="tp-status-desc-preview"', false);
+        $response->assertSee('* Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan aktif berlangsung.');
     }
 
     public function test_form_renders_satisfied_when_tp_satisfied_at_filled(): void
@@ -508,6 +512,8 @@ class AssessmentStatusAutoTest extends TestCase
         $response->assertDontSee('<select name="tp_status"', false);
         $response->assertSee('Dinyatakan Memenuhi (Selesai)');
         $response->assertSee('status-completed');
+        $response->assertSee('id="tp-status-desc-preview"', false);
+        $response->assertSee('* Otomatis: Tindakan perbaikan telah dinyatakan memenuhi.');
     }
 
     public function test_suspended_badge_uses_purple_color_instead_of_red(): void
@@ -534,4 +540,206 @@ class AssessmentStatusAutoTest extends TestCase
         $response->assertSee('badge-tp badge-tp-suspended', false);
         $response->assertSee('status status-suspended', false);
     }
+
+    public function test_form_renders_custom_datepicker_and_simplified_date_range_inputs(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('assessments.create', ['lpk_id' => $this->lpk->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('type="datetime-local"', false);
+        $response->assertDontSee('type="time"', false);
+        $response->assertDontSee('Jam Mulai Pelaksanaan');
+        $response->assertDontSee('Jam Selesai Pelaksanaan');
+        $response->assertSee('name="start_date"', false);
+        $response->assertSee('type="date"', false);
+        $response->assertSee('name="start_time"', false);
+        $response->assertSee('name="end_date"', false);
+        $response->assertSee('name="end_time"', false);
+    }
+
+    public function test_store_with_split_date_and_time_fields_creates_assessment(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('assessments.store'), [
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen dengan Picker Custom',
+            'assessment_type' => 'Surveilen 1',
+            'start_date' => '2026-10-15',
+            'start_time' => '08:30',
+            'end_date' => '2026-10-17',
+            'end_time' => '16:45',
+            'location' => 'Laboratorium Terpadu',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $assessment = Assessment::where('title', 'Asesmen dengan Picker Custom')->first();
+        $this->assertNotNull($assessment);
+        $this->assertEquals('2026-10-15 08:30:00', $assessment->start_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2026-10-17 16:45:00', $assessment->end_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('SCHEDULED', $assessment->status);
+    }
+
+    public function test_update_with_split_date_and_time_fields(): void
+    {
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen Untuk Update',
+            'assessment_type' => 'Surveilen 1',
+            'start_at' => now()->addDays(5),
+            'end_at' => now()->addDays(7),
+            'status' => 'SCHEDULED',
+        ]);
+
+        $response = $this->actingAs($this->admin)->put(route('assessments.update', $assessment), [
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen Berhasil Diperbarui',
+            'assessment_type' => 'Surveilen 1',
+            'start_date' => '2026-11-01',
+            'start_time' => '10:00',
+            'end_date' => '2026-11-03',
+            'end_time' => '15:30',
+            'location' => 'Gedung KAN',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $assessment->refresh();
+        $this->assertEquals('Asesmen Berhasil Diperbarui', $assessment->title);
+        $this->assertEquals('2026-11-01 10:00:00', $assessment->start_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2026-11-03 15:30:00', $assessment->end_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_form_renders_tp_extension_badge_and_automatically_extended_due_date(): void
+    {
+        $start = now()->subMonth();
+        $end = $start->copy()->addDays(2);
+        $defaultDueDate = $end->copy()->addMonths(2); // Surveilen 1 -> 2 bulan
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen dengan Surat Perpanjangan',
+            'assessment_type' => 'Surveilen 1',
+            'start_at' => $start,
+            'end_at' => $end,
+            'status' => 'IN_PROGRESS',
+            'tp_status' => 'IN_PROGRESS',
+            'tp_due_date' => $defaultDueDate,
+            'tp_has_extension' => true,
+            'tp_extension_letter_no' => '99/LPK-EXT/2026',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('assessments.edit', $assessment));
+
+        $response->assertOk();
+        $response->assertSee('Nomor Surat Resmi LPK');
+        $response->assertSee('Otomatis +1 Bulan (Surat LPK)');
+        $response->assertSee('data-is-extended="1"', false);
+        // Date should be extended by +1 month (3 months from end)
+        $expectedExtendedDate = $defaultDueDate->copy()->addMonth()->format('Y-m-d');
+        $response->assertSee('value="' . $expectedExtendedDate . '"', false);
+    }
+
+    public function test_store_with_tp_extension_letter_no_sets_has_extension(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('assessments.store'), [
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen Otomatis Perpanjangan',
+            'assessment_type' => 'Surveilen 1',
+            'start_date' => now()->subDays(10)->format('Y-m-d'),
+            'start_time' => '09:00',
+            'end_date' => now()->subDays(8)->format('Y-m-d'),
+            'end_time' => '17:00',
+            'location' => 'Laboratorium',
+            'tp_status' => 'IN_PROGRESS',
+            'tp_extension_letter_no' => '101/LPK/PERPANJANGAN/2026',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $assessment = Assessment::where('title', 'Asesmen Otomatis Perpanjangan')->first();
+        $this->assertNotNull($assessment);
+        $this->assertTrue((bool) $assessment->tp_has_extension);
+        $this->assertEquals('101/LPK/PERPANJANGAN/2026', $assessment->tp_extension_letter_no);
+    }
+
+    public function test_effective_tp_due_date_does_not_double_extend(): void
+    {
+        $end = now()->subDays(5);
+        $defaultDueDate = $end->copy()->addMonths(2)->startOfDay();
+        $extendedDueDate = $defaultDueDate->copy()->addMonth()->startOfDay();
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $this->lpk->id,
+            'title' => 'Asesmen Cek Double Extend',
+            'assessment_type' => 'Surveilen 1',
+            'start_at' => $end->copy()->subDays(2),
+            'end_at' => $end,
+            'status' => 'IN_PROGRESS',
+            'tp_status' => 'IN_PROGRESS',
+            'tp_due_date' => $extendedDueDate,
+            'tp_has_extension' => true,
+            'tp_extension_months' => 1,
+            'tp_extension_letter_no' => '102/LPK/EXT/2026',
+        ]);
+
+        // Effective date should be $extendedDueDate, NOT $extendedDueDate + 1 month
+        $this->assertEquals($extendedDueDate->toDateString(), $assessment->effective_tp_due_date->toDateString());
+    }
+
+    public function test_submission_due_date_default_calculation_and_custom_input_persistence(): void
+    {
+        // 1. Create LPK with specific certificate_date
+        $certDate = now()->subMonths(6);
+        $lpk = Lpk::factory()->create([
+            'certificate_date' => $certDate->toDateString(),
+            'status' => 'ACTIVE',
+        ]);
+
+        // Default: Month 15 + 4 = Month 19 from certificate_date
+        $expectedDefaultDue = $certDate->copy()->addMonths(15)->addMonths(4)->endOfMonth();
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Uji Toleransi S1',
+            'assessment_type' => 'Surveilen 1',
+            'start_at' => now()->addMonths(3),
+            'end_at' => now()->addMonths(3)->addDays(2),
+            'submission_due_date' => null,
+        ]);
+
+        $this->assertEquals($expectedDefaultDue->toDateString(), $assessment->submission_due_date->toDateString());
+
+        // 2. Form renders the default submission due date
+        $response = $this->actingAs($this->admin)->get(route('assessments.edit', $assessment));
+        $response->assertOk();
+        $response->assertSee('Tanggal Toleransi Pengisian');
+        $response->assertSee($expectedDefaultDue->format('Y-m-d'));
+
+        // 3. Update with custom submission due date
+        $customDate = now()->addMonths(8)->format('Y-m-d');
+        $updateResponse = $this->actingAs($this->admin)->put(route('assessments.update', $assessment), [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Uji Toleransi S1 - Updated',
+            'assessment_type' => 'Surveilen 1',
+            'start_date' => now()->addMonths(3)->format('Y-m-d'),
+            'start_time' => '09:00',
+            'end_date' => now()->addMonths(3)->addDays(2)->format('Y-m-d'),
+            'end_time' => '17:00',
+            'submission_due_date' => $customDate,
+            'location' => 'Laboratorium Pengujian',
+        ]);
+
+        $updateResponse->assertRedirect();
+        $assessment->refresh();
+        $this->assertEquals($customDate, $assessment->submission_due_date->format('Y-m-d'));
+
+        // 4. Show page displays custom submission due date
+        $showResponse = $this->actingAs($this->admin)->get(route('assessments.show', $assessment));
+        $showResponse->assertOk();
+        $showResponse->assertSee($assessment->submission_due_date->format('d M Y'));
+    }
 }
+

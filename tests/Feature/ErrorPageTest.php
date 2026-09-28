@@ -21,7 +21,7 @@ class ErrorPageTest extends TestCase
         $response->assertSee('403 &bull; Batasan Akses', false);
         $response->assertSee('Akses ke Fitur Ini Dibatasi');
         $response->assertSee('PIC Laboratorium');
-        $response->assertSee('Administrator Unit Akreditasi KAN');
+        $response->assertSee('Ketua Tim Akreditasi KAN');
         $response->assertSee('Kembali ke Ringkasan');
     }
 

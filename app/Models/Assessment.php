@@ -109,7 +109,11 @@ class Assessment extends Model
             if ($baseDueDate) {
                 $effectiveDueDate = $baseDueDate->copy()->startOfDay();
                 if ($tpHasExtension && (int) $tpExtensionMonths > 0) {
-                    $effectiveDueDate->addMonths(min(1, max(1, (int) $tpExtensionMonths)));
+                    $defaultBase = self::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
+                    $extMonths = min(1, max(1, (int) $tpExtensionMonths));
+                    if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonths($extMonths)->toDateString())) {
+                        $effectiveDueDate->addMonths($extMonths);
+                    }
                 }
 
                 if ($now->startOfDay()->gt($effectiveDueDate)) {
@@ -204,6 +208,7 @@ class Assessment extends Model
         'assessment_type',
         'start_at',
         'end_at',
+        'submission_due_date',
         'report_date',
         'eha_date',
         'eha_status',
@@ -231,6 +236,7 @@ class Assessment extends Model
         return [
             'start_at' => 'datetime',
             'end_at' => 'datetime',
+            'submission_due_date' => 'date',
             'report_date' => 'date',
             'eha_date' => 'date',
             'tp_due_date' => 'date',
@@ -331,17 +337,49 @@ class Assessment extends Model
     }
 
     /**
-     * Batas akhir toleransi pengisian hasil asesmen:
-     * Batas terakhir pada bulan dan tahun yang sama dengan waktu pelaksanaan/kunjungan (end_at).
-     * Contoh: Kunjungan 18 April 2026 -> Batas akhir 30 April 2026 (pada tahun 2026 yang sama).
+     * Hitung tanggal default toleransi pengisian dokumen asesmen.
+     * Standar KAN: Maksimal batas toleransi pengisian adalah 4 bulan dari bulan ke-15 siklus akreditasi (Bulan 15 + 4 = Bulan 19).
+     * Jika tidak ada tanggal sertifikat LPK, default 4 bulan dari tanggal pelaksanaan asesmen.
+     */
+    public function calculateDefaultSubmissionDueDate(): ?Carbon
+    {
+        $lpk = $this->relationLoaded('lpk') ? $this->lpk : $this->lpk()->first();
+        $certDate = $lpk?->certificate_date ?: ($lpk?->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
+
+        if ($certDate) {
+            $isS2 = str_contains(strtolower($this->assessment_type ?: ''), 's2') || str_contains(strtolower($this->title ?: ''), 's2');
+            if ($isS2) {
+                // S2: Bulan ke-36 + 4 bulan = bulan ke-40
+                return $certDate->copy()->addMonths(36)->addMonths(4)->endOfMonth()->endOfDay();
+            }
+
+            // Standar S1 / Surveilen: 4 bulan dari bulan ke-15 siklus akreditasi (Bulan ke-15 + 4 bulan = bulan ke-19)
+            return $certDate->copy()->addMonths(15)->addMonths(4)->endOfMonth()->endOfDay();
+        }
+
+        if ($this->end_at) {
+            return $this->end_at->copy()->addMonths(4)->endOfMonth()->endOfDay();
+        }
+
+        if ($this->start_at) {
+            return $this->start_at->copy()->addMonths(4)->endOfMonth()->endOfDay();
+        }
+
+        return null;
+    }
+
+    /**
+     * Batas waktu toleransi pengisian dokumen surveilen.
+     * Menggunakan nilai dari kolom database jika telah diinputkan/disimpan,
+     * atau menghitung batas bawaan resmi (4 bulan dari bulan ke-15).
      */
     public function getSubmissionDueDateAttribute(): ?Carbon
     {
-        if (! $this->end_at) {
-            return null;
+        if (! empty($this->attributes['submission_due_date'])) {
+            return Carbon::parse($this->attributes['submission_due_date'])->endOfDay();
         }
 
-        return $this->end_at->copy()->endOfMonth()->endOfDay();
+        return $this->calculateDefaultSubmissionDueDate();
     }
 
     /**
@@ -380,6 +418,11 @@ class Assessment extends Model
         $lpk = $this->relationLoaded('lpk') ? $this->lpk : $this->lpk()->first();
         if (! $lpk || $lpk->getRawOriginal('status') !== 'ACTIVE') {
             return false;
+        }
+
+        // Jika asesmen selesai sebelum tanggal sertifikat siklus berjalan LPK, otomatis merupakan asesmen siklus lampau
+        if ($this->end_at && $lpk->certificate_date && $this->end_at->lt($lpk->certificate_date->copy()->startOfDay())) {
+            return true;
         }
 
         // Jika tanggal selesai berada di tahun sebelum tahun berjalan, otomatis terealisasikan
@@ -429,6 +472,12 @@ class Assessment extends Model
         }
 
         if ($this->isPastSurveillanceForActiveLpk()) {
+            return false;
+        }
+
+        // Jika jadwal pelaksanaan asesmen masih di masa depan (belum berlangsung),
+        // maka toleransi pengisian dokumen belum bisa dikatakan lewat / overdue
+        if ($this->start_at && now()->lt($this->start_at)) {
             return false;
         }
 
@@ -542,8 +591,15 @@ class Assessment extends Model
         }
 
         if ($this->tp_has_extension && $this->tp_extension_months > 0) {
-            // Regulasi KAN membatasi perpanjangan maksimal 1 bulan
+            $defaultBase = $this->calculateDefaultTpDueDate();
             $extensionMonths = min(1, max(1, (int) $this->tp_extension_months));
+
+            // Jika tp_due_date sudah sama persis dengan tanggal setelah perpanjangan (misalnya otomatis terisi dari form),
+            // gunakan tp_due_date tersebut agar tidak bertambah dobel menjadi +2 bulan.
+            if ($defaultBase && $this->tp_due_date && $this->tp_due_date->toDateString() === $defaultBase->copy()->addMonths($extensionMonths)->toDateString()) {
+                return $this->tp_due_date->copy()->startOfDay();
+            }
+
             return $baseDate->copy()->addMonths($extensionMonths)->startOfDay();
         }
 
@@ -794,6 +850,18 @@ class Assessment extends Model
                 ! empty($assessment->eha_date)
             )) {
                 $assessment->status = 'IN_PROGRESS';
+            }
+        });
+
+        static::saved(function (Assessment $assessment): void {
+            // Jika asesmen Re-Akreditasi selesai dan SK telah terbit,
+            // otomatis perbarui masa akreditasi LPK ke siklus 5 tahun berikutnya.
+            $isRa = $assessment->assessment_type === self::TYPE_RE_AKREDITASI
+                || str_contains(strtolower($assessment->title ?: ''), 're-akreditasi')
+                || str_contains(strtolower($assessment->title ?: ''), 'reakreditasi');
+
+            if ($isRa && $assessment->status === 'COMPLETED' && ! empty($assessment->sk_number)) {
+                $assessment->lpk?->renewAccreditationCycleFromAssessment($assessment);
             }
         });
     }

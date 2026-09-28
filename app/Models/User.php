@@ -43,7 +43,7 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
-            self::ROLE_ADMIN => 'Admin Unit Akreditasi Lab',
+            self::ROLE_ADMIN => 'Ketua Tim',
             self::ROLE_PIC => 'PIC Laboratorium',
             default => ucfirst((string) ($this->role ?? 'Pengguna')),
         };
@@ -52,7 +52,7 @@ class User extends Authenticatable
     public function getRoleShortLabelAttribute(): string
     {
         return match ($this->role) {
-            self::ROLE_ADMIN => 'Admin Unit Lab',
+            self::ROLE_ADMIN => 'Ketua Tim',
             self::ROLE_PIC => 'PIC Lab',
             default => ucfirst((string) ($this->role ?? 'Pengguna')),
         };

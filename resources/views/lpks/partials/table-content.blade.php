@@ -43,11 +43,6 @@
                                         </span>
                                     @endforeach
                                 @endif
-                                @if($lpk->pic)
-                                    <span class="lpk-pic-badge">
-                                        PIC: {{ $lpk->pic->name }}
-                                    </span>
-                                @endif
                             </div>
                         </td>
 
@@ -107,7 +102,6 @@
                                                 {{ trim($processName) }}
                                             </span>
                                             <span class="lpk-cat-tag">
-                                                <span class="lpk-dot {{ $theme }}"></span>
                                                 {{ $catLabel }}
                                             </span>
                                         </div>
@@ -117,7 +111,6 @@
                                     @else
                                         <div class="lpk-note-header">
                                             <span class="lpk-cat-tag">
-                                                <span class="lpk-dot {{ $theme }}"></span>
                                                 {{ $catLabel }}
                                             </span>
                                         </div>

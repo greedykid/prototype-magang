@@ -528,9 +528,13 @@ class CalendarEventController extends Controller
         $usesSplitDateFields = $request->filled('start_date');
 
         if ($request->filled('start_date')) {
+            $startTime = $request->filled('start_time') ? (string) $request->input('start_time') : '09:00';
+            $endTime = $request->filled('end_time') ? (string) $request->input('end_time') : '17:00';
+            $endDate = $request->filled('end_date') ? (string) $request->input('end_date') : (string) $request->input('start_date');
+
             $request->merge([
-                'start_at' => $request->input('start_date').' '.$request->input('start_time'),
-                'end_at' => $request->input('end_date').' '.$request->input('end_time'),
+                'start_at' => trim($request->input('start_date').' '.$startTime),
+                'end_at' => trim($endDate.' '.$endTime),
             ]);
         }
 
@@ -540,9 +544,9 @@ class CalendarEventController extends Controller
             'event_type' => ['nullable', 'string', 'in:PRL,STT,AGENDA_INTERNAL'],
             'description' => ['nullable', 'string'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'start_time' => $usesSplitDateFields ? ['required', 'date_format:H:i'] : ['nullable'],
+            'start_time' => ['nullable', 'date_format:H:i'],
             'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'end_time' => $usesSplitDateFields ? ['required', 'date_format:H:i'] : ['nullable'],
+            'end_time' => ['nullable', 'date_format:H:i'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'location' => ['nullable', 'string', 'max:255'],

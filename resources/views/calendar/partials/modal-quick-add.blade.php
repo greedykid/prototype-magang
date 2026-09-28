@@ -41,18 +41,8 @@
                 </label>
 
                 <label>
-                    Jam Mulai (WIB)
-                    <input type="time" name="start_time" id="quick-input-start-time" value="09:00" required>
-                </label>
-
-                <label>
                     Tanggal Selesai
                     <input type="date" name="end_date" id="quick-input-end-date" value="{{ $activeDate->toDateString() }}" required>
-                </label>
-
-                <label>
-                    Jam Selesai (WIB)
-                    <input type="time" name="end_time" id="quick-input-end-time" value="11:00" required>
                 </label>
 
                 <label class="full">

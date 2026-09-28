@@ -386,6 +386,9 @@ class Lpk extends Model
         $isLpkActive = $this->getRawOriginal('status') === 'ACTIVE';
 
         // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
+        $cycleStart = $certDate->copy()->subMonths(3);
+        $cycleEnd = $certDate->copy()->addYears(5)->addMonths(3);
+
         $s1Target = $certDate->copy()->addMonths(15)->startOfDay()->setHour(9);
         $s1End = $s1Target->copy()->addDays(2)->setHour(17);
         $s1IsPast = $isLpkActive && $s1End->lt($now->copy()->startOfYear());
@@ -396,7 +399,10 @@ class Lpk extends Model
                     ->orWhere('title', 'like', '%(S1)%')
                     ->orWhere('title', 'like', '% S1 %')
                     ->orWhere('assessment_type', Assessment::TYPE_SURVEILEN_1);
-            })->first();
+            })
+            ->where('start_at', '>=', $cycleStart)
+            ->where('start_at', '<=', $cycleEnd)
+            ->first();
 
         if (! $s1Assessment) {
             $this->assessments()->create([
@@ -435,7 +441,10 @@ class Lpk extends Model
                     ->orWhere('title', 'like', '%(S2)%')
                     ->orWhere('title', 'like', '% S2 %')
                     ->orWhere('assessment_type', Assessment::TYPE_SURVEILEN_2);
-            })->first();
+            })
+            ->where('start_at', '>=', $cycleStart)
+            ->where('start_at', '<=', $cycleEnd)
+            ->first();
 
         if (! $s2Assessment) {
             $this->assessments()->create([
@@ -475,7 +484,10 @@ class Lpk extends Model
                     ->orWhere('title', 'like', '%(RA)%')
                     ->orWhere('title', 'like', '% RA %')
                     ->orWhereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT']);
-            })->first();
+            })
+            ->where('start_at', '>=', $cycleStart)
+            ->where('start_at', '<=', $cycleEnd)
+            ->first();
 
         if (! $raAssessment) {
             $this->assessments()->create([
@@ -671,14 +683,14 @@ class Lpk extends Model
                 }
 
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
-                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(10)) && $item->start_at->lte($certDate->copy()->addMonths(24));
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->subMonths(2)) && $item->start_at->lte($certDate->copy()->addMonths(26));
 
                 // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
                 if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
                     return false;
                 }
 
-                return $isSurv && ($isWithinRange || str_contains(strtolower($item->title ?: ''), 's1'));
+                return $isSurv && $isWithinRange;
             });
 
             if ($hasS1) {
@@ -700,14 +712,14 @@ class Lpk extends Model
                 }
 
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
-                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(25)) && $item->start_at->lte($certDate->copy()->addMonths(44));
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(24)) && $item->start_at->lte($certDate->copy()->addMonths(46));
 
                 // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
                 if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
                     return false;
                 }
 
-                return $isSurv && ($isWithinRange || str_contains(strtolower($item->title ?: ''), 's2'));
+                return $isSurv && $isWithinRange;
             });
 
             if ($hasS2) {
@@ -723,7 +735,7 @@ class Lpk extends Model
 
         // Cek RA
         if ($milestones['ra']['notice_date']) {
-            $hasRA = $assessments->contains(function ($item) use ($now) {
+            $hasRA = $assessments->contains(function ($item) use ($certDate, $expDate, $now) {
                 if ($item->status === 'PLANNED') {
                     return false;
                 }
@@ -733,7 +745,10 @@ class Lpk extends Model
                     return false;
                 }
 
-                return str_contains(strtolower($item->assessment_type ?: ''), 're-') || str_contains(strtolower($item->title ?: ''), 're-akreditasi') || str_contains(strtolower($item->title ?: ''), 'ra');
+                $isRa = str_contains(strtolower($item->assessment_type ?: ''), 're-') || str_contains(strtolower($item->title ?: ''), 're-akreditasi') || str_contains(strtolower($item->title ?: ''), 'ra');
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(42)) && (! $expDate || $item->start_at->lte($expDate->copy()->addMonths(6)));
+
+                return $isRa && $isWithinRange;
             });
 
             if ($hasRA) {
@@ -829,5 +844,68 @@ class Lpk extends Model
     public function assessments(): HasMany
     {
         return $this->hasMany(Assessment::class);
+    }
+
+    /**
+     * Memperbarui masa akreditasi LPK ke siklus 5 tahun berikutnya
+     * saat asesmen Re-Akreditasi telah selesai (COMPLETED) dan memiliki SK.
+     */
+    public function renewAccreditationCycleFromAssessment(Assessment $assessment): bool
+    {
+        $isRa = $assessment->assessment_type === Assessment::TYPE_RE_AKREDITASI
+            || str_contains(strtolower($assessment->title ?: ''), 're-akreditasi')
+            || str_contains(strtolower($assessment->title ?: ''), 'reakreditasi');
+
+        if (! $isRa || $assessment->status !== 'COMPLETED' || empty($assessment->sk_number)) {
+            return false;
+        }
+
+        // Tanggal awal siklus baru diambil dari sk_date atau end_at atau expired_at
+        $newCertDate = $assessment->sk_date
+            ?: ($assessment->end_at ? $assessment->end_at->copy()->startOfDay() : ($this->expired_at ?: now()->startOfDay()));
+
+        if (! $newCertDate) {
+            return false;
+        }
+
+        // Jika certificate_date saat ini sudah lebih baru atau sama dengan newCertDate, jangan dimajukan lagi
+        if ($this->certificate_date && $this->certificate_date->gte($newCertDate->copy()->startOfDay())) {
+            return false;
+        }
+
+        $newExpDate = $newCertDate->copy()->addYears(5);
+
+        // Update LPK ke siklus 5 tahun berikutnya
+        $this->update([
+            'certificate_date' => $newCertDate->toDateString(),
+            'expired_at' => $newExpDate->toDateString(),
+            'status' => 'ACTIVE',
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Sinkronisasi siklus akreditasi jika ada asesmen Re-Akreditasi selesai dengan SK yang belum dimajukan.
+     */
+    public function syncAccreditationCycleWithCompletedReAccreditation(): bool
+    {
+        $latestRa = $this->assessments()
+            ->where(function ($q) {
+                $q->where('assessment_type', Assessment::TYPE_RE_AKREDITASI)
+                    ->orWhere('title', 'like', '%Re-Akreditasi%')
+                    ->orWhere('title', 'like', '%Reakreditasi%');
+            })
+            ->where('status', 'COMPLETED')
+            ->whereNotNull('sk_number')
+            ->orderByDesc('sk_date')
+            ->orderByDesc('end_at')
+            ->first();
+
+        if (! $latestRa) {
+            return false;
+        }
+
+        return $this->renewAccreditationCycleFromAssessment($latestRa);
     }
 }

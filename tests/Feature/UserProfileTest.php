@@ -31,7 +31,7 @@ class UserProfileTest extends TestCase
         $response->assertSee('Profil &amp; Kata Sandi', false);
         $response->assertSee('Budi Administrator Unit');
         $response->assertSee('budi@simasadi.local');
-        $response->assertSee('Admin Unit Akreditasi Lab');
+        $response->assertSee('Ketua Tim');
     }
 
     public function test_user_can_update_profile_info(): void

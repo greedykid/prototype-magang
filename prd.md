@@ -32,7 +32,7 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*rol
 | Peran (*Role*) | Akun Referensi | Deskripsi Tanggung Jawab | Hak Akses Utama | Batasan Keamanan |
 | :--- | :--- | :--- | :--- | :--- |
 | **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Penanggung jawab administrasi operasional akreditasi, verifikasi kepatuhan, dan pemeliharaan teknis sistem BSN. | Akses penuh (*Full Control*) ke seluruh modul: Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; verifikasi biaya perjalanan dinas SBM; penerbitan billing PNBP SIMPONI; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; dan pemicu simulasi/notifikasi surveilen. | Tanpa batasan hak akses di sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan, memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pelaporan biaya perjalanan dinas mandiri, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data LPK/asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya, dilarang memverifikasi biaya SBM sendiri (*no self-verification*), dan dilarang mengelola akun pengguna sistem. |
+| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan, mengimpor data master LPK, memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pelaporan biaya perjalanan dinas mandiri, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya, dilarang memverifikasi biaya SBM sendiri (*no self-verification*), dan dilarang mengelola akun pengguna sistem. |
 | **Asesor KAN** (`assessor`) | `assessor@simasadi.local` | Tenaga ahli / asesor kepala (*Lead Assessor*) yang ditugaskan KAN untuk melakukan asesmen lapangan atau audit dokumen. | Akses ke Portal Asesor (`/assessor`): melihat penugasan asesmen lapangan yang sedang dan akan berjalan, meninjau profil LPK yang diases, mengisi evaluasi teknis, serta memantau status pemenuhan tindakan perbaikan dari LPK terkait. | Dibatasi hanya pada data asesmen di mana dirinya ditugaskan sebagai asesor/lead assessor. |
 | **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Entitas laboratorium atau lembaga inspeksi terakreditasi pemegang sertifikat KAN. | Akses ke Portal LPK Mandiri (`/portal`): memantau status aktif sertifikat akreditasi, memantau hitung mundur batas waktu surveilen, memeriksa batas waktu SLA tindakan perbaikan, serta mengakses verifikasi QR Code keabsahan akreditasi resmi. | Akses terbatas hanya pada data entitas lembaganya sendiri secara transparan (*read-only status & compliance tracking*). |
 
@@ -95,10 +95,10 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*rol
 
 ### 3.3 Modul 3: Toleransi Pengisian & Siklus Hidup 3 Tahap Pengawasan
 Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance Lifecycle*) untuk menegakkan disiplin akreditasi:
-1. **Tahap 1: Toleransi Kunjungan Berjalan (Normal / In Progress)**:
-   * Batas waktu pengisian dokumen asesmen surveilen dihitung sampai dengan **akhir bulan tanggal kunjungan** (`submission_due_date = end_at->endOfMonth()`).
-   * *Contoh*: Asesmen kunjungan lapangan dilaksanakan pada 29 Maret 2027, maka batas akhir pengisian toleransi adalah 31 Maret 2027.
-   * Selama tanggal saat ini belum melewati batas akhir bulan kunjungan, status asesmen tetap `PLANNED` atau `IN_PROGRESS`.
+1. **Tahap 1: Toleransi Pengisian Berjalan (Normal / In Progress)**:
+   * **Standar Regulasi KAN**: Batas waktu maksimal Toleransi Pengisian dokumen surveilen dihitung **4 bulan dari bulan ke-15** siklus akreditasi (Bulan 15 + 4 = Bulan ke-19 dari tanggal sertifikat akreditasi LPK `certificate_date`, atau fallback 4 bulan dari tanggal pelaksanaan asesmen).
+   * **Penyimpanan Basis Data & Fleksibilitas Input**: Batas toleransi pengisian dicatat permanen pada kolom `submission_due_date` di tabel `assessments`. Formulir asesmen menampilkan nilai bawaan (*default*) secara otomatis berdasarkan siklus LPK, serta memberikan fleksibilitas penginputan manual (*custom input*) bagi petugas/PIC jika terdapat kondisi khusus penyesuaian proses di lapangan.
+   * **Evaluasi Status Berjalan**: Selama tanggal saat ini belum melewati batas toleransi pengisian (`submission_due_date`) dan jadwal pelaksanaan asesmen tidak di masa mendatang, status asesmen tetap `PLANNED` atau `IN_PROGRESS`.
 2. **Tahap 2: Pembekuan Akreditasi & Jendela Penyelesaian 1 Tahun (Suspended)**:
    * Jika batas toleransi pengisian (`submission_due_date`) telah terlewati dan asesmen belum dinyatakan selesai, status asesmen dan status LPK seketika beralih secara otomatis menjadi **DIBEKUKAN** (`SUSPENDED`).
    * Badge status ditampilkan dengan warna ungu kontras (`#f3e8ff` dengan teks `#6b21a8`) agar berbeda jelas dengan status merah (kedaluwarsa/lewat jadwal).
@@ -113,26 +113,28 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 
 ---
 
-### 3.4 Modul 4: Pelacakan Tindakan Perbaikan (TP & VTP) Berbasis SLA KAN
-* **Batas Waktu Awal SLA (Service Level Agreement Dasar)**:
+### 3.4 Modul 4: Pelacakan Tindakan Perbaikan (TP & VTP) Berbasis Batas Waktu KAN
+* **Batas Waktu Awal Batas Waktu KAN**:
   * **3 Bulan Kalender**: Khusus proses Akreditasi Awal (AA).
   * **2 Bulan Kalender**: Untuk seluruh proses asesmen lainnya (Surveilen 1, Surveilen 2, STT, PRL, dan Re-Akreditasi).
-* **Ketentuan Perpanjangan Waktu (Extension SLA)**:
+* **Ketentuan Perpanjangan Waktu (Extension)**:
   * Durasi perpanjangan maksimal adalah **1 bulan kalender** (`tp_extension_months = 1`).
-  * Syarat perpanjangan sangat ketat:
-    1. Laboratorium harus sudah menunjukkan progres perbaikan nyata terhadap temuan ketidaksesuaian asesmen (contoh: dari 10 temuan ketidaksesuaian, telah diselesaikan 8 temuan, menyisakan 2 temuan yang memerlukan perpanjangan).
-    2. Wajib menyertakan Nomor Surat Permohonan Perpanjangan Resmi dari LPK (`tp_extension_letter_no`).
-  * **Larangan Perpanjangan**: Jika selama masa 2 atau 3 bulan awal laboratorium tidak melakukan perbaikan sama sekali (kosong / tanpa tindak lanjut), proses TIDAK BOLEH diperpanjang dan harus langsung dihentikan/status dibekukan.
-  * Total durasi kumulatif maksimal dengan perpanjangan: AA menjadi 4 bulan, proses lainnya menjadi 3 bulan.
+  * Ketentuan persetujuan perpanjangan:
+    1. Laboratorium harus sudah menunjukkan perbaikan nyata terhadap temuan ketidaksesuaian asesmen (telah dilakukan perbaikan meskipun belum seluruhnya atau belum sempurna).
+    2. Wajib menyertakan Nomor Surat Permohonan Perpanjangan Resmi dari LPK (`tp_extension_letter_no`). Pengisian nomor surat ini pada formulir secara otomatis memperpanjang tanggal jatuh tempo perbaikan sebesar +1 bulan.
+  * **Larangan Perpanjangan**: Jika selama masa 2 atau 3 bulan awal laboratorium belum melakukan perbaikan sama sekali, perpanjangan TIDAK DIBERIKAN dan proses dapat dihentikan oleh PIC.
+  * **Total Waktu Maksimal Setelah Perpanjangan**:
+    * Akreditasi Awal (AA): 3 bulan + 1 bulan = **4 bulan**.
+    * S1, S2, PRL, RA: 2 bulan + 1 bulan = **3 bulan**.
 * **Otomasi Status Tindakan Perbaikan Tanpa Input Manual**:
   * Status TP tidak diinput secara manual pada form, melainkan dihitung otomatis oleh sistem (*read-only dynamic status*):
     * Selama tanggal dinyatakan memenuhi (`tp_satisfied_at`) belum diisi:
-      - Jika belum melewati batas waktu SLA: status berbunyi **Sedang Berlangsung** (`IN_PROGRESS`).
-      - Jika telah melewati batas waktu SLA (baik batas awal maupun perpanjangan): status otomatis berubah menjadi **Dibekukan** (`SUSPENDED`, badge ungu).
+      - Jika belum melewati batas waktu: status berbunyi **Sedang Berlangsung** (`IN_PROGRESS`).
+      - Jika telah melewati batas waktu (baik batas awal maupun perpanjangan): status otomatis berubah menjadi **Dibekukan** (`SUSPENDED`, badge ungu).
     * Jika tanggal dinyatakan memenuhi (`tp_satisfied_at`) telah terisi: status berubah menjadi **Memenuhi / Selesai** (`COMPLETED` / `SATISFIED`).
 * **Pengingat Kalender Otomatis (Reminder Engine)**:
-  * Pengingat TP Awal: 2 bulan untuk AA, 1 bulan untuk asesmen lainnya.
-  * Pengingat Jatuh Tempo TP: Tepat pada tanggal batas akhir SLA.
+  * Pengingat H-1 bulan sebelum batas waktu tindakan perbaikan.
+  * Notifikasi final berdasarkan tanggal realisasi/pelaksanaan asesmen sebagai baseline perhitungan.
   * Pengingat Penerbitan SK: 10 hari kalender setelah tanggal TP dinyatakan memenuhi (khusus S1, S2, dan STT).
 
 ---

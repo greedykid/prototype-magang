@@ -25,10 +25,10 @@ const formatIndonesianDateTimeRange = (start, end) => {
         const startTimeStr = dtfTime.format(start);
         const endTimeStr = dtfTime.format(end);
 
-        return `${dateStr} • ${startTimeStr} - ${endTimeStr} WIB`;
+        return `${dateStr} · ${startTimeStr} - ${endTimeStr} WIB`;
     } catch {
         const pad = (num) => String(num).padStart(2, '0');
-        return `${pad(start.getDate())}/${pad(start.getMonth() + 1)}/${start.getFullYear()} • ${pad(start.getHours())}:${pad(start.getMinutes())} - ${pad(end.getHours())}:${pad(end.getMinutes())} WIB`;
+        return `${pad(start.getDate())}/${pad(start.getMonth() + 1)}/${start.getFullYear()} · ${pad(start.getHours())}:${pad(start.getMinutes())} - ${pad(end.getHours())}:${pad(end.getMinutes())} WIB`;
     }
 };
 
@@ -68,15 +68,38 @@ function showEventPopover(triggerEl, eventData) {
     }
 
     // 2. Title & Date/Time
+    // Teks bold utama (#popover-title) menampilkan Nama Lab/LPK agar lebih terhighlight
     const titleEl = popover.querySelector('#popover-title');
-    if (titleEl) titleEl.textContent = eventData.title;
+    const hasLpk = Boolean(eventData.lpk_name && eventData.lpk_name.trim() && eventData.lpk_name !== 'Internal SIMASADI');
+
+    if (titleEl) {
+        titleEl.textContent = hasLpk ? eventData.lpk_name : (eventData.title || 'Agenda Kegiatan');
+    }
 
     const timeEl = popover.querySelector('#popover-time');
     if (timeEl) timeEl.textContent = formatIndonesianDateTimeRange(startDate, endDate);
 
-    // 3. LPK Name
+    // 3. Agenda / Title Row
+    // Menampilkan judul agenda (misal "S1", "Surveilen 1", "Batas TP") pada baris agenda khusus
+    const agendaWrap = popover.querySelector('#popover-agenda-wrap');
+    const agendaEl = popover.querySelector('#popover-agenda');
     const lpkEl = popover.querySelector('#popover-lpk');
-    if (lpkEl) lpkEl.textContent = eventData.lpk_name || 'Lembaga Penilaian Kesesuaian';
+
+    if (lpkEl) {
+        lpkEl.textContent = eventData.lpk_name || '';
+    }
+
+    if (agendaEl) {
+        if (hasLpk && eventData.title) {
+            agendaEl.textContent = eventData.title;
+            if (agendaWrap) agendaWrap.style.display = 'flex';
+        } else if (!hasLpk && eventData.category_label) {
+            agendaEl.textContent = eventData.category_label;
+            if (agendaWrap) agendaWrap.style.display = 'flex';
+        } else if (agendaWrap) {
+            agendaWrap.style.display = 'none';
+        }
+    }
 
     // 4. Location
     const locWrap = popover.querySelector('#popover-location-wrap');

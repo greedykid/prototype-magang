@@ -1136,7 +1136,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         max-width: 100% !important;
         overflow-x: auto !important;
         padding: 0 !important;
-        scrollbar-color: var(--maroon) var(--surface) !important;
+        scrollbar-color: rgba(148, 163, 184, 0.45) transparent !important;
         -webkit-overflow-scrolling: touch !important;
         width: 100% !important;
     }

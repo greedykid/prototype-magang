@@ -65,6 +65,41 @@ class CalendarEventTest extends TestCase
         ])->assertSessionHasErrors('end_at');
     }
 
+    public function test_calendar_quick_add_modal_omits_time_fields(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/calendar')
+            ->assertOk()
+            ->assertSee('id="modal-quick-add-event"', false)
+            ->assertSee('id="quick-input-start-date"', false)
+            ->assertSee('id="quick-input-end-date"', false)
+            ->assertDontSee('id="quick-input-start-time"', false)
+            ->assertDontSee('id="quick-input-end-time"', false)
+            ->assertDontSee('Jam Mulai (WIB)', false)
+            ->assertDontSee('Jam Selesai (WIB)', false);
+    }
+
+    public function test_authenticated_user_can_create_event_without_time_fields_using_defaults(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create();
+
+        $response = $this->actingAs($user)->post('/calendar/events', [
+            'lpk_id' => $lpk->id,
+            'title' => 'Rapat Internal Surveilen',
+            'start_date' => '2026-09-25',
+            'end_date' => '2026-09-25',
+            'status' => 'PLANNED',
+        ]);
+
+        $event = CalendarEvent::where('title', 'Rapat Internal Surveilen')->firstOrFail();
+        $response->assertRedirect('/calendar/events/'.$event->id);
+        $this->assertEquals('2026-09-25 09:00:00', $event->start_at->toDateTimeString());
+        $this->assertEquals('2026-09-25 17:00:00', $event->end_at->toDateTimeString());
+    }
+
     public function test_calendar_month_navigation_does_not_carry_over_circle_highlight_unless_selected(): void
     {
         $user = User::factory()->create();
@@ -342,5 +377,37 @@ class CalendarEventTest extends TestCase
         $response->assertSee('/calendar?view=month&amp;date=', false);
         $response->assertSee('highlight=', false);
         $response->assertSee('Kalender', false);
+    }
+
+    public function test_status_siklus_card_renders_direct_calendar_button(): void
+    {
+        $user = User::factory()->create(['role' => 'admin']);
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-STATUS-SIKLUS-CAL',
+            'name' => 'Lab Penguji Siklus Kalender',
+            'status' => 'ACTIVE',
+            'certificate_date' => '2025-01-10',
+            'expired_at' => '2030-01-10',
+            'address' => 'Jl. Kalender No. 99, Bandung',
+        ]);
+
+        $assessment = Assessment::create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $user->id,
+            'title' => 'Re-Akreditasi Lab Penguji Siklus Kalender',
+            'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
+            'start_at' => '2026-04-05 09:00:00',
+            'end_at' => '2026-04-08 17:00:00',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => '2026-06-08',
+            'status' => 'IN_PROGRESS',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('lpks.show', $lpk));
+
+        $response->assertOk();
+        $response->assertSee('lpk-keterangan-cal-btn', false);
+        $response->assertSee('Lihat di Kalender', false);
+        $response->assertSee('/calendar?view=month&amp;date=2026-06-08&amp;selected=1&amp;highlight=tp_' . $assessment->id, false);
     }
 }

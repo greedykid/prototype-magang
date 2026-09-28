@@ -172,7 +172,7 @@ Diagram ini memodelkan transisi status pengawasan dari kunjungan asesmen sampai 
 ```mermaid
 stateDiagram-v2
     [*] --> KunjunganAsesmen: Asesmen Lapangan Selesai (end_at)
-    KunjunganAsesmen --> HitungToleransi: submission_due_date = end_at->endOfMonth()
+    KunjunganAsesmen --> HitungToleransi: submission_due_date = 4 bulan dari bulan ke-15 / input tanggal
     
     state CekBulanKunjungan <<choice>>
     HitungToleransi --> CekBulanKunjungan: Evaluasi Tanggal Saat Ini
@@ -279,7 +279,7 @@ flowchart TD
 | No | Tahap Siklus | Waktu Acuan KAN | Aktivitas Utama PIC | Otomasi SIMASADI | Output Akhir |
 |---|---|---|---|---|---|
 | 1 | **Akreditasi Awal** | Bulan ke-0 | Verifikasi dokumen legalitas, manual mutu, jadwal asesmen, pendampingan perbaikan (batas waktu 3 bulan), koordinasi VTP | Generate no_reg unik, set batas waktu TP = 3 bulan, catat certificate_date | Sertifikat & SK Akreditasi 5 Tahun (ACTIVE) |
-| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), verifikasi SPPD SBM | Reminder berkala kalender, toleransi akhir bulan kunjungan, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
+| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), verifikasi SPPD SBM | Reminder berkala kalender, toleransi pengisian maks 4 bln dr bln 15, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
 | 3 | **Survailen 1 + PRL** | Bulan 13 - 24 | Verifikasi portofolio metode baru, susun tim gabungan asesmen sistem + teknis, kawal audit simultan dan TP 2 bulan | Jadwal gabungan, pemetaan lingkup baru ke master data, pelacakan terpadu | SK S1 + Adendum Lampiran Lingkup Baru |
 | 4 | **Survailen 2 (S2)** | Bulan 34 - 48 | Pantau reminder S2 (maks 2 tahun pasca S1), evaluasi kaji ulang manajemen, kawal pemenuhan perbaikan 2 bulan | Reminder kalender multi-event, countdown pembekuan dinamis jika wanprestasi | SK Konfirmasi Survailen 2 |
 | 5 | **Survailen 2 + PRL** | Bulan 34 - 48 | Verifikasi kesiapan alat & uji profisiensi lingkup baru, koordinasi asesmen gabungan, kawal TP 2 bulan | Sinkronisasi multi-skema, kontrol batas waktu terpadu, hitung lead time SK | SK S2 + Adendum Pembaruan Ruang Lingkup |
@@ -554,28 +554,29 @@ Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional t
 | 5 | assessment_type | VARCHAR (50) | - | 8 Tipe KAN U-01: INITIAL, SURVEILLANCE_1, S1_PRL, S2, dll |
 | 6 | start_at | DATETIME | - | Tanggal dan waktu dimulainya asesmen lapangan |
 | 7 | end_at | DATETIME | - | Tanggal dan waktu berakhirnya kunjungan (acuan batas waktu) |
-| 8 | location | VARCHAR (255) | - | Lokasi fisik pelaksanaan audit lapangan |
-| 9 | lead_assessor | VARCHAR (255) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
-| 10 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis |
-| 11 | status | VARCHAR (50) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
-| 12 | tp_status | VARCHAR (50) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
-| 13 | tp_due_date | DATE | - | Batas waktu awal perbaikan (3 bln AA, 2 bln lainnya) |
-| 14 | tp_has_extension | TINYINT (1) | - | Status perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
-| 15 | tp_extension_months | INTEGER | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
-| 16 | tp_extension_letter_no | VARCHAR (100) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
-| 17 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu |
-| 18 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
-| 19 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
-| 20 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan tindakan perbaikan |
-| 21 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen |
-| 22 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
-| 23 | eha_status | VARCHAR (50) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
-| 24 | eha_notes | TEXT | - | Keputusan dan rekomendasi panitia teknis sidang EHA |
-| 25 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
-| 26 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
-| 27 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
-| 28 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
-| 29 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data asesmen |
+| 8 | submission_due_date | DATE | - | Batas toleransi pengisian dokumen asesmen (default 4 bulan dari bulan ke-15 siklus akreditasi / tanggal kunjungan, dapat diedit) |
+| 9 | location | VARCHAR (255) | - | Lokasi fisik pelaksanaan audit lapangan |
+| 10 | lead_assessor | VARCHAR (255) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
+| 11 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis |
+| 12 | status | VARCHAR (50) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
+| 13 | tp_status | VARCHAR (50) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
+| 14 | tp_due_date | DATE | - | Batas waktu awal perbaikan (3 bln AA, 2 bln lainnya) |
+| 15 | tp_has_extension | TINYINT (1) | - | Status perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
+| 16 | tp_extension_months | INTEGER | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
+| 17 | tp_extension_letter_no | VARCHAR (100) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
+| 18 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu |
+| 19 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
+| 20 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
+| 21 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan tindakan perbaikan |
+| 22 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen |
+| 23 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
+| 24 | eha_status | VARCHAR (50) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
+| 25 | eha_notes | TEXT | - | Keputusan dan rekomendasi panitia teknis sidang EHA |
+| 26 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
+| 27 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
+| 28 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
+| 29 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
+| 30 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data asesmen |
 
 ##### 4. Tabel `assessment_expenses` (Kepatuhan Biaya Perjalanan Dinas SBM)
 | no | nama kolom | tipe data dan panjang | key | keterangan |

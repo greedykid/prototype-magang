@@ -4,7 +4,7 @@
 @endphp
 
 <section class="lpk-form-card" aria-labelledby="tp-tracking-heading">
-    <div class="lpk-form-card-header" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+    <div class="lpk-form-card-header tp-tracking-header" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0;">
             <div class="lpk-card-icon-wrap" style="background: #f0fdf4; color: #16a34a;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -24,14 +24,14 @@
                 <p>Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.</p>
             </div>
         </div>
-        <button type="button" class="button secondary" style="flex-shrink: 0; font-size: 13px;" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
+        <button type="button" class="button secondary tp-manage-btn" style="flex-shrink: 0; font-size: 13px;" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
             <x-icon name="edit" size="14" />
             <span>Kelola Status TP</span>
         </button>
     </div>
 
     {{-- Batas Waktu Metrics Grid --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+    <div class="tp-metrics-grid">
         <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Status Tindakan Perbaikan
@@ -126,22 +126,22 @@
 
     {{-- SK KAN Hasil Asesmen / Kelanjutan Akreditasi --}}
     @if($assessment->sk_number)
-        <div style="margin-bottom: 20px; padding: 16px 20px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-            <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="tp-sk-banner">
+            <div class="tp-sk-banner-left">
                 <div style="width: 40px; height: 40px; border-radius: 8px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
                     <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <div>
+                <div style="min-width: 0;">
                     <span style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 2px;">
                         Surat Keputusan (SK) Hasil Asesmen Telah Terbit
                     </span>
-                    <strong style="font-size: 15px; color: #14532d; letter-spacing: 0.01em;">{{ $assessment->sk_number }}</strong>
+                    <strong style="font-size: 15px; color: #14532d; letter-spacing: 0.01em; word-break: break-word;">{{ $assessment->sk_number }}</strong>
                 </div>
             </div>
             @if($assessment->sk_date)
-                <div style="text-align: right;">
+                <div class="tp-sk-banner-right">
                     <span style="font-size: 11.5px; color: #15803d; display: block;">Tanggal Penerbitan SK</span>
                     <strong style="font-size: 14px; color: #14532d;">{{ $assessment->sk_date->format('d M Y') }}</strong>
                     @if($assessment->sk_lead_time_label)

@@ -295,6 +295,7 @@ class PrototypeFlowTest extends TestCase
         $lpk = Lpk::create([
             'registration_number' => 'LP-TABEL-99',
             'name' => 'Laboratorium Kalibrasi Uji KAN',
+            'pic_id' => $admin->id,
             'address' => 'Jl. Pengujian Presisi No. 99, Jakarta',
             'phone' => '021-99887766',
             'email' => 'lab.uji99@kan.or.id',
@@ -321,6 +322,8 @@ class PrototypeFlowTest extends TestCase
         $response->assertSee('15/01/2025');
         $response->assertSee('15/01/2030');
         $response->assertSee('Catatan khusus monitoring internal');
+        $response->assertDontSee('lpk-pic-badge');
+        $response->assertDontSee('PIC: '.$admin->name);
     }
 
     public function test_user_can_input_and_update_keterangan_in_lpk_detail(): void
@@ -580,7 +583,7 @@ class PrototypeFlowTest extends TestCase
         $this->assertSame('INACTIVE', $inactiveLpk->dynamic_status);
         $this->assertSame('Tidak Aktif', $inactiveLpk->dynamic_status_label);
 
-        // 5. Test tolerance for assessment filling (end of same month and year of visit)
+        // 5. Test tolerance for assessment filling (default 4 months from month 15 of cycle or custom date)
         $recentAssessment = Assessment::factory()->create([
             'lpk_id' => $inactiveLpk->id,
             'title' => 'Asesmen Baru Selesai Kunjungan',
@@ -589,10 +592,11 @@ class PrototypeFlowTest extends TestCase
             'start_at' => now()->startOfMonth()->addDays(2),
             'end_at' => now()->startOfMonth()->addDays(4),
         ]);
+        $expectedDue = $inactiveLpk->certificate_date->copy()->addMonths(15)->addMonths(4)->endOfMonth()->endOfDay();
         $this->assertFalse($recentAssessment->is_submission_overdue);
-        $this->assertEquals($recentAssessment->end_at->copy()->endOfMonth()->endOfDay(), $recentAssessment->submission_due_date);
-        $this->assertEquals($recentAssessment->end_at->year, $recentAssessment->submission_due_date->year);
-        $this->assertEquals($recentAssessment->end_at->month, $recentAssessment->submission_due_date->month);
+        $this->assertEquals($expectedDue, $recentAssessment->submission_due_date);
+        $this->assertEquals($expectedDue->year, $recentAssessment->submission_due_date->year);
+        $this->assertEquals($expectedDue->month, $recentAssessment->submission_due_date->month);
 
         $overdueAssessment = Assessment::factory()->create([
             'lpk_id' => $inactiveLpk->id,
@@ -601,10 +605,11 @@ class PrototypeFlowTest extends TestCase
             'status' => 'IN_PROGRESS',
             'start_at' => now()->subMonth()->startOfMonth()->addDays(2),
             'end_at' => now()->subMonth()->startOfMonth()->addDays(4),
+            'submission_due_date' => now()->subMonth()->endOfMonth()->toDateString(),
         ]);
         $this->assertTrue($overdueAssessment->is_submission_overdue);
-        $this->assertEquals($overdueAssessment->end_at->year, $overdueAssessment->submission_due_date->year);
-        $this->assertEquals($overdueAssessment->end_at->month, $overdueAssessment->submission_due_date->month);
+        $this->assertEquals(now()->subMonth()->year, $overdueAssessment->submission_due_date->year);
+        $this->assertEquals(now()->subMonth()->month, $overdueAssessment->submission_due_date->month);
 
         // 5. LPK in notice window (14 months) -> SURVEILLANCE_DUE
         $dueLpk = Lpk::create([

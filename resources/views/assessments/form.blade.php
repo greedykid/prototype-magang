@@ -4,10 +4,15 @@
 
 @section('content')
 @php
-    $startAtVal = old('start_at', $assessment->start_at?->format('Y-m-d\TH:i') ?: request('start_at'));
-    $endAtVal = old('end_at', $assessment->end_at?->format('Y-m-d\TH:i') ?: request('end_at'));
-    $startCarbon = $startAtVal ? \Illuminate\Support\Carbon::parse($startAtVal) : null;
-    $endCarbon = $endAtVal ? \Illuminate\Support\Carbon::parse($endAtVal) : null;
+    $startDateVal = old('start_date', old('start_at') ? \Illuminate\Support\Carbon::parse(old('start_at'))->format('Y-m-d') : ($assessment->start_at?->format('Y-m-d') ?: (request('start_date') ?: (request('start_at') ? \Illuminate\Support\Carbon::parse(request('start_at'))->format('Y-m-d') : ''))));
+    $startTimeVal = old('start_time', old('start_at') ? \Illuminate\Support\Carbon::parse(old('start_at'))->format('H:i') : ($assessment->start_at?->format('H:i') ?: (request('start_time') ?: (request('start_at') ? \Illuminate\Support\Carbon::parse(request('start_at'))->format('H:i') : '09:00'))));
+    $endDateVal = old('end_date', old('end_at') ? \Illuminate\Support\Carbon::parse(old('end_at'))->format('Y-m-d') : ($assessment->end_at?->format('Y-m-d') ?: (request('end_date') ?: (request('end_at') ? \Illuminate\Support\Carbon::parse(request('end_at'))->format('Y-m-d') : ''))));
+    $endTimeVal = old('end_time', old('end_at') ? \Illuminate\Support\Carbon::parse(old('end_at'))->format('H:i') : ($assessment->end_at?->format('H:i') ?: (request('end_time') ?: (request('end_at') ? \Illuminate\Support\Carbon::parse(request('end_at'))->format('H:i') : '17:00'))));
+
+    $startCarbon = $startDateVal ? \Illuminate\Support\Carbon::parse($startDateVal . ' ' . ($startTimeVal ?: '09:00')) : ($assessment->start_at ?: null);
+    $endCarbon = $endDateVal ? \Illuminate\Support\Carbon::parse($endDateVal . ' ' . ($endTimeVal ?: '17:00')) : ($assessment->end_at ?: null);
+    $startAtFormatted = $startCarbon?->format('Y-m-d\TH:i') ?: '';
+    $endAtFormatted = $endCarbon?->format('Y-m-d\TH:i') ?: '';
     $isOverdueWithoutAction = $endCarbon
         && now()->gt($endCarbon)
         && empty($assessment->sk_number)
@@ -15,13 +20,32 @@
         && empty($assessment->report_date)
         && empty($assessment->eha_date);
 
-    $tpDueDateVal = old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($isOverdueWithoutAction ? null : ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: null)));
-    $tpDueDateCarbon = $tpDueDateVal ? \Illuminate\Support\Carbon::parse($tpDueDateVal) : null;
-    $tpHasExtVal = (bool) old('tp_has_extension', $assessment->tp_has_extension);
+    $tpHasExtVal = (bool) old('tp_has_extension', $assessment->tp_has_extension || !empty($assessment->tp_extension_letter_no));
+    $defaultDueDateCarbon = $assessment->calculateDefaultTpDueDate();
+    $baseTpDate = $assessment->tp_due_date?->format('Y-m-d') ?: ($defaultDueDateCarbon?->format('Y-m-d') ?: '');
+    $initTpDueDate = old('tp_due_date');
+    if (! $initTpDueDate) {
+        if ($assessment->tp_due_date) {
+            if ($tpHasExtVal && $defaultDueDateCarbon && $assessment->tp_due_date->toDateString() === $defaultDueDateCarbon->toDateString()) {
+                $initTpDueDate = $assessment->tp_due_date->copy()->addMonth()->format('Y-m-d');
+            } else {
+                $initTpDueDate = $assessment->tp_due_date->format('Y-m-d');
+            }
+        } elseif (! $isOverdueWithoutAction && $defaultDueDateCarbon) {
+            $initTpDueDate = $tpHasExtVal ? $defaultDueDateCarbon->copy()->addMonth()->format('Y-m-d') : $defaultDueDateCarbon->format('Y-m-d');
+        } else {
+            $initTpDueDate = '';
+        }
+    }
+    $tpDueDateCarbon = $initTpDueDate ? \Illuminate\Support\Carbon::parse($initTpDueDate) : null;
     $tpExtMonthsVal = (int) old('tp_extension_months', $assessment->tp_extension_months ?: 1);
     $tpSatisfiedVal = old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d'));
     $tpSatisfiedCarbon = $tpSatisfiedVal ? \Illuminate\Support\Carbon::parse($tpSatisfiedVal) : null;
     $typeVal = old('assessment_type', $assessment->assessment_type);
+
+    $defaultSubmissionDueCarbon = $assessment->calculateDefaultSubmissionDueDate();
+    $defaultSubmissionDueDateVal = $defaultSubmissionDueCarbon?->format('Y-m-d') ?: '';
+    $submissionDueDateVal = old('submission_due_date', $assessment->submission_due_date?->format('Y-m-d') ?: (request('submission_due_date') ?: $defaultSubmissionDueDateVal));
 
     $initialComputedStatus = \App\Models\Assessment::determineStatusFromDates(
         $startCarbon,
@@ -88,7 +112,7 @@
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Sedang Berlangsung';
         $initialComputedTpBadgeClass = 'status-in_progress';
-        $initialComputedTpDesc = 'Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan sedang berlangsung.';
+        $initialComputedTpDesc = 'Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan aktif berlangsung.';
     }
 @endphp
 
@@ -190,7 +214,9 @@
                         <select id="assessment-lpk-id" name="lpk_id" required>
                             <option value="">Pilih LPK</option>
                             @foreach($lpks as $lpk)
-                                <option value="{{ $lpk->id }}" @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>
+                                <option value="{{ $lpk->id }}"
+                                    data-cert-date="{{ $lpk->certificate_date?->format('Y-m-d') ?: ($lpk->expired_at ? $lpk->expired_at->copy()->subYears(5)->format('Y-m-d') : '') }}"
+                                    @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>
                                     {{ $lpk->registration_number }} - {{ $lpk->name }}
                                 </option>
                             @endforeach
@@ -268,24 +294,39 @@
                         </div>
                     </div>
 
+                    <input type="hidden" name="start_at" id="assessment-start-at" value="{{ $startAtFormatted }}">
+                    <input type="hidden" name="end_at" id="assessment-end-at" value="{{ $endAtFormatted }}">
+                    <input type="hidden" name="start_time" id="assessment-start-time" value="{{ $startTimeVal ?: '09:00' }}">
+                    <input type="hidden" name="end_time" id="assessment-end-time" value="{{ $endTimeVal ?: '17:00' }}">
+
                     <div class="lpk-field-row">
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-start-at">
-                                <span>Mulai Pelaksanaan</span>
+                            <label class="lpk-label" for="assessment-start-date">
+                                <span>Tanggal Mulai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-start-at" type="datetime-local" name="start_at" value="{{ old('start_at', $assessment->start_at?->format('Y-m-d\TH:i') ?: request('start_at')) }}" required>
-                            <span class="lpk-field-hint">Waktu pembukaan opening meeting asesmen.</span>
+                            <input id="assessment-start-date" type="date" name="start_date" value="{{ $startDateVal }}" required>
+                            <span class="lpk-field-hint">Tanggal pembukaan opening meeting asesmen.</span>
                         </div>
 
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-end-at">
-                                <span>Selesai Pelaksanaan</span>
+                            <label class="lpk-label" for="assessment-end-date">
+                                <span>Tanggal Selesai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-end-at" type="datetime-local" name="end_at" value="{{ old('end_at', $assessment->end_at?->format('Y-m-d\TH:i') ?: request('end_at')) }}" required>
-                            <span class="lpk-field-hint">Waktu penutupan closing meeting asesmen.</span>
+                            <input id="assessment-end-date" type="date" name="end_date" value="{{ $endDateVal }}" required>
+                            <span class="lpk-field-hint">Tanggal penutupan closing meeting asesmen.</span>
                         </div>
+                    </div>
+
+                    <div class="lpk-field" style="margin-bottom: 18px;">
+                        <label class="lpk-label" for="assessment-submission-due-date">
+                            <span>Tanggal Toleransi Pengisian</span>
+                        </label>
+                        <input id="assessment-submission-due-date" type="date" name="submission_due_date" value="{{ $submissionDueDateVal }}" data-default-date="{{ $defaultSubmissionDueDateVal }}">
+                        <span id="assessment-submission-due-date-hint" class="lpk-field-hint">
+                            Maksimal batas toleransi pengisian dokumen (bawaan: 4 bulan dari bulan ke-15 siklus akreditasi / dapat diubah sesuai kondisi proses tertentu).
+                        </span>
                     </div>
 
                     <div class="lpk-field-row">
@@ -344,52 +385,59 @@
                         <label class="lpk-label">
                             <span>Status Tindakan Perbaikan</span>
                         </label>
-                        <div class="lpk-status-preview-box">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span id="tp-status-badge-preview" class="status {{ $initialComputedTpBadgeClass }}" style="font-weight: 600; font-size: 12px;">
-                                    {{ $initialComputedTpLabel }}
-                                </span>
-                                <span id="tp-status-desc-preview" style="font-size: 11.5px; color: var(--muted); line-height: 1.4;">
-                                    {{ $initialComputedTpDesc }}
-                                </span>
-                            </div>
+                        <div style="display: flex; align-items: center; min-height: 32px; margin-top: 4px; margin-bottom: 4px;">
+                            <span id="tp-status-badge-preview" class="status {{ $initialComputedTpBadgeClass }}" style="font-weight: 600; font-size: 12px;">
+                                {{ $initialComputedTpLabel }}
+                            </span>
                             <input type="hidden" name="tp_status" id="input-auto-tp-status" value="{{ $initialComputedTpStatus }}">
                         </div>
-                        <span class="lpk-field-hint">* Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan aktif berlangsung.</span>
+                        <span id="tp-status-desc-preview" class="lpk-field-hint">* {{ $initialComputedTpDesc }}</span>
                     </div>
 
-                    <div class="lpk-field-row">
+                    <div class="lpk-field-row" style="align-items: start; margin-bottom: 18px;">
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-tp-due-date">
+                            <label class="lpk-label" for="assessment-tp-due-date" style="min-height: 34px; align-items: flex-start;">
                                 <span>Batas Waktu Awal</span>
                             </label>
-                            <input id="assessment-tp-due-date" type="date" name="tp_due_date" value="{{ old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($isOverdueWithoutAction ? '' : ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: ''))) }}">
-                            <span class="lpk-field-hint">Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.</span>
+                            <input id="assessment-tp-due-date" type="date" name="tp_due_date" value="{{ $initTpDueDate }}" data-base-date="{{ $baseTpDate }}" data-is-extended="{{ $tpHasExtVal ? '1' : '0' }}">
+                            <div id="tp-due-date-ext-badge-wrap" style="display: {{ $tpHasExtVal ? 'block' : 'none' }}; margin-top: 6px;">
+                                <span id="tp-due-date-ext-badge" class="badge-tp badge-tp-info" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    <span>Otomatis +1 Bulan (Surat LPK)</span>
+                                </span>
+                            </div>
+                            <span id="assessment-tp-due-date-hint" class="lpk-field-hint" style="margin-top: 4px;">
+                                @if($tpHasExtVal)
+                                    * Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.
+                                @else
+                                    Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.
+                                @endif
+                            </span>
                         </div>
 
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-tp-satisfied-at">
+                            <label class="lpk-label" for="assessment-tp-satisfied-at" style="min-height: 34px; align-items: flex-start;">
                                 <span>Tanggal Dinyatakan Memenuhi</span>
                             </label>
                             <input id="assessment-tp-satisfied-at" type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}">
-                            <span class="lpk-field-hint">Diisi saat verifikasi tindakan perbaikan telah disetujui.</span>
+                            <span class="lpk-field-hint" style="margin-top: 4px;">Diisi saat verifikasi tindakan perbaikan telah disetujui.</span>
                         </div>
                     </div>
 
                     {{-- Kotak Perpanjangan Masa Perbaikan --}}
-                    <div class="lpk-checkbox-card">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink);">
-                            <input type="checkbox" name="tp_has_extension" id="input_tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('form-extension-block').style.display = this.checked ? 'grid' : 'none'" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
+                    <div class="lpk-checkbox-card" style="margin-bottom: 18px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.4;">
+                            <input type="checkbox" name="tp_has_extension" id="input_tp_has_extension" value="1" @checked($tpHasExtVal) style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin-top: 1px; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
                             <span>LPK Mengajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Regulasi KAN)</span>
                         </label>
-                        <span style="font-size: 11.5px; color: var(--muted); margin-top: -4px; line-height: 1.4;">
+                        <span style="font-size: 11.5px; color: var(--muted); margin-top: -2px; line-height: 1.4;">
                             * Perpanjangan hanya dapat diajukan jika LPK telah menyampaikan upaya perbaikan (status Penyusunan atau Verifikasi), bukan Nihil/Tanpa Tindakan Perbaikan.
                         </span>
 
-                        <div id="form-extension-block" style="display: {{ old('tp_has_extension', $assessment->tp_has_extension) ? 'grid' : 'none' }}; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
+                        <div id="form-extension-block" class="form-extension-grid" style="display: {{ $tpHasExtVal ? 'grid' : 'none' }};">
                             <div class="lpk-field">
                                 <label class="lpk-label" for="assessment-ext-letter-no">
-                                    <span>Nomor Surat Permohonan</span>
+                                    <span>Nomor Surat Resmi LPK</span>
                                 </label>
                                 <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}">
                             </div>
@@ -524,11 +572,22 @@
 <script>
 (function() {
     function initAutoAssessmentStatus() {
-        const startInput = document.querySelector('input[name="start_at"]');
-        const endInput = document.querySelector('input[name="end_at"]');
+        const startDateInput = document.querySelector('input[name="start_date"]');
+        const startTimeInput = document.querySelector('input[name="start_time"]');
+        const endDateInput = document.querySelector('input[name="end_date"]');
+        const endTimeInput = document.querySelector('input[name="end_time"]');
+        const hiddenStartInput = document.getElementById('assessment-start-at');
+        const hiddenEndInput = document.getElementById('assessment-end-at');
+        const lpkSelect = document.getElementById('assessment-lpk-id');
+        const submissionDueDateInput = document.getElementById('assessment-submission-due-date');
         const assessmentTypeSelect = document.querySelector('select[name="assessment_type"]');
         const tpDueDateInput = document.querySelector('input[name="tp_due_date"]');
         const tpHasExtCheckbox = document.getElementById('input_tp_has_extension');
+        const tpExtLetterNoInput = document.getElementById('assessment-ext-letter-no');
+        const tpDueDateExtBadgeWrap = document.getElementById('tp-due-date-ext-badge-wrap');
+        const tpDueDateExtBadge = document.getElementById('tp-due-date-ext-badge');
+        const tpDueDateHint = document.getElementById('assessment-tp-due-date-hint');
+        const formExtBlock = document.getElementById('form-extension-block');
         const tpSatisfiedInput = document.querySelector('input[name="tp_satisfied_at"]');
         const reportDateInput = document.querySelector('input[name="report_date"]');
         const ehaDateInput = document.querySelector('input[name="eha_date"]');
@@ -544,25 +603,208 @@
 
         const isCancelled = {{ $assessment->status === 'CANCELLED' ? 'true' : 'false' }};
 
-        if (!startInput || !endInput || !badge) return;
+        if (!badge) return;
+
+        function addOneMonth(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            let y = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10);
+            let d = parseInt(parts[2], 10);
+
+            m += 1;
+            if (m > 12) {
+                y += 1;
+                m = 1;
+            }
+            const maxDays = new Date(y, m, 0).getDate();
+            if (d > maxDays) d = maxDays;
+            return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+
+        function subtractOneMonth(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            let y = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10);
+            let d = parseInt(parts[2], 10);
+
+            m -= 1;
+            if (m < 1) {
+                y -= 1;
+                m = 12;
+            }
+            const maxDays = new Date(y, m, 0).getDate();
+            if (d > maxDays) d = maxDays;
+            return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+
+        function updatePickerDisplay(input) {
+            if (!input) return;
+            const wrapper = input.closest('.custom-datepicker-wrapper');
+            if (wrapper) {
+                const valSpan = wrapper.querySelector('.custom-picker-value');
+                if (valSpan) {
+                    if (!input.value) {
+                        valSpan.innerHTML = '<span class="is-placeholder">Pilih tanggal...</span>';
+                    } else {
+                        const parts = input.value.split('-');
+                        if (parts.length === 3) {
+                            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                            const d = parseInt(parts[2], 10);
+                            const m = monthsShort[parseInt(parts[1], 10) - 1] || parts[1];
+                            const y = parts[0];
+                            valSpan.innerHTML = `<span>${d} ${m} ${y}</span>`;
+                        }
+                    }
+                }
+            }
+        }
+
+        function calculateDefaultSubmissionDate() {
+            let certDateStr = '';
+            if (lpkSelect && lpkSelect.selectedIndex >= 0) {
+                const opt = lpkSelect.options[lpkSelect.selectedIndex];
+                if (opt && opt.dataset.certDate) {
+                    certDateStr = opt.dataset.certDate;
+                }
+            }
+
+            if (certDateStr) {
+                const parts = certDateStr.split('-');
+                if (parts.length === 3) {
+                    let y = parseInt(parts[0], 10);
+                    let m = parseInt(parts[1], 10);
+                    const targetMonthIndex = m - 1 + 19;
+                    const targetYear = y + Math.floor(targetMonthIndex / 12);
+                    const targetMonth = (targetMonthIndex % 12) + 1;
+                    const lastDay = new Date(targetYear, targetMonth, 0).getDate();
+                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                }
+            }
+
+            const endDateVal = endDateInput ? endDateInput.value : '';
+            if (endDateVal) {
+                const parts = endDateVal.split('-');
+                if (parts.length === 3) {
+                    let y = parseInt(parts[0], 10);
+                    let m = parseInt(parts[1], 10);
+                    const targetMonthIndex = m - 1 + 4;
+                    const targetYear = y + Math.floor(targetMonthIndex / 12);
+                    const targetMonth = (targetMonthIndex % 12) + 1;
+                    const lastDay = new Date(targetYear, targetMonth, 0).getDate();
+                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                }
+            }
+
+            return '';
+        }
+
+        function syncSubmissionDueDate(force = false) {
+            if (!submissionDueDateInput) return;
+            if (!force && submissionDueDateInput.dataset.userModified === 'true') {
+                return;
+            }
+            const defDate = calculateDefaultSubmissionDate();
+            if (defDate) {
+                submissionDueDateInput.value = defDate;
+                submissionDueDateInput.dataset.defaultDate = defDate;
+                updatePickerDisplay(submissionDueDateInput);
+            }
+        }
+
+        function handleExtensionSync(triggeredFromLetter = false) {
+            if (!tpDueDateInput) return;
+
+            const letterVal = tpExtLetterNoInput ? tpExtLetterNoInput.value.trim() : '';
+            const hasLetter = letterVal.length > 0;
+            const isChecked = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
+
+            if (triggeredFromLetter && hasLetter && tpHasExtCheckbox && !tpHasExtCheckbox.checked) {
+                tpHasExtCheckbox.checked = true;
+            }
+
+            const shouldExtend = hasLetter || (tpHasExtCheckbox ? tpHasExtCheckbox.checked : false);
+
+            if (formExtBlock) {
+                formExtBlock.style.display = shouldExtend ? 'grid' : 'none';
+            }
+
+            const isExtended = tpDueDateInput.dataset.isExtended === '1';
+
+            if (shouldExtend && !isExtended) {
+                let base = tpDueDateInput.dataset.baseDate;
+                if (!base) {
+                    if (tpDueDateInput.value) {
+                        base = tpDueDateInput.value;
+                        tpDueDateInput.dataset.baseDate = base;
+                    } else if (endDateInput && endDateInput.value) {
+                        const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
+                        const months = (typeVal === 'Akreditasi Awal' || typeVal === 'INITIAL') ? 3 : 2;
+                        const endD = new Date(endDateInput.value);
+                        endD.setMonth(endD.getMonth() + months);
+                        base = `${endD.getFullYear()}-${String(endD.getMonth() + 1).padStart(2, '0')}-${String(endD.getDate()).padStart(2, '0')}`;
+                        tpDueDateInput.dataset.baseDate = base;
+                    }
+                }
+
+                if (base) {
+                    const newDueDate = addOneMonth(base);
+                    tpDueDateInput.value = newDueDate;
+                    tpDueDateInput.dataset.isExtended = '1';
+                    updatePickerDisplay(tpDueDateInput);
+                    if (tpDueDateExtBadgeWrap) tpDueDateExtBadgeWrap.style.display = 'block';
+                    if (tpDueDateExtBadge) tpDueDateExtBadge.style.display = 'inline-flex';
+                    if (tpDueDateHint) tpDueDateHint.textContent = '* Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.';
+                }
+            } else if (!shouldExtend && isExtended) {
+                let base = tpDueDateInput.dataset.baseDate;
+                if (!base && tpDueDateInput.value) {
+                    base = subtractOneMonth(tpDueDateInput.value);
+                }
+
+                if (base) {
+                    tpDueDateInput.value = base;
+                    tpDueDateInput.dataset.isExtended = '0';
+                    updatePickerDisplay(tpDueDateInput);
+                    if (tpDueDateExtBadgeWrap) tpDueDateExtBadgeWrap.style.display = 'none';
+                    if (tpDueDateExtBadge) tpDueDateExtBadge.style.display = 'none';
+                    if (tpDueDateHint) tpDueDateHint.textContent = 'Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.';
+                }
+            }
+
+            updateStatus();
+        }
 
         function updateStatus() {
             if (isCancelled) {
                 return;
             }
 
-            const startVal = startInput.value;
-            const endVal = endInput.value;
+            const startDateVal = startDateInput ? startDateInput.value : '';
+            const startTimeVal = startTimeInput ? startTimeInput.value : '09:00';
+            const endDateVal = endDateInput ? endDateInput.value : '';
+            const endTimeVal = endTimeInput ? endTimeInput.value : '17:00';
+
+            if (hiddenStartInput && startDateVal) {
+                hiddenStartInput.value = `${startDateVal}T${startTimeVal || '00:00'}`;
+            }
+            if (hiddenEndInput && endDateVal) {
+                hiddenEndInput.value = `${endDateVal}T${endTimeVal || '23:59'}`;
+            }
+
             const skNumberVal = skNumberInput ? skNumberInput.value.trim() : '';
             const tpSatisfiedVal = tpSatisfiedInput ? tpSatisfiedInput.value : '';
             const reportDateVal = reportDateInput ? reportDateInput.value : '';
             const ehaDateVal = ehaDateInput ? ehaDateInput.value : '';
             const tpDueDateVal = tpDueDateInput ? tpDueDateInput.value : '';
-            const tpHasExt = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
+            const tpHasExt = (tpHasExtCheckbox ? tpHasExtCheckbox.checked : false) || (tpExtLetterNoInput && tpExtLetterNoInput.value.trim() !== '');
 
             const now = new Date();
-            const startDate = startVal ? new Date(startVal) : null;
-            const endDate = endVal ? new Date(endVal) : null;
+            const startDate = startDateVal ? new Date(`${startDateVal}T${startTimeVal || '00:00'}`) : null;
+            const endDate = endDateVal ? new Date(`${endDateVal}T${endTimeVal || '23:59'}`) : null;
 
             // Hitung batas waktu perbaikan efektif
             let effectiveDueDate = null;
@@ -576,7 +818,9 @@
                 effectiveDueDate.setHours(23, 59, 59, 999);
             }
 
-            if (effectiveDueDate && tpHasExt) {
+            // Jika tpDueDateInput sudah mencakup +1 bulan secara visual/input, jangan tambahkan +1 bulan lagi
+            const isInputExtended = tpDueDateInput && tpDueDateInput.dataset.isExtended === '1';
+            if (effectiveDueDate && tpHasExt && !isInputExtended) {
                 effectiveDueDate.setMonth(effectiveDueDate.getMonth() + 1);
             }
 
@@ -614,7 +858,7 @@
                 tpBadge.textContent = tpLabel;
             }
             if (tpDesc) {
-                tpDesc.textContent = tpDescription;
+                tpDesc.textContent = '* ' + tpDescription;
             }
             if (hiddenTpStatus) {
                 hiddenTpStatus.value = tpStatus;
@@ -672,13 +916,94 @@
             }
         }
 
-        const watchElements = [startInput, endInput, assessmentTypeSelect, tpDueDateInput, tpHasExtCheckbox, tpSatisfiedInput, reportDateInput, ehaDateInput, skNumberInput];
+        if (tpDueDateInput) {
+            tpDueDateInput.addEventListener('change', function() {
+                if (this.dataset.isExtended === '1') {
+                    this.dataset.baseDate = subtractOneMonth(this.value);
+                } else {
+                    this.dataset.baseDate = this.value;
+                }
+                this.dataset.manualEdit = '1';
+            });
+        }
+
+        if (endDateInput) {
+            endDateInput.addEventListener('change', function() {
+                if (tpDueDateInput && !tpDueDateInput.dataset.manualEdit) {
+                    const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
+                    const months = (typeVal === 'Akreditasi Awal' || typeVal === 'INITIAL') ? 3 : 2;
+                    if (endDateInput.value) {
+                        const endD = new Date(endDateInput.value);
+                        endD.setMonth(endD.getMonth() + months);
+                        const base = `${endD.getFullYear()}-${String(endD.getMonth() + 1).padStart(2, '0')}-${String(endD.getDate()).padStart(2, '0')}`;
+                        tpDueDateInput.dataset.baseDate = base;
+                        const isExtended = tpDueDateInput.dataset.isExtended === '1';
+                        tpDueDateInput.value = isExtended ? addOneMonth(base) : base;
+                        updatePickerDisplay(tpDueDateInput);
+                    }
+                }
+                syncSubmissionDueDate(false);
+            });
+        }
+
+        if (submissionDueDateInput) {
+            submissionDueDateInput.addEventListener('input', function() {
+                submissionDueDateInput.dataset.userModified = 'true';
+                updateStatus();
+            });
+            submissionDueDateInput.addEventListener('change', function() {
+                submissionDueDateInput.dataset.userModified = 'true';
+                updateStatus();
+            });
+        }
+
+        if (lpkSelect) {
+            lpkSelect.addEventListener('change', function() {
+                syncSubmissionDueDate(false);
+                updateStatus();
+            });
+        }
+
+        if (tpExtLetterNoInput) {
+            tpExtLetterNoInput.addEventListener('input', function() {
+                handleExtensionSync(true);
+            });
+            tpExtLetterNoInput.addEventListener('change', function() {
+                handleExtensionSync(true);
+            });
+        }
+
+        if (tpHasExtCheckbox) {
+            tpHasExtCheckbox.addEventListener('change', function() {
+                handleExtensionSync(false);
+            });
+        }
+
+        const watchElements = [
+            startDateInput,
+            startTimeInput,
+            endDateInput,
+            endTimeInput,
+            submissionDueDateInput,
+            lpkSelect,
+            assessmentTypeSelect,
+            tpDueDateInput,
+            tpHasExtCheckbox,
+            tpSatisfiedInput,
+            reportDateInput,
+            ehaDateInput,
+            skNumberInput
+        ];
         watchElements.forEach(function(el) {
             if (el) {
                 el.addEventListener('input', updateStatus);
                 el.addEventListener('change', updateStatus);
             }
         });
+
+        if (submissionDueDateInput && !submissionDueDateInput.value) {
+            syncSubmissionDueDate(false);
+        }
 
         // Jalankan penentuan status otomatis saat form dimuat
         updateStatus();

@@ -5,7 +5,7 @@
 @section('content')
 <x-page-header
     title="Manajemen Pengguna & PIC"
-    subtitle="Kelola akun pengguna, hak akses peran Administrator Unit dan PIC Laboratorium."
+    subtitle="Kelola akun pengguna, hak akses peran Ketua Tim dan PIC Laboratorium."
 >
     <a class="button primary" href="{{ route('users.create') }}">
         <x-icon name="plus" size="16" />
@@ -30,7 +30,7 @@
             <x-icon name="shield" size="22" />
         </div>
         <div>
-            <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);">Admin Unit Lab</div>
+            <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);">Ketua Tim</div>
             <strong style="font-size: 22px; color: #1e293b; line-height: 1.2;">{{ $adminCount }}</strong>
         </div>
     </div>
@@ -60,7 +60,7 @@
                 Peran Pengguna
                 <select name="role">
                     <option value="">Semua Peran</option>
-                    <option value="admin" @selected($role === 'admin')>Administrator Unit</option>
+                    <option value="admin" @selected($role === 'admin')>Ketua Tim</option>
                     <option value="pic" @selected($role === 'pic')>PIC Laboratorium</option>
                 </select>
             </label>

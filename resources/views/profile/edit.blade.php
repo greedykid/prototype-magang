@@ -60,7 +60,7 @@
             <label class="full">
                 Peran Pengguna (Hak Akses)
                 <input type="text" value="{{ $user->role_label }}" disabled readonly style="background: #f8fafc; color: #64748b; cursor: not-allowed;">
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Hak akses ditetapkan oleh Administrator Unit Akreditasi Laboratorium KAN.</small>
+                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Hak akses ditetapkan oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
             </label>
 
             <div class="form-actions full" style="margin-top: 8px; display: flex; justify-content: flex-end;">

@@ -18,7 +18,7 @@ class RoleAccessControlTest extends TestCase
         $response = $this->get(route('login'));
 
         $response->assertOk()
-            ->assertSee('Admin Unit Lab')
+            ->assertSee('Ketua Tim')
             ->assertSee('PIC Laboratorium')
             ->assertSee('admin@simasadi.local')
             ->assertSee('pic@simasadi.local');
@@ -128,7 +128,7 @@ class RoleAccessControlTest extends TestCase
 
         $this->assertTrue($admin->isAdmin());
         $this->assertFalse($admin->isPic());
-        $this->assertEquals('Admin Unit Akreditasi Lab', $admin->role_label);
+        $this->assertEquals('Ketua Tim', $admin->role_label);
         $this->assertEquals('badge-role-admin', $admin->role_badge_class);
 
         $this->assertTrue($pic->isPic());

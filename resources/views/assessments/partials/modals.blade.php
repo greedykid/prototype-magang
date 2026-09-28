@@ -122,16 +122,46 @@
                     </label>
                 </div>
 
+@php
+    $modalTpHasExt = (bool) old('tp_has_extension', $assessment->tp_has_extension || !empty($assessment->tp_extension_letter_no));
+    $modalDefaultDueDateCarbon = $assessment->calculateDefaultTpDueDate();
+    $modalBaseTpDate = $assessment->tp_due_date?->format('Y-m-d') ?: ($modalDefaultDueDateCarbon?->format('Y-m-d') ?: '');
+    $modalInitTpDueDate = old('tp_due_date');
+    if (! $modalInitTpDueDate) {
+        if ($assessment->tp_due_date) {
+            if ($modalTpHasExt && $modalDefaultDueDateCarbon && $assessment->tp_due_date->toDateString() === $modalDefaultDueDateCarbon->toDateString()) {
+                $modalInitTpDueDate = $assessment->tp_due_date->copy()->addMonth()->format('Y-m-d');
+            } else {
+                $modalInitTpDueDate = $assessment->tp_due_date->format('Y-m-d');
+            }
+        } elseif ($modalDefaultDueDateCarbon) {
+            $modalInitTpDueDate = $modalTpHasExt ? $modalDefaultDueDateCarbon->copy()->addMonth()->format('Y-m-d') : $modalDefaultDueDateCarbon->format('Y-m-d');
+        } else {
+            $modalInitTpDueDate = '';
+        }
+    }
+@endphp
                 <div class="modal-form-grid-2col">
                     <label>
-                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal (KAN)</span>
-                        <input type="date" name="tp_due_date" value="{{ old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: '')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
-                        <small style="color: var(--muted); font-size: 11px;">Otomatis +2 atau +3 bulan jika dikosongkan.</small>
+                        <span style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <span>Batas Waktu Awal (KAN)</span>
+                            <span id="modal-tp-ext-badge-{{ $assessment->id }}" class="badge-tp badge-tp-info" style="font-size: 10px; display: {{ $modalTpHasExt ? 'inline-flex' : 'none' }}; align-items: center; gap: 3px;">
+                                +1 Bulan (Surat LPK)
+                            </span>
+                        </span>
+                        <input type="date" name="tp_due_date" id="modal_tp_due_date_{{ $assessment->id }}" value="{{ $modalInitTpDueDate }}" data-base-date="{{ $modalBaseTpDate }}" data-is-extended="{{ $modalTpHasExt ? '1' : '0' }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <small id="modal_tp_due_date_hint_{{ $assessment->id }}" style="color: var(--muted); font-size: 11px;">
+                            @if($modalTpHasExt)
+                                * Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.
+                            @else
+                                Otomatis +2 atau +3 bulan jika dikosongkan.
+                            @endif
+                        </small>
                     </label>
 
                     <label>
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Tanggal Dinyatakan Memenuhi</span>
-                        <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
+                        <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at_{{ $assessment->id }}" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
                         <small style="color: var(--muted); font-size: 11px;">Status otomatis beralih ke Memenuhi saat tanggal diisi.</small>
                     </label>
                 </div>
@@ -140,7 +170,7 @@
                 <div style="padding: 12px 14px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px;">
                     <div>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; min-height: 44px;">
-                            <input type="checkbox" name="tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('extension-fields').style.display = this.checked ? 'grid' : 'none'" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
+                            <input type="checkbox" name="tp_has_extension" id="modal_tp_has_extension_{{ $assessment->id }}" value="1" @checked($modalTpHasExt) onchange="window.syncModalTpExtension({{ $assessment->id }}, false)" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
                             <span>Ajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Aturan KAN)</span>
                         </label>
                         <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px;">
@@ -148,11 +178,11 @@
                         </small>
                     </div>
 
-                    <div id="extension-fields" style="display: {{ old('tp_has_extension', $assessment->tp_has_extension) ? 'grid' : 'none' }}; gap: 10px;">
+                    <div id="extension-fields-{{ $assessment->id }}" style="display: {{ $modalTpHasExt ? 'grid' : 'none' }}; gap: 10px;">
                         <div class="modal-form-grid-2col">
                             <label>
                                 <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor Surat Resmi LPK</span>
-                                <input type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
+                                <input type="text" name="tp_extension_letter_no" id="modal_tp_ext_letter_no_{{ $assessment->id }}" oninput="window.syncModalTpExtension({{ $assessment->id }}, true)" onchange="window.syncModalTpExtension({{ $assessment->id }}, true)" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
                             </label>
                             <label>
                                 <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tanggal Surat</span>
@@ -236,4 +266,75 @@
         </form>
     </div>
 </div>
+
+<script>
+window.syncModalTpExtension = function(id, fromLetter) {
+    const dueInput = document.getElementById('modal_tp_due_date_' + id);
+    const hasExtBox = document.getElementById('modal_tp_has_extension_' + id);
+    const letterInput = document.getElementById('modal_tp_ext_letter_no_' + id);
+    const fieldsBlock = document.getElementById('extension-fields-' + id);
+    const badge = document.getElementById('modal-tp-ext-badge-' + id);
+    const hint = document.getElementById('modal_tp_due_date_hint_' + id);
+
+    if (!dueInput) return;
+
+    const letterVal = letterInput ? letterInput.value.trim() : '';
+    const hasLetter = letterVal.length > 0;
+
+    if (fromLetter && hasLetter && hasExtBox && !hasExtBox.checked) {
+        hasExtBox.checked = true;
+    }
+
+    const shouldExtend = hasLetter || (hasExtBox ? hasExtBox.checked : false);
+
+    if (fieldsBlock) {
+        fieldsBlock.style.display = shouldExtend ? 'grid' : 'none';
+    }
+
+    function addMonth(dStr) {
+        if (!dStr) return '';
+        const p = dStr.split('-');
+        if (p.length !== 3) return dStr;
+        let y = parseInt(p[0], 10), m = parseInt(p[1], 10) + 1, d = parseInt(p[2], 10);
+        if (m > 12) { y++; m = 1; }
+        const max = new Date(y, m, 0).getDate();
+        if (d > max) d = max;
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
+    function subMonth(dStr) {
+        if (!dStr) return '';
+        const p = dStr.split('-');
+        if (p.length !== 3) return dStr;
+        let y = parseInt(p[0], 10), m = parseInt(p[1], 10) - 1, d = parseInt(p[2], 10);
+        if (m < 1) { y--; m = 12; }
+        const max = new Date(y, m, 0).getDate();
+        if (d > max) d = max;
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
+    const isExtended = dueInput.dataset.isExtended === '1';
+
+    if (shouldExtend && !isExtended) {
+        let base = dueInput.dataset.baseDate || dueInput.value;
+        if (base) {
+            dueInput.dataset.baseDate = base;
+            dueInput.value = addMonth(base);
+            dueInput.dataset.isExtended = '1';
+            if (badge) badge.style.display = 'inline-flex';
+            if (hint) hint.textContent = '* Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.';
+            dueInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    } else if (!shouldExtend && isExtended) {
+        let base = dueInput.dataset.baseDate || (dueInput.value ? subMonth(dueInput.value) : '');
+        if (base) {
+            dueInput.value = base;
+            dueInput.dataset.isExtended = '0';
+            if (badge) badge.style.display = 'none';
+            if (hint) hint.textContent = 'Otomatis +2 atau +3 bulan jika dikosongkan.';
+            dueInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+};
+</script>
 

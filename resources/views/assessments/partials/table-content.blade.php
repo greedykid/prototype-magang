@@ -19,7 +19,7 @@
                             <span>{{ $assessment->assessment_type_label }}</span>
                             @if($assessment->sk_number)
                                 <div style="margin-top: 3px;">
-                                    <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date->format('d/m/Y') . ')' : '' }} {{ $assessment->sk_lead_time_label ? '• Rentang: ' . $assessment->sk_lead_time_label : '' }}">
+                                    <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date->format('d/m/Y') . ')' : '' }} {{ $assessment->sk_lead_time_label ? '| Rentang: ' . $assessment->sk_lead_time_label : '' }}">
                                         SK: {{ $assessment->sk_number }}
                                         @if($assessment->sk_lead_time_days !== null)
                                             ({{ $assessment->sk_lead_time_days }} hr)

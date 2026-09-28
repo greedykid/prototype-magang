@@ -11,7 +11,7 @@
             @if($user->exists)
                 Perbarui informasi akun, hak akses peran, atau atur ulang kata sandi pengguna.
             @else
-                Daftarkan akun pengguna baru untuk staf Administrator Unit atau PIC Laboratorium.
+                Daftarkan akun pengguna baru untuk staf Ketua Tim atau PIC Laboratorium.
             @endif
         </p>
     </div>
@@ -51,7 +51,7 @@
             Peran &amp; Hak Akses Pengguna
             <select name="role" required>
                 <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
-                    Administrator Unit (Dit. Akreditasi Laboratorium KAN)
+                    Ketua Tim (Dit. Akreditasi Laboratorium KAN)
                 </option>
                 <option value="pic" @selected(old('role', $user->role) === 'pic')>
                     PIC Laboratorium (Laboratorium Penguji / Kalibrasi / Medik)
@@ -59,7 +59,7 @@
             </select>
             @if($user->exists && auth()->id() === $user->id)
                 <small style="color: #b91c1c; font-size: 11.5px; display: block; margin-top: 4px;">
-                    Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses admin.
+                    Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses Ketua Tim.
                 </small>
             @else
                 <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">

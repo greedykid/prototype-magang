@@ -39,7 +39,7 @@
                 @endif
                 <div class="error-context-row">
                     <span class="error-context-label">Kewenangan yang Diperlukan</span>
-                    <span class="error-context-val">Administrator Unit Akreditasi KAN</span>
+                    <span class="error-context-val">Ketua Tim Akreditasi KAN</span>
                 </div>
                 <div class="error-context-row">
                     <span class="error-context-label">Ketentuan Tata Kelola</span>
@@ -68,7 +68,7 @@
 
             <div class="error-meta-footer">
                 <span>Waktu Kejadian: {{ now()->format('d/m/Y H:i:s') }} WIB</span>
-                <span>Butuh peningkatan akses? Hubungi Administrator Unit KAN</span>
+                <span>Butuh peningkatan akses? Hubungi Ketua Tim KAN</span>
             </div>
         </div>
     </div>

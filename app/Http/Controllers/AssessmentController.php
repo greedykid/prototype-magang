@@ -211,18 +211,42 @@ class AssessmentController extends Controller
         if ($request->filled('location')) {
             $assessment->location = $request->input('location');
         }
-        if ($request->filled('start_at')) {
+        if ($request->filled('start_date')) {
+            try {
+                $time = $request->input('start_time', '09:00');
+                $assessment->start_at = Carbon::parse($request->input('start_date').' '.$time);
+            } catch (\Throwable $e) {}
+        } elseif ($request->filled('start_at')) {
             try {
                 $assessment->start_at = Carbon::parse($request->input('start_at'));
             } catch (\Throwable $e) {}
         }
-        if ($request->filled('end_at')) {
+
+        if ($request->filled('end_date')) {
+            try {
+                $time = $request->input('end_time', '17:00');
+                $assessment->end_at = Carbon::parse($request->input('end_date').' '.$time);
+            } catch (\Throwable $e) {}
+        } elseif ($request->filled('end_at')) {
             try {
                 $assessment->end_at = Carbon::parse($request->input('end_at'));
             } catch (\Throwable $e) {}
         }
+
+        if (! $assessment->start_at) {
+            $defaultStart = now()->addDays(14)->setTime(9, 0);
+            $assessment->start_at = $defaultStart;
+            $assessment->end_at = $defaultStart->copy()->addDays(2)->setTime(17, 0);
+        }
+
         if ($request->filled('status')) {
             $assessment->status = $request->input('status');
+        }
+
+        if ($request->filled('submission_due_date')) {
+            try {
+                $assessment->submission_due_date = Carbon::parse($request->input('submission_due_date'));
+            } catch (\Throwable $e) {}
         }
 
         return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
@@ -231,7 +255,7 @@ class AssessmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension');
+        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
         if ($data['tp_has_extension']) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
@@ -269,7 +293,7 @@ class AssessmentController extends Controller
     public function update(Request $request, Assessment $assessment): RedirectResponse
     {
         $data = $this->validated($request, $assessment);
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension');
+        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
         if ($data['tp_has_extension']) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
@@ -307,7 +331,7 @@ class AssessmentController extends Controller
             'sk_date' => ['nullable', 'date'],
         ]);
 
-        $validated['tp_has_extension'] = $request->boolean('tp_has_extension');
+        $validated['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($validated['tp_extension_letter_no']);
         if ($validated['tp_has_extension']) {
             if ($validated['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
@@ -348,12 +372,30 @@ class AssessmentController extends Controller
 
     private function validated(Request $request, ?Assessment $assessment = null): array
     {
+        $usesSplitDateFields = $request->filled('start_date');
+
+        if ($request->filled('start_date')) {
+            $startTime = $request->filled('start_time') ? (string) $request->input('start_time') : '09:00';
+            $endTime = $request->filled('end_time') ? (string) $request->input('end_time') : '17:00';
+            $endDate = $request->filled('end_date') ? (string) $request->input('end_date') : (string) $request->input('start_date');
+
+            $request->merge([
+                'start_at' => trim($request->input('start_date').' '.$startTime),
+                'end_at' => trim($endDate.' '.$endTime),
+            ]);
+        }
+
         $data = $request->validate([
             'lpk_id' => ['required', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:255'],
             'assessment_type' => ['required', 'string', 'max:80'],
+            'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
+            'start_time' => ['nullable', 'string', 'max:10'],
+            'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
+            'end_time' => ['nullable', 'string', 'max:10'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
+            'submission_due_date' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
             'lead_assessor' => ['nullable', 'string', 'max:1000'],
@@ -374,7 +416,13 @@ class AssessmentController extends Controller
             'tp_notes' => ['nullable', 'string'],
             'sk_number' => ['nullable', 'string', 'max:150'],
             'sk_date' => ['nullable', 'date'],
+        ], [
+            'end_at.after' => 'Waktu selesai pelaksanaan harus setelah waktu mulai pelaksanaan.',
+            'start_date.required' => 'Tanggal mulai pelaksanaan wajib diisi.',
+            'end_date.required' => 'Tanggal selesai pelaksanaan wajib diisi.',
         ]);
+
+        unset($data['start_date'], $data['start_time'], $data['end_date'], $data['end_time']);
 
         if (! empty($data['assessment_team'])) {
             $data['lead_assessor'] = $data['assessment_team'];

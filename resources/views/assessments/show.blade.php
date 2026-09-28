@@ -18,7 +18,7 @@
                 <h1>{{ $assessment->title }}</h1>
                 <div class="lpk-header-badges">
                     <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: #0f172a;" title="Buka detail LPK">
-                        {{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}
+                        {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
                     </a>
                     <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
                     <x-status :value="$assessment->status" />
@@ -107,7 +107,7 @@
                     <div class="lpk-meta-item full-width">
                         <span class="lpk-meta-label">LPK Terakreditasi</span>
                         <div class="lpk-meta-value">
-                            <a href="{{ route('lpks.show', $assessment->lpk) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                            <a href="{{ route('lpks.show', $assessment->lpk) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; flex-wrap: wrap; word-break: break-word; gap: 4px; text-decoration: none;">
                                 <span>{{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}</span>
                                 <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink: 0;"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
                             </a>
@@ -154,7 +154,7 @@
                             <span class="lpk-meta-label">Toleransi Pengisian</span>
                             <div class="lpk-meta-value">
                                 <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
-                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(akhir bulan dari waktu kunjungan)</span>
+                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(maksimal 4 bulan dari bulan ke-15)</span>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                     <div style="margin-top: 4px; font-size: 12px; color: #991b1b; font-weight: 600;">
                                         &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.

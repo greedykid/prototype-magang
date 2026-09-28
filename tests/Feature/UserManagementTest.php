@@ -48,7 +48,7 @@ class UserManagementTest extends TestCase
         $response->assertSee('Manajemen Pengguna & PIC', false);
         $response->assertSee('Budi Administrator Unit');
         $response->assertSee('Siti PIC Laboratorium');
-        $response->assertSee('Admin Unit Akreditasi Lab');
+        $response->assertSee('Ketua Tim');
         $response->assertSee('PIC Laboratorium');
     }
 

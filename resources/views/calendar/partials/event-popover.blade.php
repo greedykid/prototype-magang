@@ -8,17 +8,18 @@
         </div>
 
         <div class="gcal-popover-body">
-            <h3 id="popover-title">Judul Agenda</h3>
-            <div class="gcal-popover-row">
+            <h3 id="popover-title">Nama Lembaga Pemohon</h3>
+            <span id="popover-lpk" style="display: none;"></span>
+            <div class="gcal-popover-row" id="popover-time-wrap">
                 <x-icon name="calendar" size="16" />
-                <span id="popover-time">Senin, 21 September 2026 &bull; 09:00 - 11:00 WIB</span>
+                <span id="popover-time">Senin, 21 September 2026 - 09:00 - 11:00 WIB</span>
             </div>
-            <div class="gcal-popover-row">
-                <x-icon name="lpks" size="16" />
-                <span id="popover-lpk">Nama Lembaga Pemohon</span>
+            <div class="gcal-popover-row" id="popover-agenda-wrap">
+                <x-icon name="assessments" size="16" />
+                <span id="popover-agenda">Judul Agenda</span>
             </div>
             <div class="gcal-popover-row" id="popover-location-wrap">
-                <x-icon name="services" size="16" />
+                <x-icon name="map-pin" size="16" />
                 <span id="popover-location">Lokasi Asesmen</span>
             </div>
             <div class="gcal-popover-notes" id="popover-notes-wrap" style="display: none;">

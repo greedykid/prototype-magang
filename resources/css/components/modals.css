@@ -176,21 +176,56 @@ body.modal-open .sidebar {
     -webkit-overflow-scrolling: touch;
 }
 
-.modal-import-body::-webkit-scrollbar {
-    width: 6px;
+/* Custom Scrollbar for All Modals & Modal Dialog Boxes */
+.simasadi-modal,
+.simasadi-modal-box,
+.simasadi-modal-body,
+.modal-import-body,
+.swal2-popup,
+.swal2-html-container {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(148, 163, 184, 0.45) transparent !important;
 }
 
-.modal-import-body::-webkit-scrollbar-track {
-    background: transparent;
+.simasadi-modal::-webkit-scrollbar,
+.simasadi-modal-box::-webkit-scrollbar,
+.simasadi-modal-body::-webkit-scrollbar,
+.modal-import-body::-webkit-scrollbar,
+.swal2-popup::-webkit-scrollbar,
+.swal2-html-container::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
 }
 
-.modal-import-body::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.4);
-    border-radius: 999px;
+.simasadi-modal::-webkit-scrollbar-track,
+.simasadi-modal-box::-webkit-scrollbar-track,
+.simasadi-modal-body::-webkit-scrollbar-track,
+.modal-import-body::-webkit-scrollbar-track,
+.swal2-popup::-webkit-scrollbar-track,
+.swal2-html-container::-webkit-scrollbar-track {
+    background: transparent !important;
 }
 
-.modal-import-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.6);
+.simasadi-modal::-webkit-scrollbar-thumb,
+.simasadi-modal-box::-webkit-scrollbar-thumb,
+.simasadi-modal-body::-webkit-scrollbar-thumb,
+.modal-import-body::-webkit-scrollbar-thumb,
+.swal2-popup::-webkit-scrollbar-thumb,
+.swal2-html-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.45) !important;
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    background-clip: padding-box !important;
+    transition: background-color 150ms ease !important;
+}
+
+.simasadi-modal::-webkit-scrollbar-thumb:hover,
+.simasadi-modal-box::-webkit-scrollbar-thumb:hover,
+.simasadi-modal-body::-webkit-scrollbar-thumb:hover,
+.modal-import-body::-webkit-scrollbar-thumb:hover,
+.swal2-popup::-webkit-scrollbar-thumb:hover,
+.swal2-html-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7) !important;
 }
 
 .modal-import-lead {

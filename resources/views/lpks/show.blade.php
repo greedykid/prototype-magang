@@ -66,19 +66,38 @@
         $s1 = $milestones['s1'];
         $s2 = $milestones['s2'];
         $ra = $milestones['ra'];
-        $linkedS1 = $lpk->assessments->first(function ($a) use ($s1) {
-            return str_contains(strtolower($a->title), 's1')
-                || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s1['target_date'] && abs($a->start_at->diffInMonths($s1['target_date'])) <= 3);
+        $certDate = $lpk->certificate_date ?: ($lpk->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
+        $expDate = $lpk->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
+
+        $linkedS1 = $lpk->assessments->first(function ($a) use ($s1, $certDate) {
+            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->subMonths(2)) && $a->start_at->lte($certDate->copy()->addMonths(26)));
+
+            return $inCycle && (
+                str_contains(strtolower($a->title), 's1')
+                || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s1['target_date'] && abs($a->start_at->diffInMonths($s1['target_date'])) <= 6)
+            );
         });
-        $linkedS2 = $lpk->assessments->first(function ($a) use ($s2, $linkedS1) {
-            return (str_contains(strtolower($a->title), 's2')
-                || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s2['target_date'] && abs($a->start_at->diffInMonths($s2['target_date'])) <= 3))
-                && $a->id !== ($linkedS1?->id ?? null);
+        $linkedS2 = $lpk->assessments->first(function ($a) use ($s2, $certDate, $linkedS1) {
+            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->addMonths(24)) && $a->start_at->lte($certDate->copy()->addMonths(46)));
+
+            return $inCycle
+                && $a->id !== ($linkedS1?->id ?? null)
+                && (
+                    str_contains(strtolower($a->title), 's2')
+                    || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s2['target_date'] && abs($a->start_at->diffInMonths($s2['target_date'])) <= 6)
+                );
         });
-        $linkedRA = $lpk->assessments->first(function ($a) {
-            return str_contains(strtolower($a->title), 'ra')
-                || str_contains(strtolower($a->title), 're-akreditasi')
-                || str_contains(strtolower($a->assessment_type), 're-');
+        $linkedRA = $lpk->assessments->first(function ($a) use ($ra, $certDate, $expDate) {
+            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->addMonths(42)) && (! $expDate || $a->start_at->lte($expDate->copy()->addMonths(6))));
+
+            return $inCycle && (
+                str_contains(strtolower($a->title), 're-akreditasi')
+                || str_contains(strtolower($a->title), 'reakreditasi')
+                || str_contains(strtolower($a->title), '(ra)')
+                || str_contains(strtolower($a->title), ' ra ')
+                || $a->assessment_type === \App\Models\Assessment::TYPE_RE_AKREDITASI
+                || ($ra['target_date'] && $a->start_at && abs($a->start_at->diffInMonths($ra['target_date'])) <= 6)
+            );
         });
     @endphp
 
@@ -129,7 +148,12 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <span class="eyebrow" style="color: #4338ca;">SIKLUS KAN U-01</span>
-                        <h2 style="font-size: 16px; margin: 2px 0 0;">Siklus Pengawasan &amp; Re-Akreditasi</h2>
+                        <h2 style="font-size: 16px; margin: 2px 0 0;">
+                            Siklus Pengawasan &amp; Re-Akreditasi
+                            @if($lpk->certificate_date && $lpk->expired_at)
+                                <span style="font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px;">(Periode {{ $lpk->certificate_date->format('Y') }} - {{ $lpk->expired_at->format('Y') }})</span>
+                            @endif
+                        </h2>
                     </div>
                     @if(auth()->user()?->isAdmin())
                         <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="button secondary" style="font-size: 12px; padding: 5px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;">
@@ -605,6 +629,43 @@
                             $processName = null;
                             $statusDetail = trim($lpk->dynamic_keterangan);
                         }
+
+                        // Menentukan target tanggal dan highlight untuk pintasan kalender
+                        $calTargetDate = null;
+                        $calHighlight = null;
+                        $activeAss = $lpk->getActiveOrUpcomingAssessment();
+
+                        if ($activeAss) {
+                            if ($activeAss->effective_tp_due_date && $activeAss->tp_status && !in_array($activeAss->tp_status, [\App\Models\Assessment::TP_STATUS_NONE, \App\Models\Assessment::TP_STATUS_SATISFIED], true)) {
+                                $calTargetDate = $activeAss->effective_tp_due_date->toDateString();
+                                $calHighlight = 'tp_' . $activeAss->id;
+                            } elseif ($activeAss->start_at) {
+                                $calTargetDate = $activeAss->start_at->toDateString();
+                                $calHighlight = (string) $activeAss->id;
+                            } elseif ($activeAss->end_at) {
+                                $calTargetDate = $activeAss->end_at->toDateString();
+                                $calHighlight = (string) $activeAss->id;
+                            } else {
+                                $calTargetDate = now()->toDateString();
+                                $calHighlight = (string) $activeAss->id;
+                            }
+                        } else {
+                            $survAlerts = $lpk->getActiveSurveillanceAlerts();
+                            if (!empty($survAlerts)) {
+                                $firstAlert = reset($survAlerts);
+                                $calTargetDate = $firstAlert['target_date']?->toDateString() ?? now()->toDateString();
+                                $calHighlight = 'lpk_jt_' . strtolower($firstAlert['code'] ?? 's1') . '_' . $lpk->id;
+                            } else {
+                                $calTargetDate = $lpk->expired_at?->toDateString() ?? $lpk->certificate_date?->toDateString() ?? now()->toDateString();
+                                $calHighlight = null;
+                            }
+                        }
+
+                        $calParams = ['view' => 'month', 'date' => $calTargetDate, 'selected' => 1];
+                        if ($calHighlight) {
+                            $calParams['highlight'] = $calHighlight;
+                        }
+                        $calStatusSiklusUrl = route('calendar.index', $calParams);
                     @endphp
 
                     <div class="lpk-keterangan-card lpk-keterangan-auto theme-{{ $theme }}">
@@ -615,10 +676,17 @@
                                     <span class="lpk-keterangan-process-badge theme-{{ $theme }}">{{ $processName }}</span>
                                 @endif
                             </div>
-                            <span class="lpk-keterangan-cat-tag theme-{{ $theme }}">
-                                <span class="lpk-keterangan-cat-dot"></span>
-                                <span>{{ $catLabel }}</span>
-                            </span>
+                            <div class="lpk-keterangan-head-right">
+                                <span class="lpk-keterangan-cat-tag theme-{{ $theme }}">
+                                    <span>{{ $catLabel }}</span>
+                                </span>
+                                <a href="{{ $calStatusSiklusUrl }}"
+                                   class="button secondary button-xs lpk-keterangan-cal-btn"
+                                   title="Buka langsung agenda siklus ini di kalender">
+                                    <x-icon name="calendar" size="13" />
+                                    <span>Lihat di Kalender</span>
+                                </a>
+                            </div>
                         </div>
                         <div class="lpk-keterangan-body">
                             {{ $statusDetail }}

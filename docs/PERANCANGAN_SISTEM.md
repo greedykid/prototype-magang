@@ -41,7 +41,7 @@
 5. **[Bagian 5: Implementasi dan Pengujian (Implementation & Testing)](05-implementasi-dan-pengujian.md)**
    * 5.1 Implementasi Sistem (Teknologi, Struktur Folder, Fitur Kunci UI)
    * 5.2 Pengujian Sistem (Matriks Feature Test Otomatis PHPUnit & Uji Manual)
-   * 5.3 Bukti Eksekusi Test Suite (119 Tests Passed, 680 Assertions, 100% Pass Rate)
+   * 5.3 Bukti Eksekusi Test Suite (143 Tests Passed, 829 Assertions, 100% Pass Rate)
 
 ---
 
@@ -50,11 +50,11 @@
 SIMASADI dibangun untuk menjawab tantangan pengelolaan administratif akreditasi Lembaga Penilaian Kesesuaian (LPK) di lingkungan Komite Akreditasi Nasional (KAN) dan Badan Standardisasi Nasional (BSN). Melalui arsitektur modern berbasis Laravel dan sistem desain antarmuka responsif tanpa framework CSS yang memberatkan, sistem ini mewujudkan:
 
 * **Penerapan 8 Tipe Proses Asesmen KAN (KAN U-01):** Standarisasi alur untuk Akreditasi Awal, Surveilen 1, Surveilen 1 + PRL, Surveilen 2, Surveilen 2 + PRL, Surveilen Tidak Terjadwal, Perluasan Ruang Lingkup, dan Re-Akreditasi.
-* **Penegakan Toleransi Surveilen 3 Tahap:** Masa toleransi kunjungan (akhir bulan kunjungan), pembekuan otomatis bertahap (`SUSPENDED`, badge ungu kontras) dengan jendela penyelesaian 1 tahun disertai countdown, pencabutan akreditasi (`REVOKED`) jika batas 1 tahun habis, serta auto-realisasi data lampau bagi LPK yang berstatus aktif saat ini.
-* **Mesin Penegakan SLA Tindakan Perbaikan (TP & VTP):** Menghitung otomatis batas SLA dasar (3 bulan AA, 2 bulan lainnya), mengunci perpanjangan maksimal 1 bulan bersurat resmi hanya bagi LPK yang telah menunjukkan progres perbaikan nyata, serta menampilkan status otomatis tanpa beban input manual.
+* **Penegakan Toleransi Surveilen 3 Tahap:** Masa toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan dengan fleksibilitas input manual tersimpan), pembekuan otomatis bertahap (`SUSPENDED`, badge ungu kontras) dengan jendela penyelesaian 1 tahun disertai countdown, pencabutan akreditasi (`REVOKED`) jika batas 1 tahun habis, serta auto-realisasi data lampau bagi LPK yang berstatus aktif saat ini.
+* **Mesin Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):** Menghitung otomatis batas waktu dasar (3 bulan AA, 2 bulan lainnya), mengunci perpanjangan maksimal 1 bulan bersurat resmi (otomatis memperpanjang +1 bulan saat nomor surat resmi diinput), serta menampilkan status otomatis tanpa beban input manual.
 * **Alur Evaluasi Hasil Asesmen & SK KAN:** Pencatatan sidang EHA, nomor SK, tanggal terbit SK, perhitungan otomatis lead time penerbitan SK, serta portal publik/LPK ber-QR Code untuk verifikasi keabsahan secara instan.
 * **Kepatuhan Finansial Penuh:** Pelaporan dan verifikasi biaya perjalanan dinas asesor berbasis SBM PMK Kemenkeu, penerbitan billing PNBP SIMPONI 15 digit ber-NTPN sah, serta Quality Gate kesiapan rilis dokumen akreditasi.
 * **Impor Massal & Integrasi Terbuka:** Impor cerdas data LPK dan Asesmen (CSV/XLSX/Google Sheets) serta live feeds CSV untuk formula `=IMPORTDATA` Google Sheets secara real-time.
-* **Kualitas Teruji Menyeluruh:** Diverifikasi dengan 119 skenario pengujian otomatis (*feature tests*) dengan tingkat keberhasilan 100% (680 assertions).
+* **Kualitas Teruji Menyeluruh:** Diverifikasi dengan 143 skenario pengujian otomatis (*feature tests*) dengan tingkat keberhasilan 100% (829 assertions).
 
 Seluruh bab perancangan dapat diakses secara mendalam melalui tautan berkas di atas.
