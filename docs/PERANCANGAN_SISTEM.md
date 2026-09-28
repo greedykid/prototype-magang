@@ -34,7 +34,7 @@
    * 4.2 Use Case Diagram (4 Aktor & Batasan Sistem)
    * 4.3 Activity Diagram (Toleransi 3 Tahap Surveilen & Validasi SLA TP)
    * 4.4 Sequence Diagram (Realisasi Billing SIMPONI & Quality Gate SK)
-   * 4.5 Rancangan Basis Data (Entity Relationship Diagram: ERD 9 Tabel)
+   * 4.5 Rancangan Basis Data (ERD 9 Tabel & Kamus Data Struktur Kolom)
    * 4.6 Class Diagram (Model Eloquent, Accessor Bisnis, dan Controller)
    * 4.7 Rancangan Antarmuka Pengguna (Wireframe Desktop & Mobile)
 

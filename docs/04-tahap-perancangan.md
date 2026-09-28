@@ -504,6 +504,182 @@ erDiagram
 
 ---
 
+#### 4.5.1 Kamus Data & Struktur Tabel SIMASADI (Data Dictionary)
+
+Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
+
+##### 1. Tabel `users` (Data Pengguna & Hak Akses Sistem)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik data pengguna sistem |
+| 2 | name | VARCHAR (255) | - | Nama lengkap pengguna atau personel pengelola |
+| 3 | email | VARCHAR (255) | Unique Key | Alamat surat elektronik unik untuk otentikasi login |
+| 4 | email_verified_at | TIMESTAMP | - | Waktu verifikasi alamat email pengguna |
+| 5 | password | VARCHAR (255) | - | Kata sandi pengguna terenkripsi hash Bcrypt / Argon2id |
+| 6 | role | VARCHAR (50) | - | Hak akses peran: admin, pic, assessor, atau lpk |
+| 7 | remember_token | VARCHAR (100) | - | Token acak persistensi sesi login Remember Me |
+| 8 | created_at | TIMESTAMP | - | Waktu pembuatan data pengguna |
+| 9 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data pengguna |
+
+##### 2. Tabel `lpks` (Master Data Lembaga Penilaian Kesesuaian)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik data LPK / laboratorium |
+| 2 | registration_number | VARCHAR (100) | - | Nomor identitas registrasi internal laboratorium |
+| 3 | no_reg | VARCHAR (100) | Unique Key | Nomor registrasi resmi KAN (contoh: LP-001-IDN, LK-015-IDN) |
+| 4 | name | VARCHAR (255) | - | Nama resmi laboratorium atau badan hukum LPK |
+| 5 | accreditation_type | VARCHAR (100) | - | Kategori skema akreditasi (Lab Penguji, Kalibrasi, Medik) |
+| 6 | accreditation_number | VARCHAR (100) | - | Nomor sertifikat akreditasi atau nomor referensi legalitas |
+| 7 | scope | TEXT | - | Ringkasan lingkup bidang pengujian / kalibrasi |
+| 8 | address | TEXT | - | Alamat fisik fasilitas laboratorium |
+| 9 | email | VARCHAR (255) | - | Alamat email resmi kontak operasional laboratorium |
+| 10 | phone | VARCHAR (50) | - | Nomor kontak telepon / narahubung laboratorium |
+| 11 | status | VARCHAR (50) | - | Status siklus: ACTIVE, SUSPENDED, REVOKED, atau INACTIVE |
+| 12 | certificate_date | DATE | - | Tanggal penetapan sertifikat (patokan siklus pengawasan 5 tahun) |
+| 13 | expired_at | DATE | - | Tanggal akhir masa berlaku sertifikat akreditasi (5 tahun) |
+| 14 | drive_url | TEXT | - | Tautan penyimpanan cloud berkas profil laboratorium |
+| 15 | pic_id | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id sebagai PIC pendamping laboratorium |
+| 16 | last_surveillance_notified_at | TIMESTAMP | - | Riwayat waktu pengiriman simulasi reminder surveilen |
+| 17 | notes | TEXT | - | Catatan teknis atau keterangan operasional khusus |
+| 18 | created_at | TIMESTAMP | - | Waktu pembuatan data LPK |
+| 19 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data LPK |
+
+##### 3. Tabel `assessments` (Program & Pelaksanaan Asesmen KAN)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik kegiatan asesmen laboratorium |
+| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium yang dinilai |
+| 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat agenda asesmen |
+| 4 | title | VARCHAR (255) | - | Judul deskriptif pelaksanaan kegiatan asesmen |
+| 5 | assessment_type | VARCHAR (50) | - | 8 Tipe KAN U-01: INITIAL, SURVEILLANCE_1, S1_PRL, S2, dll |
+| 6 | start_at | DATETIME | - | Tanggal dan waktu dimulainya asesmen lapangan |
+| 7 | end_at | DATETIME | - | Tanggal dan waktu berakhirnya kunjungan (acuan batas waktu) |
+| 8 | location | VARCHAR (255) | - | Lokasi fisik pelaksanaan audit lapangan |
+| 9 | lead_assessor | VARCHAR (255) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
+| 10 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis |
+| 11 | status | VARCHAR (50) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
+| 12 | tp_status | VARCHAR (50) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
+| 13 | tp_due_date | DATE | - | Batas waktu awal perbaikan (3 bln AA, 2 bln lainnya) |
+| 14 | tp_has_extension | TINYINT (1) | - | Status perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
+| 15 | tp_extension_months | INTEGER | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
+| 16 | tp_extension_letter_no | VARCHAR (100) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
+| 17 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu |
+| 18 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
+| 19 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
+| 20 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan tindakan perbaikan |
+| 21 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen |
+| 22 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
+| 23 | eha_status | VARCHAR (50) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
+| 24 | eha_notes | TEXT | - | Keputusan dan rekomendasi panitia teknis sidang EHA |
+| 25 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
+| 26 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
+| 27 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
+| 28 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
+| 29 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data asesmen |
+
+##### 4. Tabel `assessment_expenses` (Kepatuhan Biaya Perjalanan Dinas SBM)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik klaim biaya perjalanan dinas |
+| 2 | assessment_id | BIGINT (20) | Foreign Key (FK) | Relasi ke assessments.id agenda asesmen terkait |
+| 3 | reported_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id asesor yang melaporkan rincian pengeluaran |
+| 4 | transport_cost | INTEGER (11) | - | Biaya tiket transportasi (pesawat, kereta, taksi) dalam Rupiah |
+| 5 | accommodation_cost | INTEGER (11) | - | Biaya penginapan hotel riil sesuai tarif SBM PMK |
+| 6 | daily_allowance | INTEGER (11) | - | Uang harian perjalanan dinas sesuai tarif wilayah PMK |
+| 7 | package_data_cost | INTEGER (11) | - | Uang representasi atau biaya komunikasi paket data |
+| 8 | total_cost | INTEGER (11) | - | Akumulasi total seluruh pengeluaran riil perjalanan dinas |
+| 9 | receipt_note | VARCHAR (255) | - | Keterangan nomor bukti kuitansi atau tiket transportasi |
+| 10 | receipt_path | VARCHAR (255) | - | Lokasi penyimpanan berkas pindaian bukti bayar / kuitansi fisik |
+| 11 | status | VARCHAR (50) | - | Status klaim: BELUM_DILAPORKAN, MENUNGGU_VERIFIKASI, TERVERIFIKASI |
+| 12 | verification_notes | TEXT | - | Catatan evaluasi keuangan dari Sekretariat KAN |
+| 13 | verified_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id verifikator keuangan yang menyetujui klaim |
+| 14 | verified_at | TIMESTAMP | - | Waktu persetujuan verifikasi klaim biaya SBM |
+| 15 | created_at | TIMESTAMP | - | Waktu pencatatan pengeluaran |
+| 16 | updated_at | TIMESTAMP | - | Waktu pembaruan data pengeluaran |
+
+##### 5. Tabel `accreditations` (Siklus Akreditasi Induk & Quality Gate)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik siklus akreditasi laboratorium |
+| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium pemilik sertifikat |
+| 3 | status | VARCHAR (50) | - | Status siklus: NOT_STARTED, IN_PROGRESS, RELEASED |
+| 4 | start_date | DATE | - | Tanggal inisiasi pendaftaran berkas akreditasi |
+| 5 | pantek_at | DATE | - | Tanggal pelaksanaan rapat panitia teknis / komite |
+| 6 | target_date | DATE | - | Target estimasi penyelesaian seluruh rangkaian pengawasan |
+| 7 | target_output_at | DATE | - | Target batas waktu penyerahan draf SK dan sertifikat |
+| 8 | output_released_at | DATE | - | Tanggal aktual rilis dokumen SK dan sertifikat akreditasi |
+| 9 | pic | VARCHAR (255) | - | Nama personel PIC pendamping laboratorium |
+| 10 | notes | TEXT | - | Catatan kemajuan proses akreditasi |
+| 11 | created_at | TIMESTAMP | - | Waktu pembuatan rekaman siklus akreditasi |
+| 12 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman siklus akreditasi |
+
+##### 6. Tabel `accreditation_billings` (Billing PNBP SIMPONI Kemenkeu)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik rekaman billing PNBP |
+| 2 | accreditation_id | BIGINT (20) | Foreign Key (FK) | Relasi ke accreditations.id proses akreditasi terkait |
+| 3 | billing_code | VARCHAR (50) | Unique Key | Kode billing resmi SIMPONI 15 digit numerik |
+| 4 | tariff_name | VARCHAR (255) | - | Jenis tarif PNBP jasa akreditasi laboratorium KAN |
+| 5 | amount | INTEGER (11) | - | Nominal tagihan tarif PNBP resmi dalam Rupiah |
+| 6 | issued_at | DATETIME | - | Waktu penerbitan kode billing SIMPONI kepada LPK |
+| 7 | expired_at | DATETIME | - | Batas waktu kedaluwarsa pembayaran kode billing |
+| 8 | status | VARCHAR (50) | - | Status pembayaran: UNPAID, PAID, atau EXPIRED |
+| 9 | ntpn | VARCHAR (50) | - | Nomor Transaksi Penerimaan Negara (NTPN 16 digit sah) |
+| 10 | ntb | VARCHAR (50) | - | Nomor Transaksi Bank / bukti setor kas negara |
+| 11 | payment_channel | VARCHAR (50) | - | Kanal transaksi perbankan (Teller, ATM, Internet Banking) |
+| 12 | paid_at | DATETIME | - | Waktu pelunasan setoran kas negara |
+| 13 | created_at | TIMESTAMP | - | Waktu pembuatan data tagihan |
+| 14 | updated_at | TIMESTAMP | - | Waktu pembaruan data tagihan |
+
+##### 7. Tabel `accreditation_signatures` (Tanda Tangan Elektronik Sertifikasi BSrE)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik berkas tanda tangan elektronik |
+| 2 | accreditation_id | BIGINT (20) | Foreign Key (FK) | Relasi ke accreditations.id dokumen yang disahkan |
+| 3 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan resmi yang ditandatangani |
+| 4 | signer_name | VARCHAR (255) | - | Nama pejabat penandatangan resmi (Ketua KAN) |
+| 5 | signer_title | VARCHAR (255) | - | Jabatan resmi penandatangan pada Komite Akreditasi Nasional |
+| 6 | signer_nip | VARCHAR (50) | - | Nomor Induk Pegawai (NIP) pejabat penandatangan |
+| 7 | is_signed | TINYINT (1) | - | Status tanda tangan (0 = Draf, 1 = Sah Tertandatangani) |
+| 8 | signed_at | DATETIME | - | Waktu pembubuhan e-Sign tersertifikasi BSrE BSSN |
+| 9 | certificate_series | VARCHAR (100) | - | Nomor seri sertifikat digital penandatangan BSrE |
+| 10 | verify_hash | VARCHAR (255) | - | Nilai hash kriptografi SHA-256 untuk verifikasi kode QR publik |
+| 11 | created_at | TIMESTAMP | - | Waktu pembuatan data penandatanganan |
+| 12 | updated_at | TIMESTAMP | - | Waktu pembaruan data penandatanganan |
+
+##### 8. Tabel `calendar_events` (Agenda Kalender Multi-Event)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik agenda kegiatan kalender |
+| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium terkait agenda |
+| 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat catatan agenda |
+| 4 | title | VARCHAR (255) | - | Judul ringkas kegiatan atau jadwal pengawasan |
+| 5 | event_type | VARCHAR (50) | - | Kategori event: assessment, surveillance_reminder, tp_reminder, tp_overdue, sk_reminder |
+| 6 | start_at | DATETIME | - | Tanggal dan jam pelaksanaan kegiatan |
+| 7 | end_at | DATETIME | - | Tanggal dan jam berakhirnya kegiatan |
+| 8 | location | VARCHAR (255) | - | Lokasi fisik atau tautan ruang rapat daring |
+| 9 | status | VARCHAR (50) | - | Status operasional kegiatan: PLANNED, DONE, CANCELLED |
+| 10 | description | TEXT | - | Deskripsi detail rencana pelaksanaan kegiatan |
+| 11 | notes | TEXT | - | Catatan tambahan pelaksanaan agenda |
+| 12 | created_at | TIMESTAMP | - | Waktu pembuatan data agenda |
+| 13 | updated_at | TIMESTAMP | - | Waktu pembaruan data agenda |
+
+##### 9. Tabel `backups` (Histori Pencadangan Basis Data)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik rekaman arsip cadangan |
+| 2 | system | VARCHAR (50) | - | Nama subsistem yang dicadangkan (SIMASADI) |
+| 3 | status | VARCHAR (50) | - | Status pencadangan: SUCCESS, FAILED, RUNNING, UNKNOWN |
+| 4 | started_at | DATETIME | - | Waktu dimulainya proses pembuatan dump cadangan |
+| 5 | finished_at | DATETIME | - | Waktu selesai proses kompresi dan penyimpanan file |
+| 6 | size | VARCHAR (50) | - | Ukuran arsip cadangan (contoh: 12.4 MB, 1.2 GB) |
+| 7 | message | TEXT | - | Log ringkasan hasil atau pesan galat saat proses backup |
+| 8 | recorded_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id administrator yang memicu backup |
+| 9 | created_at | TIMESTAMP | - | Waktu pencatatan rekaman cadangan |
+| 10 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman cadangan |
+
+---
+
 ### 4.6 Class Diagram
 
 Class diagram menggambarkan arsitektur berbasis objek pada layer Model dan Controller di Laravel:
