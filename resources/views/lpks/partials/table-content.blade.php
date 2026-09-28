@@ -17,6 +17,9 @@
             <tbody>
                 @foreach($lpks as $lpk)
                     <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
+                        @php
+                            $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
+                        @endphp
                         <!-- 1. NO AKREDITASI -->
                         <td class="col-lpk-no" data-sort-value="{{ $lpk->accreditation_number ?: $lpk->registration_number }}">
                             <div class="lpk-card-reg-wrap">
@@ -24,18 +27,6 @@
                                     {{ $lpk->accreditation_number ?: $lpk->registration_number }}
                                 </a>
                             </div>
-                            @php
-                                $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
-                            @endphp
-                            @if(!empty($lpkAlerts))
-                                <div class="lpk-card-alerts">
-                                    @foreach($lpkAlerts as $alt)
-                                        <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
-                                            ⚠ {{ $alt['name'] }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
                         </td>
 
                         <!-- 2. NAMA LPK -->
@@ -45,6 +36,13 @@
                             </a>
                             <div class="lpk-status-wrap">
                                 <x-status :value="$lpk->dynamic_status" />
+                                @if(!empty($lpkAlerts))
+                                    @foreach($lpkAlerts as $alt)
+                                        <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
+                                            ⚠ {{ $alt['name'] }}
+                                        </span>
+                                    @endforeach
+                                @endif
                                 @if($lpk->pic)
                                     <span class="lpk-pic-badge">
                                         PIC: {{ $lpk->pic->name }}

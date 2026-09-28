@@ -315,8 +315,12 @@ class LpkImportController extends Controller
                     ->first();
             }
 
+            $currentUser = auth()->user();
+            $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
+
             if ($existing) {
                 $existing->update([
+                    'pic_id' => $existing->pic_id ?: $picId,
                     'no_reg' => $noReg ?: $existing->no_reg,
                     'accreditation_number' => $accreditationNumber ?: ($existing->accreditation_number ?: $existing->registration_number),
                     'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
@@ -336,6 +340,7 @@ class LpkImportController extends Controller
                 $updatedCount++;
             } else {
                 Lpk::create([
+                    'pic_id' => $picId,
                     'no_reg' => $noReg,
                     'accreditation_number' => $accreditationNumber ?: $regNo,
                     'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',

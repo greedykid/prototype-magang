@@ -24,8 +24,8 @@
         <div class="topbar-actions">
             @php($alertCount = count($globalSurveillanceAlerts ?? []))
             <div class="topbar-notifications">
-                <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn {{ $alertCount > 0 ? 'has-alerts' : '' }}" aria-expanded="false" aria-haspopup="true" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn {{ $alertCount > 0 ? 'has-alerts' : '' }}" aria-expanded="false" aria-haspopup="true" aria-label="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     @if($alertCount > 0)
                         <span class="topbar-notif-badge">
                             {{ $alertCount }}
@@ -33,70 +33,108 @@
                     @endif
                 </button>
 
-                <div id="notif-dropdown-menu" class="notif-dropdown" style="display: none;">
+                {{-- Mobile Backdrop --}}
+                <div id="notif-dropdown-backdrop" class="notif-backdrop" style="display: none;" aria-hidden="true"></div>
+
+                <div id="notif-dropdown-menu" class="notif-dropdown" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="notif-dropdown-heading">
                     <div class="notif-dropdown-header">
-                        <div class="notif-dropdown-heading">
-                            <strong class="notif-dropdown-title">Notifikasi Siklus Pengawasan</strong>
-                            <span class="notif-pill {{ $alertCount > 0 ? 'is-alert' : '' }}">
-                                {{ $alertCount }}
-                            </span>
+                        <div class="notif-dropdown-heading" id="notif-dropdown-heading">
+                            <div class="notif-header-icon-wrap {{ $alertCount > 0 ? 'is-alert' : '' }}">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                            </div>
+                            <div class="notif-header-title-box">
+                                <strong class="notif-dropdown-title">Notifikasi Siklus Pengawasan</strong>
+                                <span class="notif-pill {{ $alertCount > 0 ? 'is-alert' : '' }}">
+                                    {{ $alertCount }}
+                                </span>
+                            </div>
                         </div>
-                        @if($alertCount > 0)
-                            <span class="notif-alert-badge">Perlu Tindakan</span>
-                        @endif
+                        <div class="notif-header-actions">
+                            @if($alertCount > 0)
+                                <span class="notif-alert-badge">Perlu Tindakan</span>
+                            @endif
+                            <button type="button" id="notif-dropdown-close" class="notif-close-btn" aria-label="Tutup notifikasi" title="Tutup notifikasi">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="notif-dropdown-body">
                         @if($alertCount > 0)
-                            <div class="notif-alert-title">
-                                {{ $alertCount }} Laboratorium Memerlukan Perhatian
+                            <div class="notif-summary-banner">
+                                <div class="notif-summary-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="notif-summary-text">
+                                    <div class="notif-summary-title notif-alert-title">
+                                        {{ $alertCount }} Laboratorium Memerlukan Perhatian
+                                    </div>
+                                    <p class="notif-summary-desc notif-alert-desc">
+                                        Siklus Surveilen (S1/S2) atau Re-Akreditasi KAN mendekati atau melewati batas regulasi.
+                                    </p>
+                                </div>
                             </div>
-                            <p class="notif-alert-desc">
-                                Siklus Surveilen (S1/S2) atau Re-Akreditasi KAN mendekati atau melewati batas regulasi.
-                            </p>
 
-                            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-                                @foreach(array_slice($globalSurveillanceAlerts, 0, 3) as $alert)
-                                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                                            <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 10.5px; padding: 2px 6px; border-radius: 4px;">
-                                                {{ $alert['code'] }}
-                                            </span>
-                                            <span style="font-size: 11px; color: {{ $alert['is_urgent'] ? '#b91c1c' : '#b45309' }}; font-weight: 600;">
-                                                {{ $alert['target_date'] ? $alert['target_date']->format('d M Y') : '-' }}
-                                            </span>
+                            <div class="notif-card-list">
+                                @foreach(array_slice($globalSurveillanceAlerts, 0, 4) as $alert)
+                                    <div class="notif-item-card {{ $alert['is_urgent'] ? 'is-urgent' : '' }}">
+                                        <div class="notif-item-top">
+                                            <div class="notif-item-badge-wrap">
+                                                <span class="badge-milestone {{ $alert['is_urgent'] ? 'badge-milestone-urgent' : 'badge-milestone-warning' }}">
+                                                    {{ $alert['code'] }}
+                                                </span>
+                                                <span class="notif-milestone-label">{{ $alert['name'] ?? ($alert['code'] === 'RA' ? 'Re-Akreditasi' : 'Surveilen') }}</span>
+                                            </div>
+                                            <div class="notif-item-date {{ $alert['is_urgent'] ? 'is-urgent' : '' }}" title="Batas waktu siklus pengawasan">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                <span>{{ $alert['target_date'] ? $alert['target_date']->format('d M Y') : '-' }}</span>
+                                            </div>
                                         </div>
-                                        <div style="font-size: 12px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $alert['lpk_name'] }}">
-                                            {{ $alert['lpk_name'] }}
+
+                                        <div class="notif-item-content">
+                                            <div class="notif-item-name" title="{{ $alert['lpk_name'] }}">
+                                                {{ $alert['lpk_name'] }}
+                                            </div>
                                         </div>
-                                        <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 2px;">
+
+                                        <div class="notif-item-actions">
                                             @if(!empty($alert['target_date']))
                                                 <a href="{{ route('calendar.index', [
                                                     'view' => 'month',
                                                     'date' => $alert['target_date']->format('Y-m-d'),
                                                     'highlight' => 'lpk_jt_' . strtolower($alert['code']) . '_' . $alert['lpk_id'],
                                                     'selected' => 1,
-                                                ]) }}" class="button ghost button-xs" style="font-size: 11px; padding: 2px 7px; height: 22px; color: var(--primary, #0284c7); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;" title="Lihat di kalender">
-                                                    <x-icon name="calendar" size="11" />
+                                                ]) }}" class="notif-btn-ghost" title="Lihat di kalender">
+                                                    <x-icon name="calendar" size="12" />
                                                     <span>Kalender</span>
                                                 </a>
                                             @endif
-                                            <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-xs" style="font-size: 11px; padding: 2px 7px; height: 22px; display: inline-flex; align-items: center; gap: 3px;">
+                                            <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="notif-btn-secondary" title="Lihat detail LPK">
                                                 <span>Detail</span>
-                                                <x-icon name="chevron-right" size="11" />
+                                                <x-icon name="chevron-right" size="12" />
                                             </a>
                                         </div>
                                     </div>
                                 @endforeach
-                            </div>
 
-                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-cta-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                                <span>Tinjau Seluruh LPK Jatuh Tempo</span>
-                                <x-icon name="chevron-right" size="14" />
-                            </a>
+                                @if($alertCount > 4)
+                                    <div class="notif-more-hint">
+                                        +{{ $alertCount - 4 }} LPK lainnya memerlukan perhatian
+                                    </div>
+                                @endif
+                            </div>
                         @else
                             <div class="notif-empty-state">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="notif-empty-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                                <div class="notif-empty-icon-wrap">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                        <path d="m9 12 2 2 4-4"/>
+                                    </svg>
+                                </div>
                                 <div class="notif-empty-title">Tidak ada notifikasi aktif</div>
                                 <div class="notif-empty-desc">Seluruh siklus pengawasan KAN dalam status aman.</div>
                             </div>
@@ -104,9 +142,15 @@
                     </div>
 
                     <div class="notif-dropdown-footer">
-                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                        @if($alertCount > 0)
+                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-primary-cta notif-cta-btn">
+                                <span>Tinjau Seluruh LPK Jatuh Tempo ({{ $alertCount }})</span>
+                                <x-icon name="arrow-right" size="13" />
+                            </a>
+                        @endif
+                        <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">
                             <span>Lihat Semua di Daftar LPK</span>
-                            <x-icon name="chevron-right" size="14" />
+                            <x-icon name="chevron-right" size="12" />
                         </a>
                     </div>
                 </div>

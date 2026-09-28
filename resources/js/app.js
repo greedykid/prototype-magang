@@ -3,6 +3,7 @@ window.Swal = Swal;
 
 import { initMobileDrawer, initSidebarCollapse, toggleSidebarState } from './modules/sidebar.js';
 import { closeAllCustomSelects, initCustomSelects } from './modules/custom-select.js';
+import { initCustomPickers, closeAllCustomPickers, syncCustomPickers } from './modules/custom-picker.js';
 import { initDataTables, syncViewToggleLocation } from './modules/datatable.js';
 import { handleFlashNotifications } from './modules/notifications.js';
 import { initModalListeners, openModal, closeModal, returnModalToPlaceholder } from './modules/modals.js';
@@ -30,6 +31,9 @@ import { initLiveFilters } from './modules/live-filter.js';
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
 // ==========================================================================
 window.closeAllCustomSelects = closeAllCustomSelects;
+window.initCustomPickers = initCustomPickers;
+window.closeAllCustomPickers = closeAllCustomPickers;
+window.syncCustomPickers = syncCustomPickers;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.returnModalToPlaceholder = returnModalToPlaceholder;
@@ -49,9 +53,13 @@ window.initDataTables = initDataTables;
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
     const currentBtn = document.getElementById('notif-dropdown-btn');
+    const backdrop = document.getElementById('notif-dropdown-backdrop');
     if (currentMenu && currentMenu.style.display !== 'none') {
         currentMenu.style.display = 'none';
         currentBtn?.setAttribute('aria-expanded', 'false');
+    }
+    if (backdrop) {
+        backdrop.style.display = 'none';
     }
 }
 window.closeNotificationDropdown = closeNotificationDropdown;
@@ -69,18 +77,41 @@ window.closeUserDropdown = closeUserDropdown;
 export function initNotificationDropdown() {
     const btn = document.getElementById('notif-dropdown-btn');
     const menu = document.getElementById('notif-dropdown-menu');
+    const backdrop = document.getElementById('notif-dropdown-backdrop');
+    const closeBtn = document.getElementById('notif-dropdown-close');
     if (!btn || !menu) return;
 
     btn.onclick = (e) => {
         e.stopPropagation();
         closeUserDropdown();
         const isHidden = menu.style.display === 'none' || getComputedStyle(menu).display === 'none';
-        menu.style.display = isHidden ? 'block' : 'none';
-        btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        if (isHidden) {
+            menu.style.display = 'flex';
+            btn.setAttribute('aria-expanded', 'true');
+            if (backdrop && window.innerWidth <= 640) {
+                backdrop.style.display = 'block';
+            }
+        } else {
+            closeNotificationDropdown();
+        }
     };
 
+    if (closeBtn) {
+        closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            closeNotificationDropdown();
+        };
+    }
+
+    if (backdrop) {
+        backdrop.onclick = (e) => {
+            e.stopPropagation();
+            closeNotificationDropdown();
+        };
+    }
+
     menu.onclick = (e) => {
-        if (e.target.closest('a, button')) {
+        if (e.target.closest('a') || e.target.closest('#notif-dropdown-close')) {
             closeNotificationDropdown();
         }
     };
@@ -143,6 +174,13 @@ export const initPageComponents = () => {
         initCustomSelects();
     } catch (err) {
         console.error('Error initializing custom selects:', err);
+    }
+
+    // 1b. Custom Date & Clock Pickers
+    try {
+        initCustomPickers();
+    } catch (err) {
+        console.error('Error initializing custom pickers:', err);
     }
 
     // 2. Data Tables: sorting, pagination per-page toolbar, view mode toggles & filter drawer

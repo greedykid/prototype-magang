@@ -21,6 +21,7 @@
 @import './components/pagination.css';
 @import './components/skeletons.css';
 @import './components/custom-select.css';
+@import './components/pickers.css';
 @import './components/sweetalert.css';
 @import './components/modals.css';
 
@@ -28,6 +29,7 @@
 @import './features/dashboard.css';
 @import './features/assessments.css';
 @import './features/accreditations.css';
+@import './features/lpks.css';
 @import './features/calendar.css';
 @import './features/errors.css';
 

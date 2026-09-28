@@ -233,6 +233,62 @@ stateDiagram-v2
 
 ---
 
+#### 4.3.3 Activity Diagram: Alur Kerja Lengkap PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)
+
+Diagram ini memodelkan aktivitas PIC Laboratorium dalam mendampingi dan mengawal LPK binaannya mulai dari pendaftaran awal hingga menyelesaikan seluruh 8 tahapan dalam satu siklus akreditasi 5 tahun penuh (60 bulan) sesuai regulasi KAN U-01 dan otomasi sistem SIMASADI:
+
+```mermaid
+flowchart TD
+    Start(["Mulai: Onboarding & Pendaftaran LPK"]):::nodeStart --> Stage1["1. Akreditasi Awal (Initial Accreditation)<br/>• Waktu: Bulan ke-0<br/>• Asesmen Lapangan Awal<br/>• Batas Waktu Dasar TP: 3 Bulan<br/>• Terbit SK 5 Tahun (Status: ACTIVE)"]:::stageBox
+
+    Stage1 --> EvalY1{"Evaluasi Pengawasan Tahun Ke-1<br/>(Bulan 13 - 24)"}:::decisionBox
+
+    EvalY1 -- "Pengawasan Rutin Saja" --> Stage2["2. Survailen 1 (S1)<br/>• Evaluasi sistem mutu tahun ke-1<br/>• Batas waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Terbit SK Konfirmasi Survailen 1"]:::stageBox
+    EvalY1 -- "Ada Usulan Tambah Lingkup" --> Stage3["3. Survailen 1 + PRL<br/>• Audit rutin + asesmen lingkup baru<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK S1 & Adendum Lingkup KAN"]:::stageBox
+
+    Stage2 --> EvalY3{"Evaluasi Pengawasan Tahun Ke-3<br/>(Bulan 34 - 48)"}:::decisionBox
+    Stage3 --> EvalY3
+
+    EvalY3 -- "Pengawasan Rutin Saja" --> Stage4["4. Survailen 2 (S2)<br/>• Audit sistem manajemen tahun ke-3<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK Konfirmasi Survailen 2"]:::stageBox
+    EvalY3 -- "Ada Usulan Tambah Lingkup" --> Stage5["5. Survailen 2 + PRL<br/>• Audit S2 + uji unjuk kerja lingkup baru<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK S2 & Adendum Lingkup KAN"]:::stageBox
+
+    Stage4 --> TrackReAkreditasi["Persiapan Menuju Re-Akreditasi<br/>(Bulan ke-54)"]:::transBox
+    Stage5 --> TrackReAkreditasi
+
+    subgraph Insidental["Jalur Khusus / Kapan Saja Selama Siklus 5 Tahun"]
+        Stage6["6. Survailen Tidak Terjadwal (STT)<br/>• Pemicu: Aduan, relokasi lab, pergantian personel kunci, atau verifikasi pemulihan status DIBEKUKAN<br/>• Batas waktu TP: Maksimal 2 Bulan<br/>• Rekomendasi: Pemulihan / Pencabutan"]:::sideBox
+        Stage7["7. Perluasan Ruang Lingkup (PRL Mandiri)<br/>• Pemicu: Permohonan adendum lingkup di luar jadwal surveilen rutin<br/>• Asesmen teknis metode baru<br/>• Terbit Adendum Lampiran Ruang Lingkup"]:::sideBox
+    end
+
+    TrackReAkreditasi --> Stage8["8. Re-Akreditasi (Akreditasi Ulang)<br/>• Reminder Kritis Bulan ke-54<br/>• Full Re-Assessment (Seluruh Sistem & Lingkup)<br/>• Batas Waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Quality Gate: Billing PNBP Lunas & Biaya SBM Verifikasi<br/>• Sidang EHA & Terbit Sertifikat Baru 5 Tahun"]:::stageBox
+
+    Stage8 --> EndNode(["Selesai: Siklus 1 Selesai Penuh (COMPLETED)<br/>Reset & Mulai Siklus Baru 5 Tahun Berikutnya"]):::nodeEnd
+
+    classDef stageBox fill:#ffffff,stroke:#1e293b,stroke-width:1.5px,color:#0f172a,font-size:12px;
+    classDef decisionBox fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-size:12px;
+    classDef sideBox fill:#f8fafc,stroke:#475569,stroke-dasharray: 4 4,stroke-width:1.5px,color:#0f172a,font-size:12px;
+    classDef nodeStart fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-weight:bold;
+    classDef nodeEnd fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-weight:bold;
+    classDef transBox fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a,font-size:12px;
+```
+
+<p align="center"><b>Gambar 4. 4 Activity Diagram Alur Kerja PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)</b></p>
+
+##### Ringkasan Matriks Tanggung Jawab PIC per Tahap:
+
+| No | Tahap Siklus | Waktu Acuan KAN | Aktivitas Utama PIC | Otomasi SIMASADI | Output Akhir |
+|---|---|---|---|---|---|
+| 1 | **Akreditasi Awal** | Bulan ke-0 | Verifikasi dokumen legalitas, manual mutu, jadwal asesmen, pendampingan perbaikan (batas waktu 3 bulan), koordinasi VTP | Generate no_reg unik, set batas waktu TP = 3 bulan, catat certificate_date | Sertifikat & SK Akreditasi 5 Tahun (ACTIVE) |
+| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), verifikasi SPPD SBM | Reminder berkala kalender, toleransi akhir bulan kunjungan, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
+| 3 | **Survailen 1 + PRL** | Bulan 13 - 24 | Verifikasi portofolio metode baru, susun tim gabungan asesmen sistem + teknis, kawal audit simultan dan TP 2 bulan | Jadwal gabungan, pemetaan lingkup baru ke master data, pelacakan terpadu | SK S1 + Adendum Lampiran Lingkup Baru |
+| 4 | **Survailen 2 (S2)** | Bulan 34 - 48 | Pantau reminder S2 (maks 2 tahun pasca S1), evaluasi kaji ulang manajemen, kawal pemenuhan perbaikan 2 bulan | Reminder kalender multi-event, countdown pembekuan dinamis jika wanprestasi | SK Konfirmasi Survailen 2 |
+| 5 | **Survailen 2 + PRL** | Bulan 34 - 48 | Verifikasi kesiapan alat & uji profisiensi lingkup baru, koordinasi asesmen gabungan, kawal TP 2 bulan | Sinkronisasi multi-skema, kontrol batas waktu terpadu, hitung lead time SK | SK S2 + Adendum Pembaruan Ruang Lingkup |
+| 6 | **Survailen Tidak Terjadwal (STT)** | Insidental | Terima aduan publik, relokasi lab, pergantian personel kunci, koordinasi asesmen khusus, kawal TP maks 2 bulan | Penandaan event insidental di kalender, alert persisten prioritas tinggi | Rekomendasi EHA: Pemulihan / Pencabutan |
+| 7 | **Perluasan Ruang Lingkup (PRL)** | Mandiri | Reviu permohonan mandiri di luar jadwal rutin, cek bukti validasi metode, input asesmen teknis, kawal TP 2 bulan | Registrasi asesmen PRL, penerbitan billing SIMPONI tarif penambahan lingkup | Adendum Lampiran Ruang Lingkup Resmi |
+| 8 | **Re-Akreditasi** | Bulan 54 - 60 | Kirim notifikasi Bulan ke-54, reviu berkas lengkap, kawal full re-assessment, kawal Quality Gate SIMPONI & SBM | Persistent alert banner kritis, Quality Gate lock rilis SK, reset siklus baru | Sertifikat & SK Baru 5 Tahun (Siklus 2) |
+
+---
+
 ### 4.4 Sequence Diagram
 
 #### 4.4.1 Sequence Diagram: Realisasi Pembayaran SIMPONI & Quality Gate Rilis SK
@@ -444,7 +500,7 @@ erDiagram
     }
 ```
 
-<p align="center"><b>Gambar 4. 4 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
+<p align="center"><b>Gambar 4. 5 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
 
 ---
 

@@ -3,28 +3,34 @@
     $defaultDueDate = $assessment->calculateDefaultTpDueDate();
 @endphp
 
-<section class="panel" style="margin-top: 24px;" aria-labelledby="tp-tracking-heading">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
-        <div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <h3 id="tp-tracking-heading" style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text);">
-                    Tindakan Perbaikan &amp; Verifikasi (TP &amp; VTP)
-                </h3>
-                <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
-                    {{ $tpBadge['label'] }}
-                </span>
+<section class="lpk-form-card" aria-labelledby="tp-tracking-heading">
+    <div class="lpk-form-card-header" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0;">
+            <div class="lpk-card-icon-wrap" style="background: #f0fdf4; color: #16a34a;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
             </div>
-            <p style="margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.5;">
-                Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.
-            </p>
+            <div class="lpk-card-header-text" style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <h2 id="tp-tracking-heading" style="margin: 0; font-size: 15.5px; font-weight: 700; color: var(--ink);">
+                        Tindakan Perbaikan &amp; Verifikasi (TP &amp; VTP)
+                    </h2>
+                    <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
+                        {{ $tpBadge['label'] }}
+                    </span>
+                </div>
+                <p>Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.</p>
+            </div>
         </div>
-        <button type="button" class="button secondary" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
-            <x-icon name="edit" size="15" />
+        <button type="button" class="button secondary" style="flex-shrink: 0; font-size: 13px;" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
+            <x-icon name="edit" size="14" />
             <span>Kelola Status TP</span>
         </button>
     </div>
 
-    {{-- SLA Metrics Grid --}}
+    {{-- Batas Waktu Metrics Grid --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
         <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
@@ -40,7 +46,7 @@
 
         <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
-                Batas Waktu Awal (SLA KAN)
+                Batas Waktu Awal (KAN)
             </span>
             <div style="font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
                 @if($assessment->tp_due_date)

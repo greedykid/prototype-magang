@@ -98,7 +98,7 @@
                     </ul>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 30;">
+                <div class="modal-form-grid-2col">
                     <label style="display: block;">
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Status Pelaksanaan Asesmen</span>
                         <select name="status" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
@@ -122,9 +122,9 @@
                     </label>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 10;">
+                <div class="modal-form-grid-2col">
                     <label>
-                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal SLA (KAN)</span>
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Batas Waktu Awal (KAN)</span>
                         <input type="date" name="tp_due_date" value="{{ old('tp_due_date', $assessment->tp_due_date?->format('Y-m-d') ?: ($assessment->calculateDefaultTpDueDate()?->format('Y-m-d') ?: '')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">
                         <small style="color: var(--muted); font-size: 11px;">Otomatis +2 atau +3 bulan jika dikosongkan.</small>
                     </label>
@@ -137,7 +137,7 @@
                 </div>
 
                 {{-- Bagian Permohonan Perpanjangan --}}
-                <div style="padding: 12px 14px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px; position: relative; z-index: 5;">
+                <div style="padding: 12px 14px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 6px; display: grid; gap: 10px;">
                     <div>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; min-height: 44px;">
                             <input type="checkbox" name="tp_has_extension" value="1" @checked(old('tp_has_extension', $assessment->tp_has_extension)) onchange="document.getElementById('extension-fields').style.display = this.checked ? 'grid' : 'none'" style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin: 0; padding: 0; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
@@ -149,7 +149,7 @@
                     </div>
 
                     <div id="extension-fields" style="display: {{ old('tp_has_extension', $assessment->tp_has_extension) ? 'grid' : 'none' }}; gap: 10px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="modal-form-grid-2col">
                             <label>
                                 <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor Surat Resmi LPK</span>
                                 <input type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px;">
@@ -172,7 +172,7 @@
                         <strong style="font-size: 12.5px; color: var(--text); display: block;">Laporan Asesmen &amp; Evaluasi Hasil Asesmen (EHA)</strong>
                         <small style="color: var(--muted); font-size: 11px;">Pencatatan tanggal laporan dan evaluasi panitia teknis.</small>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="modal-form-grid-2col">
                         <label>
                             <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tgl Laporan Asesmen</span>
                             <input type="date" name="report_date" value="{{ old('report_date', $assessment->report_date?->format('Y-m-d')) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
@@ -206,7 +206,7 @@
                         <strong style="font-size: 12.5px; color: #166534; display: block;">Surat Keputusan (SK) Hasil Asesmen KAN</strong>
                         <small style="color: #15803d; font-size: 11px;">Diisi jika tindakan perbaikan telah selesai / dinyatakan memenuhi dan terbit SK KAN.</small>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="modal-form-grid-2col">
                         <label>
                             <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor SK KAN</span>
                             <input type="text" name="sk_number" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}" style="width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 12.5px; background: #ffffff;">
@@ -224,7 +224,7 @@
                     @endif
                 </div>
 
-                <label style="position: relative; z-index: 1;">
+                <label style="display: block;">
                     <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Catatan Temuan &amp; Bukti Tindakan Perbaikan</span>
                     <textarea name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau status kelengkapan bukti tindakan perbaikan LPK..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px;">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
                 </label>

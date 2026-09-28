@@ -1,4 +1,31 @@
-.status, .priority { border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; letter-spacing: .01em; max-width: max-content; padding: 4px 9px; transition: transform 180ms var(--ease-out-expo), box-shadow 180ms ease; white-space: nowrap; width: fit-content; flex-shrink: 0; }.status:hover, .priority:hover { transform: scale(1.05); }
+/* ==========================================================================
+   SIMASADI Unified Badge & Status Design System (Consistent Pill Shapes)
+   ========================================================================== */
+
+.badge, .status, .priority, .badge-role, .badge-tp {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    box-sizing: border-box;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    letter-spacing: .01em;
+    line-height: 1.3;
+    max-width: max-content;
+    padding: 2.5px 8.5px;
+    transition: transform 160ms var(--ease-out-expo), box-shadow 160ms ease, background-color 160ms ease;
+    white-space: nowrap;
+    width: fit-content;
+    flex-shrink: 0;
+}
+
+.status:hover, .priority:hover, .badge:hover {
+    transform: scale(1.03);
+}
+
+/* Status Colors */
 .status-planned, .status-closed { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
 .status-scheduled, .status-submitted { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 .status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }
@@ -7,8 +34,14 @@
 .status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due { background: #fff8e6; border-color: #f3d18c; color: #925400; }
 .status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut { background: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
 .status-suspended, .status-dibekukan { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }
+
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
-.badge-role { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; letter-spacing: .02em; padding: 2px 8px; text-transform: uppercase; width: fit-content; max-width: 100%; box-sizing: border-box; flex-shrink: 0; }
+
+/* User Role Badges */
+.badge-role {
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge-role-admin { background: #fef3f2; border-color: #fecdca; color: #b42318; }
 .badge-role-pic { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
@@ -16,11 +49,55 @@
 .badge-role-assessor { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
 
-/* Badges SLA Tindakan Perbaikan (TP & VTP) KAN */
-.badge-tp { align-items: center; border: 1px solid; border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 600; gap: 4px; padding: 2px 8px; width: fit-content; max-width: 100%; white-space: nowrap; flex-shrink: 0; }
+/* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
 .badge-tp-neutral { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
 .badge-tp-success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
 .badge-tp-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
 .badge-tp-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
 .badge-tp-danger, .badge-tp-revoked { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
 .badge-tp-suspended { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }
+
+/* Alert & Surveillance Badges (LPK Tables & Dashboards) */
+.lpk-alert-badge {
+    align-items: center;
+    border: 1px solid;
+    border-radius: 999px;
+    box-sizing: border-box;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 1.3;
+    padding: 2.5px 8.5px;
+    white-space: nowrap;
+    width: fit-content;
+    flex-shrink: 0;
+}
+.lpk-alert-badge.is-urgent {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+.lpk-alert-badge.is-warning {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.lpk-pic-badge {
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    box-sizing: border-box;
+    color: #475569;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 1.3;
+    padding: 2.5px 8.5px;
+    white-space: nowrap;
+    width: fit-content;
+    flex-shrink: 0;
+}

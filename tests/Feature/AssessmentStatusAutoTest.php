@@ -177,10 +177,10 @@ class AssessmentStatusAutoTest extends TestCase
         $this->assertEquals('COMPLETED', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'SATISFIED'));
         $this->assertEquals('COMPLETED', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'NONE', null, now()->subDays(2)));
 
-        // Past dates with active TP within SLA is IN_PROGRESS
+        // Past dates with active TP within batas waktu is IN_PROGRESS
         $this->assertEquals('IN_PROGRESS', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'IN_PROGRESS'));
 
-        // Past dates with SLA date expired without satisfaction IS SUSPENDED (Dibekukan)
+        // Past dates with batas waktu date expired without satisfaction IS SUSPENDED (Dibekukan)
         $this->assertEquals('SUSPENDED', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'IN_PROGRESS', null, null, null, now()->subDay()));
         $this->assertEquals('IN_PROGRESS', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'IN_PROGRESS', null, null, null, now()->addDays(20)));
         $this->assertEquals('IN_PROGRESS', Assessment::determineStatusFromDates($pastStart, $pastEnd, 'PLANNED', 'IN_PROGRESS', null, null, null, now()->subDays(5), true, 1));
@@ -208,12 +208,12 @@ class AssessmentStatusAutoTest extends TestCase
         $assessment = Assessment::create([
             'lpk_id' => $this->lpk->id,
             'created_by' => $this->admin->id,
-            'title' => 'Asesmen Surveilen Lewat SLA',
+            'title' => 'Asesmen Surveilen Lewat Batas Waktu',
             'assessment_type' => 'Surveilen 1',
             'start_at' => now()->subMonths(4),
             'end_at' => now()->subMonths(4)->addDays(2),
             'tp_status' => 'IN_PROGRESS',
-            'tp_due_date' => now()->subDays(10), // Lewat SLA
+            'tp_due_date' => now()->subDays(10), // Lewat batas waktu
             'status' => 'PLANNED',
         ]);
 
@@ -333,7 +333,7 @@ class AssessmentStatusAutoTest extends TestCase
     {
         $this->lpk->assessments()->delete();
 
-        // Simulate an assessment stored in DB with status IN_PROGRESS before SLA expired
+        // Simulate an assessment stored in DB with status IN_PROGRESS before batas waktu expired
         $assessment = Assessment::create([
             'lpk_id' => $this->lpk->id,
             'created_by' => $this->admin->id,
@@ -378,7 +378,7 @@ class AssessmentStatusAutoTest extends TestCase
     {
         $this->lpk->assessments()->delete();
 
-        // S1 with overdue SLA in current cycle, tp_status NONE, no SK
+        // S1 with overdue batas waktu in current cycle, tp_status NONE, no SK
         $assessment = Assessment::create([
             'lpk_id' => $this->lpk->id,
             'created_by' => $this->admin->id,
@@ -400,7 +400,7 @@ class AssessmentStatusAutoTest extends TestCase
         $response->assertOk();
         $response->assertSee('status-suspended');
         $response->assertSee('Dibekukan');
-        $response->assertSee('Otomatis: Melewati batas waktu awal (SLA) belum dinyatakan memenuhi sehingga status dibekukan.');
+        $response->assertSee('Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.');
     }
 
     public function test_past_surveillance_for_active_lpk_is_automatically_completed(): void
@@ -514,7 +514,7 @@ class AssessmentStatusAutoTest extends TestCase
     {
         $assessment = Assessment::factory()->create([
             'lpk_id' => $this->lpk->id,
-            'title' => 'Asesmen Melewati SLA KAN',
+            'title' => 'Asesmen Melewati Batas Waktu KAN',
             'assessment_type' => 'Surveilen 1',
             'start_at' => now()->subMonths(4),
             'end_at' => now()->subMonths(4)->addDays(2),

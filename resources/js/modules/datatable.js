@@ -2,6 +2,8 @@
 // Data Table Sorting, Toolbar Controls, View Toggles & Filter Drawer
 // ==========================================================================
 
+import { initCustomSelects } from './custom-select.js';
+
 export const createViewToggle = (className, label, views, activeView, onChange) => {
     const toggle = document.createElement('div');
     toggle.className = className;
@@ -187,7 +189,7 @@ export const initTableToolbar = (tableWrap) => {
     lengthControl.className = 'table-length-control';
     lengthControl.innerHTML = `
         <span>Show</span>
-        <select class="table-length-select" aria-label="Tampilkan baris per halaman">
+        <select class="table-length-select" aria-label="Tampilkan baris per halaman" data-no-search="true">
             <option value="10" ${currentPerPage === '10' ? 'selected' : ''}>10</option>
             <option value="25" ${currentPerPage === '25' ? 'selected' : ''}>25</option>
             <option value="50" ${currentPerPage === '50' ? 'selected' : ''}>50</option>
@@ -216,11 +218,17 @@ export const initTableToolbar = (tableWrap) => {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.set('per_page', val);
         newUrl.searchParams.delete('page');
-        window.location.href = newUrl.toString();
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo(newUrl.toString());
+        } else {
+            window.location.href = newUrl.toString();
+        }
     });
 
     toolbar.appendChild(lengthControl);
     tableWrap.parentElement?.insertBefore(toolbar, tableWrap);
+
+    initCustomSelects(lengthControl);
 };
 
 export function syncViewToggleLocation() {

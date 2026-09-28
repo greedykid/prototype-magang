@@ -205,7 +205,7 @@ const createCustomSelect = (select) => {
             spaceAbove = rect.top - modalRect.top;
         }
 
-        if (spaceBelow < 190 && spaceAbove > spaceBelow) {
+        if (spaceBelow < 190 && spaceAbove > spaceBelow && spaceAbove >= 190) {
             wrapper.classList.add('dropup');
         } else {
             wrapper.classList.remove('dropup');
@@ -214,17 +214,24 @@ const createCustomSelect = (select) => {
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar, .gcal-main');
-        if (parentContainer) {
-            parentContainer.classList.add('has-open-select');
-        }
-        const gcalMain = wrapper.closest('.gcal-main');
-        if (gcalMain) {
-            gcalMain.classList.add('has-open-select');
-        }
-        const parentForm = wrapper.closest('.inline-form, form');
-        if (parentForm) {
-            parentForm.classList.add('has-open-select');
+        let el = wrapper.parentElement;
+        while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
+            if (el.tagName === 'LABEL' ||
+                el.classList.contains('modal-form-grid-2col') ||
+                el.classList.contains('lpk-field-row') ||
+                el.classList.contains('lpk-field') ||
+                el.classList.contains('form-grid') ||
+                el.classList.contains('inline-form') ||
+                el.classList.contains('panel') ||
+                el.classList.contains('card') ||
+                el.classList.contains('gcal-board') ||
+                el.classList.contains('gcal-toolbar') ||
+                el.classList.contains('gcal-main') ||
+                el.tagName === 'SECTION' ||
+                el.tagName === 'FORM') {
+                el.classList.add('has-open-select');
+            }
+            el = el.parentElement;
         }
 
         const isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
@@ -248,14 +255,11 @@ const createCustomSelect = (select) => {
         trigger.setAttribute('aria-expanded', 'false');
         optionElements.forEach((el) => el.classList.remove('is-focused'));
 
-        const parentContainer = wrapper.closest('.panel, .card, section, .detail-grid > *, .content-grid > *, label, .form-grid > *, .gcal-board, .gcal-toolbar');
-        if (parentContainer && !parentContainer.querySelector('.custom-select-wrapper.is-open')) {
-            parentContainer.classList.remove('has-open-select');
-        }
-        const parentForm = wrapper.closest('.inline-form, form');
-        if (parentForm && !parentForm.querySelector('.custom-select-wrapper.is-open')) {
-            parentForm.classList.remove('has-open-select');
-        }
+        document.querySelectorAll('.has-open-select').forEach((container) => {
+            if (!container.querySelector('.custom-select-wrapper.is-open')) {
+                container.classList.remove('has-open-select');
+            }
+        });
     };
 
     const toggleMenu = () => {

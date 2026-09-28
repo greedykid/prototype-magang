@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lpks', [LpkController::class, 'index'])->name('lpks.index');
     Route::get('/lpks/create', [LpkController::class, 'create'])->name('lpks.create');
     Route::post('/lpks', [LpkController::class, 'store'])->name('lpks.store');
+    Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
+    Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
     Route::get('/lpks/{lpk}', [LpkController::class, 'show'])->name('lpks.show')->whereNumber('lpk');
     Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
     Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
@@ -79,9 +81,6 @@ Route::middleware('auth')->group(function (): void {
         // Manajemen Pengguna & Hak Akses PIC / Admin
         Route::resource('users', UserController::class)->except(['show']);
         Route::get('/monitoring/backups', [MonitoringController::class, 'backups'])->name('monitoring.backups');
-
-        Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
-        Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
         Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
 
         Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');

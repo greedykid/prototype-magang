@@ -3,179 +3,272 @@
 @section('title', $assessment->title . ' | SIMASADI')
 
 @section('content')
-<div class="page-heading">
-    <div>
-        <a class="back-link" href="{{ route('assessments.index') }}">Semua asesmen</a>
-        <h1 style="margin-top: 8px; margin-bottom: 6px; font-size: 23px; line-height: 1.35; font-weight: 700; word-break: break-word;">
-            {{ $assessment->title }}
-        </h1>
-        <p class="lede" style="margin-bottom: 0;">
-            {{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}
-        </p>
+<div class="lpk-show-container">
+    {{-- Header Card dengan Breadcrumb, Judul, Badges & Tombol Aksi --}}
+    <div class="lpk-show-header">
+        <div class="lpk-header-back-wrap">
+            <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                <span>Semua asesmen</span>
+            </a>
+        </div>
+
+        <div class="lpk-header-row">
+            <div class="lpk-header-title-group">
+                <h1>{{ $assessment->title }}</h1>
+                <div class="lpk-header-badges">
+                    <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: #0f172a;" title="Buka detail LPK">
+                        {{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}
+                    </a>
+                    <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
+                    <x-status :value="$assessment->status" />
+                    @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
+                        <span class="badge-tp badge-tp-danger" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
+                            Dicabut (Lewat 1 Tahun)
+                        </span>
+                    @elseif($assessment->is_submission_overdue)
+                        <span class="badge-tp badge-tp-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
+                            Dibekukan (Toleransi Terlampaui)
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <div class="lpk-header-actions">
+                <a class="button secondary" href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" title="Lompat ke tanggal agenda di kalender">
+                    <x-icon name="calendar" size="14" />
+                    <span>Buka di Kalender</span>
+                </a>
+                <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
+                    <x-icon name="edit" size="14" />
+                    <span>Ubah asesmen</span>
+                </a>
+            </div>
+        </div>
     </div>
-    <div class="page-heading-actions" style="display: flex; gap: 8px;">
-        <a class="button secondary" href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" title="Lompat ke tanggal agenda di kalender">
-            <x-icon name="calendar" size="16" />
-            <span>Buka di Kalender</span>
-        </a>
-        <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
-            <x-icon name="edit" size="16" />
-            <span>Ubah asesmen</span>
-        </a>
+
+    {{-- Banner Notifikasi Status Pembekuan / Pencabutan --}}
+    @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
+        <div class="lpk-alert-callout" style="background: #fef2f2; border-color: #fca5a5;">
+            <div class="lpk-alert-callout-content">
+                <div class="lpk-alert-callout-head" style="color: #991b1b;">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <strong>Perhatian: Status Akreditasi Dicabut</strong>
+                </div>
+                <p class="lpk-alert-callout-desc" style="color: #b91c1c;">
+                    Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>) tanpa penyelesaian.
+                </p>
+            </div>
+        </div>
+    @elseif($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue || $assessment->is_submission_overdue)
+        <div class="lpk-alert-callout" style="background: #faf5ff; border-color: #d8b4fe;">
+            <div class="lpk-alert-callout-content">
+                <div class="lpk-alert-callout-head" style="color: #581c87;">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <strong>Perhatian: Status Asesmen / Akreditasi Dibekukan</strong>
+                </div>
+                <p class="lpk-alert-callout-desc" style="color: #6b21a8;">
+                    @if($assessment->is_submission_overdue)
+                        Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->format('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
+                    @else
+                        Batas waktu awal tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
+                    @endif
+                </p>
+            </div>
+        </div>
+    @endif
+
+    {{-- 2-Column Responsive Layout --}}
+    <div class="lpk-show-grid">
+        {{-- KOLOM KIRI: Informasi Pelaksanaan, Tim Asesor, Evaluasi EHA & SK KAN --}}
+        <div class="lpk-show-col">
+            {{-- KARTU 1: Detail Pelaksanaan Asesmen --}}
+            <div class="lpk-form-card">
+                <div class="lpk-form-card-header">
+                    <div class="lpk-card-icon-wrap" style="background: #eff6ff; color: #1d4ed8;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <div class="lpk-card-header-text">
+                        <h2>Informasi Agenda &amp; Pelaksanaan</h2>
+                        <p>Waktu pelaksanaan, lokasi kunjungan, dan status pelaksanaan asesmen.</p>
+                    </div>
+                </div>
+
+                <div class="lpk-meta-grid">
+                    <div class="lpk-meta-item full-width">
+                        <span class="lpk-meta-label">LPK Terakreditasi</span>
+                        <div class="lpk-meta-value">
+                            <a href="{{ route('lpks.show', $assessment->lpk) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <span>{{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}</span>
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink: 0;"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Status Pelaksanaan</span>
+                        <div class="lpk-meta-value" style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                            <x-status :value="$assessment->status" />
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Jenis Asesmen (KAN U-01)</span>
+                        <div class="lpk-meta-value">
+                            {{ $assessment->assessment_type_label }}
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item full-width">
+                        <span class="lpk-meta-label">Waktu Pelaksanaan</span>
+                        <div class="lpk-meta-value">
+                            <strong>{{ $assessment->start_at->format('d M Y, H:i') }}</strong> sampai <strong>{{ $assessment->end_at->format('d M Y, H:i') }} WIB</strong>
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Lokasi Kunjungan</span>
+                        <div class="lpk-meta-value">
+                            {{ $assessment->location ?: 'Belum diisi' }}
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Tim Asesmen</span>
+                        <div class="lpk-meta-value">
+                            {{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}
+                        </div>
+                    </div>
+
+                    @if($assessment->submission_due_date && $assessment->status !== 'COMPLETED')
+                        <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px;">
+                            <span class="lpk-meta-label">Toleransi Pengisian</span>
+                            <div class="lpk-meta-value">
+                                <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
+                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(akhir bulan dari waktu kunjungan)</span>
+                                @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
+                                    <div style="margin-top: 4px; font-size: 12px; color: #991b1b; font-weight: 600;">
+                                        &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
+                                    </div>
+                                @elseif($assessment->is_submission_overdue || $assessment->status === 'SUSPENDED')
+                                    <div style="margin-top: 4px; font-size: 12px; color: #6b21a8; font-weight: 600;">
+                                        &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->format('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- KARTU 2: Laporan Asesmen, Evaluasi Hasil Asesmen (EHA) & SK KAN --}}
+            <div class="lpk-form-card">
+                <div class="lpk-form-card-header">
+                    <div class="lpk-card-icon-wrap" style="background: #fdf2f8; color: #be185d;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="lpk-card-header-text">
+                        <h2>Laporan Asesmen, Evaluasi EHA &amp; SK KAN</h2>
+                        <p>Dokumen pelaporan asesmen, evaluasi panitia teknis, dan keputusan akreditasi.</p>
+                    </div>
+                </div>
+
+                <div class="lpk-meta-grid">
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Laporan Asesmen</span>
+                        <div class="lpk-meta-value">
+                            @if($assessment->report_date)
+                                Diterbitkan pada <strong>{{ $assessment->report_date->format('d M Y') }}</strong>
+                            @else
+                                <span style="color: var(--muted);">Belum diterbitkan</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item">
+                        <span class="lpk-meta-label">Evaluasi Hasil Asesmen (EHA)</span>
+                        <div class="lpk-meta-value">
+                            @if($assessment->eha_date || ($assessment->eha_status && $assessment->eha_status !== 'BELUM_EHA') || $assessment->eha_notes)
+                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                    <span class="badge-tp badge-tp-neutral">{{ $assessment->eha_status_label }}</span>
+                                    @if($assessment->eha_date)
+                                        <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
+                                    @endif
+                                </div>
+                                @if($assessment->eha_notes)
+                                    <div style="font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.45;">{{ $assessment->eha_notes }}</div>
+                                @endif
+                            @else
+                                <span style="color: var(--muted);">Belum EHA</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px;">
+                        <span class="lpk-meta-label">Surat Keputusan (SK)</span>
+                        <div class="lpk-meta-value">
+                            @if($assessment->sk_number || $assessment->sk_date)
+                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                    @if($assessment->sk_number)
+                                        <strong style="color: #15803d; font-size: 14px;">{{ $assessment->sk_number }}</strong>
+                                    @endif
+                                    @if($assessment->sk_date)
+                                        <span style="color: var(--muted); font-size: 12.5px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
+                                    @endif
+                                    @if($assessment->sk_lead_time_label)
+                                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
+                                            Rentang Proses: {{ $assessment->sk_lead_time_label }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @else
+                                <span style="color: var(--muted);">Belum terbit</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- KARTU 3: Catatan Pelaksanaan --}}
+            <div class="lpk-form-card">
+                <div class="lpk-form-card-header">
+                    <div class="lpk-card-icon-wrap" style="background: #f8fafc; color: #475569;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="lpk-card-header-text">
+                        <h2>Catatan</h2>
+                        <p>Catatan khusus pelaksanaan agenda asesmen di lapangan.</p>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #334155; line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
+            </div>
+        </div>
+
+        {{-- KOLOM KANAN: Tindakan Perbaikan & Verifikasi (TP & VTP) Standar KAN --}}
+        <div class="lpk-show-col">
+            @include('assessments.partials.tp-tracking')
+        </div>
     </div>
 </div>
-
-@if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-    <div role="alert" style="margin-bottom: 24px; padding: 16px 20px; background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; display: flex; align-items: flex-start; gap: 14px;">
-        <div style="width: 36px; height: 36px; border-radius: 8px; background: #fee2e2; color: #991b1b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-        </div>
-        <div>
-            <strong style="color: #991b1b; font-size: 14.5px; display: block; margin-bottom: 3px;">Perhatian: Status Akreditasi Dicabut</strong>
-            <span style="color: #b91c1c; font-size: 13px; line-height: 1.5; display: block;">
-                Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>) tanpa penyelesaian.
-            </span>
-        </div>
-    </div>
-@elseif($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue || $assessment->is_submission_overdue)
-    <div role="alert" style="margin-bottom: 24px; padding: 16px 20px; background: #faf5ff; border: 1.5px solid #d8b4fe; border-radius: 10px; display: flex; align-items: flex-start; gap: 14px;">
-        <div style="width: 36px; height: 36px; border-radius: 8px; background: #f3e8ff; color: #6b21a8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-        </div>
-        <div>
-            <strong style="color: #581c87; font-size: 14.5px; display: block; margin-bottom: 3px;">Perhatian: Status Asesmen / Akreditasi Dibekukan</strong>
-            @if($assessment->is_submission_overdue)
-                <span style="color: #6b21a8; font-size: 13px; line-height: 1.5; display: block;">
-                    Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->format('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
-                </span>
-            @else
-                <span style="color: #6b21a8; font-size: 13px; line-height: 1.5; display: block;">
-                    Batas waktu awal (SLA) tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
-                </span>
-            @endif
-        </div>
-    </div>
-@endif
-
-<section class="panel detail-list">
-    <div>
-        <dt>LPK Terakreditasi</dt>
-        <dd>
-            <a href="{{ route('lpks.show', $assessment->lpk) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
-                <span>{{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}</span>
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink: 0;"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-            </a>
-        </dd>
-    </div>
-    <div>
-        <dt>Status Pelaksanaan</dt>
-        <dd style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <x-status :value="$assessment->status" />
-            @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                <span class="badge-tp badge-tp-danger" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
-                    Dicabut (Lewat 1 Tahun)
-                </span>
-            @elseif($assessment->is_submission_overdue)
-                <span class="badge-tp badge-tp-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
-                    Dibekukan (Toleransi Terlampaui)
-                </span>
-            @endif
-        </dd>
-    </div>
-    @if($assessment->submission_due_date && $assessment->status !== 'COMPLETED')
-        <div>
-            <dt>Toleransi Pengisian</dt>
-            <dd>
-                <div style="font-size: 13.5px; font-weight: 600; color: var(--text);">
-                    Maksimal {{ $assessment->submission_due_date->format('d M Y') }}
-                    <span style="color: var(--muted); font-size: 12px; font-weight: normal; margin-left: 4px;">(akhir bulan dari waktu kunjungan)</span>
-                </div>
-                @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                    <div style="margin-top: 6px; font-size: 12.5px; color: #991b1b; font-weight: 600;">
-                        &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
-                    </div>
-                @elseif($assessment->is_submission_overdue || $assessment->status === 'SUSPENDED')
-                    <div style="margin-top: 6px; font-size: 12.5px; color: #6b21a8; font-weight: 600;">
-                        &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->format('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
-                    </div>
-                @endif
-            </dd>
-        </div>
-    @endif
-    <div>
-        <dt>Jenis (KAN U-01)</dt>
-        <dd>{{ $assessment->assessment_type_label }}</dd>
-    </div>
-    <div>
-        <dt>Waktu Pelaksanaan</dt>
-        <dd>{{ $assessment->start_at->format('d M Y, H:i') }} sampai {{ $assessment->end_at->format('d M Y, H:i') }} WIB</dd>
-    </div>
-    <div>
-        <dt>Lokasi</dt>
-        <dd>{{ $assessment->location ?: 'Belum diisi' }}</dd>
-    </div>
-    <div>
-        <dt>Tim Asesmen</dt>
-        <dd>{{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}</dd>
-    </div>
-    @if($assessment->report_date)
-        <div>
-            <dt>Laporan Asesmen</dt>
-            <dd>Diterbitkan pada {{ $assessment->report_date->format('d M Y') }}</dd>
-        </div>
-    @endif
-    @if($assessment->eha_date || ($assessment->eha_status && $assessment->eha_status !== 'BELUM_EHA') || $assessment->eha_notes)
-        <div>
-            <dt>Evaluasi Hasil Asesmen (EHA)</dt>
-            <dd>
-                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span class="badge-tp badge-tp-neutral">{{ $assessment->eha_status_label }}</span>
-                    @if($assessment->eha_date)
-                        <span style="color: var(--muted); font-size: 13px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
-                    @endif
-                </div>
-                @if($assessment->eha_notes)
-                    <div style="font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.45;">{{ $assessment->eha_notes }}</div>
-                @endif
-            </dd>
-        </div>
-    @endif
-    <div>
-        <dt>Catatan</dt>
-        <dd class="pre-line">{{ $assessment->notes ?: 'Belum ada catatan.' }}</dd>
-    </div>
-    @if($assessment->sk_number || $assessment->sk_date)
-        <div>
-            <dt>Surat Keputusan (SK)</dt>
-            <dd>
-                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    @if($assessment->sk_number)
-                        <strong style="color: #15803d; font-size: 14px;">{{ $assessment->sk_number }}</strong>
-                    @endif
-                    @if($assessment->sk_date)
-                        <span style="color: var(--muted); font-size: 13px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
-                    @endif
-                </div>
-                @if($assessment->sk_lead_time_label)
-                    <div style="margin-top: 6px;">
-                        <span class="badge-tp badge-tp-neutral" style="font-size: 11.5px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
-                            Rentang Proses: {{ $assessment->sk_lead_time_label }}
-                        </span>
-                    </div>
-                @endif
-            </dd>
-        </div>
-    @endif
-</section>
-
-@include('assessments.partials.tp-tracking')
 
 @include('assessments.partials.cost-reporting')
 
 @include('assessments.partials.modals')
-
 @endsection

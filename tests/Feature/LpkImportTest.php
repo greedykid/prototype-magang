@@ -92,13 +92,26 @@ class LpkImportTest extends TestCase
         ]);
     }
 
-    public function test_pic_is_forbidden_from_importing_or_downloading_template(): void
+    public function test_pic_can_import_and_download_template(): void
     {
         $templateResponse = $this->actingAs($this->pic)->get(route('lpks.import.template'));
-        $templateResponse->assertForbidden();
+        $templateResponse->assertOk();
 
-        $importResponse = $this->actingAs($this->pic)->post(route('lpks.import'), []);
-        $importResponse->assertForbidden();
+        $csvData = "nomor_registrasi,nama_lpk,status\n" .
+            "LP-PIC-01,\"Laboratorium PIC Mandiri\",ACTIVE\n";
+        $file = UploadedFile::fake()->createWithContent('lpk-pic.csv', $csvData);
+
+        $importResponse = $this->actingAs($this->pic)->post(route('lpks.import'), [
+            'csv_file' => $file,
+        ]);
+        $importResponse->assertRedirect(route('lpks.index'));
+        $importResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('lpks', [
+            'registration_number' => 'LP-PIC-01',
+            'name' => 'Laboratorium PIC Mandiri',
+            'pic_id' => $this->pic->id,
+        ]);
     }
 
     public function test_admin_can_import_lpks_from_csv_file(): void
@@ -200,7 +213,7 @@ class LpkImportTest extends TestCase
         ]);
     }
 
-    public function test_ui_renders_import_button_for_admin_and_hides_for_pic(): void
+    public function test_ui_renders_import_button_for_admin_and_pic(): void
     {
         // Admin should see Impor LPK button and modal
         $adminResponse = $this->actingAs($this->admin)->get(route('lpks.index'));
@@ -208,10 +221,11 @@ class LpkImportTest extends TestCase
         $adminResponse->assertSee('Impor LPK');
         $adminResponse->assertSee('modal-import-lpk');
 
-        // PIC should NOT see Impor LPK button or modal
+        // PIC should also see Impor LPK button and modal
         $picResponse = $this->actingAs($this->pic)->get(route('lpks.index'));
         $picResponse->assertOk();
-        $picResponse->assertDontSee('modal-import-lpk');
+        $picResponse->assertSee('Impor LPK');
+        $picResponse->assertSee('modal-import-lpk');
     }
 
     public function test_import_with_custom_spreadsheet_headers_and_numeric_numbers(): void

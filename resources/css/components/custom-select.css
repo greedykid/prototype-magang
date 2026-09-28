@@ -44,10 +44,16 @@ section.has-open-select,
 .inline-form label:has(.custom-select-wrapper.is-open),
 .inline-form label.has-open-select,
 .form-grid label:has(.custom-select-wrapper.is-open),
-.form-grid label.has-open-select {
+.form-grid label.has-open-select,
+.modal-form-grid-2col:has(.custom-select-wrapper.is-open),
+.modal-form-grid-2col.has-open-select,
+.modal-form-grid-2col label:has(.custom-select-wrapper.is-open),
+.modal-form-grid-2col label.has-open-select,
+.simasadi-modal-box label:has(.custom-select-wrapper.is-open),
+.simasadi-modal-box label.has-open-select {
     overflow: visible !important;
     position: relative !important;
-    z-index: 60 !important;
+    z-index: 85 !important;
 }
 
 .custom-select-wrapper {

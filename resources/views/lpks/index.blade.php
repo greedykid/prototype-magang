@@ -11,30 +11,17 @@
         <x-icon name="sheets" size="16" style="color: #0f9d58;" />
         <span>Google Sheets & Ekspor</span>
     </button>
-    @if(auth()->user()?->isAdmin())
-        <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
-            <x-icon name="upload" size="16" />
-            <span>Impor LPK</span>
-        </button>
-    @endif
+    <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
+        <x-icon name="upload" size="16" />
+        <span>Impor LPK</span>
+    </button>
     <a class="button primary" href="{{ route('lpks.create') }}">
         <x-icon name="plus" size="16" />
         <span>Tambah LPK</span>
     </a>
 </x-page-header>
 
-<div class="lpk-workbench-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 12px; flex-wrap: wrap;">
-    <a href="{{ route('lpks.index') }}" class="button primary" style="font-size: 13px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-        <x-icon name="lpks" size="15" />
-        <span>Master Data LPK</span>
-    </a>
-    <a href="{{ route('assessments.index') }}" class="button secondary" style="font-size: 13px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-        <x-icon name="assessments" size="15" />
-        <span>Proses yang Sedang Berjalan (S1 &ndash; RA)</span>
-    </a>
-</div>
-
-<section class="panel">
+<section class="panel table-panel-borderless">
     <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
         <div class="table-filter-grid">
             <label>
@@ -160,7 +147,5 @@
     'columns' => ['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']
 ])
 
-@if(auth()->user()?->isAdmin())
-    @include('lpks.partials.import-modal')
-@endif
+@include('lpks.partials.import-modal')
 @endsection

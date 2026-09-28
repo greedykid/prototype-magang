@@ -26,7 +26,7 @@ class AssessmentController extends Controller
             $perPage = 10;
         }
 
-        // Sinkronisasi otomatis status asesmen yang melewati batas SLA KAN menjadi SUSPENDED
+        // Sinkronisasi otomatis status asesmen yang melewati batas waktu KAN menjadi SUSPENDED
         Assessment::query()
             ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
             ->tpOverdue()

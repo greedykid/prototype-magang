@@ -2,6 +2,7 @@ import { setDrawerState } from './sidebar.js';
 import { returnModalToPlaceholder, closeModal } from './modals.js';
 import { returnPopoverToPlaceholder, closeEventPopover, initGcalComponents } from './calendar.js';
 import { initCustomSelects } from './custom-select.js';
+import { closeAllCustomPickers, initCustomPickers } from './custom-picker.js';
 
 // ==========================================================================
 // Custom Skeleton Loading Layouts per Menu
@@ -404,6 +405,9 @@ const navigateTo = async (url, pushState = true) => {
         if (typeof closeModal === 'function') closeModal();
         else window.closeModal?.();
 
+        if (typeof closeAllCustomPickers === 'function') closeAllCustomPickers();
+        else window.closeAllCustomPickers?.();
+
         window.closeNotificationDropdown?.();
 
         document.querySelectorAll('body > .gcal-popover, body > #gcal-event-popover').forEach((p) => {
@@ -524,6 +528,7 @@ const navigateTo = async (url, pushState = true) => {
             // Re-initialize calendar components and custom dropdowns
             if (typeof initGcalComponents === 'function') initGcalComponents();
             if (typeof initCustomSelects === 'function') initCustomSelects(document);
+            if (typeof initCustomPickers === 'function') initCustomPickers(document);
 
             window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
 

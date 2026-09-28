@@ -21,31 +21,20 @@
     </a>
 </x-page-header>
 
-<div class="assessment-workbench-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 12px; flex-wrap: wrap;">
-    <a href="{{ route('lpks.index') }}" class="button secondary" style="font-size: 13px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-        <x-icon name="lpks" size="15" />
-        <span>Master Data LPK</span>
-    </a>
-    <a href="{{ route('assessments.index') }}" class="button primary" style="font-size: 13px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-        <x-icon name="assessments" size="15" />
-        <span>Proses yang Sedang Berjalan (S1 sampai RA)</span>
-    </a>
-</div>
-
-<section class="panel">
+<section class="panel table-panel-borderless">
     <form id="assessment-filter-form" class="table-filters" method="GET" action="{{ route('assessments.index') }}" data-partial-filter="true" data-target="#assessment-table-container">
         <div class="table-filter-grid">
             <label>Cari agenda<input type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off"></label>
             <label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
             <label>Jenis<select name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
             <label>Status Pelaksanaan<select name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
-            <label>Status TP (SLA KAN)
+            <label>Status TP (Batas Waktu)
                 <select name="tp_status">
                     <option value="">Semua status TP</option>
                     <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
                     <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
                     <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
-                    <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas SLA (Dibekukan)</option>
+                    <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
                     <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
                 </select>
             </label>
@@ -85,7 +74,7 @@
                 'NONE' => 'Nihil / Belum Ada Temuan',
                 'ACTIVE' => 'Sedang Perbaikan / Verifikasi',
                 'DUE_SOON' => 'Jatuh Tempo (≤ 14 Hari)',
-                'OVERDUE' => 'Melewati Batas SLA (Dibekukan)',
+                'OVERDUE' => 'Melewati Batas Waktu (Dibekukan)',
                 'SATISFIED' => 'Dinyatakan Memenuhi',
             ];
             $selectedLpk = $lpkId ? $lpks->firstWhere('id', $lpkId) : null;

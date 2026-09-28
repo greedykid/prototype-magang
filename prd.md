@@ -7,7 +7,7 @@
 ## 1. Dokumen Ringkasan Eksekutif (Executive Summary)
 
 ### 1.1 Latar Belakang & Identitas Sistem
-**SIMASADI** adalah sistem informasi dan administrasi operasional terpadu yang dirancang khusus untuk memfasilitasi, memantau, dan memvalidasi siklus hidup akreditasi Lembaga Penilaian Kesesuaian (LPK) di bawah naungan Komite Akreditasi Nasional (KAN) dan Badan Standardisasi Nasional (BSN). LPK yang dikelola mencakup berbagai skema akreditasi KAN, antara lain:
+**SIMASADI** adalah sistem informasi dan manajemen operasional terpadu yang dirancang khusus untuk memfasilitasi, memantau, dan memvalidasi siklus hidup akreditasi Lembaga Penilaian Kesesuaian (LPK) di bawah naungan Komite Akreditasi Nasional (KAN) dan Badan Standardisasi Nasional (BSN). LPK yang dikelola mencakup berbagai skema akreditasi resmi KAN, antara lain:
 * **LP**: Laboratorium Pengujian (SNI ISO/IEC 17025)
 * **LK**: Laboratorium Kalibrasi (SNI ISO/IEC 17025)
 * **LM**: Laboratorium Medis (SNI ISO 15189)
@@ -18,10 +18,10 @@
 * **PTP**: Penyelenggara Uji Kemahiran (SNI ISO/IEC 17043)
 * **BPP**: Produsen Bahan Acuan (SNI ISO 17034)
 
-Aplikasi ini mengintegrasikan seluruh siklus pengawasan berkala (Surveilen KAN), 8 proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP) dan Verifikasi Tindakan Perbaikan (VTP), alur Evaluasi Hasil Asesmen (EHA), kepatuhan keuangan berbasis Standar Biaya Masukan (SBM PMK), penagihan PNBP (SIMPONI Kemenkeu), penandatanganan elektronik dokumen SK (BSrE BSSN), portal publik/asesor dengan verifikasi QR Code, hingga pelaporan otomatis Google Sheets.
+Aplikasi ini mengintegrasikan seluruh siklus pengawasan berkala (Surveilen KAN), 8 proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP) dan Verifikasi Tindakan Perbaikan (VTP), alur Evaluasi Hasil Asesmen (EHA), kepatuhan keuangan berbasis Standar Biaya Masukan (SBM PMK), penagihan PNBP (SIMPONI Kemenkeu), penandatanganan elektronik dokumen SK (BSrE BSSN), portal publik/asesor dengan verifikasi QR Code, kalender interaktif SPA dengan auto-focus deep-link, mesin live filter parsial instan tanpa reload, hingga pelaporan otomatis Google Sheets.
 
 ### 1.2 Tujuan Dokumen PRD
-Dokumen ini berfungsi sebagai spesifikasi kebutuhan produk komprehensif yang merangkum seluruh domain bisnis, arsitektur data, logika kalkulasi hukum akreditasi KAN, alur kerja antar-peran, dan kebutuhan fungsional dari sistem operasional SIMASADI. Dokumen ini menjadi acuan teknis valid bagi pengembangan sistem berjalan maupun migrasi platform di lingkungan KAN dan BSN.
+Dokumen ini berfungsi sebagai spesifikasi kebutuhan produk komprehensif yang merangkum seluruh domain bisnis, arsitektur data, logika kalkulasi hukum akreditasi KAN, alur kerja antar-peran, dan kebutuhan fungsional dari sistem operasional SIMASADI terkini. Dokumen ini menjadi acuan teknis baku bagi pengembangan sistem berjalan maupun migrasi platform di lingkungan KAN dan BSN.
 
 ---
 
@@ -58,8 +58,10 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*rol
   5. `SURVEILLANCE_DUE` (Badge Kuning): LPK yang memasuki jendela notifikasi pengawasan aktif (bulan 14 untuk S1, bulan 35 untuk S2, atau 1 bulan sebelum habis untuk Re-Akreditasi).
   6. `ACTIVE` (Badge Hijau): LPK aktif, seluruh siklus pengawasan terpenuhi atau terjadwal aman.
   7. `INACTIVE` (Badge Abu-abu): Status LPK dinonaktifkan secara administratif oleh administrator.
-* **Keterangan Operasional Otomatis (`dynamic_keterangan`)**:
-  Sistem menghasilkan ringkasan operasional otomatis yang langsung berfokus pada isi agenda utama dalam format teks tebal (contoh: **Surveilen 1: Terjadwal 29/03/2027** atau **Tindakan Perbaikan: Jatuh Tempo 15/05/2026**), tanpa imbuhan awalan teks administratif yang redundan.
+* **Struktur Kartu Keterangan Bertumpuk (Dual Notes Stack)**:
+  Pada halaman rincian LPK (`lpks/show`), keterangan disajikan dalam dua kartu berdampingan yang saling melengkapi:
+  1. **Status Siklus (Otomatis)**: Menampilkan nama proses dan status kepatuhan terhitung sistem, diberi badge kategori tematik (Jatuh Tempo [Rose], Reminder [Amber], Batas TP [Cyan], Pelaksanaan [Emerald]).
+  2. **Catatan Khusus PIC (Manual)**: Area catatan internal yang diinput oleh personel pendamping PIC laboratorium, dilengkapi modal form edit yang memungkinkan PIC langsung menyalin redaksi keterangan otomatis sistem atau memasukkan catatan koordinasi khusus.
 * **Impor Massal Data Master (Smart Upsert)**:
   * Mendukung unggah berkas `.csv` (koma `,` atau titik koma `;`) dan berkas spreadsheet `.xlsx`.
   * Mendukung penarikan langsung dari tautan publik Google Sheets via HTTP.
@@ -79,6 +81,11 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*rol
   6. `UNSCHEDULED_SURVEILLANCE`: Surveilen Tidak Terjadwal (STT)
   7. `SCOPE_EXTENSION`: Perluasan Ruang Lingkup (PRL)
   8. `REASSESSMENT`: Re-Akreditasi / Akreditasi Ulang (RA)
+* **Standarisasi Penamaan Asesmen**:
+  Format judul asesmen distandarisasi menggunakan singkatan resmi KAN:
+  * Asesmen Re-Akreditasi distandarisasi ke format: `Asesmen Re-Akreditasi (RA) - [Nama LPK]`.
+  * Surveilen 1 distandarisasi ke format: `Asesmen Surveilen 1 (S1) - [Nama LPK]`.
+  * Surveilen 2 distandarisasi ke format: `Asesmen Surveilen 2 (S2) - [Nama LPK]`.
 * **Aturan Tonggak Siklus Pengawasan Berkala**:
   * **Surveilen 1 (S1)**: Jendela notifikasi bulan ke-14; target pelaksanaan bulan ke-15; validasi asesmen pada rentang bulan 10 sampai dengan 24 dari tanggal sertifikat.
   * **Surveilen 2 (S2)**: Jendela notifikasi bulan ke-35; target pelaksanaan bulan ke-36; validasi asesmen pada rentang bulan 25 sampai dengan 44 dari tanggal sertifikat.
@@ -165,22 +172,52 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
   3. `tp_reminder`: Pengingat Batas Tindakan Perbaikan (Warna Indigo / Biru Muda).
   4. `tp_overdue`: Batas Waktu Terlampaui Tindakan Perbaikan (Warna Merah / Ungu).
   5. `sk_reminder`: Pengingat Target Penerbitan SK KAN (Warna Hijau / Emerald).
-* **Navigasi Cepat**:
-  * Dropdown pemilih langsung bulan dan tahun (*Direct Month & Year Selector*) dengan rentang tahun dinamis yang menjangkau tahun kedaluwarsa LPK terjauh.
-  * Pembuatan agenda instan dengan mengklik kotak tanggal pada kalender.
+* **4 Mode Tampilan Kalender**:
+  Mendukung navigasi pergantian tampilan tanpa reload penuh:
+  * **Bulan (*Month View*)**: Grid kalender bulanan dengan batas maksimal 3 event utama dan indikator penampung *+X lainnya*. Event target highlight otomatis diprioritaskan tampil di posisi teratas.
+  * **Minggu (*Week View*)**: Tampilan kolom per jam dalam rentang 7 hari.
+  * **Hari (*Day View*)**: Tampilan detil agenda per jam untuk tanggal terpilih.
+  * **Agenda (*Agenda View*)**: Tampilan daftar baris terstruktur kronologis.
+* **Arsitektur SPA Partial Kalender**:
+  * Navigasi bulan, tahun, tampilan (*view*), dan tanggal menggunakan permintaan AJAX parsial (`view_partial=1`).
+  * Server hanya me-render shell kalender (`calendar/partials/calendar-shell.blade.php`), mengganti konten secara instan tanpa flicker dan tanpa memuat ulang seluruh layout aplikasi (*App Shell*).
+* **Navigasi Cepat & Resolusi Rentang Tahun Dinamis**:
+  * Dropdown pemilih langsung bulan dan tahun (*Direct Month & Year Selector*).
+  * Rentang pilihan tahun tidak kaku/statis, melainkan dihitung otomatis oleh server mencakup tahun terlama dari riwayat sertifikat hingga tahun terjauh dari tanggal kedaluwarsa dan jadwal asesmen masa depan di basis data.
+* **Pola Deep-Link & Auto-Focus Kalender**:
+  * Format tautan langsung: `/calendar?view=month&date=YYYY-MM-DD&highlight={event_id}&selected=1`.
+  * **Resolusi Tanggal Otomatis di Backend (*Auto-Date Resolution*)**: Jika dipanggil hanya dengan parameter `?highlight={id}` (contoh: `highlight=12` atau `highlight=assessment-12`), sistem secara otomatis mencari tanggal jadwal entitas tersebut di basis data dan langsung membuka bulan/tahun yang sesuai, bahkan jika jadwalnya 1, 2, atau 3 tahun ke depan.
+  * **Umpan Balik Visual & Animasi Pulse**: Tanggal target langsung ditandai dengan badge lingkaran solid navy (`#1e3a5f`), dan chip/kartu event menerima animasi pulse halus 3 siklus (`@keyframes gcal-highlight-pulse`) yang berhenti secara elegan tanpa infinite loop.
+  * **Auto-Scroll & Auto-Open Popover**: Halaman secara otomatis menggulir halus (*smooth scroll*) ke posisi elemen target di layar, dan setelah 360ms popover rincian agenda terbuka secara otomatis.
 
 ---
 
-### 3.8 Modul 8: Impor Massal Asesmen & LPK
+### 3.8 Modul 8: Mesin Pencarian & Filter Parsial Live (Partial AJAX Filter Engine)
+* **Live Search & Filter Tanpa Full-Page Reload**:
+  * Diterapkan pada tabel utama Master LPK (`/lpks`) dan Daftar Asesmen (`/assessments`).
+  * Modul JavaScript mandiri (`resources/js/modules/live-filter.js`) mengelola input pencarian teks dengan teknik *debounce* 280 ms dan pemantauan perubahan pada select filter (*status*, *assessment_type*, *tp_status*, *lpk_id*).
+  * Permintaan dikirim via AJAX dengan header `X-Requested-With: XMLHttpRequest` dan parameter `partial=1`.
+  * Server merespons hanya dengan potongan HTML tabel (`lpks/partials/table-content.blade.php` atau `assessments/partials/table-content.blade.php`), yang langsung diperbarui ke DOM tanpa mengganggu posisi scroll atau fokus pengguna.
+* **Sinkronisasi State & Riwayat Peramban (URL State Preservation)**:
+  * URL pada address bar otomatis disinkronkan menggunakan `history.replaceState` mencerminkan query aktif, sehingga URL hasil filter dapat disalin atau dibagikan secara akurat.
+  * Tombol navigasi pagination tabel otomatis mempertahankan parameter filter aktif.
+* **Pembaruan Badge Filter & Indikator Hasil Real-Time**:
+  * Badge filter aktif (`.filter-badges` / `.filter-pill`) diperbarui seketika di atas tabel saat filter dipilih atau dihapus, lengkap dengan tombol hapus satu per satu (*cross button*) dan tombol reset total.
+  * Teks penghitung total data (*results count*) diperbarui secara real-time.
+  * Menampilkan state kosong (*empty state*) yang informatif dan ramah ketika pencarian tidak menghasilkan kecocokan.
+
+---
+
+### 3.9 Modul 9: Impor Massal Asesmen & LPK
 * **Impor Data Asesmen Massal**:
   * Fitur unggah CSV untuk penjadwalan banyak asesmen sekaligus dengan pemetaan otomatis: nomor registrasi LPK, tipe asesmen KAN, nama asesor kepala, tanggal mulai, dan tanggal selesai.
 * **Impor Data LPK (Smart Upsert)**:
-  * Mendukung pemrosesan ribuan data LPK dengan template baku `.csv` dan `.xlsx`.
+  * Mendukung pemrosesan data LPK dengan template baku `.csv` dan `.xlsx`.
   * Penarikan berkas dari tautan publik Google Sheets secara langsung.
 
 ---
 
-### 3.9 Modul 9: Live Feed Google Sheets & Laporan
+### 3.10 Modul 10: Live Feed Google Sheets & Laporan
 * **Live CSV Feeds (`=IMPORTDATA`)**:
   * Endpoint publik terlindungi API key parameter rahasia:
     * `/feeds/expenses.csv?key=simasadi-live`: Rekapitulasi laporan biaya asesor.
@@ -211,8 +248,9 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 | scope, address, email,|      | status, verified_by |             | end_at, is_all_day |
 | status, expired_at,   |      +---------------------+             +--------------------+
 | pic_user_id (FK),     |                 ▲                                   ▲
-| certificate_date      |                 │                                   │
-+-----------------------+                 │ (1 to 1)                          │
+| certificate_date,     |                 │                                   │
+| notes                 |                 │ (1 to 1)                          │
++-----------------------+                 │                                   │
        │                                  │                                   │
        ├──────────────────────────────────┼───────────────────────────────────┘
        │ (1 to N)                         │
@@ -245,28 +283,37 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 
 ---
 
-## 5. Ringkasan Antarmuka & Indikator Kepatuhan
+## 5. Standar Antarmuka, Interaksi & Aksesibilitas
 
 1. **Persistent Alert Banner Prioritas Tinggi**:
    * Posisi paling atas pada dashboard utama dan halaman rincian LPK.
-   * Aktif otomatis jika ada pengawasan berstatus `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, atau batas SLA TP mendekati jatuh tempo. Banner tidak dapat ditutup sebelum ditindaklanjuti.
-2. **Sistem Pewarnaan Badge Kepatuhan Kontras**:
+   * Aktif otomatis jika ada pengawasan berstatus `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, atau batas SLA TP mendekati jatuh tempo. Banner tidak dapat ditutup secara sepihak sebelum ditindaklanjuti.
+2. **Sistem Pewarnaan Badge Kepatuhan Kontras Tinggi (WCAG AAA/AA)**:
    * `ACTIVE` / `COMPLETED`: Badge Hijau (`#dcfce7`, teks `#15803d`).
    * `SURVEILLANCE_DUE` / `IN_PROGRESS`: Badge Kuning (`#fef9c3`, teks `#854d0e`).
    * `SURVEILLANCE_OVERDUE` / `EXPIRED`: Badge Merah (`#fee2e2`, teks `#b91c1c`).
    * `SUSPENDED` (Dibekukan): Badge Ungu (`#f3e8ff`, teks `#6b21a8`) untuk membedakan secara tegas kondisi pembekuan sementara dari kedaluwarsa.
    * `REVOKED` (Dicabut): Badge Merah Gelap (`#450a0a`, latar `#fecaca`).
    * `INACTIVE`: Badge Abu-abu (`#f3f4f6`, teks `#4b5563`).
-3. **Baris Tabel Interaktif (Clickable Rows)**:
-   * Baris tabel pada modul LPK dan Asesmen dapat diklik langsung untuk membuka rincian tanpa harus mengarahkan kursor tepat pada tombol teks detail.
+3. **Penyelarasan Komponen Kartu & Baris Asesmen**:
+   * Elemen baris asesmen menggunakan kontainer mandiri `<div class="assessment-list-row clickable-row">` bebas dari masalah tag tautan bersarang (*no nested anchor tags*).
+   * Garis pemisah atas (`border-top`) membentang utuh 100% dari ujung kiri ke kanan panel.
+   * Pada sisi kanan, badge status dan tombol pintas kalender (`.assessment-cal-shortcut`) tersusun sejajar secara horizontal (`align-items: center; gap: 8px;`), menghapus penumpukan vertikal tombol di atas badge.
+   * Tombol pintas kalender dirancang seragam (tinggi 24px, latar soft sky `#f0f9ff`, border `#bae6fd`, teks aksen `#0284c7`) baik pada kartu milestone pengawasan (S1, S2, RA) maupun pada baris daftar asesmen.
+4. **Interaksi Baris Universal (Universal Clickable Rows)**:
+   * Baris tabel pada tabel LPK, tabel Asesmen, dan kartu rincian asesmen dapat diklik langsung untuk membuka halaman detail tujuan.
+   * Klik pada elemen interaktif di dalam baris (tombol, tautan kalender, checkbox) secara cerdas tidak memicu navigasi baris induk.
+   * Dilengkapi dukungan penuh navigasi keyboard (`tabindex="0"`, Enter / Spasi untuk eksekusi, indikator fokus ring yang tegas).
 
 ---
 
 ## 6. Kebutuhan Non-Fungsional (Non-Functional Requirements)
 
 1. **Performa & Responsivitas**:
-   * Waktu render halaman utama di bawah 200 ms pada lingkungan intranet instansi.
-   * Implementasi Eager Loading (`with(['lpk', 'creator', 'expenses'])`) untuk meniadakan N+1 Query.
+   * Waktu render halaman utama di bawah 150 ms pada lingkungan intranet instansi.
+   * Penggantian data tabel parsial (live filter) selesai dalam waktu di bawah 80 ms.
+   * Pergantian tampilan kalender via partial AJAX selesai dalam waktu di bawah 100 ms.
+   * Implementasi Eager Loading (`with(['lpk', 'creator', 'expenses'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
 2. **Keamanan & Integritas Data**:
    * Proteksi token CSRF pada seluruh transaksi POST/PUT/DELETE.
    * Middleware otorisasi peran berbasis hak akses pengguna (`admin`, `pic`, `assessor`, `lpk`).
@@ -275,5 +322,19 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Formula SBM mengacu pada Peraturan Menteri Keuangan Standar Biaya Masukan.
    * Logika tahapan pengawasan dan penegakan SLA mengacu pada pedoman Komite Akreditasi Nasional (KAN U-01).
    * Validitas dokumen digital diverifikasi dengan enkripsi hash SHA-256 BSrE BSSN.
-4. **Keandalan Uji Otomatis**:
-   * Dilengkapi rangkaian pengujian otomatis (*Feature Tests*) dengan cakupan 119 pengujian dan 680 asersi yang lulus 100%.
+4. **Keandalan Uji Otomatis (Automated Testing Coverage)**:
+   * Dilengkapi rangkaian pengujian otomatis (*Feature Tests* & *Unit Tests*) mencakup **132 pengujian** dengan **747 asersi** yang lulus 100% tanpa kegagalan (`Tests: 132 passed`).
+   * Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.
+
+---
+
+## 7. Arsitektur Penerapan & Infrastruktur Layanan (Deployment Architecture)
+
+1. **Lingkungan Kontainer Docker**:
+   * Layanan berjalan pada kontainer Docker mandiri (`composer:2` berbasis Alpine Linux dan PHP 8.5+).
+   * Kontainer SIMASADI berjalan mandiri dengan pemetaan port khusus (`0.0.0.0:8001 -> 8000`) dengan nama kontainer `prototype-magang-laravel`.
+   * Kebijakan restart kontainer diatur ke `unless-stopped` untuk menjamin ketersediaan layanan tinggi saat server reboot.
+2. **Eksposur Domain Publik Aman (Cloudflare Zero Trust Tunnel)**:
+   * Akses publik dienkripsi ujung-ke-ujung melalui Cloudflare Tunnel (`cloudflared`).
+   * Domain resmi publik: `https://simasadi.drzzy.my.id`.
+   * Aturan *Ingress Tunnel* mengarahkan lalu lintas `simasadi.drzzy.my.id` secara langsung ke layanan internal `http://127.0.0.1:8001`, terpisah dari layanan aplikasi internal lain di server host.

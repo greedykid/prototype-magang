@@ -263,7 +263,7 @@ class Lpk extends Model
                 $due = $activeAssessment->effective_tp_due_date ? $activeAssessment->effective_tp_due_date->format('d/m/Y') : '-';
 
                 if ($activeAssessment->is_tp_overdue || $activeAssessment->status === 'SUSPENDED') {
-                    return "{$typeLabel}: Dibekukan (melewati batas waktu SLA {$due} belum memenuhi).";
+                    return "{$typeLabel}: Dibekukan (melewati batas waktu {$due} belum memenuhi).";
                 }
 
                 if ($activeAssessment->tp_has_extension) {
@@ -291,7 +291,7 @@ class Lpk extends Model
                 }
 
                 $due = $activeAssessment->effective_tp_due_date ? $activeAssessment->effective_tp_due_date->format('d/m/Y') : '-';
-                return "{$typeLabel}: Dibekukan (melewati batas waktu SLA {$due} belum memenuhi).";
+                return "{$typeLabel}: Dibekukan (melewati batas waktu {$due} belum memenuhi).";
             }
 
             // 2. SK Akreditasi KAN telah terbit
@@ -525,7 +525,7 @@ class Lpk extends Model
      * Mengembalikan:
      * - 'INACTIVE': Jika dinonaktifkan secara manual oleh admin
      * - 'REVOKED': Jika status akreditasi dicabut (lewat 1 tahun pembekuan)
-     * - 'SUSPENDED': Jika dibekukan (lewat SLA / toleransi pengisian surveilen)
+     * - 'SUSPENDED': Jika dibekukan (lewat batas waktu / toleransi pengisian surveilen)
      * - 'EXPIRED': Jika masa berlaku sertifikat akreditasi telah habis
      * - 'SURVEILLANCE_OVERDUE': Jika telah melewati batas target jadwal surveilen tanpa agenda asesmen
      * - 'SURVEILLANCE_DUE': Jika berada dalam masa aktif notifikasi surveilen / re-akreditasi
@@ -556,7 +556,7 @@ class Lpk extends Model
             return 'REVOKED';
         }
 
-        // 2. Cek apakah ada asesmen yang berstatus SUSPENDED atau melewati batas waktu toleransi pengisian / SLA TP
+        // 2. Cek apakah ada asesmen yang berstatus SUSPENDED atau melewati batas waktu toleransi pengisian / batas waktu TP
         if ($assessmentsList->contains(function (Assessment $a) {
             if ($a->isPastSurveillanceForActiveLpk()) {
                 return false;

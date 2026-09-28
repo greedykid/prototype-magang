@@ -938,22 +938,30 @@ table.table-lpks-custom .lpk-card-alerts {
 }
 
 table.table-lpks-custom .lpk-alert-badge {
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.25;
-    padding: 2px 6px;
-    white-space: normal;
-    word-break: break-word;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    box-sizing: border-box;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 1.3;
+    padding: 2.5px 8.5px;
+    white-space: nowrap;
+    width: fit-content;
+    flex-shrink: 0;
 }
 
 table.table-lpks-custom .lpk-alert-badge.is-urgent {
-    background-color: #fee2e2;
+    background-color: #fef2f2;
+    border-color: #fca5a5;
     color: #991b1b;
 }
 
 table.table-lpks-custom .lpk-alert-badge.is-warning {
-    background-color: #fef3c7;
+    background-color: #fffbeb;
+    border-color: #fde68a;
     color: #92400e;
 }
 
@@ -983,13 +991,21 @@ table.table-lpks-custom tbody td.col-lpk-name .lpk-status-wrap {
 }
 
 table.table-lpks-custom .lpk-pic-badge {
+    align-items: center;
     background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    box-sizing: border-box;
     color: #475569;
+    display: inline-flex;
     font-size: 11px;
-    font-weight: 500;
-    padding: 1px 6px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 1.3;
+    padding: 2.5px 8.5px;
+    white-space: nowrap;
+    width: fit-content;
+    flex-shrink: 0;
 }
 
 /* 3. Col: Masa Berlaku */
@@ -1066,12 +1082,12 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 .table-lpks-custom .lpk-note-badge {
     align-items: center;
-    border-radius: 4px;
+    border-radius: 999px;
     display: inline-flex;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.01em;
-    padding: 2px 7px;
+    padding: 2px 7.5px;
     text-align: left;
 }
 
@@ -1356,12 +1372,12 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 /* Process Badge e.g. "Surveilen 1", "Surveilen 2", "Re-Akreditasi" */
 .lpk-keterangan-process-badge {
-    border-radius: 4px;
+    border-radius: 999px;
     display: inline-flex;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.01em;
-    padding: 2px 7px;
+    padding: 2px 8px;
 }
 
 .lpk-keterangan-process-badge.theme-rose {
@@ -1587,11 +1603,12 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 }
 
 .table-mode-grid .table-lpks-custom .lpk-alert-badge {
-    border-radius: 4px !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
+    border: 1px solid transparent !important;
+    border-radius: 999px !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
     line-height: 1.3 !important;
-    padding: 2px 6px !important;
+    padding: 2px 7.5px !important;
 }
 
 /* 2. Card Title & Status: Nama LPK */
@@ -1903,6 +1920,13 @@ table.table-lpks-custom tbody td.col-lpk-notes,
     }
 }
 .search-row { display: flex; gap: 9px; margin-bottom: 22px; }.search-row input { flex: 1; }
+.table-panel-borderless,
+.panel.table-panel-borderless {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
 .table-filters {
     border-bottom: 1px solid var(--line);
     margin-bottom: 22px;

@@ -72,7 +72,7 @@ class Assessment extends Model
     ];
 
     /**
-     * Tentukan status asesmen secara otomatis berbasis tanggal pelaksanaan dan progres milestone (SLA KAN).
+     * Tentukan status asesmen secara otomatis berbasis tanggal pelaksanaan dan progres milestone (batas waktu KAN).
      */
     public static function determineStatusFromDates(
         ?Carbon $startAt,
@@ -99,8 +99,8 @@ class Assessment extends Model
 
         $now = now();
 
-        // 2. Batas waktu awal (SLA) tindakan perbaikan:
-        // Jika sampai tanggal batas waktu awal (SLA) belum ada dinyatakan memenuhi, status otomatis DIBEKUKAN (SUSPENDED).
+        // 2. Batas waktu awal tindakan perbaikan:
+        // Jika sampai tanggal batas waktu awal belum ada dinyatakan memenuhi, status otomatis DIBEKUKAN (SUSPENDED).
         $hasExplicitSla = ! empty($tpDueDate);
         $hasActiveTp = in_array($tpStatus, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true);
 
@@ -441,7 +441,7 @@ class Assessment extends Model
     }
 
     /**
-     * Hitung batas waktu default SLA sesuai skema akreditasi KAN:
+     * Hitung batas waktu default sesuai skema akreditasi KAN:
      * - Akreditasi Awal: 3 bulan
      * - S1, S2, RA, PRL, STT, Survailen, Re-asesmen: 2 bulan
      */
@@ -578,7 +578,7 @@ class Assessment extends Model
             return false;
         }
 
-        // Jika memiliki tanggal batas waktu SLA eksplisit (tp_due_date)
+        // Jika memiliki tanggal batas waktu eksplisit (tp_due_date)
         if ($this->tp_due_date) {
             $effectiveDueDate = $this->effective_tp_due_date;
             return $effectiveDueDate && now()->startOfDay()->gt($effectiveDueDate);
@@ -615,7 +615,7 @@ class Assessment extends Model
         }
 
         if ($this->is_tp_overdue || $this->status === 'SUSPENDED') {
-            return 'Dibekukan (Lewat SLA)';
+            return 'Dibekukan (Lewat Batas Waktu)';
         }
 
         if (in_array($this->status, ['PLANNED', 'SCHEDULED'], true) && $this->tp_status === self::TP_STATUS_NONE && ! $this->tp_due_date) {
@@ -626,7 +626,7 @@ class Assessment extends Model
     }
 
     /**
-     * Badge status SLA KAN terintegrasi untuk tampilan tabel dan detail.
+     * Badge status batas waktu KAN terintegrasi untuk tampilan tabel dan detail.
      */
     public function getTpSlaBadgeAttribute(): array
     {
@@ -660,7 +660,7 @@ class Assessment extends Model
             return [
                 'type' => 'suspended',
                 'label' => 'Dibekukan (Terlambat ' . ($overdueDays > 0 ? $overdueDays . ' Hari' : '') . ')',
-                'detail' => 'Status dibekukan: melewati batas waktu awal (SLA KAN) (' . ($this->effective_tp_due_date ? $this->effective_tp_due_date->format('d M Y') : '-') . ') belum dinyatakan memenuhi',
+                'detail' => 'Status dibekukan: melewati batas waktu awal (' . ($this->effective_tp_due_date ? $this->effective_tp_due_date->format('d M Y') : '-') . ') belum dinyatakan memenuhi',
             ];
         }
 
@@ -781,7 +781,7 @@ class Assessment extends Model
             elseif ($assessment->is_suspension_expired && $assessment->status !== 'CANCELLED' && empty($assessment->sk_number)) {
                 $assessment->status = 'REVOKED';
             }
-            // 3. Jika asesmen melewati batas waktu awal (SLA) tanpa dinyatakan memenuhi,
+            // 3. Jika asesmen melewati batas waktu awal tanpa dinyatakan memenuhi,
             // status otomatis menjadi SUSPENDED (Dibekukan).
             elseif ($assessment->is_tp_overdue && $assessment->status !== 'CANCELLED' && empty($assessment->sk_number)) {
                 $assessment->status = 'SUSPENDED';

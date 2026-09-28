@@ -113,13 +113,13 @@
                             </h2>
                             <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ count($globalSurveillanceAlerts) }} LPK yang memerlukan penjadwalan kunjungan asesmen penilikan atau re-akreditasi KAN.</p>
                         </div>
-                        <span class="badge" style="background-color: #fee2e2; color: #991b1b; font-weight: 700; font-size: 11.5px; padding: 4px 10px; border-radius: 6px;">Wajib Tindak Lanjut</span>
+                        <span class="badge" style="background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; font-weight: 600; font-size: 11px; padding: 2.5px 9px; border-radius: 999px;">Wajib Tindak Lanjut</span>
                     </div>
                     <div class="surveillance-alert-list">
                         @foreach(array_slice($globalSurveillanceAlerts, 0, 5) as $alert)
                             <div class="surveillance-alert-item">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fef3c7' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 4px;">
+                                    <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fffbeb' }}; border: 1px solid {{ $alert['is_urgent'] ? '#fca5a5' : '#fde68a' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 10.5px; padding: 2px 7.5px; border-radius: 999px;">
                                         {{ $alert['code'] }}
                                     </span>
                                     <div>
@@ -184,7 +184,7 @@
                             </h2>
                             <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ $urgentTpAssessments->count() }} asesmen dengan tindakan perbaikan yang mendekati jatuh tempo (&le; 14 hari) atau melewati batas regulasi KAN.</p>
                         </div>
-                        <span class="badge" style="background-color: #fee2e2; color: #991b1b; font-weight: 700; font-size: 11.5px; padding: 4px 10px; border-radius: 6px;">SLA Ketat KAN</span>
+                        <span class="badge" style="background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; font-weight: 600; font-size: 11px; padding: 2.5px 9px; border-radius: 999px;">Batas Waktu Ketat</span>
                     </div>
                     <div class="surveillance-alert-list">
                         @foreach($urgentTpAssessments as $assessment)

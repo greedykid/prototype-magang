@@ -1,4 +1,5 @@
 import { initCustomSelects } from './custom-select.js';
+import { initCustomPickers, syncCustomPickers, closeAllCustomPickers } from './custom-picker.js';
 
 // ==========================================================================
 // SIMASADI Viewport-Centric Modal Dialog System
@@ -51,8 +52,10 @@ export function openModal(modalId) {
         document.body.appendChild(modal);
     }
 
-    // Initialize any custom selects inside this modal if not yet initialized
+    // Initialize any custom selects and pickers inside this modal if not yet initialized
     initCustomSelects(modal);
+    initCustomPickers(modal);
+    syncCustomPickers(modal);
 
     modal.classList.add('is-active');
     document.documentElement.classList.add('modal-open');
@@ -75,6 +78,7 @@ export function openModal(modalId) {
 }
 
 export function closeModal(modalIdOrEl) {
+    closeAllCustomPickers();
     if (!modalIdOrEl) {
         document.querySelectorAll('.simasadi-modal').forEach((m) => {
             m.classList.remove('is-active');

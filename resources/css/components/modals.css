@@ -58,6 +58,7 @@ body.modal-open .sidebar {
     max-height: calc(100vh - 48px);
     max-height: calc(100dvh - 48px);
     overflow-y: auto;
+    overflow-x: hidden;
     box-sizing: border-box;
     position: relative;
     animation: modal-content-enter 240ms var(--ease-out-expo) both;
@@ -401,6 +402,21 @@ body.modal-open .sidebar {
         padding-left: 22px;
         padding-right: 22px;
         padding-bottom: 16px;
+    }
+}
+
+/* Responsive Modal Form Grids */
+.modal-form-grid-2col {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+}
+
+@media (max-width: 520px) {
+    .modal-form-grid-2col {
+        gap: 10px;
+        grid-template-columns: 1fr;
     }
 }
 
