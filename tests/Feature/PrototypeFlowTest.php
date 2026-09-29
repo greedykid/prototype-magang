@@ -842,6 +842,43 @@ class PrototypeFlowTest extends TestCase
         $lpkResponse->assertOk();
         $lpkResponse->assertSee('Durasi: 76 hari');
     }
+
+    public function test_milestone_card_in_lpk_show_reflects_suspended_assessment_status(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-SUSP-TEST-01',
+            'name' => 'Lab Pengujian Pembekuan',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(10)->toDateString(),
+            'expired_at' => now()->addMonths(50)->toDateString(),
+        ]);
+
+        $s1 = $lpk->assessments()->where('assessment_type', Assessment::TYPE_SURVEILEN_1)->first();
+        $this->assertNotNull($s1);
+
+        // Update status S1 menjadi SUSPENDED (Dibekukan)
+        $s1->update([
+            'status' => 'SUSPENDED',
+        ]);
+
+        $lpk->refresh();
+
+        // 1. Surveillance milestone status S1 menjadi SUSPENDED
+        $milestones = $lpk->surveillance_milestones;
+        $this->assertEquals('SUSPENDED', $milestones['s1']['status']);
+
+        // 2. Active alerts mencatat DIBEKUKAN
+        $alerts = $lpk->getActiveSurveillanceAlerts();
+        $this->assertTrue(collect($alerts)->contains('status', 'SUSPENDED'));
+
+        // 3. Tampilan detail LPK pada card kecil S1 menampilkan badge Dibekukan dan border is-suspended
+        $response = $this->actingAs($admin)->get(route('lpks.show', $lpk));
+        $response->assertOk();
+        $response->assertSee('is-suspended');
+        $response->assertSee('status-suspended');
+        $response->assertSee('Dibekukan');
+    }
 }
 
 

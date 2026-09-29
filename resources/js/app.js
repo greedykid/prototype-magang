@@ -25,7 +25,8 @@ import {
     initGcalComponents
 } from './modules/calendar.js';
 import { initSpaRouter, navigateTo } from './modules/spa-router.js';
-import { initLiveFilters } from './modules/live-filter.js';
+import { initLiveFilters, executePartialFilter } from './modules/live-filter.js';
+import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -49,6 +50,10 @@ window.updateQuickAddType = updateQuickAddType;
 window.navigateTo = navigateTo;
 window.toggleSidebarState = toggleSidebarState;
 window.initDataTables = initDataTables;
+window.executePartialFilter = executePartialFilter;
+window.initTableMultiselect = initTableMultiselect;
+window.syncTableState = syncTableState;
+window.clearTableSelection = clearTableSelection;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -201,6 +206,13 @@ export const initPageComponents = () => {
     // 5. Topbar Dropdowns
     initNotificationDropdown();
     initUserDropdown();
+
+    // 6. Table Multiselection
+    try {
+        initTableMultiselect();
+    } catch (err) {
+        console.error('Error initializing table multiselect:', err);
+    }
 };
 
 window.initPageComponents = initPageComponents;

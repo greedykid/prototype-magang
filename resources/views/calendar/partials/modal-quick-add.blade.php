@@ -12,10 +12,11 @@
             @csrf
             <div class="form-grid" style="gap: 12px;">
                 <label class="full">
-                    Jenis Agenda / Proses
+                    Jenis Agenda / Asesmen
                     <select name="event_type" id="quick-input-type" onchange="window.updateQuickAddType ? window.updateQuickAddType(this.value) : null">
-                        <option value="PRL" selected>PRL (Penambahan Ruang Lingkup)</option>
-                        <option value="STT">STT (Surveilen Tidak Terjadwal)</option>
+                        @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
+                            <option value="{{ $typeKey }}" @selected($typeKey === \App\Models\Assessment::TYPE_PRL)>{{ $typeLabel }}</option>
+                        @endforeach
                         <option value="AGENDA_INTERNAL">Agenda Umum / Rapat Internal</option>
                     </select>
                 </label>

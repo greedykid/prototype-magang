@@ -411,4 +411,40 @@ class CalendarEventTest extends TestCase
         $response->assertSee('Lihat di Kalender', false);
         $response->assertSee('/calendar?view=month&amp;date=2026-06-08&amp;selected=1&amp;highlight=tp_' . $assessment->id, false);
     }
+
+    public function test_quick_add_modal_renders_assessment_types_and_saves_event_type(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create();
+
+        // 1. Verify all Assessment TYPES and AGENDA_INTERNAL are rendered in quick add modal
+        $response = $this->actingAs($user)->get('/calendar');
+        $response->assertOk();
+        foreach (\App\Models\Assessment::TYPES as $typeKey => $typeLabel) {
+            $response->assertSee('<option value="' . e($typeKey) . '"', false);
+            $response->assertSee(e($typeLabel), false);
+        }
+        $response->assertSee('AGENDA_INTERNAL', false);
+
+        // 2. Submit event with assessment type (e.g. Surveilen 1)
+        $postResponse = $this->actingAs($user)->post('/calendar/events', [
+            'lpk_id' => $lpk->id,
+            'event_type' => 'Surveilen 1',
+            'title' => 'Surveilen 1 - ' . $lpk->name,
+            'start_date' => '2026-10-15',
+            'end_date' => '2026-10-16',
+            'status' => 'PLANNED',
+        ]);
+        $postResponse->assertSessionHasNoErrors();
+        $postResponse->assertRedirect();
+
+        $event = CalendarEvent::where('title', 'Surveilen 1 - ' . $lpk->name)->first();
+        $this->assertNotNull($event);
+        $this->assertEquals('Surveilen 1', $event->event_type);
+
+        // 3. Verify calendar reflects event as ASESMEN_LAPANGAN with emerald theme
+        $calResponse = $this->actingAs($user)->get('/calendar?view=month&date=2026-10-15');
+        $calResponse->assertOk();
+        $calResponse->assertSee('Surveilen 1', false);
+    }
 }

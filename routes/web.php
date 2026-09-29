@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
     Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
     Route::delete('/lpks/{lpk}', [LpkController::class, 'destroy'])->name('lpks.destroy')->whereNumber('lpk');
+    Route::post('/lpks/bulk-delete', [LpkController::class, 'bulkDestroy'])->name('lpks.bulk-destroy');
     Route::post('/lpks/{lpk}/notes', [LpkController::class, 'updateNotes'])->name('lpks.notes.update')->whereNumber('lpk');
 
     // Pengelolaan & Penjadwalan Asesmen (Dapat diakses Admin & PIC)
@@ -56,6 +57,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
     Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
     Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
+    Route::delete('/assessments/{assessment}', [AssessmentController::class, 'destroy'])->name('assessments.destroy')->whereNumber('assessment');
+    Route::post('/assessments/bulk-delete', [AssessmentController::class, 'bulkDestroy'])->name('assessments.bulk-destroy');
     Route::post('/assessments/{assessment}/tp-tracking', [AssessmentController::class, 'updateTp'])->name('assessments.tp.update')->whereNumber('assessment');
 
     // Ekspor CSV Terotentikasi & Integrasi Google Sheets

@@ -74,6 +74,8 @@
 
             return $inCycle && (
                 str_contains(strtolower($a->title), 's1')
+                || str_contains(strtolower($a->assessment_type), 'surveilen 1')
+                || $a->assessment_type === \App\Models\Assessment::TYPE_SURVEILEN_1
                 || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s1['target_date'] && abs($a->start_at->diffInMonths($s1['target_date'])) <= 6)
             );
         });
@@ -84,6 +86,8 @@
                 && $a->id !== ($linkedS1?->id ?? null)
                 && (
                     str_contains(strtolower($a->title), 's2')
+                    || str_contains(strtolower($a->assessment_type), 'surveilen 2')
+                    || $a->assessment_type === \App\Models\Assessment::TYPE_SURVEILEN_2
                     || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s2['target_date'] && abs($a->start_at->diffInMonths($s2['target_date'])) <= 6)
                 );
         });
@@ -95,10 +99,122 @@
                 || str_contains(strtolower($a->title), 'reakreditasi')
                 || str_contains(strtolower($a->title), '(ra)')
                 || str_contains(strtolower($a->title), ' ra ')
-                || $a->assessment_type === \App\Models\Assessment::TYPE_RE_AKREDITASI
+                || in_array($a->assessment_type, [\App\Models\Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT'], true)
                 || ($ra['target_date'] && $a->start_at && abs($a->start_at->diffInMonths($ra['target_date'])) <= 6)
             );
         });
+
+        $resolveMilestoneCardState = function (?App\Models\Assessment $linked, array $milestone, string $typeCode): array {
+            if ($linked) {
+                if ($linked->status === 'SUSPENDED') {
+                    return [
+                        'card_class' => 'is-suspended',
+                        'badge_class' => 'status-suspended',
+                        'badge_label' => 'Dibekukan',
+                    ];
+                }
+                if ($linked->status === 'REVOKED') {
+                    return [
+                        'card_class' => 'is-due',
+                        'badge_class' => 'status-danger',
+                        'badge_label' => 'Dicabut',
+                    ];
+                }
+                if ($linked->status === 'COMPLETED') {
+                    return [
+                        'card_class' => 'is-completed',
+                        'badge_class' => 'status-completed',
+                        'badge_label' => 'Selesai',
+                    ];
+                }
+                if ($linked->status === 'IN_PROGRESS') {
+                    return [
+                        'card_class' => 'is-in-progress',
+                        'badge_class' => 'status-in_progress',
+                        'badge_label' => 'Sedang Berlangsung',
+                    ];
+                }
+                if ($linked->status === 'SCHEDULED') {
+                    if ($linked->start_at && $linked->start_at->isPast()) {
+                        return [
+                            'card_class' => 'is-due',
+                            'badge_class' => 'status-danger',
+                            'badge_label' => 'Lewat Jadwal',
+                        ];
+                    }
+
+                    return [
+                        'card_class' => 'is-completed',
+                        'badge_class' => 'status-completed',
+                        'badge_label' => 'Terjadwal',
+                    ];
+                }
+            }
+
+            $mStatus = $milestone['status'] ?? 'UPCOMING';
+            if ($mStatus === 'SUSPENDED') {
+                return [
+                    'card_class' => 'is-suspended',
+                    'badge_class' => 'status-suspended',
+                    'badge_label' => 'Dibekukan',
+                ];
+            }
+            if ($mStatus === 'COMPLETED_OR_SCHEDULED') {
+                return [
+                    'card_class' => 'is-completed',
+                    'badge_class' => 'status-completed',
+                    'badge_label' => 'Terealisasi',
+                ];
+            }
+            if ($mStatus === 'OVERDUE') {
+                return [
+                    'card_class' => 'is-due',
+                    'badge_class' => 'status-danger',
+                    'badge_label' => 'Lewat Jadwal',
+                ];
+            }
+            if ($mStatus === 'EXPIRED') {
+                return [
+                    'card_class' => 'is-due',
+                    'badge_class' => 'status-danger',
+                    'badge_label' => 'Sertifikat Kedaluwarsa',
+                ];
+            }
+            if ($mStatus === 'DUE') {
+                $lbl = match ($typeCode) {
+                    'S1' => 'Notif Aktif (Bulan 14)',
+                    'S2' => 'Notif Aktif (Bulan 35)',
+                    default => 'Notif Aktif (1 Bulan Sebelum Habis)',
+                };
+                return [
+                    'card_class' => 'is-due',
+                    'badge_class' => 'status-warn',
+                    'badge_label' => $lbl,
+                ];
+            }
+            return [
+                'card_class' => '',
+                'badge_class' => '',
+                'badge_label' => 'Akan Datang',
+            ];
+        };
+
+        $s1CardState = $resolveMilestoneCardState($linkedS1, $s1, 'S1');
+        $s2CardState = $resolveMilestoneCardState($linkedS2, $s2, 'S2');
+        $raCardState = $resolveMilestoneCardState($linkedRA, $ra, 'RA');
+
+        $isMilestoneResolved = function (array $state): bool {
+            return in_array($state['badge_label'], ['Selesai', 'Terealisasi', 'Terjadwal / Selesai'], true);
+        };
+
+        $currentFocusCode = null;
+        if (! $isMilestoneResolved($s1CardState)) {
+            $currentFocusCode = 'S1';
+        } elseif (! $isMilestoneResolved($s2CardState)) {
+            $currentFocusCode = 'S2';
+        } else {
+            $currentFocusCode = 'RA';
+        }
     @endphp
 
     {{-- Alert Persisten Pengawasan KAN --}}
@@ -148,11 +264,22 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <span class="eyebrow" style="color: #4338ca;">SIKLUS KAN U-01</span>
-                        <h2 style="font-size: 16px; margin: 2px 0 0;">
-                            Siklus Pengawasan &amp; Re-Akreditasi
+                        <h2 style="font-size: 16px; margin: 2px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span>Siklus Pengawasan &amp; Re-Akreditasi</span>
                             @if($lpk->certificate_date && $lpk->expired_at)
                                 <span style="font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px;">(Periode {{ $lpk->certificate_date->format('Y') }} - {{ $lpk->expired_at->format('Y') }})</span>
                             @endif
+                            @php
+                                $focusLabel = match($currentFocusCode) {
+                                    'S1' => 'Surveilen 1',
+                                    'S2' => 'Surveilen 2',
+                                    default => 'Re-Akreditasi',
+                                };
+                            @endphp
+                            <span style="font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; gap: 5px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #4f46e5;"></span>
+                                Fokus Siklus: {{ $focusLabel }}
+                            </span>
                         </h2>
                     </div>
                     @if(auth()->user()?->isAdmin())
@@ -167,19 +294,18 @@
 
         <div class="lpk-milestones-grid">
             <!-- S1 Card -->
-            <div class="lpk-milestone-card {{ in_array($s1['status'], ['DUE', 'OVERDUE']) ? 'is-due' : ($s1['status'] === 'COMPLETED_OR_SCHEDULED' ? 'is-completed' : '') }}">
+            <div class="lpk-milestone-card {{ $s1CardState['card_class'] }}">
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
-                        <strong class="lpk-milestone-title">{{ $s1['name'] }}</strong>
-                        @if($s1['status'] === 'COMPLETED_OR_SCHEDULED')
-                            <span class="status status-completed" style="font-size: 11px;">Terjadwal / Selesai</span>
-                        @elseif($s1['status'] === 'OVERDUE')
-                            <span class="status status-danger" style="font-size: 11px; font-weight: 700;">Lewat Jadwal</span>
-                        @elseif($s1['status'] === 'DUE')
-                            <span class="status status-warn" style="font-size: 11px; font-weight: 700;">Notif Aktif (Bulan 14)</span>
-                        @else
-                            <span class="status" style="font-size: 11px; background: #e2e8f0; color: #475569;">Akan Datang</span>
-                        @endif
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <strong class="lpk-milestone-title">{{ $s1['name'] }}</strong>
+                            @if($currentFocusCode === 'S1')
+                                <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;">Fokus Siklus</span>
+                            @endif
+                        </div>
+                        <span class="status {{ $s1CardState['badge_class'] }}" style="font-size: 11px;">
+                            {{ $s1CardState['badge_label'] }}
+                        </span>
                     </div>
                     <p class="lpk-milestone-desc">{{ $s1['description'] }}</p>
 
@@ -189,7 +315,11 @@
                             <strong>{{ $s1['notice_date'] ? $s1['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
-                            <span>Target Kunjungan:</span>
+                            <span>Target Kunjungan (Bulan 15):</span>
+                            <strong>{{ ($s1['visit_target_date'] ?? null) ? $s1['visit_target_date']->format('d M Y') : '-' }}</strong>
+                        </div>
+                        <div class="lpk-milestone-date-row">
+                            <span>Batas Jatuh Tempo (Bulan 18):</span>
                             <strong>{{ $s1['target_date'] ? $s1['target_date']->format('d M Y') : '-' }}</strong>
                         </div>
                     </div>
@@ -227,7 +357,7 @@
                 @if(auth()->user()?->isAdmin())
                     <div class="lpk-milestone-actions">
                         @if(!$linkedS1)
-                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S1', 'target_date' => $s1['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S1', 'target_date' => ($s1['visit_target_date'] ?? $s1['target_date'])?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
                                 <x-icon name="plus" size="13" />
                                 <span>Jadwalkan Kunjungan S1</span>
                             </a>
@@ -246,19 +376,18 @@
             </div>
 
             <!-- S2 Card -->
-            <div class="lpk-milestone-card {{ in_array($s2['status'], ['DUE', 'OVERDUE']) ? 'is-due' : ($s2['status'] === 'COMPLETED_OR_SCHEDULED' ? 'is-completed' : '') }}">
+            <div class="lpk-milestone-card {{ $s2CardState['card_class'] }}">
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
-                        <strong class="lpk-milestone-title">{{ $s2['name'] }}</strong>
-                        @if($s2['status'] === 'COMPLETED_OR_SCHEDULED')
-                            <span class="status status-completed" style="font-size: 11px;">Terjadwal / Selesai</span>
-                        @elseif($s2['status'] === 'OVERDUE')
-                            <span class="status status-danger" style="font-size: 11px; font-weight: 700;">Lewat Jadwal</span>
-                        @elseif($s2['status'] === 'DUE')
-                            <span class="status status-warn" style="font-size: 11px; font-weight: 700;">Notif Aktif (Bulan 35)</span>
-                        @else
-                            <span class="status" style="font-size: 11px; background: #e2e8f0; color: #475569;">Akan Datang</span>
-                        @endif
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <strong class="lpk-milestone-title">{{ $s2['name'] }}</strong>
+                            @if($currentFocusCode === 'S2')
+                                <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;">Fokus Siklus</span>
+                            @endif
+                        </div>
+                        <span class="status {{ $s2CardState['badge_class'] }}" style="font-size: 11px;">
+                            {{ $s2CardState['badge_label'] }}
+                        </span>
                     </div>
                     <p class="lpk-milestone-desc">{{ $s2['description'] }}</p>
 
@@ -268,7 +397,11 @@
                             <strong>{{ $s2['notice_date'] ? $s2['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
-                            <span>Target Kunjungan:</span>
+                            <span>Target Kunjungan (Bulan 36):</span>
+                            <strong>{{ ($s2['visit_target_date'] ?? null) ? $s2['visit_target_date']->format('d M Y') : '-' }}</strong>
+                        </div>
+                        <div class="lpk-milestone-date-row">
+                            <span>Batas Jatuh Tempo (Bulan 39):</span>
                             <strong>{{ $s2['target_date'] ? $s2['target_date']->format('d M Y') : '-' }}</strong>
                         </div>
                     </div>
@@ -306,7 +439,7 @@
                 @if(auth()->user()?->isAdmin())
                     <div class="lpk-milestone-actions">
                         @if(!$linkedS2)
-                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S2', 'target_date' => $s2['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S2', 'target_date' => ($s2['visit_target_date'] ?? $s2['target_date'])?->format('Y-m-d')]) }}" class="button primary button-sm" style="width: 100%; font-size: 11.5px; padding: 4px 10px; min-height: 28px; justify-content: center; gap: 5px;">
                                 <x-icon name="plus" size="13" />
                                 <span>Jadwalkan Kunjungan S2</span>
                             </a>
@@ -325,19 +458,18 @@
             </div>
 
             <!-- RA Card -->
-            <div class="lpk-milestone-card {{ in_array($ra['status'], ['DUE', 'EXPIRED']) ? 'is-due' : ($ra['status'] === 'COMPLETED_OR_SCHEDULED' ? 'is-completed' : '') }}">
+            <div class="lpk-milestone-card {{ $raCardState['card_class'] }}">
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
-                        <strong class="lpk-milestone-title">{{ $ra['name'] }}</strong>
-                        @if($ra['status'] === 'COMPLETED_OR_SCHEDULED')
-                            <span class="status status-completed" style="font-size: 11px;">Terjadwal / Selesai</span>
-                        @elseif($ra['status'] === 'EXPIRED')
-                            <span class="status status-danger" style="font-size: 11px; font-weight: 700;">Sertifikat Kedaluwarsa</span>
-                        @elseif($ra['status'] === 'DUE')
-                            <span class="status status-warn" style="font-size: 11px; font-weight: 700;">Notif Aktif (1 Bulan Sebelum Habis)</span>
-                        @else
-                            <span class="status" style="font-size: 11px; background: #e2e8f0; color: #475569;">Akan Datang</span>
-                        @endif
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <strong class="lpk-milestone-title">{{ $ra['name'] }}</strong>
+                            @if($currentFocusCode === 'RA')
+                                <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;">Fokus Siklus</span>
+                            @endif
+                        </div>
+                        <span class="status {{ $raCardState['badge_class'] }}" style="font-size: 11px;">
+                            {{ $raCardState['badge_label'] }}
+                        </span>
                     </div>
                     <p class="lpk-milestone-desc">{{ $ra['description'] }}</p>
 
@@ -347,8 +479,12 @@
                             <strong>{{ $ra['notice_date'] ? $ra['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
-                            <span>Masa Berlaku Habis:</span>
+                            <span>Batas Kunjungan RA (Bulan 54):</span>
                             <strong>{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong>
+                        </div>
+                        <div class="lpk-milestone-date-row">
+                            <span>Masa Berlaku Habis:</span>
+                            <strong>{{ ($expDate ?: ($ra['tolerance_date'] ?? null)) ? ($expDate ?: $ra['tolerance_date'])->format('d M Y') : '-' }}</strong>
                         </div>
                     </div>
 

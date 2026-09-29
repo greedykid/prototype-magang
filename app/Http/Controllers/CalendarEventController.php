@@ -151,14 +151,28 @@ class CalendarEventController extends Controller
         $unifiedEvents = collect();
 
         foreach ($calendarEvents as $item) {
-            $isPrlOrStt = in_array($item->event_type, ['PRL', 'STT'], true);
+            $typeStr = strtoupper(trim((string) $item->event_type));
+            $isInternal = ($typeStr === 'AGENDA_INTERNAL' || empty($typeStr));
+
+            $shortType = match (true) {
+                str_contains($typeStr, 'S1 + PRL') || str_contains($typeStr, 'SURVEILEN 1 + PRL') => 'S1+PRL',
+                str_contains($typeStr, 'S2 + PRL') || str_contains($typeStr, 'SURVEILEN 2 + PRL') => 'S2+PRL',
+                str_contains($typeStr, 'SURVEILEN 1') || $typeStr === 'S1' => 'S1',
+                str_contains($typeStr, 'SURVEILEN 2') || $typeStr === 'S2' => 'S2',
+                str_contains($typeStr, 'RE-AKREDITASI') || str_contains($typeStr, 'REAKREDITASI') || $typeStr === 'RA' => 'RA',
+                str_contains($typeStr, 'PERLUASAN') || str_contains($typeStr, 'PRL') => 'PRL',
+                str_contains($typeStr, 'STT') || str_contains($typeStr, 'TIDAK TERJADWAL') => 'STT',
+                str_contains($typeStr, 'AKREDITASI AWAL') || $typeStr === 'AA' => 'AA',
+                default => $item->event_type ?: 'Agenda',
+            };
+
             $unifiedEvents->push([
                 'id' => $item->id,
                 'source' => 'calendar_event',
-                'category' => $isPrlOrStt ? 'ASESMEN_LAPANGAN' : 'AGENDA_INTERNAL',
-                'category_label' => $isPrlOrStt ? ($item->event_type === 'PRL' ? 'Penambahan Ruang Lingkup (PRL)' : 'Surveilen Tidak Terjadwal (STT)') : 'Agenda Internal',
-                'color_theme' => $isPrlOrStt ? 'emerald' : 'indigo',
-                'title' => $isPrlOrStt ? $item->event_type : $item->title,
+                'category' => $isInternal ? 'AGENDA_INTERNAL' : 'ASESMEN_LAPANGAN',
+                'category_label' => $isInternal ? 'Agenda Internal' : ($item->event_type ?: 'Asesmen'),
+                'color_theme' => $isInternal ? 'indigo' : 'emerald',
+                'title' => $isInternal ? $item->title : $shortType,
                 'lpk_id' => $item->lpk_id,
                 'lpk_name' => $item->lpk?->name ?? 'Internal SIMASADI',
                 'start_at' => $item->start_at,
@@ -353,7 +367,7 @@ class CalendarEventController extends Controller
             $fullLpkName = $lpkReg ? ($lpkItem->name . ' (' . $lpkReg . ')') : $lpkItem->name;
 
             foreach ($milestones as $key => $milestone) {
-                $isCompleted = ($milestone['status'] === 'COMPLETED_OR_SCHEDULED');
+                $isCompleted = in_array($milestone['status'], ['COMPLETED_OR_SCHEDULED', 'SUSPENDED'], true);
 
                 // 3a. Reminder Siklus (Kuning / theme-amber) pada notice_date
                 if (!empty($milestone['notice_date']) && !$isCompleted) {

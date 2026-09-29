@@ -18,9 +18,10 @@ class GoogleSheetsReportController extends Controller
     /**
      * Download CSV Master Data LPK untuk pengguna login.
      */
-    public function exportLpks(): StreamedResponse
+    public function exportLpks(Request $request): StreamedResponse
     {
-        return $this->generateLpksCsv(false);
+        $ids = $this->parseIds($request);
+        return $this->generateLpksCsv(false, $ids);
     }
 
     /**
@@ -40,9 +41,10 @@ class GoogleSheetsReportController extends Controller
     /**
      * Download CSV Rekapitulasi Program Asesmen untuk pengguna login.
      */
-    public function exportAssessments(): StreamedResponse
+    public function exportAssessments(Request $request): StreamedResponse
     {
-        return $this->generateAssessmentsCsv(false);
+        $ids = $this->parseIds($request);
+        return $this->generateAssessmentsCsv(false, $ids);
     }
 
     /**
@@ -69,9 +71,27 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
+     * Parse daftar ID dari parameter request (bisa string koma atau array).
+     */
+    protected function parseIds(Request $request): ?array
+    {
+        $ids = $request->input('ids');
+        if (empty($ids)) {
+            return null;
+        }
+
+        if (is_string($ids)) {
+            $ids = explode(',', $ids);
+        }
+
+        $filtered = array_values(array_filter(array_map('intval', (array) $ids)));
+        return ! empty($filtered) ? $filtered : null;
+    }
+
+    /**
      * Generate CSV Data Master LPK.
      */
-    protected function generateLpksCsv(bool $isFeed): StreamedResponse
+    protected function generateLpksCsv(bool $isFeed, ?array $ids = null): StreamedResponse
     {
         $filename = 'data-master-lpk-simasadi-' . date('Y-m-d') . '.csv';
 
@@ -96,14 +116,19 @@ class GoogleSheetsReportController extends Controller
             'Tanggal Terdaftar',
         ];
 
-        return response()->stream(function () use ($columns) {
+        return response()->stream(function () use ($columns, $ids) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
-            $lpks = Lpk::withCount(['accreditations'])
-                ->orderBy('name')
-                ->cursor();
+            $query = Lpk::withCount(['accreditations'])
+                ->orderBy('name');
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+
+            $lpks = $query->cursor();
 
             foreach ($lpks as $lpk) {
                 $row = [
@@ -131,7 +156,7 @@ class GoogleSheetsReportController extends Controller
     /**
      * Generate CSV Program Asesmen.
      */
-    protected function generateAssessmentsCsv(bool $isFeed): StreamedResponse
+    protected function generateAssessmentsCsv(bool $isFeed, ?array $ids = null): StreamedResponse
     {
         $filename = 'jadwal-asesmen-simasadi-' . date('Y-m-d') . '.csv';
 
@@ -153,14 +178,19 @@ class GoogleSheetsReportController extends Controller
             'Batas Waktu TP',
         ];
 
-        return response()->stream(function () use ($columns) {
+        return response()->stream(function () use ($columns, $ids) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
-            $assessments = Assessment::with(['lpk'])
-                ->orderByDesc('start_at')
-                ->cursor();
+            $query = Assessment::with(['lpk'])
+                ->orderByDesc('start_at');
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+
+            $assessments = $query->cursor();
 
             foreach ($assessments as $asm) {
                 $row = [

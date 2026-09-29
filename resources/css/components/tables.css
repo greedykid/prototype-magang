@@ -2054,3 +2054,189 @@ input:not([type="checkbox"]):not([type="radio"]), select, textarea { background:
 @keyframes alert-in { from { opacity: 0; transform: translateY(-6px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* ==========================================================================
+   Table Multiselection & Floating Bulk Action Bar
+   ========================================================================== */
+
+.col-th-checkbox,
+.col-td-checkbox {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 8px 10px !important;
+    box-sizing: border-box;
+}
+
+.table-row-select,
+.table-select-all {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    cursor: pointer;
+    accent-color: var(--maroon, #7a1f2d);
+    border-radius: 4px;
+    vertical-align: middle;
+    margin: 0 !important;
+}
+
+.table-row-select:focus-visible,
+.table-select-all:focus-visible {
+    outline: 2px solid var(--maroon, #7a1f2d);
+    outline-offset: 2px;
+}
+
+/* Selected row highlight */
+tr.is-selected {
+    background-color: rgba(122, 31, 45, 0.06) !important;
+}
+
+tr.is-selected:hover {
+    background-color: rgba(122, 31, 45, 0.10) !important;
+}
+
+/* Table Bulk Action Bar (Harmonious with SIMASADI design system) */
+.table-bulk-bar,
+.floating-bulk-bar {
+    box-sizing: border-box;
+    display: none;
+    margin: 12px 0 16px 0;
+    position: relative;
+    width: 100%;
+    animation: bulkBarSlideDown 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bulkBarSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.table-bulk-bar-inner,
+.floating-bulk-bar-inner {
+    align-items: center;
+    background: #fbfaff;
+    border: 1px solid #dcd7fa;
+    border-radius: 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 8px 14px;
+    width: 100%;
+}
+
+.bulk-bar-info {
+    align-items: center;
+    color: var(--ink);
+    display: inline-flex;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.bulk-count-badge {
+    align-items: center;
+    background-color: var(--maroon);
+    border-radius: 6px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 22px;
+    justify-content: center;
+    line-height: 1;
+    min-width: 22px;
+    padding: 0 7px;
+}
+
+.bulk-count-label {
+    color: var(--ink);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.bulk-bar-actions {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.table-bulk-bar .button-sm,
+.floating-bulk-bar .button-sm {
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    gap: 6px;
+    height: 34px;
+    min-height: 34px;
+    padding: 6px 14px;
+    box-shadow: none;
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.table-bulk-bar .button.secondary,
+.floating-bulk-bar .button.secondary {
+    background: #ffffff;
+    border: 1px solid #c8c4be;
+    color: var(--ink);
+}
+
+.table-bulk-bar .button.secondary:hover,
+.floating-bulk-bar .button.secondary:hover {
+    background: #ffffff;
+    border-color: #b0aba3;
+    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.07);
+}
+
+.table-bulk-bar .button.danger,
+.floating-bulk-bar .button.danger {
+    background: #dc2626;
+    border: 1px solid #b91c1c;
+    color: #ffffff;
+}
+
+.table-bulk-bar .button.danger:hover,
+.floating-bulk-bar .button.danger:hover {
+    background: #b91c1c;
+    border-color: #991b1b;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+.table-bulk-bar .button.ghost,
+.floating-bulk-bar .button.ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+}
+
+.table-bulk-bar .button.ghost:hover,
+.floating-bulk-bar .button.ghost:hover {
+    background: var(--surface);
+    border-color: #c8c4be;
+    color: var(--ink);
+}
+
+@media (max-width: 640px) {
+    .table-bulk-bar-inner,
+    .floating-bulk-bar-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    .bulk-bar-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+

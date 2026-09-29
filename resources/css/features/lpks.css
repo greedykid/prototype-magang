@@ -650,6 +650,18 @@
     box-shadow: 0 2px 8px rgba(244, 63, 94, 0.08);
 }
 
+.lpk-milestone-card.is-suspended {
+    background: #faf5ff;
+    border-color: #a855f7;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+}
+
+.lpk-milestone-card.is-in-progress {
+    background: #f0fdfa;
+    border-color: #0d9488;
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08);
+}
+
 .lpk-milestone-card.is-completed {
     background: #f8fafc;
     border-color: #cbd5e1;

@@ -1,8 +1,11 @@
 @if($assessments->count())
     <div class="table-wrap">
-        <table>
+        <table id="assessments-table">
             <thead>
                 <tr>
+                    <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
+                        <input type="checkbox" class="table-select-all" data-table-id="assessments-table" aria-label="Pilih semua asesmen di halaman ini">
+                    </th>
                     <th>Agenda</th>
                     <th>LPK</th>
                     <th>Tanggal</th>
@@ -13,7 +16,10 @@
             </thead>
             <tbody>
                 @foreach($assessments as $assessment)
-                    <tr class="clickable-row" data-href="{{ route('assessments.show', $assessment) }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->title }}">
+                    <tr class="clickable-row" data-href="{{ route('assessments.show', $assessment) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->title }}">
+                        <td class="col-td-checkbox" data-no-row-click="true">
+                            <input type="checkbox" class="table-row-select" data-table-id="assessments-table" value="{{ $assessment->id }}" data-item-name="{{ $assessment->title }}" aria-label="Pilih asesmen {{ $assessment->title }}">
+                        </td>
                         <td>
                             <strong>{{ $assessment->title }}</strong>
                             <span>{{ $assessment->assessment_type_label }}</span>

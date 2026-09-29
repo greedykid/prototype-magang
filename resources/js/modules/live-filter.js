@@ -92,6 +92,8 @@ export const executePartialFilter = async (form, pushHistory = false) => {
         if (typeof window.initDataTables === 'function') {
             window.initDataTables();
         }
+
+        document.dispatchEvent(new CustomEvent('table-content-updated', { detail: { container } }));
     } catch (err) {
         if (err.name === 'AbortError') {
             // Superseded by newer keystroke or change
@@ -143,6 +145,8 @@ export const executePaginationClick = async (link, targetContainer) => {
         if (typeof window.initDataTables === 'function') {
             window.initDataTables();
         }
+
+        document.dispatchEvent(new CustomEvent('table-content-updated', { detail: { container: targetContainer } }));
 
         // Smooth scroll to top of table
         targetContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

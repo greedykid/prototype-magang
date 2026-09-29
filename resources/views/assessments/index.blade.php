@@ -8,7 +8,7 @@
     subtitle="Jadwal dan progres asesmen semua LPK."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
-        <x-icon name="upload" size="16" />
+        <x-icon name="import" size="16" />
         <span>Import Asesmen</span>
     </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
@@ -128,6 +128,14 @@
             </div>
         </div>
     @endif
+
+    <x-bulk-action-bar
+        table-id="assessments-table"
+        :export-url="route('reports.assessments.export')"
+        :delete-url="route('assessments.bulk-destroy')"
+        entity-name="Asesmen"
+        :can-delete="auth()->user()?->isAdmin() || auth()->user()?->isPic()"
+    />
 
     <div id="assessment-table-container" class="assessment-table-container lpk-table-container" aria-live="polite">
         @include('assessments.partials.table-content')

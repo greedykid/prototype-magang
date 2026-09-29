@@ -27,6 +27,7 @@ class LpkSurveillanceService
                 'code' => 'S1',
                 'name' => Assessment::TYPE_SURVEILEN_1,
                 'notice_date' => $certDate ? $certDate->copy()->addMonths(13) : null,
+                'visit_target_date' => $certDate ? $certDate->copy()->addMonths(15) : null,
                 'target_date' => $certDate ? $certDate->copy()->addMonths(18) : null,
                 'tolerance_date' => $certDate ? $certDate->copy()->addMonths(24) : null,
                 'description' => 'Reminder S1 bulan ke-13, Jatuh Tempo (JT) S1 bulan ke-18 (toleransi kunjungan maks 2 tahun/bulan 24)',
@@ -36,6 +37,7 @@ class LpkSurveillanceService
                 'code' => 'S2',
                 'name' => Assessment::TYPE_SURVEILEN_2,
                 'notice_date' => $certDate ? $certDate->copy()->addMonths(34) : null,
+                'visit_target_date' => $certDate ? $certDate->copy()->addMonths(36) : null,
                 'target_date' => $certDate ? $certDate->copy()->addMonths(39) : null,
                 'tolerance_date' => $certDate ? $certDate->copy()->addMonths(48) : null,
                 'description' => 'Reminder S2 bulan ke-34, Jatuh Tempo (JT) S2 bulan ke-39 (toleransi kunjungan maks 2 tahun)',
@@ -45,6 +47,7 @@ class LpkSurveillanceService
                 'code' => 'RA',
                 'name' => Assessment::TYPE_RE_AKREDITASI,
                 'notice_date' => $certDate ? $certDate->copy()->addMonths(48) : ($expDate ? $expDate->copy()->subMonths(12) : null),
+                'visit_target_date' => $certDate ? $certDate->copy()->addMonths(48) : ($expDate ? $expDate->copy()->subMonths(12) : null),
                 'target_date' => $certDate ? $certDate->copy()->addMonths(54) : ($expDate ? $expDate->copy()->subMonths(6) : null),
                 'tolerance_date' => $expDate,
                 'description' => 'Reminder RA bulan ke-48, Jatuh Tempo (JT) RA bulan ke-54 (masa berlaku habis bulan ke-60)',
@@ -57,7 +60,8 @@ class LpkSurveillanceService
         }
 
         $now = now();
-        $isLpkActive = $lpk->getRawOriginal('status') === 'ACTIVE';
+        $rawLpkStatus = $lpk->getAttributes()['status'] ?? $lpk->getRawOriginal('status');
+        $isLpkActive = in_array(strtoupper((string) $rawLpkStatus), ['ACTIVE', 'AKTIF'], true);
         $isCertValid = $expDate ? $now->lt($expDate) : true;
 
         // Cek asesmen yang sudah pernah dibuat untuk LPK ini
@@ -86,7 +90,16 @@ class LpkSurveillanceService
                 return $isSurv && $isWithinRange;
             });
 
-            if ($hasS1) {
+            $suspendedS1 = $assessments->first(function ($item) use ($certDate) {
+                $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->subMonths(2)) && $item->start_at->lte($certDate->copy()->addMonths(26));
+
+                return $isSurv && $isWithinRange && $item->status === 'SUSPENDED';
+            });
+
+            if ($suspendedS1) {
+                $milestones['s1']['status'] = 'SUSPENDED';
+            } elseif ($hasS1) {
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($isLpkActive && $isCertValid && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
                 // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
@@ -118,7 +131,16 @@ class LpkSurveillanceService
                 return $isSurv && $isWithinRange;
             });
 
-            if ($hasS2) {
+            $suspendedS2 = $assessments->first(function ($item) use ($certDate) {
+                $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(24)) && $item->start_at->lte($certDate->copy()->addMonths(46));
+
+                return $isSurv && $isWithinRange && $item->status === 'SUSPENDED';
+            });
+
+            if ($suspendedS2) {
+                $milestones['s2']['status'] = 'SUSPENDED';
+            } elseif ($hasS2) {
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($isLpkActive && $isCertValid && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
                 // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
@@ -144,13 +166,32 @@ class LpkSurveillanceService
                     return false;
                 }
 
-                $isRa = str_contains(strtolower($item->assessment_type ?: ''), 're-') || str_contains(strtolower($item->title ?: ''), 're-akreditasi') || str_contains(strtolower($item->title ?: ''), 'ra');
+                $type = strtolower((string) ($item->assessment_type ?: ''));
+                $title = strtolower((string) ($item->title ?: ''));
+                $isRa = in_array($item->assessment_type, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang'], true)
+                    || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
+                    || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
+
                 $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(42)) && (! $expDate || $item->start_at->lte($expDate->copy()->addMonths(6)));
 
                 return $isRa && $isWithinRange;
             });
 
-            if ($hasRA) {
+            $suspendedRA = $assessments->first(function ($item) use ($certDate, $expDate) {
+                $type = strtolower((string) ($item->assessment_type ?: ''));
+                $title = strtolower((string) ($item->title ?: ''));
+                $isRa = in_array($item->assessment_type, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang'], true)
+                    || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
+                    || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
+
+                $isWithinRange = $item->start_at && $item->start_at->gte($certDate->copy()->addMonths(42)) && (! $expDate || $item->start_at->lte($expDate->copy()->addMonths(6)));
+
+                return $isRa && $isWithinRange && $item->status === 'SUSPENDED';
+            });
+
+            if ($suspendedRA) {
+                $milestones['ra']['status'] = 'SUSPENDED';
+            } elseif ($hasRA) {
                 $milestones['ra']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($expDate && $now->gte($expDate)) {
                 $milestones['ra']['status'] = 'EXPIRED';
@@ -173,12 +214,13 @@ class LpkSurveillanceService
         $milestones = $this->calculateMilestones($lpk);
 
         foreach ($milestones as $milestone) {
-            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED'], true)) {
-                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED'], true);
+            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true)) {
+                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED', 'SUSPENDED'], true);
 
                 $label = match ($milestone['status']) {
                     'OVERDUE' => 'MELEWATI JADWAL',
                     'EXPIRED' => 'SERTIFIKAT KEDALUWARSA',
+                    'SUSPENDED' => 'DIBEKUKAN',
                     default => 'WAKTU NOTIFIKASI AKTIF',
                 };
 
@@ -223,6 +265,7 @@ class LpkSurveillanceService
         if (! $certDate) {
             return 0;
         }
+        $expDate = $lpk->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
 
         $creatorId = $creatorId
             ?: auth()->id()
@@ -235,7 +278,8 @@ class LpkSurveillanceService
 
         $created = 0;
         $now = now();
-        $isLpkActive = $lpk->getRawOriginal('status') === 'ACTIVE';
+        $rawLpkStatus = $lpk->getAttributes()['status'] ?? $lpk->getRawOriginal('status');
+        $isLpkActive = in_array(strtoupper((string) $rawLpkStatus), ['ACTIVE', 'AKTIF'], true);
 
         // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
         $cycleStart = $certDate->copy()->subMonths(3);
@@ -243,7 +287,8 @@ class LpkSurveillanceService
 
         $s1Target = $certDate->copy()->addMonths(15)->startOfDay()->setHour(9);
         $s1End = $s1Target->copy()->addDays(2)->setHour(17);
-        $s1IsPast = $isLpkActive && $s1End->lt($now->copy()->startOfYear());
+        $s1Tolerance = $certDate->copy()->addMonths(24)->endOfDay();
+        $s1IsPast = $isLpkActive && $now->gte($s1Tolerance);
 
         $s1Assessment = $lpk->assessments()
             ->where(function ($q) {
@@ -272,20 +317,27 @@ class LpkSurveillanceService
                     : 'Agenda asesmen surveilen berkala tahun pertama otomatis dijadwalkan sesuai siklus KAN (Bulan ke-15).',
             ]);
             $created++;
-        } elseif ($s1Assessment->status === 'PLANNED') {
-            $s1Assessment->update([
-                'start_at' => $s1Target,
-                'end_at' => $s1End,
-                'status' => $s1IsPast ? 'COMPLETED' : 'PLANNED',
-                'tp_status' => $s1IsPast ? Assessment::TP_STATUS_SATISFIED : $s1Assessment->tp_status,
-                'tp_satisfied_at' => $s1IsPast ? ($s1Assessment->tp_satisfied_at ?: $s1End->copy()->addMonth()->startOfDay()) : $s1Assessment->tp_satisfied_at,
-            ]);
+        } else {
+            if ($s1IsPast && $s1Assessment->getRawOriginal('status') !== 'COMPLETED') {
+                $s1Assessment->update([
+                    'status' => 'COMPLETED',
+                    'tp_status' => Assessment::TP_STATUS_SATISFIED,
+                    'tp_satisfied_at' => $s1Assessment->tp_satisfied_at ?: $s1End->copy()->addMonth()->startOfDay(),
+                ]);
+            } elseif (! $s1IsPast && in_array($s1Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s1Assessment->report_date) && empty($s1Assessment->sk_number)) {
+                $s1Assessment->update([
+                    'start_at' => $s1Target,
+                    'end_at' => $s1End,
+                    'status' => 'PLANNED',
+                ]);
+            }
         }
 
         // 2. Asesmen Surveilen 2 (S2): Bulan 36 (Target Kunjungan Bulan 36-39)
         $s2Target = $certDate->copy()->addMonths(36)->startOfDay()->setHour(9);
         $s2End = $s2Target->copy()->addDays(2)->setHour(17);
-        $s2IsPast = $isLpkActive && $s2End->lt($now->copy()->startOfYear());
+        $s2Tolerance = $certDate->copy()->addMonths(48)->endOfDay();
+        $s2IsPast = $isLpkActive && $now->gte($s2Tolerance);
 
         $s2Assessment = $lpk->assessments()
             ->where(function ($q) {
@@ -314,20 +366,26 @@ class LpkSurveillanceService
                     : 'Agenda asesmen surveilen berkala tahun ketiga otomatis dijadwalkan sesuai siklus KAN (Bulan ke-36).',
             ]);
             $created++;
-        } elseif ($s2Assessment->status === 'PLANNED') {
-            $s2Assessment->update([
-                'start_at' => $s2Target,
-                'end_at' => $s2End,
-                'status' => $s2IsPast ? 'COMPLETED' : 'PLANNED',
-                'tp_status' => $s2IsPast ? Assessment::TP_STATUS_SATISFIED : $s2Assessment->tp_status,
-                'tp_satisfied_at' => $s2IsPast ? ($s2Assessment->tp_satisfied_at ?: $s2End->copy()->addMonth()->startOfDay()) : $s2Assessment->tp_satisfied_at,
-            ]);
+        } else {
+            if ($s2IsPast && $s2Assessment->getRawOriginal('status') !== 'COMPLETED') {
+                $s2Assessment->update([
+                    'status' => 'COMPLETED',
+                    'tp_status' => Assessment::TP_STATUS_SATISFIED,
+                    'tp_satisfied_at' => $s2Assessment->tp_satisfied_at ?: $s2End->copy()->addMonth()->startOfDay(),
+                ]);
+            } elseif (! $s2IsPast && in_array($s2Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s2Assessment->report_date) && empty($s2Assessment->sk_number)) {
+                $s2Assessment->update([
+                    'start_at' => $s2Target,
+                    'end_at' => $s2End,
+                    'status' => 'PLANNED',
+                ]);
+            }
         }
 
         // 3. Re-Akreditasi (RA): Bulan 54 (H-6 bulan sebelum masa berlaku 60 bulan berakhir)
         $raTarget = $certDate->copy()->addMonths(54)->startOfDay()->setHour(9);
         $raEnd = $raTarget->copy()->addDays(3)->setHour(17);
-        $raIsPast = $isLpkActive && $raEnd->lt($now->copy()->startOfYear());
+        $raIsPast = $isLpkActive && ($raEnd->lt($now) || ($expDate && $now->gte($expDate)));
 
         $raAssessment = $lpk->assessments()
             ->where(function ($q) {
@@ -357,14 +415,20 @@ class LpkSurveillanceService
                     : 'Agenda asesmen Re-Akreditasi (Akreditasi Ulang) otomatis dijadwalkan sesuai siklus KAN (Bulan ke-54, H-6 bulan sebelum masa berlaku berakhir).',
             ]);
             $created++;
-        } elseif ($raAssessment->status === 'PLANNED') {
-            $raAssessment->update([
-                'start_at' => $raTarget,
-                'end_at' => $raEnd,
-                'status' => $raIsPast ? 'COMPLETED' : 'PLANNED',
-                'tp_status' => $raIsPast ? Assessment::TP_STATUS_SATISFIED : $raAssessment->tp_status,
-                'tp_satisfied_at' => $raIsPast ? ($raAssessment->tp_satisfied_at ?: $raEnd->copy()->addMonth()->startOfDay()) : $raAssessment->tp_satisfied_at,
-            ]);
+        } else {
+            if ($raIsPast && $raAssessment->getRawOriginal('status') !== 'COMPLETED') {
+                $raAssessment->update([
+                    'status' => 'COMPLETED',
+                    'tp_status' => Assessment::TP_STATUS_SATISFIED,
+                    'tp_satisfied_at' => $raAssessment->tp_satisfied_at ?: $raEnd->copy()->addMonth()->startOfDay(),
+                ]);
+            } elseif (! $raIsPast && in_array($raAssessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($raAssessment->report_date) && empty($raAssessment->sk_number)) {
+                $raAssessment->update([
+                    'start_at' => $raTarget,
+                    'end_at' => $raEnd,
+                    'status' => 'PLANNED',
+                ]);
+            }
         }
 
         return $created;
@@ -399,7 +463,7 @@ class LpkSurveillanceService
         }
 
         // 1. Cek apakah ada asesmen yang statusnya REVOKED atau telah melewati batas 1 tahun pembekuan tanpa penyelesaian
-        if ($assessmentsList->contains(fn (Assessment $a) => $a->status === 'REVOKED' || $a->is_suspension_expired)) {
+        if ($assessmentsList->contains(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk() && ($a->status === 'REVOKED' || $a->is_suspension_expired))) {
             return 'REVOKED';
         }
 
@@ -469,7 +533,7 @@ class LpkSurveillanceService
             $now = now();
 
             // 0. Status Dicabut (melewati batas 1 tahun pembekuan)
-            if ($activeAssessment->status === 'REVOKED' || $activeAssessment->is_suspension_expired) {
+            if (($activeAssessment->status === 'REVOKED' || $activeAssessment->is_suspension_expired) && ! $activeAssessment->isPastSurveillanceForActiveLpk()) {
                 $deadline = $activeAssessment->suspension_resolution_deadline ? $activeAssessment->suspension_resolution_deadline->format('d/m/Y') : '-';
                 return "{$typeLabel}: Akreditasi Dicabut (melewati batas 1 tahun masa pembekuan surveilen {$deadline}).";
             }
@@ -498,7 +562,7 @@ class LpkSurveillanceService
             }
 
             // Jika status asesmen SUSPENDED atau melewati batas toleransi pengisian
-            if ($activeAssessment->status === 'SUSPENDED' || $activeAssessment->is_tp_overdue || $activeAssessment->is_submission_overdue) {
+            if ($activeAssessment->status === 'SUSPENDED' || $activeAssessment->is_tp_overdue || ($activeAssessment->is_submission_overdue && ($activeAssessment->status !== 'PLANNED' || ! empty($activeAssessment->report_date) || ! empty($activeAssessment->eha_date)))) {
                 if ($activeAssessment->is_submission_overdue) {
                     $due = $activeAssessment->submission_due_date ? $activeAssessment->submission_due_date->format('d/m/Y') : '-';
                     $deadline = $activeAssessment->suspension_resolution_deadline ? $activeAssessment->suspension_resolution_deadline->format('d/m/Y') : '-';

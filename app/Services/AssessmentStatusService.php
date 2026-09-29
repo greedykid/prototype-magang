@@ -197,9 +197,24 @@ class AssessmentStatusService
     {
         $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : $assessment->lpk()->first();
         $certDate = $lpk?->certificate_date ?: ($lpk?->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
+        $expDate = $lpk?->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
 
         if ($certDate) {
-            $isS2 = str_contains(strtolower($assessment->assessment_type ?: ''), 's2') || str_contains(strtolower($assessment->title ?: ''), 's2');
+            $type = strtolower((string) ($assessment->assessment_type ?: ''));
+            $title = strtolower((string) ($assessment->title ?: ''));
+
+            $isRa = in_array($assessment->assessment_type, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Re-asesmen (Reassessment)', 'Akreditasi Ulang', 'Re-Akreditasi (Akreditasi Ulang)'], true)
+                || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
+                || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
+
+            if ($isRa) {
+                return $expDate ? $expDate->copy()->endOfDay() : $certDate->copy()->addMonths(60)->endOfDay();
+            }
+
+            $isS2 = in_array($assessment->assessment_type, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2'], true)
+                || preg_match('/\b(Surveilen\s*2|S2)\b/i', $title)
+                || preg_match('/\b(Surveilen\s*2|S2)\b/i', $type);
+
             if ($isS2) {
                 return $certDate->copy()->addMonths(39)->endOfDay();
             }
@@ -266,7 +281,33 @@ class AssessmentStatusService
             return false;
         }
 
+        if ($lpk->isExpired()) {
+            return false;
+        }
+
+        // Jika ada proses Tindakan Perbaikan (TP) aktif atau memiliki batas waktu TP khusus
+        if (in_array($assessment->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true)) {
+            return false;
+        }
+        if (! empty($assessment->tp_due_date) && $assessment->tp_status !== Assessment::TP_STATUS_SATISFIED) {
+            return false;
+        }
+
+        // Jika ada laporan atau rapat EHA, ini asesmen yang sedang diproses
+        if (! empty($assessment->report_date) || ! empty($assessment->eha_date)) {
+            return false;
+        }
+
         if ($assessment->end_at && $lpk->certificate_date && $assessment->end_at->lt($lpk->certificate_date->copy()->startOfDay())) {
+            return true;
+        }
+
+        $rawStatus = $assessment->getAttributes()['status'] ?? null;
+        if ($rawStatus === 'CANCELLED') {
+            return false;
+        }
+
+        if ($rawStatus === 'COMPLETED' || $assessment->tp_status === Assessment::TP_STATUS_SATISFIED) {
             return true;
         }
 
@@ -287,7 +328,23 @@ class AssessmentStatusService
             return false;
         }
 
+        // Re-Akreditasi dan Akreditasi Awal bukan surveilen berkala, tidak dikenakan pembekuan atau pencabutan surveilen
+        $type = strtolower((string) ($assessment->assessment_type ?: ''));
+        $title = strtolower((string) ($assessment->title ?: ''));
+        $isRaOrInitial = in_array($assessment->assessment_type, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang', 'INITIAL', 'AA', 'Akreditasi Awal', 'Asesmen Awal'], true)
+            || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA|Akreditasi Awal|Asesmen Awal|AA)\b/i', $title)
+            || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA|Akreditasi Awal|Asesmen Awal|AA)\b/i', $type);
+
+        if ($isRaOrInitial) {
+            return false;
+        }
+
         if ($this->isPastSurveillanceForActiveLpk($assessment)) {
+            return false;
+        }
+
+        // Asesmen yang belum dimulai tidak dapat kedaluwarsa masa pembekuannya
+        if ($assessment->start_at && now()->lt($assessment->start_at)) {
             return false;
         }
 

@@ -12,7 +12,7 @@ class CalendarEvent extends Model
     /** @use HasFactory<CalendarEventFactory> */
     use HasFactory;
 
-    protected $fillable = ['lpk_id', 'created_by', 'title', 'description', 'start_at', 'end_at', 'location', 'status', 'notes'];
+    protected $fillable = ['lpk_id', 'created_by', 'title', 'event_type', 'description', 'start_at', 'end_at', 'location', 'status', 'notes'];
 
     protected function casts(): array
     {

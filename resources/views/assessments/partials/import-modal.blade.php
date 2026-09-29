@@ -2,7 +2,7 @@
     <div class="simasadi-modal-box modal-lg">
         <div class="simasadi-modal-head">
             <div class="modal-head-title">
-                <x-icon name="upload" size="20" />
+                <x-icon name="import" size="20" />
                 <h4>Impor Massal Data Program Asesmen</h4>
             </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-import-assessments')" aria-label="Tutup modal">&times;</button>
@@ -85,7 +85,7 @@
             <div class="import-modal-footer">
                 <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-import-assessments')">Batal</button>
                 <button type="submit" class="button primary">
-                    <x-icon name="upload" size="14" />
+                    <x-icon name="import" size="14" />
                     <span>Mulai Proses Impor</span>
                 </button>
             </div>

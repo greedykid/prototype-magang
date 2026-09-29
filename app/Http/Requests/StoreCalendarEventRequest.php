@@ -32,7 +32,15 @@ class StoreCalendarEventRequest extends FormRequest
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:255'],
-            'event_type' => ['nullable', 'string', 'in:PRL,STT,AGENDA_INTERNAL'],
+            'event_type' => [
+                'nullable',
+                'string',
+                'max:100',
+                \Illuminate\Validation\Rule::in(array_merge(
+                    array_keys(\App\Models\Assessment::TYPES),
+                    ['PRL', 'STT', 'AGENDA_INTERNAL']
+                )),
+            ],
             'description' => ['nullable', 'string'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
             'start_time' => ['nullable', 'date_format:H:i'],

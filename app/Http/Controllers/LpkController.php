@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateLpkNotesRequest;
 use App\Http\Requests\UpdateLpkRequest;
 use App\Models\Lpk;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -79,9 +80,9 @@ class LpkController extends Controller
 
                 return match ($surveillance) {
                     'NEEDS_ACTION' => count($alerts) > 0,
-                    'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE'], true),
-                    'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE'], true),
-                    'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED'], true),
+                    'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                    'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                    'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
                     'OVERDUE' => collect($alerts)->contains('is_urgent', true),
                     default => true,
                 };
@@ -181,6 +182,64 @@ class LpkController extends Controller
         $lpk->delete();
 
         return redirect()->route('lpks.index')->with('success', "Data LPK {$name} ({$reg}) berhasil dihapus.");
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+        $rawIds = $request->input('ids');
+        if (is_string($rawIds)) {
+            $rawIds = explode(',', $rawIds);
+        }
+        $ids = array_values(array_filter(array_map('intval', (array) $rawIds)));
+
+        if (empty($ids)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data LPK yang dipilih.',
+                ], 422);
+            }
+            return back()->with('error', 'Tidak ada data LPK yang dipilih.');
+        }
+
+        $query = Lpk::whereIn('id', $ids);
+        if ($user && $user->isPic()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('pic_id', $user->id)
+                    ->orWhere('pic_user_id', $user->id)
+                    ->orWhereNull('pic_id');
+            });
+        }
+
+        $records = $query->get();
+        $count = $records->count();
+
+        if ($count === 0) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data LPK yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                ], 403);
+            }
+            return back()->with('error', 'Tidak ada data LPK yang dapat dihapus.');
+        }
+
+        foreach ($records as $record) {
+            $record->delete();
+        }
+
+        $message = "{$count} data LPK berhasil dihapus.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $count,
+            ]);
+        }
+
+        return redirect()->route('lpks.index')->with('success', $message);
     }
 
     public function sendSurveillanceReminder(Lpk $lpk, Request $request): RedirectResponse

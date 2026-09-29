@@ -12,7 +12,7 @@
         <span>Google Sheets & Ekspor</span>
     </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
-        <x-icon name="upload" size="16" />
+        <x-icon name="import" size="16" />
         <span>Impor LPK</span>
     </button>
     <a class="button primary" href="{{ route('lpks.create') }}">
@@ -131,6 +131,14 @@
             </div>
         </div>
     @endif
+
+    <x-bulk-action-bar
+        table-id="lpks-table"
+        :export-url="route('reports.lpks.export')"
+        :delete-url="route('lpks.bulk-destroy')"
+        entity-name="LPK"
+        :can-delete="auth()->user()?->isAdmin() || auth()->user()?->isPic()"
+    />
 
     <div id="lpk-table-container" class="lpk-table-container" aria-live="polite">
         @include('lpks.partials.table-content')

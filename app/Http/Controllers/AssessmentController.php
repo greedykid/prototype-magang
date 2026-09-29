@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateAssessmentRequest;
 use App\Http\Requests\UpdateAssessmentTpRequest;
 use App\Models\Assessment;
 use App\Models\Lpk;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -319,5 +320,76 @@ class AssessmentController extends Controller
         $assessment->update($validated);
 
         return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) serta milestone asesmen berhasil diperbarui.');
+    }
+
+    public function destroy(Assessment $assessment, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($user && $user->isPic() && $assessment->lpk && ! $assessment->lpk->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
+        }
+
+        $title = $assessment->title;
+        $assessment->delete();
+
+        return redirect()->route('assessments.index')->with('success', "Program asesmen {$title} berhasil dihapus.");
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+        $rawIds = $request->input('ids');
+        if (is_string($rawIds)) {
+            $rawIds = explode(',', $rawIds);
+        }
+        $ids = array_values(array_filter(array_map('intval', (array) $rawIds)));
+
+        if (empty($ids)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada program asesmen yang dipilih.',
+                ], 422);
+            }
+            return back()->with('error', 'Tidak ada program asesmen yang dipilih.');
+        }
+
+        $query = Assessment::with('lpk')->whereIn('id', $ids);
+        if ($user && $user->isPic()) {
+            $query->whereHas('lpk', function ($q) use ($user) {
+                $q->where('pic_id', $user->id)
+                    ->orWhere('pic_user_id', $user->id)
+                    ->orWhereNull('pic_id');
+            });
+        }
+
+        $records = $query->get();
+        $count = $records->count();
+
+        if ($count === 0) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada program asesmen yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                ], 403);
+            }
+            return back()->with('error', 'Tidak ada program asesmen yang dapat dihapus.');
+        }
+
+        foreach ($records as $record) {
+            $record->delete();
+        }
+
+        $message = "{$count} program asesmen berhasil dihapus.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $count,
+            ]);
+        }
+
+        return redirect()->route('assessments.index')->with('success', $message);
     }
 }

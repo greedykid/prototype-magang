@@ -358,31 +358,60 @@ function updateQuickAddType(type) {
     const titleInput = document.getElementById('quick-input-title');
     if (!titleInput) return;
 
-    if (type === 'PRL') {
+    const prefixes = [
+        'PRL - ', 'STT - ', 'Surveilen 1 - ', 'Surveilen 1 + PRL - ',
+        'Surveilen 2 - ', 'Surveilen 2 + PRL - ', 'Re-Akreditasi - ', 'Akreditasi Awal - ', 'Rapat '
+    ];
+    const isPrefixedOrEmpty = !titleInput.value || prefixes.some(p => titleInput.value.startsWith(p));
+
+    const t = (type || '').toLowerCase();
+    if (t.includes('prl') && !t.includes('surveilen 1') && !t.includes('surveilen 2')) {
         titleInput.placeholder = 'Contoh: PRL - Penambahan Ruang Lingkup Laboratorium';
-        if (!titleInput.value || titleInput.value.startsWith('STT') || titleInput.value.startsWith('PRL') || titleInput.value.startsWith('Rapat')) {
-            titleInput.value = 'PRL - ';
-        }
-    } else if (type === 'STT') {
+        if (isPrefixedOrEmpty) titleInput.value = 'PRL - ';
+    } else if (t.includes('stt') || t.includes('tidak terjadwal')) {
         titleInput.placeholder = 'Contoh: STT - Surveilen Tidak Terjadwal Lapangan';
-        if (!titleInput.value || titleInput.value.startsWith('PRL') || titleInput.value.startsWith('STT') || titleInput.value.startsWith('Rapat')) {
-            titleInput.value = 'STT - ';
-        }
+        if (isPrefixedOrEmpty) titleInput.value = 'STT - ';
+    } else if (t.includes('surveilen 1 + prl')) {
+        titleInput.placeholder = 'Contoh: Surveilen 1 + PRL - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 1 + PRL - ';
+    } else if (t.includes('surveilen 2 + prl')) {
+        titleInput.placeholder = 'Contoh: Surveilen 2 + PRL - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 2 + PRL - ';
+    } else if (t.includes('surveilen 1')) {
+        titleInput.placeholder = 'Contoh: Surveilen 1 (S1) - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 1 - ';
+    } else if (t.includes('surveilen 2')) {
+        titleInput.placeholder = 'Contoh: Surveilen 2 (S2) - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 2 - ';
+    } else if (t.includes('re-akreditasi') || t.includes('reakreditasi')) {
+        titleInput.placeholder = 'Contoh: Re-Akreditasi (RA) - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Re-Akreditasi - ';
+    } else if (t.includes('akreditasi awal')) {
+        titleInput.placeholder = 'Contoh: Akreditasi Awal - Nama Laboratorium';
+        if (isPrefixedOrEmpty) titleInput.value = 'Akreditasi Awal - ';
     } else {
         titleInput.placeholder = 'Contoh: Rapat Internal Koordinasi Tim';
-        if (titleInput.value.startsWith('PRL - ') || titleInput.value.startsWith('STT - ')) {
+        if (prefixes.some(p => titleInput.value.startsWith(p))) {
             titleInput.value = '';
         }
     }
 }
 window.updateQuickAddType = updateQuickAddType;
 
-function openQuickAddWithType(type = 'PRL') {
+function openQuickAddWithType(type = 'Perluasan Ruang Lingkup (PRL)') {
     closeCreateDropdown();
     const typeSelect = document.getElementById('quick-input-type');
     if (typeSelect) {
-        typeSelect.value = type;
-        updateQuickAddType(type);
+        if (type === 'PRL') {
+            typeSelect.value = 'Perluasan Ruang Lingkup (PRL)';
+            if (!typeSelect.value) typeSelect.value = 'PRL';
+        } else if (type === 'STT') {
+            typeSelect.value = 'Surveilen Tidak Terjadwal (STT)';
+            if (!typeSelect.value) typeSelect.value = 'STT';
+        } else if (type) {
+            typeSelect.value = type;
+        }
+        updateQuickAddType(typeSelect.value || type);
     }
     openModal('modal-quick-add-event');
 }

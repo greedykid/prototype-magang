@@ -185,19 +185,19 @@ class AssessmentTpService
      */
     public function getTpSlaBadge(Assessment $assessment): array
     {
-        if ($assessment->isPastSurveillanceForActiveLpk()) {
-            return [
-                'type' => 'success',
-                'label' => 'Terealisasi',
-                'detail' => 'Asesmen surveilen periode lampau otomatis terealisasikan (LPK berstatus aktif)',
-            ];
-        }
-
         if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->sk_number)) {
             return [
                 'type' => 'success',
                 'label' => 'Memenuhi',
                 'detail' => $assessment->tp_satisfied_at ? 'Dinyatakan pada ' . $assessment->tp_satisfied_at->format('d M Y') : 'Tindakan perbaikan diterima',
+            ];
+        }
+
+        if ($assessment->isPastSurveillanceForActiveLpk()) {
+            return [
+                'type' => 'success',
+                'label' => 'Terealisasi',
+                'detail' => 'Asesmen surveilen periode lampau otomatis terealisasikan (LPK berstatus aktif)',
             ];
         }
 

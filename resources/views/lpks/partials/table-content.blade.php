@@ -1,8 +1,11 @@
 @if($lpks->count())
     <div class="table-wrap">
-        <table class="table-lpks-custom">
+        <table class="table-lpks-custom" id="lpks-table">
             <thead>
                 <tr>
+                    <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
+                        <input type="checkbox" class="table-select-all" data-table-id="lpks-table" aria-label="Pilih semua LPK di halaman ini">
+                    </th>
                     <th data-label="No Akreditasi" class="col-th-no">NO. AKREDITASI</th>
                     <th data-label="Nama LPK" class="col-th-name">NAMA LPK</th>
                     <th data-label="Masa Berlaku" class="col-th-validity">
@@ -16,10 +19,13 @@
             </thead>
             <tbody>
                 @foreach($lpks as $lpk)
-                    <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
+                    <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" data-id="{{ $lpk->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
                         @php
                             $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
                         @endphp
+                        <td class="col-td-checkbox" data-no-row-click="true">
+                            <input type="checkbox" class="table-row-select" data-table-id="lpks-table" value="{{ $lpk->id }}" data-item-name="{{ $lpk->name }}" aria-label="Pilih LPK {{ $lpk->name }}">
+                        </td>
                         <!-- 1. NO AKREDITASI -->
                         <td class="col-lpk-no" data-sort-value="{{ $lpk->accreditation_number ?: $lpk->registration_number }}">
                             <div class="lpk-card-reg-wrap">

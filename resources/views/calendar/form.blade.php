@@ -5,6 +5,7 @@
 <form class="panel form-grid" method="POST" action="{{ $event->exists ? route('calendar.events.update', $event) : route('calendar.events.store') }}">
     @csrf @if($event->exists) @method('PUT') @endif
     <label class="full">LPK<select name="lpk_id" required><option value="">Pilih LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected(old('lpk_id', $event->lpk_id) == $lpk->id)>{{ $lpk->name }}</option>@endforeach</select></label>
+    <label class="full">Jenis Agenda / Asesmen<select name="event_type"><option value="">Pilih jenis agenda / asesmen</option>@foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)<option value="{{ $typeKey }}" @selected(old('event_type', $event->event_type) === $typeKey)>{{ $typeLabel }}</option>@endforeach<option value="AGENDA_INTERNAL" @selected(old('event_type', $event->event_type) === 'AGENDA_INTERNAL')>Agenda Umum / Rapat Internal</option></select></label>
     <label class="full">Judul agenda<input name="title" value="{{ old('title', $event->title) }}" required placeholder="Contoh: Persiapan asesmen awal"></label>
     <label>Tanggal mulai<input type="date" name="start_date" value="{{ old('start_date', $event->start_at?->format('Y-m-d') ?: ($selectedDate ?? null)) }}" required></label>
     <label>Jam mulai<input type="time" name="start_time" value="{{ old('start_time', $event->start_at?->format('H:i')) }}" required></label>
