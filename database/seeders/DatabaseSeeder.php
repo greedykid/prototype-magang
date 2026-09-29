@@ -43,7 +43,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $this->call(LpkSeeder::class);
         $this->call(AssessmentSeeder::class);
     }
 }
