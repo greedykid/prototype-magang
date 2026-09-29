@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreLpkRequest;
+use App\Http\Requests\UpdateLpkNotesRequest;
+use App\Http\Requests\UpdateLpkRequest;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -111,9 +114,9 @@ class LpkController extends Controller
         return view('lpks.form', ['lpk' => new Lpk, 'formTitle' => 'Tambah LPK', 'pics' => $pics]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreLpkRequest $request): RedirectResponse
     {
-        $data = $this->validated($request);
+        $data = $request->normalizedData();
         $user = $request->user();
         if ($user && $user->isPic()) {
             $data['pic_id'] = $user->id;
@@ -141,14 +144,10 @@ class LpkController extends Controller
         return view('lpks.form', ['lpk' => $lpk, 'formTitle' => 'Ubah Data LPK', 'pics' => $pics]);
     }
 
-    public function update(Request $request, Lpk $lpk): RedirectResponse
+    public function update(UpdateLpkRequest $request, Lpk $lpk): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
-        }
-
-        $data = $this->validated($request, $lpk);
+        $data = $request->normalizedData();
         if ($user && $user->isPic()) {
             $data['pic_id'] = $lpk->pic_id ?: $user->id;
         }
@@ -158,12 +157,9 @@ class LpkController extends Controller
         return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
     }
 
-    public function updateNotes(Request $request, Lpk $lpk): RedirectResponse
+    public function updateNotes(UpdateLpkNotesRequest $request, Lpk $lpk): RedirectResponse
     {
-        $data = $request->validate([
-            'notes' => ['nullable', 'string', 'max:5000'],
-        ]);
-
+        $data = $request->validated();
         $notes = isset($data['notes']) ? trim($data['notes']) : null;
 
         $lpk->update([
@@ -310,51 +306,5 @@ class LpkController extends Controller
             ]);
             return back()->with('error', 'Gagal mengirim email notifikasi: ' . $e->getMessage());
         }
-    }
-
-    private function validated(Request $request, ?Lpk $lpk = null): array
-    {
-        $id = $lpk?->id ?? 'NULL';
-        $data = $request->validate([
-            'no_reg' => ['nullable', 'string', 'max:50', 'unique:lpks,no_reg,'.$id],
-            'accreditation_number' => ['nullable', 'string', 'max:50'],
-            'accreditation_type' => ['nullable', 'string', 'max:100'],
-            'registration_number' => ['nullable', 'string', 'max:50', 'unique:lpks,registration_number,'.$id],
-            'name' => ['required', 'string', 'max:255'],
-            'scope' => ['nullable', 'string', 'max:50000'],
-            'certificate_date' => ['nullable', 'date'],
-            'address' => ['nullable', 'string'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'status' => ['required', 'in:ACTIVE,INACTIVE,SUSPENDED'],
-            'notes' => ['nullable', 'string', 'max:5000'],
-            'expired_at' => ['nullable', 'date'],
-            'drive_url' => ['nullable', 'url', 'max:1000'],
-            'pic_id' => ['nullable', 'exists:users,id'],
-        ]);
-
-        if (empty($data['no_reg']) && !empty($data['registration_number']) && preg_match('/^\d+$/', (string) $data['registration_number'])) {
-            $data['no_reg'] = $data['registration_number'];
-        }
-
-        if (empty($data['accreditation_number']) && !empty($data['registration_number'])) {
-            $data['accreditation_number'] = $data['registration_number'];
-        }
-
-        if (empty($data['registration_number'])) {
-            $data['registration_number'] = $data['accreditation_number'] ?: ($data['no_reg'] ?? 'LPK-' . time());
-        }
-
-        if (empty($data['accreditation_type'])) {
-            $data['accreditation_type'] = 'Laboratorium Penguji';
-        }
-
-        if (! empty($data['certificate_date']) && empty($data['expired_at'])) {
-            $data['expired_at'] = \Carbon\Carbon::parse($data['certificate_date'])->addYears(5)->toDateString();
-        } elseif (empty($data['certificate_date']) && ! empty($data['expired_at'])) {
-            $data['certificate_date'] = \Carbon\Carbon::parse($data['expired_at'])->subYears(5)->toDateString();
-        }
-
-        return $data;
     }
 }

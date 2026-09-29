@@ -592,9 +592,9 @@ class PrototypeFlowTest extends TestCase
             'start_at' => now()->startOfMonth()->addDays(2),
             'end_at' => now()->startOfMonth()->addDays(4),
         ]);
-        $expectedDue = $inactiveLpk->certificate_date->copy()->addMonths(15)->addMonths(4)->endOfMonth()->endOfDay();
+        $expectedDue = $inactiveLpk->certificate_date->copy()->addMonths(18)->endOfDay();
         $this->assertFalse($recentAssessment->is_submission_overdue);
-        $this->assertEquals($expectedDue, $recentAssessment->submission_due_date);
+        $this->assertEquals($expectedDue->toDateString(), $recentAssessment->submission_due_date->toDateString());
         $this->assertEquals($expectedDue->year, $recentAssessment->submission_due_date->year);
         $this->assertEquals($expectedDue->month, $recentAssessment->submission_due_date->month);
 

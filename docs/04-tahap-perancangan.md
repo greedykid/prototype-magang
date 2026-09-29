@@ -59,7 +59,6 @@ graph TD
     ASM <--> ASM_Import["Impor Asesmen (/assessments/import)"]
     ASM <--> ASM_Detail["Detail Asesmen (/assessments/{id})"]
     ASM_Detail <--> ASM_Edit["Ubah Asesmen (/assessments/{id}/edit)"]
-    ASM_Detail <--> ASM_Cost["Pelaporan & Verifikasi Biaya SBM"]
     ASM_Detail <--> ASM_TP["Pelacakan Tindakan Perbaikan (SLA)"]
     ASM_Detail <--> ASM_EHA["Evaluasi Hasil Asesmen (EHA)"]
 
@@ -67,10 +66,8 @@ graph TD
     CAL <--> CAL_Add["Klik Tanggal -> Tambah Agenda (/calendar/events/create)"]
     CAL <--> CAL_Detail["Detail Agenda Event (/calendar/events/{id})"]
 
-    Dash --> FIN["Kepatuhan & Finansial"]
-    FIN <--> FIN_Bill["Penerbitan Billing SIMPONI & Pembayaran"]
-    FIN <--> FIN_Sign["Tanda Tangan Elektronik Dokumen SK (BSrE)"]
-    FIN <--> FIN_Gate["Quality Gate Kesiapan Rilis SK"]
+    Dash --> VAL["Penerbitan SK & Quality Gate"]
+    VAL <--> FIN_Gate["Quality Gate Kesiapan Rilis SK"]
 
     Dash --> USR["Manajemen Pengguna (/users)"]
     USR <--> USR_Add["Tambah Pengguna (/users/create)"]
@@ -78,11 +75,10 @@ graph TD
 
     Dash --> BCK["Histori Backup (/monitoring/backups)"]
 
-    Dash --> PORTAL_LPK["Portal LPK (/portal) + QR Code"]
     Dash --> PORTAL_ASR["Portal Asesor (/assessor)"]
 
     classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_Cost,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,FIN,FIN_Bill,FIN_Sign,FIN_Gate,USR,USR_Add,USR_Edit,BCK,PORTAL_LPK,PORTAL_ASR pageBox;
+    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,BCK,PORTAL_ASR pageBox;
 ```
 
 <p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
@@ -115,10 +111,7 @@ flowchart LR
     UC_TP_SLA(["Mengelola SLA Tindakan Perbaikan (TP & VTP)"]): extension:::ucMain
     UC_EHA(["Mencatat Alur Sidang EHA & Lead Time SK"]):::ucMain
     UC_Cal(["Mengelola Kalender Interaktif 5 Event"]):::ucMain
-    UC_SBM(["Melaporkan & Memverifikasi Biaya SBM"]):::ucMain
-    UC_PNBP(["Menerbitkan Billing SIMPONI & Pelunasan"]):::ucMain
-    UC_ESign(["Membubuhi e-Sign BSrE & Rilis SK"]):::ucMain
-    UC_QR(["Memverifikasi Status via QR Code"]):::ucMain
+    UC_Release(["Penerbitan Dokumen SK & Quality Gate"]):::ucMain
     UC_User_Mgmt(["Mengelola Pengguna & Hak Akses"]):::ucMain
 
     %% Relasi Admin
@@ -131,9 +124,7 @@ flowchart LR
     Admin --- UC_TP_SLA
     Admin --- UC_EHA
     Admin --- UC_Cal
-    Admin --- UC_SBM
-    Admin --- UC_PNBP
-    Admin --- UC_ESign
+    Admin --- UC_Release
     Admin --- UC_User_Mgmt
 
     %% Relasi PIC
@@ -142,19 +133,16 @@ flowchart LR
     PIC --- UC_Tolerance
     PIC --- UC_TP_SLA
     PIC --- UC_Cal
-    PIC --- UC_SBM
 
     %% Relasi Asesor
     Asesor --- UC_Login
     Asesor --- UC_Asm_Manage
-    Asesor --- UC_SBM
     Asesor --- UC_TP_SLA
 
     %% Relasi LPK
     LPK --- UC_Login
     LPK --- UC_Tolerance
     LPK --- UC_TP_SLA
-    LPK --- UC_QR
 
     classDef actorBox fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a,font-weight:bold;
     classDef ucMain fill:#ffffff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-size:12px;
@@ -260,7 +248,7 @@ flowchart TD
         Stage7["7. Perluasan Ruang Lingkup (PRL Mandiri)<br/>• Pemicu: Permohonan adendum lingkup di luar jadwal surveilen rutin<br/>• Asesmen teknis metode baru<br/>• Terbit Adendum Lampiran Ruang Lingkup"]:::sideBox
     end
 
-    TrackReAkreditasi --> Stage8["8. Re-Akreditasi (Akreditasi Ulang)<br/>• Reminder Kritis Bulan ke-54<br/>• Full Re-Assessment (Seluruh Sistem & Lingkup)<br/>• Batas Waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Quality Gate: Billing PNBP Lunas & Biaya SBM Verifikasi<br/>• Sidang EHA & Terbit Sertifikat Baru 5 Tahun"]:::stageBox
+    TrackReAkreditasi --> Stage8["8. Re-Akreditasi (Akreditasi Ulang)<br/>• Reminder Kritis Bulan ke-54<br/>• Full Re-Assessment (Seluruh Sistem & Lingkup)<br/>• Batas Waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Quality Gate: Pemenuhan TP & Sidang EHA Lengkap<br/>• Terbit Sertifikat Baru 5 Tahun"]:::stageBox
 
     Stage8 --> EndNode(["Selesai: Siklus 1 Selesai Penuh (COMPLETED)<br/>Reset & Mulai Siklus Baru 5 Tahun Berikutnya"]):::nodeEnd
 
@@ -279,19 +267,19 @@ flowchart TD
 | No | Tahap Siklus | Waktu Acuan KAN | Aktivitas Utama PIC | Otomasi SIMASADI | Output Akhir |
 |---|---|---|---|---|---|
 | 1 | **Akreditasi Awal** | Bulan ke-0 | Verifikasi dokumen legalitas, manual mutu, jadwal asesmen, pendampingan perbaikan (batas waktu 3 bulan), koordinasi VTP | Generate no_reg unik, set batas waktu TP = 3 bulan, catat certificate_date | Sertifikat & SK Akreditasi 5 Tahun (ACTIVE) |
-| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), verifikasi SPPD SBM | Reminder berkala kalender, toleransi pengisian maks 4 bln dr bln 15, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
+| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), koordinasi pelaksanaan asesmen | Reminder berkala kalender, toleransi pengisian maks 4 bln dr bln 15, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
 | 3 | **Survailen 1 + PRL** | Bulan 13 - 24 | Verifikasi portofolio metode baru, susun tim gabungan asesmen sistem + teknis, kawal audit simultan dan TP 2 bulan | Jadwal gabungan, pemetaan lingkup baru ke master data, pelacakan terpadu | SK S1 + Adendum Lampiran Lingkup Baru |
 | 4 | **Survailen 2 (S2)** | Bulan 34 - 48 | Pantau reminder S2 (maks 2 tahun pasca S1), evaluasi kaji ulang manajemen, kawal pemenuhan perbaikan 2 bulan | Reminder kalender multi-event, countdown pembekuan dinamis jika wanprestasi | SK Konfirmasi Survailen 2 |
 | 5 | **Survailen 2 + PRL** | Bulan 34 - 48 | Verifikasi kesiapan alat & uji profisiensi lingkup baru, koordinasi asesmen gabungan, kawal TP 2 bulan | Sinkronisasi multi-skema, kontrol batas waktu terpadu, hitung lead time SK | SK S2 + Adendum Pembaruan Ruang Lingkup |
 | 6 | **Survailen Tidak Terjadwal (STT)** | Insidental | Terima aduan publik, relokasi lab, pergantian personel kunci, koordinasi asesmen khusus, kawal TP maks 2 bulan | Penandaan event insidental di kalender, alert persisten prioritas tinggi | Rekomendasi EHA: Pemulihan / Pencabutan |
-| 7 | **Perluasan Ruang Lingkup (PRL)** | Mandiri | Reviu permohonan mandiri di luar jadwal rutin, cek bukti validasi metode, input asesmen teknis, kawal TP 2 bulan | Registrasi asesmen PRL, penerbitan billing SIMPONI tarif penambahan lingkup | Adendum Lampiran Ruang Lingkup Resmi |
-| 8 | **Re-Akreditasi** | Bulan 54 - 60 | Kirim notifikasi Bulan ke-54, reviu berkas lengkap, kawal full re-assessment, kawal Quality Gate SIMPONI & SBM | Persistent alert banner kritis, Quality Gate lock rilis SK, reset siklus baru | Sertifikat & SK Baru 5 Tahun (Siklus 2) |
+| 7 | **Perluasan Ruang Lingkup (PRL)** | Mandiri | Reviu permohonan mandiri di luar jadwal rutin, cek bukti validasi metode, input asesmen teknis, kawal TP 2 bulan | Registrasi asesmen PRL, validasi kelengkapan berkas penambahan lingkup | Adendum Lampiran Ruang Lingkup Resmi |
+| 8 | **Re-Akreditasi** | Bulan 54 - 60 | Kirim notifikasi Bulan ke-54, reviu berkas lengkap, kawal full re-assessment, kawal Quality Gate kelengkapan EHA & perbaikan | Persistent alert banner kritis, Quality Gate lock rilis SK, reset siklus baru | Sertifikat & SK Baru 5 Tahun (Siklus 2) |
 
 ---
 
 ### 4.4 Sequence Diagram
 
-#### 4.4.1 Sequence Diagram: Realisasi Pembayaran SIMPONI & Quality Gate Rilis SK
+#### 4.4.1 Sequence Diagram: Verifikasi Alur EHA & Quality Gate Rilis SK
 
 ```mermaid
 sequenceDiagram
@@ -299,36 +287,29 @@ sequenceDiagram
     actor Admin as Admin Unit Lab
     participant View as Detail Page (Blade)
     participant Ctrl as AssessmentController
-    participant Model as Assessment / Billing
+    participant Model as Assessment / Accreditation
     participant DB as SQLite Database
 
     Admin->>View: Buka Detail Asesmen / Akreditasi
-    Admin->>View: Klik [ Terbitkan Billing SIMPONI ]
-    View->>Ctrl: POST /accreditations/{id}/billings (nominal tarif KAN)
-    Ctrl->>Model: AccreditationBilling::create(code: 15-digit, status: UNPAID)
-    Model->>DB: INSERT INTO accreditation_billings
+    Admin->>View: Input Hasil Sidang EHA & Tanggal Pelaksanaan
+    View->>Ctrl: POST /assessments/{id}/eha (eha_date, notes)
+    Ctrl->>Model: Assessment::update(eha_date, eha_status: SUDAH_EHA)
+    Model->>DB: UPDATE assessments
     DB-->>Ctrl: Saved
-    Ctrl-->>View: Tampilkan Kode Billing SIMPONI
+    Ctrl-->>View: Tampilkan Status Sidang EHA Terkonfirmasi
 
-    Note over Admin,DB: Konfirmasi Setoran Kas Negara
-    Admin->>View: Input Nomor NTPN 16-Karakter & Bank
-    View->>Ctrl: POST /accreditations/{id}/billings/{billing}/pay
-    Ctrl->>Model: Billing->update(status: PAID, paid_at: now(), ntpn)
-    Model->>DB: UPDATE accreditation_billings
-    DB-->>Ctrl: Saved
-
-    Note over Admin,DB: Pengujian Quality Gate Kesiapan Terbit Dokumen
+    Note over Admin,DB: Pengujian Quality Gate Kesiapan Terbit Dokumen SK
     Admin->>View: Klik [ Rilis SK Akreditasi ]
     View->>Ctrl: POST /accreditations/{id}/release
-    Ctrl->>Ctrl: isReleaseReady() (Cek: Billing PAID && Biaya SBM TERVERIFIKASI)
+    Ctrl->>Ctrl: isReleaseReady() (Cek: Status TP SATISFIED && Sidang EHA Terlaksana)
     alt Syarat Belum Lengkap
         Ctrl-->>View: Return 422: SK Terkunci (Quality Gate Lock)
-        View-->>Admin: Pop-up SweetAlert2: Syarat SBM/PNBP Belum Terpenuhi
+        View-->>Admin: Pop-up SweetAlert2: Syarat EHA atau Perbaikan Belum Lengkap
     else Syarat Lengkap
-        Ctrl->>Model: Generate SHA-256 Hash & Nomor Seri BSrE
+        Ctrl->>Model: Model->update(sk_number, sk_issued_at: now())
         Model->>DB: UPDATE accreditations SET output_released_at = now()
         DB-->>Ctrl: Saved
-        Ctrl-->>View: Status Rilis Aktif & QR Code Keabsahan Terbentuk
+        Ctrl-->>View: Status Rilis Dokumen SK Aktif
         View-->>Admin: Toast Sukses: SK Akreditasi Resmi Dirilis
     end
 ```
@@ -337,23 +318,18 @@ sequenceDiagram
 
 ### 4.5 Rancangan Basis Data (Entity Relationship Diagram - ERD)
 
-Skema basis data SIMASADI terdiri dari 9 entitas tabel relasional terpadu yang memadukan data master lembaga, agenda lapangan, penegakan regulasi KAN U-01, kepatuhan finansial, serta jejak audit:
+Skema basis data SIMASADI terdiri dari 6 entitas tabel relasional terpadu yang memadukan data master lembaga, agenda lapangan, penegakan regulasi KAN U-01, penetapan dokumen akreditasi, serta jejak audit:
 
 ```mermaid
 erDiagram
     USERS ||--o{ LPKS : "assigned_as_pic"
     USERS ||--o{ ASSESSMENTS : "creates"
-    USERS ||--o{ ASSESSMENT_EXPENSES : "reports_or_verifies"
     USERS ||--o{ CALENDAR_EVENTS : "creates"
     USERS ||--o{ BACKUPS : "records"
 
     LPKS ||--o{ ASSESSMENTS : "undergoes"
     LPKS ||--o{ ACCREDITATIONS : "possesses"
     LPKS ||--o{ CALENDAR_EVENTS : "associated_with"
-
-    ASSESSMENTS ||--o| ASSESSMENT_EXPENSES : "incurs"
-    ACCREDITATIONS ||--o{ ACCREDITATION_BILLINGS : "billed_by"
-    ACCREDITATIONS ||--o| ACCREDITATION_SIGNATURES : "certified_by"
 
     USERS {
         int id PK
@@ -417,23 +393,6 @@ erDiagram
         datetime created_at
     }
 
-    ASSESSMENT_EXPENSES {
-        int id PK
-        int assessment_id FK
-        int reported_by FK
-        int transport_cost
-        int accommodation_cost
-        int daily_allowance
-        int package_data_cost
-        int total_cost
-        string receipt_note
-        string status "BELUM_DILAPORKAN | MENUNGGU_VERIFIKASI | TERVERIFIKASI | PERLU_REVISI"
-        text verification_notes
-        int verified_by FK
-        datetime verified_at
-        datetime created_at
-    }
-
     ACCREDITATIONS {
         int id PK
         int lpk_id FK
@@ -445,33 +404,6 @@ erDiagram
         string pic
         string status
         text notes
-        datetime created_at
-    }
-
-    ACCREDITATION_BILLINGS {
-        int id PK
-        int accreditation_id FK
-        string billing_code "15-digit SIMPONI"
-        int amount
-        date expired_at
-        string status "UNPAID | PAID | EXPIRED"
-        string ntpn "16-digit Nomor Transaksi Negara"
-        string ntb
-        string payment_channel
-        datetime paid_at
-        datetime created_at
-    }
-
-    ACCREDITATION_SIGNATURES {
-        int id PK
-        int accreditation_id FK
-        string signer_name
-        string signer_role
-        string signer_nip
-        string cert_serial
-        datetime signed_at
-        string verify_hash "SHA-256 Hash"
-        boolean is_signed
         datetime created_at
     }
 
@@ -506,7 +438,7 @@ erDiagram
 
 #### 4.5.1 Kamus Data & Struktur Tabel SIMASADI (Data Dictionary)
 
-Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
+Rancangan struktur basis data SIMASADI terdiri dari 6 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
 
 ##### 1. Tabel `users` (Data Pengguna & Hak Akses Sistem)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
@@ -578,27 +510,7 @@ Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional t
 | 29 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
 | 30 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data asesmen |
 
-##### 4. Tabel `assessment_expenses` (Kepatuhan Biaya Perjalanan Dinas SBM)
-| no | nama kolom | tipe data dan panjang | key | keterangan |
-|:--:|---|---|:--:|---|
-| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik klaim biaya perjalanan dinas |
-| 2 | assessment_id | BIGINT (20) | Foreign Key (FK) | Relasi ke assessments.id agenda asesmen terkait |
-| 3 | reported_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id asesor yang melaporkan rincian pengeluaran |
-| 4 | transport_cost | INTEGER (11) | - | Biaya tiket transportasi (pesawat, kereta, taksi) dalam Rupiah |
-| 5 | accommodation_cost | INTEGER (11) | - | Biaya penginapan hotel riil sesuai tarif SBM PMK |
-| 6 | daily_allowance | INTEGER (11) | - | Uang harian perjalanan dinas sesuai tarif wilayah PMK |
-| 7 | package_data_cost | INTEGER (11) | - | Uang representasi atau biaya komunikasi paket data |
-| 8 | total_cost | INTEGER (11) | - | Akumulasi total seluruh pengeluaran riil perjalanan dinas |
-| 9 | receipt_note | VARCHAR (255) | - | Keterangan nomor bukti kuitansi atau tiket transportasi |
-| 10 | receipt_path | VARCHAR (255) | - | Lokasi penyimpanan berkas pindaian bukti bayar / kuitansi fisik |
-| 11 | status | VARCHAR (50) | - | Status klaim: BELUM_DILAPORKAN, MENUNGGU_VERIFIKASI, TERVERIFIKASI |
-| 12 | verification_notes | TEXT | - | Catatan evaluasi keuangan dari Sekretariat KAN |
-| 13 | verified_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id verifikator keuangan yang menyetujui klaim |
-| 14 | verified_at | TIMESTAMP | - | Waktu persetujuan verifikasi klaim biaya SBM |
-| 15 | created_at | TIMESTAMP | - | Waktu pencatatan pengeluaran |
-| 16 | updated_at | TIMESTAMP | - | Waktu pembaruan data pengeluaran |
-
-##### 5. Tabel `accreditations` (Siklus Akreditasi Induk & Quality Gate)
+##### 4. Tabel `accreditations` (Siklus Akreditasi Induk & Quality Gate)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik siklus akreditasi laboratorium |
@@ -614,41 +526,7 @@ Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional t
 | 11 | created_at | TIMESTAMP | - | Waktu pembuatan rekaman siklus akreditasi |
 | 12 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman siklus akreditasi |
 
-##### 6. Tabel `accreditation_billings` (Billing PNBP SIMPONI Kemenkeu)
-| no | nama kolom | tipe data dan panjang | key | keterangan |
-|:--:|---|---|:--:|---|
-| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik rekaman billing PNBP |
-| 2 | accreditation_id | BIGINT (20) | Foreign Key (FK) | Relasi ke accreditations.id proses akreditasi terkait |
-| 3 | billing_code | VARCHAR (50) | Unique Key | Kode billing resmi SIMPONI 15 digit numerik |
-| 4 | tariff_name | VARCHAR (255) | - | Jenis tarif PNBP jasa akreditasi laboratorium KAN |
-| 5 | amount | INTEGER (11) | - | Nominal tagihan tarif PNBP resmi dalam Rupiah |
-| 6 | issued_at | DATETIME | - | Waktu penerbitan kode billing SIMPONI kepada LPK |
-| 7 | expired_at | DATETIME | - | Batas waktu kedaluwarsa pembayaran kode billing |
-| 8 | status | VARCHAR (50) | - | Status pembayaran: UNPAID, PAID, atau EXPIRED |
-| 9 | ntpn | VARCHAR (50) | - | Nomor Transaksi Penerimaan Negara (NTPN 16 digit sah) |
-| 10 | ntb | VARCHAR (50) | - | Nomor Transaksi Bank / bukti setor kas negara |
-| 11 | payment_channel | VARCHAR (50) | - | Kanal transaksi perbankan (Teller, ATM, Internet Banking) |
-| 12 | paid_at | DATETIME | - | Waktu pelunasan setoran kas negara |
-| 13 | created_at | TIMESTAMP | - | Waktu pembuatan data tagihan |
-| 14 | updated_at | TIMESTAMP | - | Waktu pembaruan data tagihan |
-
-##### 7. Tabel `accreditation_signatures` (Tanda Tangan Elektronik Sertifikasi BSrE)
-| no | nama kolom | tipe data dan panjang | key | keterangan |
-|:--:|---|---|:--:|---|
-| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik berkas tanda tangan elektronik |
-| 2 | accreditation_id | BIGINT (20) | Foreign Key (FK) | Relasi ke accreditations.id dokumen yang disahkan |
-| 3 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan resmi yang ditandatangani |
-| 4 | signer_name | VARCHAR (255) | - | Nama pejabat penandatangan resmi (Ketua KAN) |
-| 5 | signer_title | VARCHAR (255) | - | Jabatan resmi penandatangan pada Komite Akreditasi Nasional |
-| 6 | signer_nip | VARCHAR (50) | - | Nomor Induk Pegawai (NIP) pejabat penandatangan |
-| 7 | is_signed | TINYINT (1) | - | Status tanda tangan (0 = Draf, 1 = Sah Tertandatangani) |
-| 8 | signed_at | DATETIME | - | Waktu pembubuhan e-Sign tersertifikasi BSrE BSSN |
-| 9 | certificate_series | VARCHAR (100) | - | Nomor seri sertifikat digital penandatangan BSrE |
-| 10 | verify_hash | VARCHAR (255) | - | Nilai hash kriptografi SHA-256 untuk verifikasi kode QR publik |
-| 11 | created_at | TIMESTAMP | - | Waktu pembuatan data penandatanganan |
-| 12 | updated_at | TIMESTAMP | - | Waktu pembaruan data penandatanganan |
-
-##### 8. Tabel `calendar_events` (Agenda Kalender Multi-Event)
+##### 5. Tabel `calendar_events` (Agenda Kalender Multi-Event)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik agenda kegiatan kalender |
@@ -665,7 +543,7 @@ Rancangan struktur basis data SIMASADI terdiri dari 9 entitas tabel relasional t
 | 12 | created_at | TIMESTAMP | - | Waktu pembuatan data agenda |
 | 13 | updated_at | TIMESTAMP | - | Waktu pembaruan data agenda |
 
-##### 9. Tabel `backups` (Histori Pencadangan Basis Data)
+##### 6. Tabel `backups` (Histori Pencadangan Basis Data)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik rekaman arsip cadangan |
@@ -730,16 +608,6 @@ classDiagram
         +getIsSubmissionOverdueAttribute() bool
         +getIsSuspensionExpiredAttribute() bool
         +lpk() BelongsTo
-        +expense() HasOne
-    }
-
-    class AssessmentExpense {
-        +int id
-        +int total_cost
-        +string status
-        +calculateTotal() int
-        +isVerified() bool
-        +assessment() BelongsTo
     }
 
     class Accreditation {
@@ -747,8 +615,6 @@ classDiagram
         +string status
         +isReleaseReady() bool
         +lpk() BelongsTo
-        +billings() HasMany
-        +signature() HasOne
     }
 
     class CalendarEvent {
@@ -763,7 +629,6 @@ classDiagram
     User "1" --> "*" Assessment : creates
     Lpk "1" --> "*" Assessment : undergoes
     Lpk "1" --> "*" Accreditation : holds
-    Assessment "1" --> "1" AssessmentExpense : has
     Accreditation "1" --> "*" CalendarEvent : schedules
 ```
 
@@ -783,17 +648,13 @@ classDiagram
 |  * Lead Assessor  : Dr. Ir. Budi Santoso       * Toleransi Pengisian : 31/03/2027 (Lewat Batas)    |
 |  * Sisa Pembekuan : 312 Hari (10 Bulan)        * Batas Pencabutan    : 31/03/2028                 |
 +---------------------------------------------------------------------------------------------------+
-|  [TAB: RINCIAN ASESMEN] | [TAB: TINDAKAN PERBAIKAN (TP)] | [TAB: BIAYA SBM] | [TAB: ALUR EHA & SK] |
+|  [TAB: RINCIAN ASESMEN] | [TAB: TINDAKAN PERBAIKAN (TP)] | [TAB: ALUR EHA & SK]                   |
 +---------------------------------------------------------------------------------------------------+
 |  PELACAKAN TINDAKAN PERBAIKAN (SLA KAN):                                                          |
 |  * Status TP Otomatis : [ DIBEKUKAN ] (Melewati SLA dasar 2 bulan tanpa pemenuhan)                |
 |  * Batas Awal SLA     : 30/05/2027             * Perpanjangan Waktu  : [ Ya ] (Max 1 Bulan)       |
 |  * No. Surat Permohonan : 142/LPK-EXT/V/2027   * Batas Perpanjangan  : 30/06/2027                 |
 |  * Tanggal Memenuhi   : [ DD/MM/YYYY ] (Input saat perbaikan disetujui lead assessor)             |
-+---------------------------------------------------------------------------------------------------+
-|  BIAYA PERJALANAN DINAS ASESOR (SBM PMK):                                                         |
-|  * Transportasi: Rp 1.500.000  * Uang Harian: Rp 860.000  * Total: Rp 2.360.000                   |
-|  * Status Verifikasi: [ TERVERIFIKASI SBM ] (Diverifikasi oleh: Admin pada 01/04/2027)            |
 +---------------------------------------------------------------------------------------------------+
 |  EVALUASI HASIL ASESMEN & SK KAN:                                                                 |
 |  * Tanggal Sidang EHA : 10/07/2027             * No. SK KAN          : 452/KAN/SK/07/2027         |

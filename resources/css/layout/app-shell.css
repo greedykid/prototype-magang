@@ -80,12 +80,12 @@
 
 .page-wrap,
 .page-wrap.page-enter-active {
-    animation: page-enter 260ms var(--ease-out-expo) forwards;
+    animation: page-enter 140ms var(--ease-out-expo) forwards;
 }
 @keyframes page-enter {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(4px);
     }
     to {
         opacity: 1;
@@ -94,7 +94,7 @@
 }
 
 .page-heading {
-    animation: heading-enter 260ms var(--ease-out-expo) forwards;
+    animation: heading-enter 140ms var(--ease-out-expo) forwards;
 }
 @keyframes heading-enter {
     from {

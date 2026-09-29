@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\AssessmentStatusService;
+use App\Services\AssessmentTpService;
 use Database\Factories\AssessmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 class Assessment extends Model
@@ -88,85 +89,20 @@ class Assessment extends Model
         ?Carbon $tpSatisfiedAt = null,
         ?string $assessmentType = null
     ): string {
-        if ($currentStatus === 'CANCELLED') {
-            return 'CANCELLED';
-        }
-
-        // 1. Keputusan akhir: SK KAN sudah terbit atau Tindakan Perbaikan telah dinyatakan Memenuhi
-        if (! empty($skNumber) || $tpStatus === self::TP_STATUS_SATISFIED || ! empty($tpSatisfiedAt)) {
-            return 'COMPLETED';
-        }
-
-        $now = now();
-
-        // 2. Batas waktu awal tindakan perbaikan:
-        // Jika sampai tanggal batas waktu awal belum ada dinyatakan memenuhi, status otomatis DIBEKUKAN (SUSPENDED).
-        $hasExplicitSla = ! empty($tpDueDate);
-        $hasActiveTp = in_array($tpStatus, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true);
-
-        if ($hasExplicitSla || $hasActiveTp) {
-            $baseDueDate = $tpDueDate ?: self::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
-            if ($baseDueDate) {
-                $effectiveDueDate = $baseDueDate->copy()->startOfDay();
-                if ($tpHasExtension && (int) $tpExtensionMonths > 0) {
-                    $defaultBase = self::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
-                    $extMonths = min(1, max(1, (int) $tpExtensionMonths));
-                    if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonths($extMonths)->toDateString())) {
-                        $effectiveDueDate->addMonths($extMonths);
-                    }
-                }
-
-                if ($now->startOfDay()->gt($effectiveDueDate)) {
-                    return 'SUSPENDED';
-                }
-            }
-
-            if ($hasActiveTp) {
-                return 'IN_PROGRESS';
-            }
-        }
-
-        // 3. Sedang dalam rentang waktu pelaksanaan kunjungan asesmen
-        if ($startAt && $endAt && $now->between($startAt, $endAt)) {
-            return 'IN_PROGRESS';
-        }
-
-        // 4. Tanggal pelaksanaan kunjungan asesmen telah lewat (now > end_at)
-        if ($endAt && $now->gt($endAt)) {
-            // Cek apakah asesmen benar-benar telah terlaksana (ada Laporan Asesmen atau Rapat EHA)
-            $hasExecutionProof = ! empty($reportDate) || ! empty($ehaDate);
-
-            if ($hasExecutionProof) {
-                $defaultSla = self::calculateDefaultDueDateForType($assessmentType, $endAt);
-                if ($defaultSla && $now->startOfDay()->gt($defaultSla->startOfDay())) {
-                    return 'SUSPENDED';
-                }
-
-                return 'COMPLETED';
-            }
-
-            // PENTING: Jika tanggal telah lewat namun BELUM ADA TINDAKAN APAPUN
-            // (tidak ada laporan, tidak ada EHA, tidak ada TP/VTP, dan tidak ada SK),
-            // maka asesmen tersebut adalah agenda yang BELUM TERLAKSANA / LEWAT JADWAL (bukan selesai!).
-            // Statusnya tetap PLANNED (Direncanakan).
-            if ($currentStatus === 'PLANNED' || empty($currentStatus)) {
-                return 'PLANNED';
-            }
-
-            return $currentStatus;
-        }
-
-        // 5. Tanggal mulai di masa depan
-        if ($startAt && $now->lt($startAt)) {
-            return $currentStatus ?? 'SCHEDULED';
-        }
-
-        // 6. Jika ada laporan atau EHA terisi
-        if (! empty($reportDate) || ! empty($ehaDate)) {
-            return 'IN_PROGRESS';
-        }
-
-        return $currentStatus ?: 'PLANNED';
+        return app(AssessmentStatusService::class)->determineStatusFromDates(
+            $startAt,
+            $endAt,
+            $currentStatus,
+            $tpStatus,
+            $skNumber,
+            $reportDate,
+            $ehaDate,
+            $tpDueDate,
+            $tpHasExtension,
+            $tpExtensionMonths,
+            $tpSatisfiedAt,
+            $assessmentType
+        );
     }
 
     public function getStatusAttribute(?string $value): string
@@ -250,85 +186,7 @@ class Assessment extends Model
 
     public static function normalizeType(?string $type, string $title = ''): string
     {
-        $raw = trim((string) $type);
-
-        // 1. Kecocokan langsung dengan 8 jenis resmi
-        if (isset(self::TYPES[$raw])) {
-            return self::TYPES[$raw];
-        }
-
-        // 2. Surveilen 1 + PRL
-        if (
-            in_array($raw, ['Surveilen 1 + PRL', 'S1 + PRL', 'S1+PRL', 'Surveilen 1 & PRL'], true)
-            || (preg_match('/\b(Surveilen\s*1|S1)\b/i', $title) && preg_match('/\b(PRL|Perluasan)\b/i', $title))
-            || (preg_match('/\b(Surveilen\s*1|S1)\b/i', $raw) && preg_match('/\b(PRL|Perluasan)\b/i', $raw))
-        ) {
-            return self::TYPE_SURVEILEN_1_PRL;
-        }
-
-        // 3. Surveilen 2 + PRL
-        if (
-            in_array($raw, ['Surveilen 2 + PRL', 'S2 + PRL', 'S2+PRL', 'Surveilen 2 & PRL'], true)
-            || (preg_match('/\b(Surveilen\s*2|S2)\b/i', $title) && preg_match('/\b(PRL|Perluasan)\b/i', $title))
-            || (preg_match('/\b(Surveilen\s*2|S2)\b/i', $raw) && preg_match('/\b(PRL|Perluasan)\b/i', $raw))
-        ) {
-            return self::TYPE_SURVEILEN_2_PRL;
-        }
-
-        // 4. Surveilen 1
-        if (
-            in_array($raw, ['S1', 'Surveilen 1', 'Surveilen 1 (S1)', 'SURVEILLANCE 1'], true)
-            || preg_match('/\b(Surveilen\s*1|S1)\b/i', $title)
-        ) {
-            return self::TYPE_SURVEILEN_1;
-        }
-
-        // 5. Surveilen 2
-        if (
-            in_array($raw, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2'], true)
-            || preg_match('/\b(Surveilen\s*2|S2)\b/i', $title)
-        ) {
-            return self::TYPE_SURVEILEN_2;
-        }
-
-        // 6. STT
-        if (
-            in_array($raw, ['STT', 'Surveilen Tidak Terjadwal', 'Surveilen Tidak Terjadwal (STT)'], true)
-            || preg_match('/\b(STT|Tidak Terjadwal)\b/i', $title)
-        ) {
-            return self::TYPE_STT;
-        }
-
-        // 7. PRL (stand-alone)
-        if (
-            in_array($raw, ['PRL', 'Perluasan Ruang Lingkup', 'Perluasan Ruang Lingkup (PRL)', 'Perluasan Lingkup', 'SCOPE_EXTENSION'], true)
-            || preg_match('/\b(PRL|Perluasan Lingkup|Perluasan Ruang Lingkup)\b/i', $title)
-        ) {
-            return self::TYPE_PRL;
-        }
-
-        // 8. Re-Akreditasi (Akreditasi Ulang)
-        if (
-            in_array($raw, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Re-asesmen (Reassessment)', 'Akreditasi Ulang', 'Re-Akreditasi (Akreditasi Ulang)'], true)
-            || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
-        ) {
-            return self::TYPE_RE_AKREDITASI;
-        }
-
-        // 9. Akreditasi Awal
-        if (
-            in_array($raw, ['INITIAL', 'Asesmen Awal', 'AA', 'Asesmen Awal (AA)', 'Akreditasi Awal'], true)
-            || preg_match('/\b(Asesmen Awal|Akreditasi Awal|AA)\b/i', $title)
-        ) {
-            return self::TYPE_AKREDITASI_AWAL;
-        }
-
-        // Fallback untuk "Surveilen" polos
-        if (in_array($raw, ['SURVEILLANCE', 'Surveilen', 'Surveilen (Surveillance)'], true)) {
-            return self::TYPE_SURVEILEN_1;
-        }
-
-        return $raw ?: self::TYPE_SURVEILEN_1;
+        return app(AssessmentStatusService::class)->normalizeType($type, $title);
     }
 
     public function getAssessmentTypeLabelAttribute(): string
@@ -336,157 +194,39 @@ class Assessment extends Model
         return self::normalizeType($this->assessment_type, (string) $this->title);
     }
 
-    /**
-     * Hitung tanggal default toleransi pengisian dokumen asesmen.
-     * Standar KAN: Maksimal batas toleransi pengisian adalah 4 bulan dari bulan ke-15 siklus akreditasi (Bulan 15 + 4 = Bulan 19).
-     * Jika tidak ada tanggal sertifikat LPK, default 4 bulan dari tanggal pelaksanaan asesmen.
-     */
     public function calculateDefaultSubmissionDueDate(): ?Carbon
     {
-        $lpk = $this->relationLoaded('lpk') ? $this->lpk : $this->lpk()->first();
-        $certDate = $lpk?->certificate_date ?: ($lpk?->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
-
-        if ($certDate) {
-            $isS2 = str_contains(strtolower($this->assessment_type ?: ''), 's2') || str_contains(strtolower($this->title ?: ''), 's2');
-            if ($isS2) {
-                // S2: Bulan ke-36 + 4 bulan = bulan ke-40
-                return $certDate->copy()->addMonths(36)->addMonths(4)->endOfMonth()->endOfDay();
-            }
-
-            // Standar S1 / Surveilen: 4 bulan dari bulan ke-15 siklus akreditasi (Bulan ke-15 + 4 bulan = bulan ke-19)
-            return $certDate->copy()->addMonths(15)->addMonths(4)->endOfMonth()->endOfDay();
-        }
-
-        if ($this->end_at) {
-            return $this->end_at->copy()->addMonths(4)->endOfMonth()->endOfDay();
-        }
-
-        if ($this->start_at) {
-            return $this->start_at->copy()->addMonths(4)->endOfMonth()->endOfDay();
-        }
-
-        return null;
+        return app(AssessmentStatusService::class)->calculateDefaultSubmissionDueDate($this);
     }
 
-    /**
-     * Batas waktu toleransi pengisian dokumen surveilen.
-     * Menggunakan nilai dari kolom database jika telah diinputkan/disimpan,
-     * atau menghitung batas bawaan resmi (4 bulan dari bulan ke-15).
-     */
     public function getSubmissionDueDateAttribute(): ?Carbon
     {
-        if (! empty($this->attributes['submission_due_date'])) {
-            return Carbon::parse($this->attributes['submission_due_date'])->endOfDay();
-        }
-
-        return $this->calculateDefaultSubmissionDueDate();
+        return app(AssessmentStatusService::class)->getSubmissionDueDate($this);
     }
 
-    /**
-     * Batas waktu kesempatan penyelesaian pembekuan surveilen (1 tahun sejak batas toleransi pengisian).
-     * LPK diberi kesempatan 1 tahun untuk menyelesaikan surveilen sebelum status akreditasi dicabut.
-     */
     public function getSuspensionResolutionDeadlineAttribute(): ?Carbon
     {
-        $dueDate = $this->submission_due_date;
-        if (! $dueDate) {
-            return null;
-        }
-
-        return $dueDate->copy()->addYear()->endOfDay();
+        return app(AssessmentStatusService::class)->calculateSuspensionResolutionDeadline($this);
     }
 
-    /**
-     * Sisa hari menuju batas akhir 1 tahun kesempatan penyelesaian pembekuan sebelum pencabutan akreditasi.
-     */
     public function getDaysRemainingSuspensionAttribute(): ?int
     {
-        $deadline = $this->suspension_resolution_deadline;
-        if (! $deadline) {
-            return null;
-        }
-
-        return (int) now()->startOfDay()->diffInDays($deadline->copy()->startOfDay(), false);
+        return app(AssessmentStatusService::class)->calculateDaysRemainingSuspension($this);
     }
 
-    /**
-     * Memeriksa apakah asesmen ini merupakan surveilen periode lampau dari LPK yang saat ini berstatus aktif.
-     * Jika LPK saat ini aktif, seluruh surveilen dari tahun-tahun sebelumnya otomatis sudah terealisasikan.
-     */
     public function isPastSurveillanceForActiveLpk(): bool
     {
-        $lpk = $this->relationLoaded('lpk') ? $this->lpk : $this->lpk()->first();
-        if (! $lpk || $lpk->getRawOriginal('status') !== 'ACTIVE') {
-            return false;
-        }
-
-        // Jika asesmen selesai sebelum tanggal sertifikat siklus berjalan LPK, otomatis merupakan asesmen siklus lampau
-        if ($this->end_at && $lpk->certificate_date && $this->end_at->lt($lpk->certificate_date->copy()->startOfDay())) {
-            return true;
-        }
-
-        // Jika tanggal selesai berada di tahun sebelum tahun berjalan, otomatis terealisasikan
-        return (bool) ($this->end_at && $this->end_at->lt(now()->startOfYear()));
+        return app(AssessmentStatusService::class)->isPastSurveillanceForActiveLpk($this);
     }
 
-    /**
-     * Cek apakah masa kesempatan pembekuan 1 tahun telah terlampaui tanpa penyelesaian.
-     * Jika sudah lewat 1 tahun dari toleransi pengisian, maka akreditasi dicabut (REVOKED).
-     */
     public function getIsSuspensionExpiredAttribute(): bool
     {
-        $rawStatus = $this->attributes['status'] ?? null;
-        if (in_array($rawStatus, ['COMPLETED', 'CANCELLED'], true)) {
-            return false;
-        }
-
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->sk_number) || ! empty($this->report_date)) {
-            return false;
-        }
-
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return false;
-        }
-
-        $deadline = $this->suspension_resolution_deadline;
-        if (! $deadline) {
-            return false;
-        }
-
-        return now()->gt($deadline);
+        return app(AssessmentStatusService::class)->isSuspensionExpired($this);
     }
 
-    /**
-     * Cek apakah pengisian asesmen telah melewati batas toleransi bulan dan tahun kunjungan.
-     * Jika sudah lewat dari akhir bulan waktu kunjungan dan belum berstatus COMPLETED, maka dikatakan sudah lewat jadwal asesmen.
-     */
     public function getIsSubmissionOverdueAttribute(): bool
     {
-        $rawStatus = $this->attributes['status'] ?? null;
-        if (in_array($rawStatus, ['COMPLETED', 'CANCELLED'], true)) {
-            return false;
-        }
-
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->sk_number) || ! empty($this->report_date)) {
-            return false;
-        }
-
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return false;
-        }
-
-        // Jika jadwal pelaksanaan asesmen masih di masa depan (belum berlangsung),
-        // maka toleransi pengisian dokumen belum bisa dikatakan lewat / overdue
-        if ($this->start_at && now()->lt($this->start_at)) {
-            return false;
-        }
-
-        $dueDate = $this->submission_due_date;
-        if (! $dueDate) {
-            return false;
-        }
-
-        return now()->gt($dueDate);
+        return app(AssessmentStatusService::class)->isSubmissionOverdue($this);
     }
 
     /**
@@ -496,45 +236,17 @@ class Assessment extends Model
      */
     public static function calculateDefaultDueDateForType(?string $type, ?Carbon $baseDate): ?Carbon
     {
-        if (! $baseDate) {
-            return null;
-        }
-
-        $normalizedType = self::normalizeType($type ?? '');
-        $isInitial = in_array($normalizedType, [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'], true);
-
-        return $baseDate->copy()->addMonths($isInitial ? 3 : 2)->startOfDay();
+        return app(AssessmentTpService::class)->calculateDefaultDueDate($type, $baseDate);
     }
 
-    /**
-     * Hitung batas waktu default TP & VTP sesuai regulasi KAN:
-     * - Akreditasi Awal: 3 bulan
-     * - S1, S2, RA, PRL, STT, Survailen, Re-asesmen: 2 bulan
-     */
     public function calculateDefaultTpDueDate(): ?Carbon
     {
-        if (! $this->end_at) {
-            return null;
-        }
-
-        return self::calculateDefaultDueDateForType($this->assessment_type, $this->end_at);
+        return app(AssessmentTpService::class)->calculateDefaultTpDueDate($this);
     }
 
-    /**
-     * Hitung tanggal reminder TP & VTP (Notifikasi 1 Pengingat Awal):
-     * Sesuai ketentuan SOP PIC Unit Akreditasi Lab:
-     * - Akreditasi Awal (AA): 2 bulan setelah tanggal realisasi pelaksanaan (end_at)
-     * - Lainnya (Sr1, Sr2, PRL, STT, RA): 1 bulan setelah tanggal realisasi pelaksanaan (end_at)
-     */
     public function calculateDefaultTpReminderDate(): ?Carbon
     {
-        if (! $this->end_at) {
-            return null;
-        }
-
-        $isInitial = in_array($this->assessment_type_label, [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'], true);
-
-        return $this->end_at->copy()->addMonths($isInitial ? 2 : 1)->startOfDay();
+        return app(AssessmentTpService::class)->calculateDefaultTpReminderDate($this);
     }
 
     public function getAssessmentTeamAttribute(): ?string
@@ -553,261 +265,44 @@ class Assessment extends Model
         return self::EHA_STATUSES[$this->eha_status] ?? ($this->eha_status ?: 'Belum EHA');
     }
 
-    /**
-     * Hitung tanggal reminder penerbitan SK KAN:
-     * 10 hari kalender setelah tanggal verifikasi TP (VTP) selesai (tp_satisfied_at).
-     * Berlaku khusus untuk kategori S1, S2, dan STT.
-     */
     public function calculateDefaultSkReminderDate(): ?Carbon
     {
-        if (! $this->tp_satisfied_at) {
-            return null;
-        }
-
-        $type = strtoupper(trim((string) $this->assessment_type));
-        $eligibleTypes = [
-            'S1', 'S2', 'STT',
-            'SURVEILEN 1', 'SURVEILEN 2', 'SURVEILEN TIDAK TERJADWAL',
-            'SURVEILEN', 'SURVEILLANCE'
-        ];
-
-        if (! in_array($type, $eligibleTypes, true)) {
-            return null;
-        }
-
-        return $this->tp_satisfied_at->copy()->addDays(10)->startOfDay();
+        return app(AssessmentTpService::class)->calculateDefaultSkReminderDate($this);
     }
 
-    /**
-     * Batas waktu efektif TP & VTP.
-     * Mengakomodasi perpanjangan masa perbaikan maksimal 1 bulan jika ada surat permohonan resmi.
-     */
     public function getEffectiveTpDueDateAttribute(): ?Carbon
     {
-        $baseDate = $this->tp_due_date ?: $this->calculateDefaultTpDueDate();
-
-        if (! $baseDate) {
-            return null;
-        }
-
-        if ($this->tp_has_extension && $this->tp_extension_months > 0) {
-            $defaultBase = $this->calculateDefaultTpDueDate();
-            $extensionMonths = min(1, max(1, (int) $this->tp_extension_months));
-
-            // Jika tp_due_date sudah sama persis dengan tanggal setelah perpanjangan (misalnya otomatis terisi dari form),
-            // gunakan tp_due_date tersebut agar tidak bertambah dobel menjadi +2 bulan.
-            if ($defaultBase && $this->tp_due_date && $this->tp_due_date->toDateString() === $defaultBase->copy()->addMonths($extensionMonths)->toDateString()) {
-                return $this->tp_due_date->copy()->startOfDay();
-            }
-
-            return $baseDate->copy()->addMonths($extensionMonths)->startOfDay();
-        }
-
-        return $baseDate->copy()->startOfDay();
+        return app(AssessmentTpService::class)->calculateEffectiveTpDueDate($this);
     }
 
-    /**
-     * Sisa hari menuju batas akhir efektif TP & VTP (positif = sisa hari, negatif = lewat jatuh tempo).
-     */
     public function getDaysRemainingTpAttribute(): ?int
     {
-        $effectiveDueDate = $this->effective_tp_due_date;
-
-        if (! $effectiveDueDate) {
-            return null;
-        }
-
-        return (int) now()->startOfDay()->diffInDays($effectiveDueDate, false);
+        return app(AssessmentTpService::class)->calculateDaysRemainingTp($this);
     }
 
-    /**
-     * Cek apakah TP & VTP melewati batas waktu yang ditetapkan KAN.
-     */
     public function getIsTpOverdueAttribute(): bool
     {
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at) || ! empty($this->sk_number)) {
-            return false;
-        }
-
-        // Asesmen lampau untuk LPK aktif otomatis terealisasi
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return false;
-        }
-
-        // Jika memiliki tanggal batas waktu eksplisit (tp_due_date)
-        if ($this->tp_due_date) {
-            $effectiveDueDate = $this->effective_tp_due_date;
-            return $effectiveDueDate && now()->startOfDay()->gt($effectiveDueDate);
-        }
-
-        // Jika dalam proses perbaikan aktif atau asesmen telah terlaksana (ada laporan/EHA)
-        $hasActiveTp = in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true)
-            || ! empty($this->report_date)
-            || ! empty($this->eha_date);
-
-        if ($hasActiveTp) {
-            $effectiveDueDate = $this->effective_tp_due_date;
-            return $effectiveDueDate && now()->startOfDay()->gt($effectiveDueDate);
-        }
-
-        return false;
+        return app(AssessmentTpService::class)->isTpOverdue($this);
     }
 
-    /**
-     * Label status tindakan perbaikan dalam bahasa Indonesia.
-     */
     public function getTpStatusLabelAttribute(): string
     {
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return 'Dinyatakan Memenuhi (Selesai)';
-        }
-
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at)) {
-            return 'Dinyatakan Memenuhi (Selesai)';
-        }
-
-        if ($this->is_suspension_expired || $this->status === 'REVOKED') {
-            return 'Akreditasi Dicabut (Lewat 1 Tahun)';
-        }
-
-        if ($this->is_tp_overdue || $this->status === 'SUSPENDED') {
-            return 'Dibekukan (Lewat Batas Waktu)';
-        }
-
-        if (in_array($this->status, ['PLANNED', 'SCHEDULED'], true) && $this->tp_status === self::TP_STATUS_NONE && ! $this->tp_due_date) {
-            return 'Menunggu Pelaksanaan Asesmen';
-        }
-
-        return 'Sedang Berlangsung';
+        return app(AssessmentTpService::class)->getTpStatusLabel($this);
     }
 
-    /**
-     * Badge status batas waktu KAN terintegrasi untuk tampilan tabel dan detail.
-     */
     public function getTpSlaBadgeAttribute(): array
     {
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return [
-                'type' => 'success',
-                'label' => 'Terealisasi',
-                'detail' => 'Asesmen surveilen periode lampau otomatis terealisasikan (LPK berstatus aktif)',
-            ];
-        }
-
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->sk_number)) {
-            return [
-                'type' => 'success',
-                'label' => 'Memenuhi',
-                'detail' => $this->tp_satisfied_at ? 'Dinyatakan pada ' . $this->tp_satisfied_at->format('d M Y') : 'Tindakan perbaikan diterima',
-            ];
-        }
-
-        if ($this->is_suspension_expired || $this->status === 'REVOKED') {
-            return [
-                'type' => 'danger',
-                'label' => 'Akreditasi Dicabut',
-                'detail' => 'Status akreditasi dicabut: melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen tanpa penyelesaian',
-            ];
-        }
-
-        if ($this->is_tp_overdue || $this->status === 'SUSPENDED') {
-            $days = $this->days_remaining_tp;
-            $overdueDays = abs($days ?? 0);
-            return [
-                'type' => 'suspended',
-                'label' => 'Dibekukan (Terlambat ' . ($overdueDays > 0 ? $overdueDays . ' Hari' : '') . ')',
-                'detail' => 'Status dibekukan: melewati batas waktu awal (' . ($this->effective_tp_due_date ? $this->effective_tp_due_date->format('d M Y') : '-') . ') belum dinyatakan memenuhi',
-            ];
-        }
-
-        if (in_array($this->status, ['PLANNED', 'SCHEDULED'], true) && $this->tp_status === self::TP_STATUS_NONE) {
-            return [
-                'type' => 'neutral',
-                'label' => 'Belum Asesmen',
-                'detail' => 'Kunjungan asesmen belum dilaksanakan (belum ada temuan KNC)',
-            ];
-        }
-
-        if ($this->tp_status === self::TP_STATUS_NONE) {
-            return [
-                'type' => 'neutral',
-                'label' => 'Nihil Temuan',
-                'detail' => 'Tidak memerlukan perbaikan',
-            ];
-        }
-
-        $days = $this->days_remaining_tp;
-
-        if ($days !== null && $days <= 14) {
-            return [
-                'type' => 'warning',
-                'label' => 'Jatuh Tempo (' . $days . ' Hari)',
-                'detail' => 'Batas akhir ' . ($this->effective_tp_due_date ? $this->effective_tp_due_date->format('d M Y') : '-'),
-            ];
-        }
-
-        return [
-            'type' => 'info',
-            'label' => 'Dalam Proses' . ($this->tp_has_extension ? ' (+1 Bulan)' : ''),
-            'detail' => 'Sisa ' . ($days ?? 0) . ' hari hingga ' . ($this->effective_tp_due_date ? $this->effective_tp_due_date->format('d M Y') : '-'),
-        ];
+        return app(AssessmentTpService::class)->getTpSlaBadge($this);
     }
 
-    /**
-     * Hitung rentang durasi (dalam hari kalender) dari pelaksanaan asesmen hingga tanggal penerbitan SK.
-     * Menggunakan tanggal selesai asesmen (end_at) atau tanggal mulai (start_at) sebagai titik awal.
-     */
     public function getSkLeadTimeDaysAttribute(): ?int
     {
-        $baseDate = $this->end_at ?? $this->start_at;
-        if (! $baseDate || ! $this->sk_date) {
-            return null;
-        }
-
-        return (int) $baseDate->copy()->startOfDay()->diffInDays($this->sk_date->copy()->startOfDay(), false);
+        return app(AssessmentTpService::class)->calculateSkLeadTimeDays($this);
     }
 
-    /**
-     * Label representatif untuk rentang waktu pelaksanaan asesmen sampai tanggal SK.
-     * Contoh: "74 hari (2 bulan 14 hari)", "15 hari", atau "0 hari (pada hari pelaksanaan)".
-     */
     public function getSkLeadTimeLabelAttribute(): ?string
     {
-        $days = $this->sk_lead_time_days;
-        if ($days === null) {
-            return null;
-        }
-
-        if ($days < 0) {
-            return abs($days) . ' hari sebelum asesmen';
-        }
-
-        if ($days === 0) {
-            return '0 hari (pada hari pelaksanaan)';
-        }
-
-        $baseDate = ($this->end_at ?? $this->start_at)->copy()->startOfDay();
-        $skDate = $this->sk_date->copy()->startOfDay();
-        $diff = $baseDate->diff($skDate);
-
-        $parts = [];
-        if ($diff->y > 0) {
-            $parts[] = $diff->y . ' tahun';
-        }
-        if ($diff->m > 0) {
-            $parts[] = $diff->m . ' bulan';
-        }
-        if ($diff->d > 0) {
-            $parts[] = $diff->d . ' hari';
-        }
-
-        $detailed = !empty($parts) ? implode(' ', $parts) : ($days . ' hari');
-
-        if ($diff->y > 0 || $diff->m > 0) {
-            return "{$days} hari ({$detailed})";
-        }
-
-        return "{$days} hari";
+        return app(AssessmentTpService::class)->calculateSkLeadTimeLabel($this);
     }
 
 
@@ -942,10 +437,5 @@ class Assessment extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function expense(): HasOne
-    {
-        return $this->hasOne(AssessmentExpense::class);
     }
 }

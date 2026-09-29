@@ -47,23 +47,27 @@
     $defaultSubmissionDueDateVal = $defaultSubmissionDueCarbon?->format('Y-m-d') ?: '';
     $submissionDueDateVal = old('submission_due_date', $assessment->submission_due_date?->format('Y-m-d') ?: (request('submission_due_date') ?: $defaultSubmissionDueDateVal));
 
-    $initialComputedStatus = \App\Models\Assessment::determineStatusFromDates(
-        $startCarbon,
-        $endCarbon,
-        $assessment->status,
-        old('tp_status', $assessment->tp_status),
-        old('sk_number', $assessment->sk_number),
-        $assessment->report_date,
-        $assessment->eha_date,
-        $tpDueDateCarbon,
-        $tpHasExtVal,
-        $tpExtMonthsVal,
-        $tpSatisfiedCarbon,
-        $typeVal
-    );
+    if (! $assessment->exists) {
+        $initialComputedStatus = 'PLANNED';
+    } else {
+        $initialComputedStatus = \App\Models\Assessment::determineStatusFromDates(
+            $startCarbon,
+            $endCarbon,
+            $assessment->status,
+            old('tp_status', $assessment->tp_status),
+            old('sk_number', $assessment->sk_number),
+            $assessment->report_date,
+            $assessment->eha_date,
+            $tpDueDateCarbon,
+            $tpHasExtVal,
+            $tpExtMonthsVal,
+            $tpSatisfiedCarbon,
+            $typeVal
+        );
+    }
     $statusLabels = [
-        'PLANNED' => 'Direncanakan',
-        'SCHEDULED' => 'Terjadwal',
+        'PLANNED' => ($assessment->exists && $isOverdueWithoutAction) ? 'Direncanakan' : 'Menunggu Pelaksanaan',
+        'SCHEDULED' => 'Menunggu Pelaksanaan',
         'IN_PROGRESS' => 'Sedang Berlangsung',
         'SUSPENDED' => 'Dibekukan',
         'COMPLETED' => 'Selesai',
@@ -71,10 +75,10 @@
     ];
 
     $statusDescriptions = [
-        'PLANNED' => $isOverdueWithoutAction
+        'PLANNED' => ($assessment->exists && $isOverdueWithoutAction)
             ? 'Otomatis: Tanggal pelaksanaan telah lewat namun belum ada tindakan/pelaporan asesmen (Lewat Jadwal).'
-            : 'Otomatis: Agenda asesmen direncanakan.',
-        'SCHEDULED' => 'Otomatis: Tanggal mulai di masa mendatang.',
+            : 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
+        'SCHEDULED' => 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'IN_PROGRESS' => 'Otomatis: Saat ini dalam periode pelaksanaan atau tindak lanjut asesmen.',
         'SUSPENDED' => 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.',
         'COMPLETED' => 'Otomatis: Tindakan perbaikan memenuhi atau SK KAN telah terbit.',
@@ -83,7 +87,7 @@
     $initialComputedDesc = $statusDescriptions[$initialComputedStatus] ?? 'Otomatis ditentukan dari tanggal pelaksanaan & milestone.';
 
     // Status Tindakan Perbaikan (TP & VTP) Otomatis:
-    // Selama tanggal dinyatakan memenuhi belum diinput, statusnya sedang berlangsung.
+    // Selama tanggal dinyatakan memenuhi belum diinput, statusnya sedang berlangsung jika asesmen telah dilaksanakan.
     // Jika melewati batas waktu awal belum ada yang memenuhi, statusnya dibekukan.
     // Jika tanggal dinyatakan memenuhi telah diinput, statusnya memenuhi (selesai).
     $effectiveDueDateCarbon = $tpDueDateCarbon ?: \App\Models\Assessment::calculateDefaultDueDateForType($typeVal, $endCarbon ?: $startCarbon);
@@ -92,6 +96,10 @@
     }
     $isSlaPassed = $effectiveDueDateCarbon && now()->startOfDay()->gt($effectiveDueDateCarbon->copy()->startOfDay());
     $isTpSatisfied = ! empty($tpSatisfiedCarbon) || old('tp_status', $assessment->tp_status) === \App\Models\Assessment::TP_STATUS_SATISFIED;
+    $hasExecutionProof = ! empty($assessment->report_date) || ! empty($assessment->eha_date);
+    $hasExplicitTpDate = ! empty($assessment->tp_due_date) || old('tp_due_date');
+    $isVisitFinished = $endCarbon && now()->gt($endCarbon);
+    $hasActiveTp = in_array(old('tp_status', $assessment->tp_status), [\App\Models\Assessment::TP_STATUS_IN_PROGRESS, \App\Models\Assessment::TP_STATUS_UNDER_VERIFICATION], true);
 
     if ($isTpSatisfied) {
         $initialComputedTpStatus = 'SATISFIED';
@@ -108,11 +116,16 @@
         $initialComputedTpLabel = 'Dibekukan (Lewat Batas Waktu)';
         $initialComputedTpBadgeClass = 'status-suspended';
         $initialComputedTpDesc = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi.';
-    } else {
+    } elseif ($hasActiveTp || ($isVisitFinished && ! $isOverdueWithoutAction) || $hasExecutionProof || ($hasExplicitTpDate && $isVisitFinished)) {
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Sedang Berlangsung';
         $initialComputedTpBadgeClass = 'status-in_progress';
         $initialComputedTpDesc = 'Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan aktif berlangsung.';
+    } else {
+        $initialComputedTpStatus = 'NONE';
+        $initialComputedTpLabel = 'Menunggu Pelaksanaan';
+        $initialComputedTpBadgeClass = 'status-planned';
+        $initialComputedTpDesc = 'Otomatis: Kunjungan asesmen belum terlaksana / belum ada temuan tindakan perbaikan.';
     }
 @endphp
 
@@ -270,7 +283,7 @@
                                         {{ $initialComputedDesc }}
                                     </span>
                                 </div>
-                                <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}">
+                                <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
                             </div>
                             <span class="lpk-field-hint">* Otomatis dihitung berdasarkan tanggal pelaksanaan &amp; milestone perbaikan.</span>
                         </div>
@@ -289,7 +302,7 @@
                             </svg>
                         </div>
                         <div class="lpk-card-header-text">
-                            <h2>Waktu Pelaksanaan &amp; Tim Asesor</h2>
+                            <h2>Tanggal Pelaksanaan &amp; Tim Asesor</h2>
                             <p>Rentang tanggal kunjungan lapangan, lokasi, dan personil tim penilai KAN.</p>
                         </div>
                     </div>
@@ -325,7 +338,7 @@
                         </label>
                         <input id="assessment-submission-due-date" type="date" name="submission_due_date" value="{{ $submissionDueDateVal }}" data-default-date="{{ $defaultSubmissionDueDateVal }}">
                         <span id="assessment-submission-due-date-hint" class="lpk-field-hint">
-                            Maksimal batas toleransi pengisian dokumen (bawaan: 4 bulan dari bulan ke-15 siklus akreditasi / dapat diubah sesuai kondisi proses tertentu).
+                            Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).
                         </span>
                     </div>
 
@@ -389,7 +402,7 @@
                             <span id="tp-status-badge-preview" class="status {{ $initialComputedTpBadgeClass }}" style="font-weight: 600; font-size: 12px;">
                                 {{ $initialComputedTpLabel }}
                             </span>
-                            <input type="hidden" name="tp_status" id="input-auto-tp-status" value="{{ $initialComputedTpStatus }}">
+                            <input type="hidden" name="tp_status" id="input-auto-tp-status" value="{{ $initialComputedTpStatus }}" data-initial-tp-status="{{ old('tp_status', $assessment->tp_status ?? 'NONE') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
                         </div>
                         <span id="tp-status-desc-preview" class="lpk-field-hint">* {{ $initialComputedTpDesc }}</span>
                     </div>
@@ -672,16 +685,22 @@
                 }
             }
 
+            const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
+            const isS2 = typeVal.toLowerCase().includes('s2') || (typeVal === 'Surveilen 2');
+            const monthsToAdd = isS2 ? 39 : 18;
+
             if (certDateStr) {
                 const parts = certDateStr.split('-');
                 if (parts.length === 3) {
                     let y = parseInt(parts[0], 10);
                     let m = parseInt(parts[1], 10);
-                    const targetMonthIndex = m - 1 + 19;
+                    let d = parseInt(parts[2], 10);
+                    const targetMonthIndex = m - 1 + monthsToAdd;
                     const targetYear = y + Math.floor(targetMonthIndex / 12);
                     const targetMonth = (targetMonthIndex % 12) + 1;
                     const lastDay = new Date(targetYear, targetMonth, 0).getDate();
-                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                    const targetDay = Math.min(d, lastDay);
+                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
                 }
             }
 
@@ -691,11 +710,13 @@
                 if (parts.length === 3) {
                     let y = parseInt(parts[0], 10);
                     let m = parseInt(parts[1], 10);
-                    const targetMonthIndex = m - 1 + 4;
+                    let d = parseInt(parts[2], 10);
+                    const targetMonthIndex = m - 1 + 3;
                     const targetYear = y + Math.floor(targetMonthIndex / 12);
                     const targetMonth = (targetMonthIndex % 12) + 1;
                     const lastDay = new Date(targetYear, targetMonth, 0).getDate();
-                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+                    const targetDay = Math.min(d, lastDay);
+                    return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
                 }
             }
 
@@ -828,13 +849,20 @@
             const isTpSatisfied = tpSatisfiedVal !== '';
             const hasExecutionProof = reportDateVal !== '' || ehaDateVal !== '';
             const hasCompletedAction = skNumberVal !== '' || isTpSatisfied;
-            const isOverdueWithoutAction = endDate && (now > endDate) && !hasExecutionProof && !skNumberVal && !tpDueDateVal && !isTpSatisfied;
+            const isVisitFinished = endDate && (now > endDate);
+            const isVisitInProgress = startDate && endDate && (now >= startDate && now <= endDate);
+            const isFutureDate = startDate && (now < startDate);
+            const isOverdueWithoutAction = isVisitFinished && !hasExecutionProof && !skNumberVal && !tpDueDateVal && !isTpSatisfied;
+
+            const initialSavedTp = hiddenTpStatus ? (hiddenTpStatus.dataset.initialTpStatus || '') : '';
+            const isAssessmentExisting = hiddenTpStatus && hiddenTpStatus.dataset.exists === '1';
+            const hasActiveTpRecord = isAssessmentExisting && (initialSavedTp === 'IN_PROGRESS' || initialSavedTp === 'UNDER_VERIFICATION');
 
             // 1. UPDATE STATUS TINDAKAN PERBAIKAN (TP) OTOMATIS
-            let tpStatus = 'IN_PROGRESS';
-            let tpLabel = 'Sedang Berlangsung';
-            let tpBadgeClass = 'status-in_progress';
-            let tpDescription = 'Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan sedang berlangsung.';
+            let tpStatus = 'NONE';
+            let tpLabel = 'Menunggu Pelaksanaan';
+            let tpBadgeClass = 'status-planned';
+            let tpDescription = 'Otomatis: Kunjungan asesmen belum terlaksana / belum ada temuan tindakan perbaikan.';
 
             if (isTpSatisfied) {
                 tpStatus = 'SATISFIED';
@@ -851,6 +879,16 @@
                 tpLabel = 'Dibekukan (Lewat Batas Waktu)';
                 tpBadgeClass = 'status-suspended';
                 tpDescription = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
+            } else if (hasActiveTpRecord || (isVisitFinished && !isOverdueWithoutAction) || hasExecutionProof || (tpDueDateVal && isVisitFinished)) {
+                tpStatus = 'IN_PROGRESS';
+                tpLabel = 'Sedang Berlangsung';
+                tpBadgeClass = 'status-in_progress';
+                tpDescription = 'Otomatis: Selama tanggal dinyatakan memenuhi belum diinput, status tindakan perbaikan sedang berlangsung.';
+            } else {
+                tpStatus = 'NONE';
+                tpLabel = 'Menunggu Pelaksanaan';
+                tpBadgeClass = 'status-planned';
+                tpDescription = 'Otomatis: Kunjungan asesmen belum terlaksana / belum ada temuan tindakan perbaikan.';
             }
 
             if (tpBadge) {
@@ -891,19 +929,33 @@
                 badgeClass = 'status-suspended';
                 description = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
             }
-            // d. Jika dalam masa perbaikan aktif atau kunjungan berjalan
-            else if (tpStatus === 'IN_PROGRESS' || hasExecutionProof || (startDate && endDate && now >= startDate && now <= endDate)) {
+            // d. Jika kunjungan sedang berlangsung di lapangan saat ini
+            else if (isVisitInProgress) {
                 status = 'IN_PROGRESS';
                 label = 'Sedang Berlangsung';
                 badgeClass = 'status-in_progress';
-                description = 'Otomatis: Saat ini dalam periode pelaksanaan atau tindak lanjut asesmen.';
+                description = 'Otomatis: Saat ini dalam periode pelaksanaan kunjungan asesmen.';
             }
-            // e. Jika tanggal mulai di masa depan
-            else if (startDate && now < startDate) {
-                status = 'SCHEDULED';
-                label = 'Terjadwal';
-                badgeClass = 'status-scheduled';
-                description = 'Otomatis: Tanggal pelaksanaan di masa mendatang.';
+            // e. Jika kunjungan telah lewat dan dalam masa tindak lanjut perbaikan aktif
+            else if ((isVisitFinished && (tpStatus === 'IN_PROGRESS' || hasExecutionProof)) || hasExecutionProof) {
+                status = 'IN_PROGRESS';
+                label = 'Sedang Berlangsung';
+                badgeClass = 'status-in_progress';
+                description = 'Otomatis: Saat ini dalam periode tindak lanjut asesmen.';
+            }
+            // f. Jika tanggal mulai di masa depan
+            else if (isFutureDate) {
+                status = isAssessmentExisting ? (hiddenStatus ? (hiddenStatus.dataset.initialStatus || 'PLANNED') : 'PLANNED') : 'PLANNED';
+                label = 'Menunggu Pelaksanaan';
+                badgeClass = 'status-planned';
+                description = 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).';
+            }
+            // g. Default (belum ada tanggal atau agenda baru)
+            else {
+                status = 'PLANNED';
+                label = 'Menunggu Pelaksanaan';
+                badgeClass = 'status-planned';
+                description = 'Otomatis: Agenda asesmen menunggu pelaksanaan.';
             }
 
             badge.className = 'status ' + badgeClass;

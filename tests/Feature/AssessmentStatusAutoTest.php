@@ -698,8 +698,8 @@ class AssessmentStatusAutoTest extends TestCase
             'status' => 'ACTIVE',
         ]);
 
-        // Default: Month 15 + 4 = Month 19 from certificate_date
-        $expectedDefaultDue = $certDate->copy()->addMonths(15)->addMonths(4)->endOfMonth();
+        // Default: Month 18 (window bulan 15-18) from certificate_date
+        $expectedDefaultDue = $certDate->copy()->addMonths(18)->endOfDay();
 
         $assessment = Assessment::factory()->create([
             'lpk_id' => $lpk->id,
@@ -711,6 +711,20 @@ class AssessmentStatusAutoTest extends TestCase
         ]);
 
         $this->assertEquals($expectedDefaultDue->toDateString(), $assessment->submission_due_date->toDateString());
+
+        // Verifikasi contoh kasus resmi KAN: Terbit sertifikat 1 Okt 2026 -> Maks toleransi pengisian 1 April 2028
+        $lpkOct = Lpk::factory()->create([
+            'name' => 'Balai Besar Logam Sample',
+            'certificate_date' => '2026-10-01',
+            'status' => 'ACTIVE',
+        ]);
+        $assessmentOct = Assessment::factory()->create([
+            'lpk_id' => $lpkOct->id,
+            'title' => 'Asesmen S1 Balai Besar Logam',
+            'assessment_type' => 'Surveilen 1',
+            'submission_due_date' => null,
+        ]);
+        $this->assertEquals('2028-04-01', $assessmentOct->submission_due_date->format('Y-m-d'));
 
         // 2. Form renders the default submission due date
         $response = $this->actingAs($this->admin)->get(route('assessments.edit', $assessment));
@@ -740,6 +754,41 @@ class AssessmentStatusAutoTest extends TestCase
         $showResponse = $this->actingAs($this->admin)->get(route('assessments.show', $assessment));
         $showResponse->assertOk();
         $showResponse->assertSee($assessment->submission_due_date->format('d M Y'));
+    }
+
+    public function test_create_assessment_form_defaults_badges_to_planned_and_waiting_execution_instead_of_in_progress(): void
+    {
+        // 1. Create form default (prefilled 14 days in future)
+        $responseBlank = $this->actingAs($this->admin)->get(route('assessments.create'));
+        $responseBlank->assertOk();
+        $responseBlank->assertSeeInOrder([
+            'id="status-badge-preview"',
+            'Menunggu Pelaksanaan',
+        ], false);
+        $responseBlank->assertSeeInOrder([
+            'id="tp-status-badge-preview"',
+            'Menunggu Pelaksanaan',
+        ], false);
+        $responseBlank->assertDontSee('id="status-badge-preview" class="status status-in_progress"', false);
+        $responseBlank->assertDontSee('id="tp-status-badge-preview" class="status status-in_progress"', false);
+        $responseBlank->assertSee('id="input-auto-status" value="PLANNED"', false);
+        $responseBlank->assertSee('id="input-auto-tp-status" value="NONE"', false);
+
+        // 2. Create form with future dates from LPK alert
+        $responseWithLpk = $this->actingAs($this->admin)->get(route('assessments.create', ['lpk_id' => $this->lpk->id]));
+        $responseWithLpk->assertOk();
+        $responseWithLpk->assertSeeInOrder([
+            'id="status-badge-preview"',
+            'Menunggu Pelaksanaan',
+        ], false);
+        $responseWithLpk->assertSeeInOrder([
+            'id="tp-status-badge-preview"',
+            'Menunggu Pelaksanaan',
+        ], false);
+        $responseWithLpk->assertDontSee('id="status-badge-preview" class="status status-in_progress"', false);
+        $responseWithLpk->assertDontSee('id="tp-status-badge-preview" class="status status-in_progress"', false);
+        $responseWithLpk->assertSee('id="input-auto-status" value="PLANNED"', false);
+        $responseWithLpk->assertSee('id="input-auto-tp-status" value="NONE"', false);
     }
 }
 

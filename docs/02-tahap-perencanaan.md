@@ -4,7 +4,7 @@
 ---
 
 ### 2.1 Metodologi Pengembangan Perangkat Lunak
-Pengembangan sistem SIMASADI mengadopsi metodologi **Iterative Prototyping** dengan pendekatan kerja lincah (**Agile SDLC**). Pendekatan ini dipilih karena karakteristik domain akreditasi KAN yang sarat dengan aturan regulasi spesifik (seperti pedoman KAN U-01, Standar Biaya Masukan PMK, dan batasan SLA tindakan perbaikan), sehingga membutuhkan validasi berkelanjutan dan penyempurnaan alur secara cepat.
+Pengembangan sistem SIMASADI mengadopsi metodologi **Iterative Prototyping** dengan pendekatan kerja lincah (**Agile SDLC**). Pendekatan ini dipilih karena karakteristik domain akreditasi KAN yang sarat dengan aturan regulasi spesifik (seperti pedoman KAN U-01 dan batasan SLA tindakan perbaikan), sehingga membutuhkan validasi berkelanjutan dan penyempurnaan alur secara cepat.
 
 ```mermaid
 flowchart LR
@@ -30,10 +30,10 @@ Proses pengembangan sistem SIMASADI dilaksanakan dalam 6 fase terstruktur:
 | Fase | Durasi | Target Capaian (*Deliverables*) | Status |
 |---|---|---|---|
 | **Fase 1: Inisiasi & Analisis Kebutuhan KAN** | Minggu 1 | Pengumpulan regulasi akreditasi KAN (KAN U-01), perumusan kebutuhan fungsional 8 tipe asesmen, serta penetapan batasan prototype operasional. | Selesai |
-| **Fase 2: Perancangan Arsitektur Basis Data** | Minggu 2 | Perancangan skema relasional terpadu (LPK, Asesmen, Biaya SBM, Billing, Akreditasi, dan Kalender Event), pembersihan tabel usang, serta penyiapan baseline seeder data. | Selesai |
+| **Fase 2: Perancangan Arsitektur Basis Data** | Minggu 2 | Perancangan skema relasional terpadu (LPK, Asesmen, Akreditasi, dan Kalender Event), pembersihan tabel usang, serta penyiapan baseline seeder data. | Selesai |
 | **Fase 3: Implementasi Modul Inti & 8 Tipe Asesmen** | Minggu 3 | Implementasi Model Eloquent dan Controller untuk pengelolaan master LPK, penjadwalan 8 tipe asesmen KAN, kalender kegiatan interaktif 5 tipe event, dan navigasi multi-peran. | Selesai |
 | **Fase 4: Penegakan Toleransi Surveilen & Batas Waktu Tindakan Perbaikan** | Minggu 4 | Pembangunan mesin status dinamis: toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan dengan tanggal fleksibel tersimpan), pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan otomatis (REVOKED), auto-realisasi data lampau LPK aktif, serta aturan perpanjangan batas waktu TP maksimal 1 bulan bersurat resmi. | Selesai |
-| **Fase 5: Kepatuhan Finansial, e-Sign, & Alur EHA** | Minggu 5 | Integrasi pelaporan biaya perjalanan dinas berbasis SBM PMK, penerbitan billing SIMPONI 15 digit ber-NTPN sah, Quality Gate kesiapan rilis SK, simulasi e-Sign BSrE dengan hash SHA-256, alur EHA, dan portal publik ber-QR Code. | Selesai |
+| **Fase 5: Evaluasi Hasil Asesmen & Penetapan SK** | Minggu 5 | Integrasi alur evaluasi hasil asesmen (EHA), pencatatan nomor SK, lead time terbit SK, dan Quality Gate kesiapan rilis dokumen. | Selesai |
 | **Fase 6: Impor Massal, Live Feed Google Sheets, & Uji Komprehensif** | Minggu 6 | Implementasi smart importer (CSV/XLSX/Google Sheets) untuk LPK dan Asesmen, penyediaan live feed CSV terotentikasi, pelaksanaan automated feature test suite (143 pengujian, 829 assertions, 100% pass rate), serta finalisasi dokumentasi SDLC. | Selesai |
 
 ---
@@ -52,7 +52,7 @@ Proses pengembangan sistem SIMASADI dilaksanakan dalam 6 fase terstruktur:
 
 #### 2.3.3 Kelayakan Hukum & Kebijakan (*Legal & Compliance*)
 * **Kepatuhan Pedoman KAN U-01:** Seluruh batas waktu, jenis kegiatan surveilen, toleransi pengisian dokumen, dan sanksi pembekuan hingga pencabutan disusun mengacu langsung pada pedoman resmi Komite Akreditasi Nasional.
-* **Kepatuhan SBM PMK & PNBP Kemenkeu:** Format pelaporan biaya perjalanan dinas dan billing SIMPONI mematuhi regulasi perbendaharaan negara Republik Indonesia.
+* **Kepatuhan Penyelenggaraan Sertifikasi:** Standar penetapan SK dan sertifikat mematuhi regulasi tata kelola akreditasi nasional KAN.
 
 ---
 

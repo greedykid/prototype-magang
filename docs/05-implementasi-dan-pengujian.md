@@ -27,17 +27,19 @@ prototype-magang/
 │   │   ├── Controllers/          # Pengendali logika alur (LpkController, AssessmentController, dll.)
 │   │   ├── Middleware/           # Middleware proteksi peran (RoleMiddleware)
 │   │   └── Requests/             # Validasi request formulir
-│   └── Models/                   # Model Eloquent (Lpk, Assessment, AssessmentExpense, User, dll.)
+│   └── Models/                   # Model Eloquent (Lpk, Assessment, Accreditation, User, dll.)
 ├── database/
 │   ├── migrations/               # File migrasi skema tabel relasional
 │   ├── seeders/                  # Seeder akun 4 peran, data master LPK, dan riwayat asesmen
 │   └── database.sqlite           # File basis data lokal
 ├── docs/                         # Seluruh dokumentasi perancangan SDLC komprehensif (.md)
+│   ├── adr/                      # Catatan keputusan arsitektur (Architecture Decision Records)
+│   └── references/               # Dokumen pendukung, brosur regulasi, dan lembar presentasi
 ├── resources/
 │   ├── css/
 │   │   ├── base/                 # Reset dan token desain variabel warna/tipografi
 │   │   ├── components/           # Badges, custom select, modal dialog, tabel, clickable rows
-│   │   ├── features/             # Kalender kegiatan, dashboard, dan laporan biaya
+│   │   ├── features/             # Kalender kegiatan dan dashboard eksekutif
 │   │   └── layout/               # Shell navigasi sidebar, topbar, dan responsivitas mobile
 │   ├── js/
 │   │   ├── modules/              # Kalender interaktif, custom select, modal, SPA router
@@ -46,10 +48,10 @@ prototype-magang/
 │       ├── components/           # Blade components: icon, status badge, alert
 │       ├── layouts/              # Template master (app.blade.php) & app-shell
 │       ├── lpks/                 # Halaman index, create, edit, show LPK, dan import
-│       ├── assessments/          # Halaman program asesmen, pelacakan TP, SBM, dan EHA
+│       ├── assessments/          # Halaman program asesmen, pelacakan TP, dan alur EHA
 │       ├── calendar/             # Halaman kalender interaktif dan modal quick add
 │       ├── users/                # Halaman manajemen pengguna dan profil
-│       └── portal/               # Portal LPK mandiri dengan kode QR keabsahan dokumen
+│       └── portal/               # Antarmuka pemantauan status akreditasi LPK
 ├── routes/
 │   ├── console.php               # Perintah terjadwal CLI (check-surveillance)
 │   └── web.php                   # Definisi rute aplikasi terproteksi sesi dan peran
@@ -102,7 +104,7 @@ Semua pengujian berikut tercakup dalam 17 berkas test di `tests/Feature/`:
 | 12 | `LpkPartialFilterTest` | Menguji request parsial AJAX tabel master LPK dan filter pencarian live instan tanpa reload halaman. | **PASSED** |
 | 13 | `PrototypeFlowTest` | Menguji alur operasional end-to-end: login, dashboard metrik, pembuatan LPK dengan otomasi masa berlaku (+5 tahun), filter server-side, pengiriman email peringatan surveilen, dan perhitungan lead time SK. | **PASSED** |
 | 14 | `RoleAccessControlTest` | Menguji pembatasan hak akses RBAC: Admin unit memiliki akses penuh, PIC laboratorium terisolasi hanya pada LPK kelolaan sendiri dan dilarang mengelola LPK milik PIC lain. | **PASSED** |
-| 15 | `SimasadiFeaturesTest` | Menguji pelaporan dan verifikasi biaya perjalanan dinas asesor (SBM PMK), penerbitan billing SIMPONI 15 digit, pencatatan nomor NTPN sah, e-Sign BSrE, dan Quality Gate rilis SK. | **PASSED** |
+| 15 | `SimasadiFeaturesTest` | Menguji alur penetapan akreditasi dan Quality Gate kesiapan rilis SK. | **PASSED** |
 | 16 | `UserManagementTest` | Menguji manajemen akun pengguna internal oleh Administrator Unit: pencarian, filter, penambahan user baru, pembaruan password, dan proteksi larangan menghapus akun sendiri. | **PASSED** |
 | 17 | `UserProfileTest` | Menguji pembaruan profil mandiri pengguna: pengubahan nama, verifikasi keunikan email, dan validasi kecocokan kata sandi lama saat mengganti kata sandi. | **PASSED** |
 
@@ -219,10 +221,8 @@ Hasil eksekusi:
   ✓ pic can delete own lpk but forbidden from deleting other pic lpk     0.20s  
 
    PASS  Tests\Feature\SimasadiFeaturesTest
-  ✓ can report and verify assessment expenses                            0.31s  
-  ✓ can generate and pay pnbp billing                                    0.23s  
-  ✓ can sign accreditation with bsre esign and verify publicly           0.10s  
   ✓ accreditation release readiness gate logic                           0.06s  
+  ✓ can prefill assessment schedule from surveillance alert              0.12s  
 
    PASS  Tests\Feature\UserManagementTest
   ✓ guest cannot access user management                                  0.06s  

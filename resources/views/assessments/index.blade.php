@@ -134,18 +134,18 @@
     </div>
 </section>
 
-@include('partials.sheets-modal', [
-    'modalId' => 'modal-sheets-sync-assessments',
-    'title' => 'Integrasi Google Sheets: Data Program Asesmen',
-    'subtitle' => 'Sinkronkan jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) secara langsung ke Google Sheets Anda.',
-    'exportUrl' => route('reports.assessments.export'),
-    'feedUrl' => route('feeds.assessments', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')]),
-    'fileName' => 'program-asesmen-simasadi.csv',
-    'columns' => [
+<x-sheets-modal
+    modal-id="modal-sheets-sync-assessments"
+    title="Integrasi Google Sheets: Data Program Asesmen"
+    subtitle="Sinkronkan jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) secara langsung ke Google Sheets Anda."
+    :export-url="route('reports.assessments.export')"
+    :feed-url="route('feeds.assessments', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')])"
+    file-name="program-asesmen-simasadi.csv"
+    :columns="[
         'ID Asesmen', 'Judul Agenda Asesmen', 'Nama LPK', 'Jenis Asesmen',
-        'Waktu Mulai', 'Waktu Selesai', 'Status Asesmen'
-    ]
-])
+        'Tanggal Mulai', 'Tanggal Selesai', 'Status Asesmen'
+    ]"
+/>
 
 @include('assessments.partials.import-modal')
 @endsection

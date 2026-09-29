@@ -2,7 +2,7 @@
 ### Sistem Informasi Manajemen Akreditasi & Surveilen Lembaga Penilaian Kesesuaian
 **Badan Standardisasi Nasional (BSN) / Komite Akreditasi Nasional (KAN)**
 
-SIMASADI adalah platform operasional terpadu berbasis web yang dirancang untuk mengelola, memantau, dan memvalidasi seluruh siklus hidup akreditasi Lembaga Penilaian Kesesuaian (LPK) di Indonesia. Sistem ini mencakup 8 tipe proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP & VTP), aturan toleransi pengisian dan pembekuan bertahap, alur Evaluasi Hasil Asesmen (EHA), kepatuhan keuangan berbasis Standar Biaya Masukan (SBM PMK), penagihan PNBP (SIMPONI Kemenkeu), penandatanganan elektronik dokumen SK (BSrE BSSN), portal publik dan verifikasi QR Code, serta integrasi live feed Google Sheets.
+SIMASADI adalah platform operasional terpadu berbasis web yang dirancang untuk mengelola, memantau, dan memvalidasi seluruh siklus hidup akreditasi Lembaga Penilaian Kesesuaian (LPK) di Indonesia. Sistem ini mencakup 8 tipe proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP & VTP), aturan toleransi pengisian dan pembekuan bertahap, alur Evaluasi Hasil Asesmen (EHA), serta integrasi live feed Google Sheets.
 
 ---
 
@@ -13,9 +13,9 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 * 📑 **[Dokumen Master: PERANCANGAN_SISTEM.md](docs/PERANCANGAN_SISTEM.md)**: Rangkuman utuh seluruh perancangan sistem SIMASADI.
 * 🌐 **[Bagian 1: Gambaran Umum Website](docs/01-gambaran-umum.md)**: Latar belakang KAN/BSN, tujuan, ruang lingkup (*in-scope* & *out-of-scope*), profil 4 aktor sistem, dan arsitektur umum.
 * 📅 **[Bagian 2: Tahap Perencanaan (Planning)](docs/02-tahap-perencanaan.md)**: Metodologi Iterative Agile Prototyping, linimasa pengembangan fase 1 sampai 6, studi kelayakan teknis/operasional, serta analisis risiko dan mitigasi.
-* 🔍 **[Bagian 3: Tahap Analisis (Analysis)](docs/03-tahap-analisis.md)**: Analisis masalah dengan PIECES Framework & Fishbone Diagram, spesifikasi Kebutuhan Fungsional (`REQ-F-01` s/d `REQ-F-32`), dan Kebutuhan Non-Fungsional (`REQ-NF-01` s/d `REQ-NF-10`).
+* 🔍 **[Bagian 3: Tahap Analisis (Analysis)](docs/03-tahap-analisis.md)**: Analisis masalah dengan PIECES Framework & Fishbone Diagram, spesifikasi Kebutuhan Fungsional, dan Kebutuhan Non-Fungsional.
 * 📐 **[Bagian 4: Tahap Perancangan (Design)](docs/04-tahap-perancangan.md)**: Struktur Navigasi (Sitemap), Use Case Diagram, Activity Diagrams, Sequence Diagrams, Entity Relationship Diagram (ERD), Class Diagram, dan Wireframes antarmuka desktop & mobile.
-* 🧪 **[Bagian 5: Implementasi dan Pengujian](docs/05-implementasi-dan-pengujian.md)**: Spesifikasi teknologi, struktur direktori, detail implementasi komponen UI, matriks kasus uji otomatis PHPUnit (119 feature tests, 680 assertions), uji responsivitas antarmuka manual, dan bukti hasil eksekusi uji.
+* 🧪 **[Bagian 5: Implementasi dan Pengujian](docs/05-implementasi-dan-pengujian.md)**: Spesifikasi teknologi, struktur direktori, detail implementasi komponen UI, matriks kasus uji otomatis PHPUnit, uji responsivitas antarmuka manual, dan bukti hasil eksekusi uji.
 
 ---
 
@@ -46,21 +46,14 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 4. **Alur Evaluasi Hasil Asesmen (EHA) & Penerbitan SK:**
    * Pencatatan tanggal rencana sidang EHA, tanggal realisasi EHA, dan rekomendasi tim panitia teknis.
    * Penerbitan Nomor SK KAN, Tanggal Terbit SK, dan kalkulasi otomatis Lead Time Terbit SK (`sk_lead_time_days`).
-   * Verifikasi publik dan portal mandiri LPK (`/portal`) dilengkapi kode QR keabsahan dokumen.
 
-5. **Pelaporan Biaya Asesor (SBM PMK) & Billing PNBP (SIMPONI):**
-   * Pelaporan rincian biaya: Transportasi, Uang Harian, Honorarium Asesor / Tenaga Ahli, dan Paket Data/Akomodasi.
-   * Verifikasi kepatuhan SBM Kementerian Keuangan (`MENUNGGU_VERIFIKASI`, `TERVERIFIKASI`, `PERLU_REVISI`).
-   * Penerbitan Kode Billing SIMPONI 15 digit dan pencatatan nomor transaksi kas negara (NTPN 16 digit).
-   * Quality Gate Kesiapan Terbit Dokumen: SK Akreditasi terkunci hingga billing PNBP berstatus `PAID` dan biaya SBM berstatus `TERVERIFIKASI`.
-
-6. **Kalender Kerja Interaktif 5 Tipe Event:**
+5. **Kalender Kerja Interaktif 5 Tipe Event:**
    * Menyajikan 5 jenis kegiatan: Asesmen Lapangan (Biru), Pengingat Surveilen (Kuning/Oranye), Pengingat Batas TP (Indigo), Overdue TP (Merah/Ungu), dan Pengingat Penerbitan SK (Hijau/Emerald).
    * Fitur pemilih cepat bulan dan tahun dinamis serta pembuatan agenda instan per tanggal klik.
 
-7. **Impor Massal & Live Feed Google Sheets:**
+6. **Impor Massal & Live Feed Google Sheets:**
    * Impor massal data LPK dan Asesmen dari file CSV, XLSX, atau URL Google Sheets live (*Smart Upsert*).
-   * Live CSV Feeds terproteksi API key (`/feeds/expenses.csv`, `/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk formula `=IMPORTDATA` Google Sheets secara real-time.
+   * Live CSV Feeds terproteksi API key (`/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk formula `=IMPORTDATA` Google Sheets secara real-time.
 
 ---
 
@@ -70,10 +63,10 @@ Sistem mengimplementasikan pemisahan hak akses berbasis 4 peran nyata:
 
 | Peran (*Role*) | Akun Login | Deskripsi Hak Akses Utama | Batasan Keamanan |
 |---|---|---|---|
-| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; verifikasi biaya SBM; penerbitan billing SIMPONI; manajemen akun pengguna; ekspor live feeds. | Tanpa batasan akses dalam sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Monitoring operasional LPK kelolaan: melihat direktori LPK binaan, memantau tenggat waktu surveilen dan toleransi pengisian, pelaporan biaya asesor mandiri, pelacakan progres TP, input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data massal, dilarang mengakses LPK di luar tanggung jawabnya, dilarang memverifikasi biaya SBM sendiri, dan dilarang mengelola user. |
+| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; manajemen akun pengguna; ekspor live feeds. | Tanpa batasan akses dalam sistem. |
+| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Monitoring operasional LPK kelolaan: melihat direktori LPK binaan, memantau tenggat waktu surveilen dan toleransi pengisian, pelacakan progres TP, input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data massal, dilarang mengakses LPK di luar tanggung jawabnya, dan dilarang mengelola user. |
 | **Asesor KAN** (`assessor`) | `assessor@simasadi.local` | Portal Asesor (`/assessor`): Melihat jadwal penugasan asesmen lapangan, profil LPK binaan yang diases, evaluasi teknis, dan verifikasi pemenuhan tindakan perbaikan. | Terbatas hanya pada asesmen di mana dirinya ditugaskan. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Portal LPK Mandiri (`/portal`): Memantau masa aktif sertifikat, hitung mundur batas surveilen, SLA tindakan perbaikan, dan verifikasi QR Code keabsahan akreditasi. | Terbatas hanya pada data entitas lembaganya sendiri. |
+| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Pemantauan Mandiri LPK: Memantau masa aktif sertifikat, hitung mundur batas surveilen, dan SLA tindakan perbaikan. | Terbatas hanya pada data entitas lembaganya sendiri. |
 
 *(Kata sandi bawaan untuk seluruh akun pengujian:* `password`*)*
 
@@ -162,7 +155,7 @@ docker exec prototype-magang-laravel vendor/bin/pint --format agent
 ## 📂 Struktur Penting Proyek
 
 * `app/Http/Controllers`: Kontroler logika sistem (LpkController, AssessmentController, CalendarEventController, LpkImportController, AssessmentImportController, GoogleSheetsReportController, dll.).
-* `app/Models`: Model Eloquent relasional (Lpk, Assessment, AssessmentExpense, Accreditation, AccreditationBilling, AccreditationSignature, CalendarEvent, User, Backup).
+* `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, AccreditationSignature, CalendarEvent, User, Backup).
 * `database/migrations`: Skema migrasi tabel basis data relasional.
 * `database/seeders`: Pembangkitan data awal master LPK, akun 4 peran, asesmen historis terealisasi, dan agenda kalender.
 * `docs/`: Dokumentasi perancangan sistem dan arsitektur perangkat lunak lengkap (SDLC bagian 1 sampai 5).

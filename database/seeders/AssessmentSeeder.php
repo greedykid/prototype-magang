@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Assessment;
-use App\Models\AssessmentExpense;
 use App\Models\Lpk;
 use App\Models\User;
 use Carbon\Carbon;
@@ -18,12 +17,11 @@ class AssessmentSeeder extends Seeder
     {
         $admin = User::where('role', User::ROLE_ADMIN)->first() ?? User::first();
         $adminId = $admin ? $admin->id : 1;
-        $asesorUser = User::where('email', 'asesor@simasadi.local')->first() ?? $admin;
 
         // 1. LP-077-IDN - BRIN Lab Pengujian Kekuatan Struktur
         $lpk1 = Lpk::where('registration_number', 'LP-077-IDN')->first();
         if ($lpk1) {
-            $a1 = Assessment::updateOrCreate(
+            Assessment::updateOrCreate(
                 ['lpk_id' => $lpk1->id, 'title' => 'Asesmen Surveilen 1 (S1) Lab Pengujian Kekuatan Struktur BRIN'],
                 [
                     'created_by' => $adminId,
@@ -39,23 +37,6 @@ class AssessmentSeeder extends Seeder
                     'tp_has_extension' => false,
                     'tp_extension_months' => 0,
                     'tp_notes' => 'Terdapat 2 temuan Kategori 2 terkait bukti rekaman kalibrasi load cell mesin uji dinamis kapasitas 500 kN dan evaluasi estimasi ketidakpastian pengukuran.',
-                ]
-            );
-
-            AssessmentExpense::updateOrCreate(
-                ['assessment_id' => $a1->id],
-                [
-                    'reported_by' => $asesorUser->id,
-                    'transport_cost' => 850000,
-                    'accommodation_cost' => 1400000,
-                    'daily_allowance' => 1140000,
-                    'package_data_cost' => 150000,
-                    'total_cost' => 3540000,
-                    'receipt_note' => 'Kwitansi Taksi Bandara & Hotel Santika Premiere Bintaro (2 malam)',
-                    'status' => 'TERVERIFIKASI',
-                    'verification_notes' => 'Telah diverifikasi sesuai SBM PMK No. 49 Standar Biaya Masukan TA 2026.',
-                    'verified_by' => $adminId,
-                    'verified_at' => Carbon::parse('2026-07-26 14:30:00'),
                 ]
             );
         }
@@ -82,23 +63,6 @@ class AssessmentSeeder extends Seeder
                     'tp_extension_date' => Carbon::parse('2026-08-05'),
                     'tp_extension_notes' => 'Permohonan perpanjangan masa perbaikan karena keterlambatan suku cadang alat Marshall Test dan re-kalibrasi eksternal.',
                     'tp_notes' => 'Temuan ketidaksesuaian kategori 2 mengenai sertifikat kalibrasi termometer digital oven aspal dan partisipasi uji profisiensi agregat.',
-                ]
-            );
-
-            AssessmentExpense::updateOrCreate(
-                ['assessment_id' => $a2->id],
-                [
-                    'reported_by' => $asesorUser->id,
-                    'transport_cost' => 1850000,
-                    'accommodation_cost' => 1500000,
-                    'daily_allowance' => 1230000,
-                    'package_data_cost' => 150000,
-                    'total_cost' => 4730000,
-                    'receipt_note' => 'Tiket Garuda GA-318 Jakarta-Surabaya PP & Hotel Aston Sidoarjo',
-                    'status' => 'TERVERIFIKASI',
-                    'verification_notes' => 'Kelengkapan bukti boarding pass dan invoice hotel telah sesuai pagu SBM Jawa Timur.',
-                    'verified_by' => $adminId,
-                    'verified_at' => Carbon::parse('2026-06-16 10:15:00'),
                 ]
             );
         }
@@ -167,21 +131,6 @@ class AssessmentSeeder extends Seeder
                     'tp_due_date' => Carbon::parse('2026-09-30'),
                     'tp_has_extension' => false,
                     'tp_notes' => 'Bukti verifikasi unjuk kerja mesin uji Universal Testing Machine (UTM) 1000 kN telah diunggah dan dalam penelaahan akhir Lead Assessor.',
-                ]
-            );
-
-            AssessmentExpense::updateOrCreate(
-                ['assessment_id' => $a5->id],
-                [
-                    'reported_by' => $asesorUser->id,
-                    'transport_cost' => 2200000,
-                    'accommodation_cost' => 1600000,
-                    'daily_allowance' => 1290000,
-                    'package_data_cost' => 150000,
-                    'total_cost' => 5240000,
-                    'receipt_note' => 'Tiket Pesawat Jakarta-Denpasar PP & Hotel Grand Santhi Denpasar (2 malam)',
-                    'status' => 'MENUNGGU_VERIFIKASI',
-                    'verification_notes' => null,
                 ]
             );
         }
@@ -272,23 +221,6 @@ class AssessmentSeeder extends Seeder
                     'tp_extension_date' => Carbon::parse('2026-08-25'),
                     'tp_extension_notes' => 'Perpanjangan masa perbaikan karena menunggu sertifikat uji banding antarlaboratorium dari Balai Besar Standardisasi dan Pelayanan Jasa Industri Bahan dan Barang Teknik (BBSPJIBBT).',
                     'tp_notes' => 'Tindakan perbaikan pembaruan lembar kerja uji ketahanan aus agregat (Los Angeles Machine) dan kaji ulang manajemen laboratorium.',
-                ]
-            );
-
-            AssessmentExpense::updateOrCreate(
-                ['assessment_id' => $a9->id],
-                [
-                    'reported_by' => $asesorUser->id,
-                    'transport_cost' => 600000,
-                    'accommodation_cost' => 1200000,
-                    'daily_allowance' => 1140000,
-                    'package_data_cost' => 150000,
-                    'total_cost' => 3090000,
-                    'receipt_note' => 'Kereta Cepat Whoosh Halim-Tegalluar PP & Hotel De Braga Bandung (2 malam)',
-                    'status' => 'TERVERIFIKASI',
-                    'verification_notes' => 'Kwitansi transportasi Whoosh dan invoice penginapan sesuai SBM.',
-                    'verified_by' => $adminId,
-                    'verified_at' => Carbon::parse('2026-07-12 11:00:00'),
                 ]
             );
         }

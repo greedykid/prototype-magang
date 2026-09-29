@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -24,22 +24,9 @@ class ProfileController extends Controller
     /**
      * Perbarui data informasi profil pengguna (nama dan email).
      */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        $user = $request->user();
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
-        ]);
-
-        $user->update($validated);
+        $request->user()->update($request->validated());
 
         return back()->with('success', 'Data profil Anda berhasil diperbarui.');
     }
@@ -47,16 +34,9 @@ class ProfileController extends Controller
     /**
      * Perbarui kata sandi akun pengguna dengan verifikasi kata sandi saat ini.
      */
-    public function updatePassword(Request $request): RedirectResponse
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ], [
-            'current_password.current_password' => 'Kata sandi saat ini tidak sesuai.',
-            'password.min' => 'Kata sandi baru minimal terdiri dari 8 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
-        ]);
+        $validated = $request->validated();
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),

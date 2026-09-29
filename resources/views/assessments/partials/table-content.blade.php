@@ -5,7 +5,7 @@
                 <tr>
                     <th>Agenda</th>
                     <th>LPK</th>
-                    <th>Waktu</th>
+                    <th>Tanggal</th>
                     <th>Tindakan Perbaikan (TP)</th>
                     <th>Status Asesmen</th>
                     <th>Aksi</th>
@@ -32,7 +32,7 @@
                             <strong>{{ $assessment->lpk->name }}</strong>
                             <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500;">{{ $assessment->lpk->registration_number }}</span>
                         </td>
-                        <td>{{ $assessment->start_at->format('d M Y, H:i') }} WIB</td>
+                        <td>{{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}</td>
                         <td>
                             @php $badge = $assessment->tp_sla_badge; @endphp
                             <div style="display: flex; flex-direction: column; gap: 3px;">

@@ -67,7 +67,7 @@
             </div>
 
             <div class="error-meta-footer">
-                <span>Waktu Kejadian: {{ now()->format('d/m/Y H:i:s') }} WIB</span>
+                <span>Tanggal Kejadian: {{ now()->format('d/m/Y') }}</span>
                 <span>Butuh peningkatan akses? Hubungi Ketua Tim KAN</span>
             </div>
         </div>

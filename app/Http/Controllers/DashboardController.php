@@ -37,8 +37,6 @@ class DashboardController extends Controller
                 ->orderBy('start_at', 'asc')
                 ->take(5)
                 ->get(),
-            'unpaidBillingCount' => \App\Models\AccreditationBilling::where('status', 'UNPAID')->count(),
-            'pendingExpenseCount' => \App\Models\AssessmentExpense::where('status', 'MENUNGGU_VERIFIKASI')->count(),
             'lastBackup' => Backup::latest('finished_at')->first(),
             'activeTpCount' => $activeTpCount,
             'overdueTpCount' => $overdueTpCount,

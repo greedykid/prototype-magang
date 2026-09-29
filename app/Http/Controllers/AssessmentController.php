@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAssessmentRequest;
+use App\Http\Requests\UpdateAssessmentRequest;
+use App\Http\Requests\UpdateAssessmentTpRequest;
 use App\Models\Assessment;
 use App\Models\Lpk;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +36,7 @@ class AssessmentController extends Controller
             ->update(['status' => 'SUSPENDED']);
 
         $assessments = Assessment::query()
-            ->with(['lpk', 'expense'])
+            ->with(['lpk'])
             ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('sk_number', 'like', "%{$search}%")
@@ -252,9 +255,9 @@ class AssessmentController extends Controller
         return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreAssessmentRequest $request): RedirectResponse
     {
-        $data = $this->validated($request);
+        $data = $request->normalizedPayload();
         $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
         if ($data['tp_has_extension']) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
@@ -274,7 +277,7 @@ class AssessmentController extends Controller
 
     public function show(Assessment $assessment): View
     {
-        return view('assessments.show', ['assessment' => $assessment->load(['lpk', 'expense.verifier'])]);
+        return view('assessments.show', ['assessment' => $assessment->load(['lpk'])]);
     }
 
     public function edit(Assessment $assessment, Request $request): View
@@ -290,9 +293,9 @@ class AssessmentController extends Controller
         return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
     }
 
-    public function update(Request $request, Assessment $assessment): RedirectResponse
+    public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse
     {
-        $data = $this->validated($request, $assessment);
+        $data = $request->normalizedPayload($assessment);
         $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
         if ($data['tp_has_extension']) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
@@ -310,148 +313,11 @@ class AssessmentController extends Controller
         return back()->with('success', 'Program asesmen berhasil diperbarui.');
     }
 
-    public function updateTp(Request $request, Assessment $assessment): RedirectResponse
+    public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
-            'tp_status' => ['required', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
-            'tp_due_date' => ['nullable', 'date'],
-            'tp_has_extension' => ['nullable', 'boolean'],
-            'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
-            'tp_extension_letter_no' => ['nullable', 'string', 'max:255'],
-            'tp_extension_date' => ['nullable', 'date'],
-            'tp_extension_notes' => ['nullable', 'string'],
-            'tp_satisfied_at' => ['nullable', 'date'],
-            'tp_notes' => ['nullable', 'string'],
-            'report_date' => ['nullable', 'date'],
-            'eha_date' => ['nullable', 'date'],
-            'eha_status' => ['nullable', 'string', 'in:BELUM_EHA,DIREKOMENDASIKAN,PERLU_VERIFIKASI,CATATAN_KHUSUS'],
-            'eha_notes' => ['nullable', 'string'],
-            'sk_number' => ['nullable', 'string', 'max:150'],
-            'sk_date' => ['nullable', 'date'],
-        ]);
-
-        $validated['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($validated['tp_extension_letter_no']);
-        if ($validated['tp_has_extension']) {
-            if ($validated['tp_status'] === Assessment::TP_STATUS_NONE) {
-                throw ValidationException::withMessages([
-                    'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
-                ]);
-            }
-            if (empty($validated['tp_extension_months'])) {
-                $validated['tp_extension_months'] = 1;
-            }
-        }
-
-        if (empty($validated['status'])) {
-            $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
-            $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
-            $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);
-            $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : $assessment->tp_satisfied_at;
-
-            $validated['status'] = Assessment::determineStatusFromDates(
-                $assessment->start_at,
-                $assessment->end_at,
-                $assessment->status,
-                $validated['tp_status'] ?? null,
-                $validated['sk_number'] ?? null,
-                ! empty($validated['report_date']) ? Carbon::parse($validated['report_date']) : $assessment->report_date,
-                ! empty($validated['eha_date']) ? Carbon::parse($validated['eha_date']) : $assessment->eha_date,
-                $tpDueDate,
-                $tpHasExtension,
-                $tpExtensionMonths,
-                $tpSatisfiedAt,
-                $assessment->assessment_type
-            );
-        }
-
+        $validated = $request->normalizedData($assessment);
         $assessment->update($validated);
 
         return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) serta milestone asesmen berhasil diperbarui.');
-    }
-
-    private function validated(Request $request, ?Assessment $assessment = null): array
-    {
-        $usesSplitDateFields = $request->filled('start_date');
-
-        if ($request->filled('start_date')) {
-            $startTime = $request->filled('start_time') ? (string) $request->input('start_time') : '09:00';
-            $endTime = $request->filled('end_time') ? (string) $request->input('end_time') : '17:00';
-            $endDate = $request->filled('end_date') ? (string) $request->input('end_date') : (string) $request->input('start_date');
-
-            $request->merge([
-                'start_at' => trim($request->input('start_date').' '.$startTime),
-                'end_at' => trim($endDate.' '.$endTime),
-            ]);
-        }
-
-        $data = $request->validate([
-            'lpk_id' => ['required', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'assessment_type' => ['required', 'string', 'max:80'],
-            'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'start_time' => ['nullable', 'string', 'max:10'],
-            'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'end_time' => ['nullable', 'string', 'max:10'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after:start_at'],
-            'submission_due_date' => ['nullable', 'date'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
-            'lead_assessor' => ['nullable', 'string', 'max:1000'],
-            'assessment_team' => ['nullable', 'string', 'max:1000'],
-            'report_date' => ['nullable', 'date'],
-            'eha_date' => ['nullable', 'date'],
-            'eha_status' => ['nullable', 'string', 'in:BELUM_EHA,DIREKOMENDASIKAN,PERLU_VERIFIKASI,CATATAN_KHUSUS'],
-            'eha_notes' => ['nullable', 'string'],
-            'notes' => ['nullable', 'string'],
-            'tp_status' => ['nullable', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
-            'tp_due_date' => ['nullable', 'date'],
-            'tp_has_extension' => ['nullable', 'boolean'],
-            'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
-            'tp_extension_letter_no' => ['nullable', 'string', 'max:255'],
-            'tp_extension_date' => ['nullable', 'date'],
-            'tp_extension_notes' => ['nullable', 'string'],
-            'tp_satisfied_at' => ['nullable', 'date'],
-            'tp_notes' => ['nullable', 'string'],
-            'sk_number' => ['nullable', 'string', 'max:150'],
-            'sk_date' => ['nullable', 'date'],
-        ], [
-            'end_at.after' => 'Waktu selesai pelaksanaan harus setelah waktu mulai pelaksanaan.',
-            'start_date.required' => 'Tanggal mulai pelaksanaan wajib diisi.',
-            'end_date.required' => 'Tanggal selesai pelaksanaan wajib diisi.',
-        ]);
-
-        unset($data['start_date'], $data['start_time'], $data['end_date'], $data['end_time']);
-
-        if (! empty($data['assessment_team'])) {
-            $data['lead_assessor'] = $data['assessment_team'];
-        } elseif (! empty($data['lead_assessor'])) {
-            $data['assessment_team'] = $data['lead_assessor'];
-        }
-
-        $startAt = ! empty($data['start_at']) ? Carbon::parse($data['start_at']) : null;
-        $endAt = ! empty($data['end_at']) ? Carbon::parse($data['end_at']) : null;
-        $tpDueDate = ! empty($data['tp_due_date']) ? Carbon::parse($data['tp_due_date']) : $assessment?->tp_due_date;
-        $tpHasExtension = (bool) ($data['tp_has_extension'] ?? $assessment?->tp_has_extension ?? false);
-        $tpExtensionMonths = (int) ($data['tp_extension_months'] ?? $assessment?->tp_extension_months ?? 0);
-        $tpSatisfiedAt = ! empty($data['tp_satisfied_at']) ? Carbon::parse($data['tp_satisfied_at']) : $assessment?->tp_satisfied_at;
-
-        $data['status'] = Assessment::determineStatusFromDates(
-            $startAt,
-            $endAt,
-            $assessment?->status ?? ($data['status'] ?? null),
-            $data['tp_status'] ?? $assessment?->tp_status,
-            $data['sk_number'] ?? $assessment?->sk_number,
-            ! empty($data['report_date']) ? Carbon::parse($data['report_date']) : $assessment?->report_date,
-            ! empty($data['eha_date']) ? Carbon::parse($data['eha_date']) : $assessment?->eha_date,
-            $tpDueDate,
-            $tpHasExtension,
-            $tpExtensionMonths,
-            $tpSatisfiedAt,
-            $data['assessment_type'] ?? $assessment?->assessment_type
-        );
-
-        return $data;
     }
 }

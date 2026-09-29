@@ -26,22 +26,26 @@
 
 3. **[Bagian 3: Tahap Analisis (Analysis)](03-tahap-analisis.md)**
    * 3.1 Analisis Masalah (PIECES Framework & Fishbone Diagram)
-   * 3.2 Analisis Kebutuhan Fungsional (`REQ-F-01` s/d `REQ-F-32`)
+   * 3.2 Analisis Kebutuhan Fungsional (`REQ-F-01` s/d `REQ-F-28`)
    * 3.3 Analisis Kebutuhan Non-Fungsional (`REQ-NF-01` s/d `REQ-NF-10`)
 
 4. **[Bagian 4: Tahap Perancangan (Design)](04-tahap-perancangan.md)**
    * 4.1 Struktur Navigasi (Sitemap Utama, Sub-Halaman, & Portal Khusus)
    * 4.2 Use Case Diagram (4 Aktor & Batasan Sistem)
    * 4.3 Activity Diagram (Toleransi 3 Tahap Surveilen & Validasi SLA TP)
-   * 4.4 Sequence Diagram (Realisasi Billing SIMPONI & Quality Gate SK)
-   * 4.5 Rancangan Basis Data (ERD 9 Tabel & Kamus Data Struktur Kolom)
+   * 4.4 Sequence Diagram (Verifikasi Alur EHA & Quality Gate SK)
+   * 4.5 Rancangan Basis Data (ERD 6 Tabel & Kamus Data Struktur Kolom)
    * 4.6 Class Diagram (Model Eloquent, Accessor Bisnis, dan Controller)
    * 4.7 Rancangan Antarmuka Pengguna (Wireframe Desktop & Mobile)
 
 5. **[Bagian 5: Implementasi dan Pengujian (Implementation & Testing)](05-implementasi-dan-pengujian.md)**
    * 5.1 Implementasi Sistem (Teknologi, Struktur Folder, Fitur Kunci UI)
    * 5.2 Pengujian Sistem (Matriks Feature Test Otomatis PHPUnit & Uji Manual)
-   * 5.3 Bukti Eksekusi Test Suite (143 Tests Passed, 829 Assertions, 100% Pass Rate)
+   * 5.3 Bukti Eksekusi Test Suite (140 Tests Passed, 804 Assertions, 100% Pass Rate)
+
+6. **Berkas Dokumen Pendukung & Referensi:**
+   * 📑 **[Ringkasan Arsitektur Sistem (.docx)](RINGKASAN_ARSITEKTUR_SIMASADI.docx)**: Dokumen deskripsi teknis arsitektur aplikasi SIMASADI.
+   * 📁 **[Direktori Dokumen Referensi & Presentasi](references/)**: Brosur pengujian laboratorium KAN dan lembar ringkas presentasi (*cheat sheet*).
 
 ---
 
@@ -52,9 +56,8 @@ SIMASADI dibangun untuk menjawab tantangan pengelolaan administratif akreditasi 
 * **Penerapan 8 Tipe Proses Asesmen KAN (KAN U-01):** Standarisasi alur untuk Akreditasi Awal, Surveilen 1, Surveilen 1 + PRL, Surveilen 2, Surveilen 2 + PRL, Surveilen Tidak Terjadwal, Perluasan Ruang Lingkup, dan Re-Akreditasi.
 * **Penegakan Toleransi Surveilen 3 Tahap:** Masa toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan dengan fleksibilitas input manual tersimpan), pembekuan otomatis bertahap (`SUSPENDED`, badge ungu kontras) dengan jendela penyelesaian 1 tahun disertai countdown, pencabutan akreditasi (`REVOKED`) jika batas 1 tahun habis, serta auto-realisasi data lampau bagi LPK yang berstatus aktif saat ini.
 * **Mesin Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):** Menghitung otomatis batas waktu dasar (3 bulan AA, 2 bulan lainnya), mengunci perpanjangan maksimal 1 bulan bersurat resmi (otomatis memperpanjang +1 bulan saat nomor surat resmi diinput), serta menampilkan status otomatis tanpa beban input manual.
-* **Alur Evaluasi Hasil Asesmen & SK KAN:** Pencatatan sidang EHA, nomor SK, tanggal terbit SK, perhitungan otomatis lead time penerbitan SK, serta portal publik/LPK ber-QR Code untuk verifikasi keabsahan secara instan.
-* **Kepatuhan Finansial Penuh:** Pelaporan dan verifikasi biaya perjalanan dinas asesor berbasis SBM PMK Kemenkeu, penerbitan billing PNBP SIMPONI 15 digit ber-NTPN sah, serta Quality Gate kesiapan rilis dokumen akreditasi.
+* **Alur Evaluasi Hasil Asesmen & SK KAN:** Pencatatan sidang EHA, nomor SK, tanggal terbit SK, perhitungan otomatis lead time penerbitan SK, serta Quality Gate kesiapan rilis dokumen.
 * **Impor Massal & Integrasi Terbuka:** Impor cerdas data LPK dan Asesmen (CSV/XLSX/Google Sheets) serta live feeds CSV untuk formula `=IMPORTDATA` Google Sheets secara real-time.
-* **Kualitas Teruji Menyeluruh:** Diverifikasi dengan 143 skenario pengujian otomatis (*feature tests*) dengan tingkat keberhasilan 100% (829 assertions).
+* **Kualitas Teruji Menyeluruh:** Diverifikasi dengan 140 skenario pengujian otomatis (*feature tests*) dengan tingkat keberhasilan 100% (804 assertions).
 
 Seluruh bab perancangan dapat diakses secara mendalam melalui tautan berkas di atas.

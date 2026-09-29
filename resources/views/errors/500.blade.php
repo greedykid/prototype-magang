@@ -24,8 +24,8 @@
 
             <div class="error-context-box">
                 <div class="error-context-row">
-                    <span class="error-context-label">Waktu Pencatatan</span>
-                    <span class="error-context-val">{{ now()->format('d/m/Y H:i:s') }} WIB</span>
+                    <span class="error-context-label">Tanggal Pencatatan</span>
+                    <span class="error-context-val">{{ now()->format('d/m/Y') }}</span>
                 </div>
                 <div class="error-context-row">
                     <span class="error-context-label">Status Penanganan</span>

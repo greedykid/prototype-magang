@@ -24,10 +24,7 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     }
 
     $tables = [
-        'accreditation_signatures',
-        'accreditation_billings',
         'accreditations',
-        'assessment_expenses',
         'assessments',
         'calendar_events',
         'backups',
@@ -59,7 +56,7 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     }
 
     $this->info('Seluruh data operasional berhasil dikosongkan!');
-})->purpose('Mengosongkan seluruh data operasional SIMASADI (LPK, Akreditasi, Asesmen, Biaya, dll.)');
+})->purpose('Mengosongkan seluruh data operasional SIMASADI (LPK, Akreditasi, Asesmen, dll.)');
 
 Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru saja dikirim hari ini}', function () {
     $force = (bool) $this->option('force');

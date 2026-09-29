@@ -13,15 +13,15 @@ web
 - LPK (Lembaga Penilaian Kesesuaian): Entitas laboratorium terakreditasi KAN yang dipantau status akreditasinya (Aktif, Dibekukan, Dicabut).
 
 ## Product Purpose
-Sistem Informasi Manajemen Asesmen & Akreditasi Laboratorium Terpadu (SIMASADI) mengotomatisasi dan mendokumentasikan seluruh siklus akreditasi laboratorium sesuai standar KAN (Komite Akreditasi Nasional) U-01 dan ISO/IEC 17025. Sistem memastikan kepatuhan regulasi waktu (SLA), siklus toleransi surveilen, serta transparansi pelaporan dan verifikasi publik.
+Sistem Informasi Manajemen Asesmen & Akreditasi Laboratorium Terpadu (SIMASADI) mengotomatisasi dan mendokumentasikan seluruh siklus akreditasi laboratorium sesuai standar KAN (Komite Akreditasi Nasional) U-01 dan ISO/IEC 17025. Sistem memastikan kepatuhan regulasi waktu (SLA), siklus toleransi surveilen, serta transparansi evaluasi dan penetapan akreditasi.
 
 ## Positioning
-Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otomasi aturan KAN U-01 secara deterministik: penegakan SLA tindakan perbaikan (3 bulan untuk Asesmen Awal, 2 bulan untuk jenis asesmen lainnya, plus perpanjangan bersyarat 1 bulan jika ada progres riil), mesin status toleransi surveilen 3 tahap (Bulan Kunjungan -> Pembekuan 1 Tahun dengan hitung mundur -> Pencabutan Akreditasi), perhitungan biaya PNBP berbasis SBM PMK, integrasi billing SIMPONI, dan verifikasi sertifikat publik via QR code berstandar BSrE.
+Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otomasi aturan KAN U-01 secara deterministik: penegakan SLA tindakan perbaikan (3 bulan untuk Asesmen Awal, 2 bulan untuk jenis asesmen lainnya, plus perpanjangan bersyarat 1 bulan jika ada progres riil), mesin status toleransi surveilen 3 tahap (Bulan Kunjungan -> Pembekuan 1 Tahun dengan hitung mundur -> Pencabutan Akreditasi), serta penerbitan SK konfirmasi akreditasi resmi KAN.
 
 ## Operating Context
 - Digunakan dalam operasional berkala dan terjadwal oleh sekretariat KAN, asesor, dan personil laboratorium di seluruh Indonesia.
 - Menangani 8 jenis asesmen resmi KAN: Asesmen Awal, Survailen 1, Survailen 2, Re-Akreditasi, Perluasan Ruang Lingkup, Penambahan Asesor/Penyaksian Asesmen, Survailen Tidak Terjadwal, dan Asesmen Tidak Terjadwal.
-- Regulasi acuan: KAN U-01, ISO/IEC 17025, SBM Kemenkeu PMK, Peraturan Pemerintah PNBP.
+- Regulasi acuan: KAN U-01, ISO/IEC 17025.
 - Lingkungan teknis: Web application (Laravel, Blade, MySQL/SQLite, Tailwind/CSS modern).
 
 ## Capabilities and Constraints
@@ -36,10 +36,8 @@ Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otom
   * LPK dibekukan diberikan masa tenggang toleransi pembekuan 1 tahun dengan countdown timer.
   * Jika dalam 1 tahun surveilen tidak diselesaikan, status akreditasi LPK resmi "Dicabut".
   * Jika status akreditasi LPK tercatat Aktif, seluruh surveilen/tindakan perbaikan periode sebelumnya dianggap otomatis telah terealisasi secara konsisten.
-- Billing & Keuangan:
-  * Generate tagihan billing SIMPONI otomatis sesuai kalkulasi tarif SBM PMK (honor asesor, transport riil/lumpsum, akomodasi, biaya verifikasi).
 - Sertifikasi:
-  * Penerbitan e-Sertifikat dengan TTE BSrE dan tautan portal verifikasi publik QR Code.
+  * Penerbitan Surat Keputusan (SK) dan sertifikat resmi akreditasi KAN.
 
 ## Brand Commitments
 - Nama resmi: SIMASADI (Sistem Informasi Manajemen Asesmen & Akreditasi Terpadu).
@@ -48,9 +46,9 @@ Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otom
 
 ## Evidence on Hand
 - PRD lengkap: prd.md
-- Ringkasan Arsitektur: RINGKASAN_ARSITEKTUR_SIMASADI.docx
-- Rencana implementasi dan alur kerja di doc/
-- Rangkaian pengujian otomatis: 120 unit/feature test cases lulus (100% pass) memverifikasi kalkulasi SLA, transisi status pembekuan, perpanjangan bersyarat, dan kalkulator SBM.
+- Ringkasan Arsitektur: docs/RINGKASAN_ARSITEKTUR_SIMASADI.docx
+- Rencana implementasi dan alur kerja di docs/
+- Rangkaian pengujian otomatis: unit/feature test cases lulus (100% pass) memverifikasi kalkulasi SLA, transisi status pembekuan, dan perpanjangan bersyarat.
 
 ## Product Principles
 - Deterministic Compliance: Aturan KAN U-01 dan SLA ditegakkan oleh sistem tanpa ambiguitas atau bypass manual yang tidak terdokumentasi.

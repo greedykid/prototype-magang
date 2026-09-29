@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,18 +68,9 @@ class UserController extends Controller
     /**
      * Simpan pengguna baru ke basis data.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'role' => ['required', 'string', Rule::in([User::ROLE_ADMIN, User::ROLE_PIC])],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ], [
-            'email.unique' => 'Alamat email ini sudah terdaftar pada pengguna lain.',
-            'password.min' => 'Kata sandi minimal terdiri dari 8 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
-        ]);
+        $validated = $request->validated();
 
         User::create([
             'name' => $validated['name'],
@@ -104,24 +97,9 @@ class UserController extends Controller
     /**
      * Perbarui data akun pengguna di basis data.
      */
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
-            'role' => ['required', 'string', Rule::in([User::ROLE_ADMIN, User::ROLE_PIC])],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ], [
-            'email.unique' => 'Alamat email ini sudah digunakan oleh akun lain.',
-            'password.min' => 'Kata sandi baru minimal terdiri dari 8 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
-        ]);
+        $validated = $request->validated();
 
         // Proteksi keamanan: Ketua Tim yang sedang login tidak boleh mendegradasi perannya sendiri
         if ($request->user()->id === $user->id && $validated['role'] !== User::ROLE_ADMIN) {
@@ -136,7 +114,7 @@ class UserController extends Controller
             'role' => $validated['role'],
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $payload['password'] = Hash::make($validated['password']);
         }
 

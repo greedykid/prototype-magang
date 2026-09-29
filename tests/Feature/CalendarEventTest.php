@@ -164,6 +164,7 @@ class CalendarEventTest extends TestCase
         $responseOct->assertSee('Kedaluwarsa');
         $responseOct->assertSee('Laboratorium Kalibrasi Uji Akurat');
         $responseOct->assertSee('theme-rose');
+        $responseOct->assertSee('&quot;category_label&quot;:&quot;Kedaluwarsa&quot;', false);
 
         // 4. Check agenda view displays the synchronized reminder milestone
         $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2026-07-15');

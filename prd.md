@@ -18,7 +18,7 @@
 * **PTP**: Penyelenggara Uji Kemahiran (SNI ISO/IEC 17043)
 * **BPP**: Produsen Bahan Acuan (SNI ISO 17034)
 
-Aplikasi ini mengintegrasikan seluruh siklus pengawasan berkala (Surveilen KAN), 8 proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP) dan Verifikasi Tindakan Perbaikan (VTP), alur Evaluasi Hasil Asesmen (EHA), kepatuhan keuangan berbasis Standar Biaya Masukan (SBM PMK), penagihan PNBP (SIMPONI Kemenkeu), penandatanganan elektronik dokumen SK (BSrE BSSN), portal publik/asesor dengan verifikasi QR Code, kalender interaktif SPA dengan auto-focus deep-link, mesin live filter parsial instan tanpa reload, hingga pelaporan otomatis Google Sheets.
+Aplikasi ini mengintegrasikan seluruh siklus pengawasan berkala (Surveilen KAN), 8 proses asesmen resmi KAN, penegakan Service Level Agreement (SLA) Tindakan Perbaikan (TP) dan Verifikasi Tindakan Perbaikan (VTP), alur Evaluasi Hasil Asesmen (EHA), akses portal khusus asesor, kalender interaktif SPA dengan auto-focus deep-link, mesin live filter parsial instan tanpa reload, hingga pelaporan otomatis Google Sheets.
 
 ### 1.2 Tujuan Dokumen PRD
 Dokumen ini berfungsi sebagai spesifikasi kebutuhan produk komprehensif yang merangkum seluruh domain bisnis, arsitektur data, logika kalkulasi hukum akreditasi KAN, alur kerja antar-peran, dan kebutuhan fungsional dari sistem operasional SIMASADI terkini. Dokumen ini menjadi acuan teknis baku bagi pengembangan sistem berjalan maupun migrasi platform di lingkungan KAN dan BSN.
@@ -31,10 +31,10 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*rol
 
 | Peran (*Role*) | Akun Referensi | Deskripsi Tanggung Jawab | Hak Akses Utama | Batasan Keamanan |
 | :--- | :--- | :--- | :--- | :--- |
-| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Penanggung jawab administrasi operasional akreditasi, verifikasi kepatuhan, dan pemeliharaan teknis sistem BSN. | Akses penuh (*Full Control*) ke seluruh modul: Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; verifikasi biaya perjalanan dinas SBM; penerbitan billing PNBP SIMPONI; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; dan pemicu simulasi/notifikasi surveilen. | Tanpa batasan hak akses di sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan, mengimpor data master LPK, memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pelaporan biaya perjalanan dinas mandiri, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya, dilarang memverifikasi biaya SBM sendiri (*no self-verification*), dan dilarang mengelola akun pengguna sistem. |
+| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Penanggung jawab administrasi operasional akreditasi, verifikasi kepatuhan, dan pemeliharaan teknis sistem BSN. | Akses penuh (*Full Control*) ke seluruh modul: Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; dan pemicu simulasi/notifikasi surveilen. | Tanpa batasan hak akses di sistem. |
+| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan, mengimpor data master LPK, memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya, dan dilarang mengelola akun pengguna sistem. |
 | **Asesor KAN** (`assessor`) | `assessor@simasadi.local` | Tenaga ahli / asesor kepala (*Lead Assessor*) yang ditugaskan KAN untuk melakukan asesmen lapangan atau audit dokumen. | Akses ke Portal Asesor (`/assessor`): melihat penugasan asesmen lapangan yang sedang dan akan berjalan, meninjau profil LPK yang diases, mengisi evaluasi teknis, serta memantau status pemenuhan tindakan perbaikan dari LPK terkait. | Dibatasi hanya pada data asesmen di mana dirinya ditugaskan sebagai asesor/lead assessor. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Entitas laboratorium atau lembaga inspeksi terakreditasi pemegang sertifikat KAN. | Akses ke Portal LPK Mandiri (`/portal`): memantau status aktif sertifikat akreditasi, memantau hitung mundur batas waktu surveilen, memeriksa batas waktu SLA tindakan perbaikan, serta mengakses verifikasi QR Code keabsahan akreditasi resmi. | Akses terbatas hanya pada data entitas lembaganya sendiri secara transparan (*read-only status & compliance tracking*). |
+| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Entitas laboratorium atau lembaga inspeksi terakreditasi pemegang sertifikat KAN. | Pemantauan Mandiri LPK: memantau status aktif sertifikat akreditasi, memantau hitung mundur batas waktu surveilen, serta memeriksa batas waktu SLA tindakan perbaikan. | Akses terbatas hanya pada data entitas lembaganya sendiri secara transparan (*read-only status & compliance tracking*). |
 
 ---
 
@@ -146,28 +146,10 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 * **Penerbitan SK Akreditasi KAN**:
   * Nomor SK resmi KAN (`sk_number`) dan Tanggal Terbit SK (`sk_issued_at`).
   * Perhitungan Otomatis Lead Time Terbit SK (`sk_lead_time_days`): Menghitung selisih hari kerja/kalender sejak pemenuhan tindakan perbaikan hingga SK resmi diterbitkan.
-* **Verifikasi Publik & Portal LPK dengan QR Code**:
-  * Endpoint publik dan halaman portal mandiri (`/portal`) yang menampilkan kode QR resmi untuk memverifikasi keaslian akreditasi LPK, ruang lingkup, dan status kepatuhan secara instan.
 
 ---
 
-### 3.6 Modul 6: Kepatuhan Keuangan SBM & Billing PNBP SIMPONI
-* **Pelaporan Biaya Perjalanan Dinas Asesor (Standar Biaya Masukan PMK)**:
-  * Terintegrasi langsung pada tabel `assessment_expenses` terhubung ke `assessments`.
-  * Komponen Biaya: Transportasi (Tiket/Tol/BBM), Uang Harian Asesor, Honorarium Asesor / Tenaga Ahli, dan Paket Data/Akomodasi.
-  * Total biaya terakumulasi otomatis (`total_cost = transport + accommodation + daily_allowance + package_data`).
-  * Alur Verifikasi SBM: `BELUM_DILAPORKAN` -> `MENUNGGU_VERIFIKASI` -> `TERVERIFIKASI` atau `PERLU_REVISI`.
-  * Pencatatan verifikator resmi: `verified_by`, `verified_at`, dan catatan perbaikan bila ada ketidaksesuaian pagu SBM.
-* **Penerbitan Billing PNBP (SIMPONI Kemenkeu)**:
-  * Penerbitan Kode Billing SIMPONI 15 digit berawalan digit '8'.
-  * Status pembayaran: `UNPAID` (Belum Bayar), `PAID` (Lunas), `EXPIRED` (Kedaluwarsa).
-  * Konfirmasi pelunasan kas negara: Pencatatan Nomor Transaksi Penerimaan Negara (NTPN 16 digit), Nomor Transaksi Bank (NTB), dan kanal pembayaran.
-* **Quality Gate Kesiapan Terbit Dokumen (Release Readiness Gate)**:
-  * SK Akreditasi hanya dapat dirilis bila billing PNBP telah `PAID` dan laporan biaya asesor telah `TERVERIFIKASI` sesuai ketentuan audit BSN.
-
----
-
-### 3.7 Modul 7: Penjadwalan & Kalender Interaktif Multi-Event
+### 3.6 Modul 6: Penjadwalan & Kalender Interaktif Multi-Event
 * **Dukungan 5 Tipe Event Kalender**:
   1. `assessment`: Kunjungan Asesmen Lapangan Resmi KAN (Warna Biru / Blue).
   2. `surveillance_reminder`: Pengingat Jadwal Kunjungan Surveilen LPK (Warna Kuning / Oranye).
@@ -194,7 +176,7 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 
 ---
 
-### 3.8 Modul 8: Mesin Pencarian & Filter Parsial Live (Partial AJAX Filter Engine)
+### 3.7 Modul 7: Mesin Pencarian & Filter Parsial Live (Partial AJAX Filter Engine)
 * **Live Search & Filter Tanpa Full-Page Reload**:
   * Diterapkan pada tabel utama Master LPK (`/lpks`) dan Daftar Asesmen (`/assessments`).
   * Modul JavaScript mandiri (`resources/js/modules/live-filter.js`) mengelola input pencarian teks dengan teknik *debounce* 280 ms dan pemantauan perubahan pada select filter (*status*, *assessment_type*, *tp_status*, *lpk_id*).
@@ -210,7 +192,7 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 
 ---
 
-### 3.9 Modul 9: Impor Massal Asesmen & LPK
+### 3.8 Modul 8: Impor Massal Asesmen & LPK
 * **Impor Data Asesmen Massal**:
   * Fitur unggah CSV untuk penjadwalan banyak asesmen sekaligus dengan pemetaan otomatis: nomor registrasi LPK, tipe asesmen KAN, nama asesor kepala, tanggal mulai, dan tanggal selesai.
 * **Impor Data LPK (Smart Upsert)**:
@@ -219,10 +201,9 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 
 ---
 
-### 3.10 Modul 10: Live Feed Google Sheets & Laporan
+### 3.9 Modul 9: Live Feed Google Sheets & Laporan
 * **Live CSV Feeds (`=IMPORTDATA`)**:
   * Endpoint publik terlindungi API key parameter rahasia:
-    * `/feeds/expenses.csv?key=simasadi-live`: Rekapitulasi laporan biaya asesor.
     * `/feeds/lpks.csv?key=simasadi-live`: Rekapitulasi direktori master LPK dan status akreditasi.
     * `/feeds/assessments.csv?key=simasadi-live`: Rekapitulasi jadwal asesmen lapangan dan status TP.
 * **Ekspor CSV Terotentikasi**:
@@ -239,24 +220,24 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 |                                         USERS                                           |
 | id (PK), name, email, password, role (admin/pic/assessor/lpk), timestamps               |
 +-----------------------------------------------------------------------------------------+
-       │                                  │                                   │
-       │ (1 to N) Penugasan PIC           │ (1 to N) Pelapor / Verifikator    │ (1 to N) Pembuat Event
-       ▼                                  ▼                                   ▼
-+-----------------------+      +---------------------+             +--------------------+
-|         LPKS          |      | ASSESSMENT_EXPENSES |             |  CALENDAR_EVENTS   |
-| id (PK), no_reg,      |      | id (PK), total_cost,|             | id (PK), lpk_id,   |
-| registration_number,  |      | transport, hotel,   |             | event_type,        |
-| name, kan_schema,     |      | daily_allowance,    |             | title, start_at,   |
-| scope, address, email,|      | status, verified_by |             | end_at, is_all_day |
-| status, expired_at,   |      +---------------------+             +--------------------+
-| pic_user_id (FK),     |                 ▲                                   ▲
-| certificate_date,     |                 │                                   │
-| notes                 |                 │ (1 to 1)                          │
-+-----------------------+                 │                                   │
-       │                                  │                                   │
-       ├──────────────────────────────────┼───────────────────────────────────┘
-       │ (1 to N)                         │
-       ▼                                  │
+       │                                                                      │
+       │ (1 to N) Penugasan PIC                                               │ (1 to N) Pembuat Event
+       ▼                                                                      ▼
++-----------------------+                                            +--------------------+
+|         LPKS          |                                            |  CALENDAR_EVENTS   |
+| id (PK), no_reg,      |                                            | id (PK), lpk_id,   |
+| registration_number,  |                                            | event_type,        |
+| name, kan_schema,     |                                            | title, start_at,   |
+| scope, address, email,|                                            | end_at, is_all_day |
+| status, expired_at,   |                                            +--------------------+
+| pic_user_id (FK),     |                                                       ▲
+| certificate_date,     |                                                       │
+| notes                 |                                                       │
++-----------------------+                                                       │
+       │                                                                        │
+       ├────────────────────────────────────────────────────────────────────────┘
+       │ (1 to N)
+       ▼
 +-----------------------------------------------------------------------------------------+
 |                                      ASSESSMENTS                                        |
 | id (PK), lpk_id (FK), created_by (FK), title, assessment_type (8 tipe KAN U-01),        |
@@ -272,15 +253,6 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 |                                     ACCREDITATIONS                                      |
 | id (PK), lpk_id (FK), start_date, pantek_at, target_output_at, output_released_at       |
 +-----------------------------------------------------------------------------------------+
-       │
-       ├─────────────────────────────────────────┐
-       ▼ (1 to N)                                ▼ (1 to 1)
-+-----------------------------------+     +-----------------------------------------------+
-|       ACCREDITATION_BILLINGS      |     |           ACCREDITATION_SIGNATURES            |
-| id (PK), accreditation_id (FK),   |     | id (PK), accreditation_id (FK), signer_name,  |
-| billing_code (15 digit), status,  |     | cert_serial, signed_at, verify_hash (SHA-256) |
-| amount, ntpn (16 digit), paid_at  |     +-----------------------------------------------+
-+-----------------------------------+
 ```
 
 ---
@@ -315,15 +287,14 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Waktu render halaman utama di bawah 150 ms pada lingkungan intranet instansi.
    * Penggantian data tabel parsial (live filter) selesai dalam waktu di bawah 80 ms.
    * Pergantian tampilan kalender via partial AJAX selesai dalam waktu di bawah 100 ms.
-   * Implementasi Eager Loading (`with(['lpk', 'creator', 'expenses'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
+   * Implementasi Eager Loading (`with(['lpk', 'creator'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
 2. **Keamanan & Integritas Data**:
    * Proteksi token CSRF pada seluruh transaksi POST/PUT/DELETE.
    * Middleware otorisasi peran berbasis hak akses pengguna (`admin`, `pic`, `assessor`, `lpk`).
    * Pencegahan akses lintas data antar PIC pada tingkat kueri basis data.
 3. **Kepatuhan Audit & Standar Regulasi**:
-   * Formula SBM mengacu pada Peraturan Menteri Keuangan Standar Biaya Masukan.
    * Logika tahapan pengawasan dan penegakan SLA mengacu pada pedoman Komite Akreditasi Nasional (KAN U-01).
-   * Validitas dokumen digital diverifikasi dengan enkripsi hash SHA-256 BSrE BSSN.
+   * Penatausahaan dokumen dan penetapan SK akreditasi mematuhi tata kelola administrasi resmi KAN.
 4. **Keandalan Uji Otomatis (Automated Testing Coverage)**:
    * Dilengkapi rangkaian pengujian otomatis (*Feature Tests* & *Unit Tests*) mencakup **132 pengujian** dengan **747 asersi** yang lulus 100% tanpa kegagalan (`Tests: 132 passed`).
    * Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.

@@ -39,7 +39,7 @@
                                 @if(!empty($lpkAlerts))
                                     @foreach($lpkAlerts as $alt)
                                         <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
-                                            ⚠ {{ $alt['name'] }}
+                                            {{ $alt['name'] }}
                                         </span>
                                     @endforeach
                                 @endif
@@ -70,11 +70,14 @@
                         </td>
 
                         <!-- 4. KETERANGAN (OTOMATIS + MANUAL PIC) -->
-                        <td class="col-lpk-notes" data-sort-value="{{ $lpk->dynamic_keterangan }}">
+                        @php
+                            $dynamicKet = $lpk->dynamic_keterangan;
+                        @endphp
+                        <td class="col-lpk-notes" data-sort-value="{{ $dynamicKet }}">
                             {{-- Status Siklus / Proses Berjalan Otomatis --}}
-                            @if($lpk->dynamic_keterangan)
+                            @if($dynamicKet)
                                 @php
-                                    $ketLower = strtolower($lpk->dynamic_keterangan);
+                                    $ketLower = strtolower($dynamicKet);
                                     if (str_contains($ketLower, 'jatuh tempo') || str_contains($ketLower, 'terlampaui') || str_contains($ketLower, 'lewat jadwal') || str_contains($ketLower, 'kedaluwarsa') || str_contains($ketLower, 'dicabut')) {
                                         $theme = 'rose';
                                         $catLabel = 'Jatuh Tempo';
@@ -93,9 +96,9 @@
                                     }
                                 @endphp
                                 <div class="lpk-auto-status theme-{{ $theme }}">
-                                    @if(str_contains($lpk->dynamic_keterangan, ':'))
+                                    @if(str_contains($dynamicKet, ':'))
                                         @php
-                                            [$processName, $statusDetail] = explode(':', $lpk->dynamic_keterangan, 2);
+                                            [$processName, $statusDetail] = explode(':', $dynamicKet, 2);
                                         @endphp
                                         <div class="lpk-note-header">
                                             <span class="lpk-note-badge">
@@ -115,7 +118,7 @@
                                             </span>
                                         </div>
                                         <div class="lpk-note-body font-semibold">
-                                            {{ $lpk->dynamic_keterangan }}
+                                            {{ $dynamicKet }}
                                         </div>
                                     @endif
                                 </div>

@@ -119,7 +119,7 @@
                 @if($lpk->last_surveillance_notified_at)
                     <div class="lpk-alert-callout-meta">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        <span>Email pemberitahuan terakhir dikirim ke PIC Lab: <strong>{{ $lpk->last_surveillance_notified_at->format('d M Y H:i') }}</strong></span>
+                        <span>Email pemberitahuan terakhir dikirim ke PIC Lab: <strong>{{ $lpk->last_surveillance_notified_at->format('d M Y') }}</strong></span>
                     </div>
                 @endif
             </div>
@@ -185,7 +185,7 @@
 
                     <div class="lpk-milestone-dates">
                         <div class="lpk-milestone-date-row">
-                            <span>Waktu Notifikasi:</span>
+                            <span>Tanggal Notifikasi:</span>
                             <strong>{{ $s1['notice_date'] ? $s1['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
@@ -264,7 +264,7 @@
 
                     <div class="lpk-milestone-dates">
                         <div class="lpk-milestone-date-row">
-                            <span>Waktu Notifikasi:</span>
+                            <span>Tanggal Notifikasi:</span>
                             <strong>{{ $s2['notice_date'] ? $s2['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
@@ -343,7 +343,7 @@
 
                     <div class="lpk-milestone-dates">
                         <div class="lpk-milestone-date-row">
-                            <span>Waktu Notifikasi:</span>
+                            <span>Tanggal Notifikasi:</span>
                             <strong>{{ $ra['notice_date'] ? $ra['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">

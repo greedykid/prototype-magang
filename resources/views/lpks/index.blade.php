@@ -137,15 +137,15 @@
     </div>
 </section>
 
-@include('partials.sheets-modal', [
-    'modalId' => 'modal-sheets-sync-lpks',
-    'title' => 'Integrasi Google Sheets: Data Master LPK',
-    'subtitle' => 'Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung.',
-    'exportUrl' => route('reports.lpks.export'),
-    'feedUrl' => route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')]),
-    'fileName' => 'data-master-lpk-simasadi.csv',
-    'columns' => ['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']
-])
+<x-sheets-modal
+    modal-id="modal-sheets-sync-lpks"
+    title="Integrasi Google Sheets: Data Master LPK"
+    subtitle="Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung."
+    :export-url="route('reports.lpks.export')"
+    :feed-url="route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')])"
+    file-name="data-master-lpk-simasadi.csv"
+    :columns="['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
+/>
 
 @include('lpks.partials.import-modal')
 @endsection

@@ -4,15 +4,16 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Header Card dengan Breadcrumb, Judul, Badges & Tombol Aksi --}}
-    <div class="lpk-show-header">
-        <div class="lpk-header-back-wrap">
-            <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                <span>Semua asesmen</span>
-            </a>
-        </div>
+    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
+    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+        <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            <span>Semua asesmen</span>
+        </a>
+    </div>
 
+    {{-- Header Card dengan Judul, Badges & Tombol Aksi --}}
+    <div class="lpk-show-header">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
                 <h1>{{ $assessment->title }}</h1>
@@ -21,15 +22,16 @@
                         {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
                     </a>
                     <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
-                    <x-status :value="$assessment->status" />
                     @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                        <span class="badge-tp badge-tp-danger" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
+                        <span class="status status-revoked" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
                             Dicabut (Lewat 1 Tahun)
                         </span>
                     @elseif($assessment->is_submission_overdue)
-                        <span class="badge-tp badge-tp-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
+                        <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
                             Dibekukan (Toleransi Terlampaui)
                         </span>
+                    @else
+                        <x-status :value="$assessment->status" />
                     @endif
                 </div>
             </div>
@@ -99,7 +101,7 @@
                     </div>
                     <div class="lpk-card-header-text">
                         <h2>Informasi Agenda &amp; Pelaksanaan</h2>
-                        <p>Waktu pelaksanaan, lokasi kunjungan, dan status pelaksanaan asesmen.</p>
+                        <p>Tanggal pelaksanaan, lokasi kunjungan, dan status pelaksanaan asesmen.</p>
                     </div>
                 </div>
 
@@ -129,9 +131,13 @@
                     </div>
 
                     <div class="lpk-meta-item full-width">
-                        <span class="lpk-meta-label">Waktu Pelaksanaan</span>
+                        <span class="lpk-meta-label">Tanggal Pelaksanaan</span>
                         <div class="lpk-meta-value">
-                            <strong>{{ $assessment->start_at->format('d M Y, H:i') }}</strong> sampai <strong>{{ $assessment->end_at->format('d M Y, H:i') }} WIB</strong>
+                            @if($assessment->start_at->isSameDay($assessment->end_at))
+                                <strong>{{ $assessment->start_at->format('d M Y') }}</strong>
+                            @else
+                                <strong>{{ $assessment->start_at->format('d M Y') }}</strong> sampai <strong>{{ $assessment->end_at->format('d M Y') }}</strong>
+                            @endif
                         </div>
                     </div>
 
@@ -154,7 +160,7 @@
                             <span class="lpk-meta-label">Toleransi Pengisian</span>
                             <div class="lpk-meta-value">
                                 <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
-                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(maksimal 4 bulan dari bulan ke-15)</span>
+                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(masa pengisian bulan {{ str_contains(strtolower($assessment->assessment_type ?: ''), 's2') || str_contains(strtolower($assessment->title ?: ''), 's2') ? '36-39' : '15-18' }} siklus KAN)</span>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                     <div style="margin-top: 4px; font-size: 12px; color: #991b1b; font-weight: 600;">
                                         &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
@@ -268,7 +274,5 @@
     </div>
 </div>
 
-@include('assessments.partials.cost-reporting')
-
-@include('assessments.partials.modals')
+@include('assessments.partials.modal-tp-tracking')
 @endsection

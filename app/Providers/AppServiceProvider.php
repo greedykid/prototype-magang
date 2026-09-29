@@ -53,30 +53,45 @@ class AppServiceProvider extends ServiceProvider
         }
 
         view()->composer(['layouts.app', 'layouts.partials.topbar', 'dashboard'], function ($view) {
-            if (Schema::hasTable('lpks')) {
-                try {
-                    $activeLpks = \App\Models\Lpk::with('assessments')
-                        ->where('status', 'ACTIVE')
-                        ->where(function ($q) {
-                            $q->whereNotNull('certificate_date')
-                              ->orWhereNotNull('expired_at');
-                        })
-                        ->get();
+            $req = request();
+            $alerts = $req ? $req->attributes->get('simasadi_global_surveillance_alerts') : null;
 
-                    $alerts = [];
-                    foreach ($activeLpks as $lpk) {
-                        foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
-                            $alerts[] = $alert;
+            if ($alerts === null) {
+                if (Schema::hasTable('lpks')) {
+                    try {
+                        $activeLpks = \App\Models\Lpk::with('assessments')
+                            ->where('status', 'ACTIVE')
+                            ->where(function ($q) {
+                                $q->whereNotNull('certificate_date')
+                                  ->orWhereNotNull('expired_at');
+                            })
+                            ->get();
+
+                        foreach ($activeLpks as $lpk) {
+                            foreach ($lpk->assessments as $assessment) {
+                                $assessment->setRelation('lpk', $lpk);
+                            }
                         }
-                    }
 
-                    $view->with('globalSurveillanceAlerts', $alerts);
-                } catch (\Throwable $e) {
-                    $view->with('globalSurveillanceAlerts', []);
+                        $alerts = [];
+                        foreach ($activeLpks as $lpk) {
+                            foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
+                                $alerts[] = $alert;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        $alerts = [];
+                    }
+                } else {
+                    $alerts = [];
                 }
-            } else {
-                $view->with('globalSurveillanceAlerts', []);
+
+                if ($req) {
+                    $req->attributes->set('simasadi_global_surveillance_alerts', $alerts);
+                }
             }
+
+            $view->with('globalSurveillanceAlerts', $alerts);
         });
     }
 }

@@ -94,14 +94,7 @@ class RoleAccessControlTest extends TestCase
 
         $this->actingAs($pic)->get(route('assessments.show', $assessment))
             ->assertOk()
-            ->assertSee('Ubah asesmen')
-            ->assertDontSee('Verifikasi SBM')
-            ->assertDontSee('modal-verify-expense');
-
-        // Verifikasi biaya SBM tetap dibatasi hanya untuk Administrator
-        $this->actingAs($pic)->post(route('assessments.expenses.verify', $assessment), [
-            'status' => 'TERVERIFIKASI',
-        ])->assertForbidden();
+            ->assertSee('Ubah asesmen');
 
         // 5. PIC DITOLAK (403) mengakses monitoring server teknis
         $this->actingAs($pic)->get(route('monitoring.backups'))->assertForbidden();

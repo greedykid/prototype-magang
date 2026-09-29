@@ -571,12 +571,12 @@ const navigateTo = async (url, pushState = true) => {
         const originalContent = pageWrap.innerHTML;
         let skeletonRendered = false;
 
-        // Debounced skeleton: Only show skeleton if fetch takes longer than 80ms
+        // Debounced skeleton: Only show skeleton if fetch takes longer than 200ms
         // This ensures local navigation is instantaneous without flickering or lag!
         const skeletonTimer = setTimeout(() => {
             skeletonRendered = true;
             pageWrap.innerHTML = renderSkeletonForType(type);
-        }, 80);
+        }, 200);
 
         const response = await fetch(url, {
             headers: {

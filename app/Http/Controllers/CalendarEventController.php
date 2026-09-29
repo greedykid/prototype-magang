@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCalendarEventRequest;
+use App\Http\Requests\UpdateCalendarEventRequest;
 use App\Models\Assessment;
 use App\Models\CalendarEvent;
 use App\Models\Lpk;
@@ -434,7 +436,7 @@ class CalendarEventController extends Controller
                         'id' => 'lpk_exp_' . $lpkItem->id,
                         'source' => 'lpk_expired',
                         'category' => 'JATUH_TEMPO',
-                        'category_label' => 'Jatuh Tempo',
+                        'category_label' => 'Kedaluwarsa',
                         'color_theme' => 'rose',
                         'title' => 'Kedaluwarsa',
                         'lpk_id' => $lpkItem->id,
@@ -499,9 +501,9 @@ class CalendarEventController extends Controller
         return view('calendar.form', ['event' => $event, 'lpks' => Lpk::orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCalendarEventRequest $request): RedirectResponse
     {
-        $event = CalendarEvent::create($this->validated($request) + ['created_by' => $request->user()->id]);
+        $event = CalendarEvent::create($request->validated() + ['created_by' => $request->user()->id]);
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil ditambahkan.');
     }
@@ -516,42 +518,10 @@ class CalendarEventController extends Controller
         return view('calendar.form', ['event' => $event, 'lpks' => Lpk::orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
     }
 
-    public function update(Request $request, CalendarEvent $event): RedirectResponse
+    public function update(UpdateCalendarEventRequest $request, CalendarEvent $event): RedirectResponse
     {
-        $event->update($this->validated($request));
+        $event->update($request->validated());
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');
-    }
-
-    private function validated(Request $request): array
-    {
-        $usesSplitDateFields = $request->filled('start_date');
-
-        if ($request->filled('start_date')) {
-            $startTime = $request->filled('start_time') ? (string) $request->input('start_time') : '09:00';
-            $endTime = $request->filled('end_time') ? (string) $request->input('end_time') : '17:00';
-            $endDate = $request->filled('end_date') ? (string) $request->input('end_date') : (string) $request->input('start_date');
-
-            $request->merge([
-                'start_at' => trim($request->input('start_date').' '.$startTime),
-                'end_at' => trim($endDate.' '.$endTime),
-            ]);
-        }
-
-        return $request->validate([
-            'lpk_id' => ['required', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'event_type' => ['nullable', 'string', 'in:PRL,STT,AGENDA_INTERNAL'],
-            'description' => ['nullable', 'string'],
-            'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'start_time' => ['nullable', 'date_format:H:i'],
-            'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
-            'end_time' => ['nullable', 'date_format:H:i'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after:start_at'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:PLANNED,IN_PROGRESS,COMPLETED,CANCELLED'],
-            'notes' => ['nullable', 'string'],
-        ]);
     }
 }

@@ -61,8 +61,8 @@
                     <tr>
                         <th>LPK</th>
                         <th>Status</th>
-                        <th>Billing PNBP</th>
-                        <th>TTE BSrE</th>
+                        <th>Pantek</th>
+                        <th>Target Output</th>
                         <th>Mulai</th>
                         <th>Target</th>
                         <th></th>
@@ -76,8 +76,8 @@
                                 <span>{{ $item->lpk->registration_number }}</span>
                             </td>
                             <td><x-status :value="$item->status" /></td>
-                            <td><x-status :value="$item->latestBilling ? $item->latestBilling->status : 'UNPAID'" /></td>
-                            <td><x-status :value="$item->signature && $item->signature->is_signed ? 'SIGNED' : 'UNSIGNED'" /></td>
+                            <td>{{ $item->pantek_at?->format('d M Y') ?: '-' }}</td>
+                            <td>{{ $item->target_output_at?->format('d M Y') ?: '-' }}</td>
                             <td>{{ $item->start_date?->format('d M Y') ?: 'Belum diisi' }}</td>
                             <td>{{ $item->target_date?->format('d M Y') ?: 'Belum diisi' }}</td>
                             <td><a href="{{ route('accreditations.show', $item) }}">Detail</a></td>

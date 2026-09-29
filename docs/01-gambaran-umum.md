@@ -17,7 +17,7 @@ Komite Akreditasi Nasional (KAN) di bawah naungan Badan Standardisasi Nasional (
 Dalam tata kelola pengawasan berkala dan kepatuhan akreditasi, sekretariat KAN, tim asesor, dan PIC pendamping LPK menghadapi berbagai tantangan operasional:
 1. **Penegakan Regulasi KAN U-01 yang Kompleks:** Kebutuhan standarisasi alur untuk 8 tipe proses asesmen resmi KAN, penegakan batas waktu Tindakan Perbaikan (TP & VTP), serta penghitungan toleransi pengisian dokumen dan konsekuensi pembekuan status.
 2. **Kebutuhan Monitoring Siklus Hidup Akreditasi Bertahap:** Penentuan status kepatuhan LPK membutuhkan aturan bertingkat yang jelas: masa toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan), masa pembekuan sementara dengan jendela penyelesaian 1 tahun, hingga sanksi pencabutan akreditasi bila kewajiban tidak diselesaikan.
-3. **Akuntabilitas Keuangan & Dokumen Sah:** Diperlukan pencatatan laporan biaya perjalanan dinas asesor yang patuh terhadap Standar Biaya Masukan (SBM PMK), transparansi billing PNBP jasa akreditasi (SIMPONI Kemenkeu), serta penandatanganan elektronik dokumen SK (BSrE BSSN) yang dapat diverifikasi publik melalui QR Code.
+3. **Akuntabilitas & Validitas Dokumen Sah:** Diperlukan penatausahaan alur evaluasi hasil asesmen (EHA) dan penerbitan Surat Keputusan (SK) akreditasi KAN yang transparan serta terdokumentasi.
 4. **Sentralisasi Data & Integrasi Multi-Peran:** Diperlukan ruang kerja digital yang mampu menghubungkan Administrator Unit Akreditasi, PIC Unit Teknis, Asesor KAN di lapangan, serta perwakilan LPK pemegang sertifikat.
 
 SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi seluruh alur bisnis, aturan regulasi, dan antarmuka kerja tersebut secara presisi.
@@ -29,8 +29,7 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
 2. **Otomasi Siklus Pengawasan & 8 Proses Asesmen:** Memfasilitasi penjadwalan dan pemantauan 8 proses asesmen resmi KAN (Akreditasi Awal, Surveilen 1, Surveilen 1 + PRL, Surveilen 2, Surveilen 2 + PRL, Surveilen Tidak Terjadwal, Perluasan Ruang Lingkup, dan Re-Akreditasi).
 3. **Penegakan Toleransi Kunjungan & Siklus Pembekuan Bertahap:** Menerapkan mesin status kepatuhan dinamis yang menghitung toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan, dengan tanggal tersimpan yang fleksibel disesuaikan sesuai kondisi proses), memberikan jendela kesempatan penyelesaian 1 tahun bagi LPK yang berstatus dibekukan (`SUSPENDED`), dan mencabut status akreditasi (`REVOKED`) jika batas 1 tahun terlewati.
 4. **Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):** Menghitung batas waktu awal secara otomatis (3 bulan untuk AA, 2 bulan untuk asesmen lainnya), mengontrol syarat perpanjangan maksimal 1 bulan bersurat resmi hanya bagi LPK yang telah menunjukkan progres perbaikan temuan, serta melarang perpanjangan jika laporan perbaikan nihil/kosong.
-5. **Kepatuhan Finansial SBM PMK & Billing PNBP:** Mengelola verifikasi biaya perjalanan dinas asesor dan mencatat realisasi setoran kas negara melalui kode billing SIMPONI 15 digit ber-NTPN sah sebagai syarat gerbang rilis SK (*Release Readiness Gate*).
-6. **Aksesibilitas Multi-Peran & Verifikasi Publik:** Menyediakan portal mandiri bagi LPK (`/portal`) dan portal bagi asesor (`/assessor`) yang terintegrasi dengan kode QR verifikasi status dokumen secara real-time.
+5. **Aksesibilitas Multi-Peran:** Menyediakan ruang kerja mandiri bagi pemantauan LPK dan portal bagi asesor (`/assessor`) untuk transparansi tindak lanjut asesmen.
 
 ---
 
@@ -47,12 +46,11 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
   * Auto-Realisasi LPK Aktif: Data surveilen dan TP lampau dari LPK yang saat ini aktif otomatis dianggap telah selesai (`COMPLETED` / `SATISFIED`).
 * **Pelacakan SLA Tindakan Perbaikan (TP & VTP):** SLA dasar 3 bulan (AA) dan 2 bulan (lainnya), perpanjangan maksimal 1 bulan bersyarat ada progres temuan dan surat permohonan resmi, larangan perpanjangan jika perbaikan kosong, serta status otomatis tanpa input manual.
 * **Alur Evaluasi Hasil Asesmen (EHA) & Penerbitan SK:** Penjadwalan sidang EHA, nomor SK, tanggal terbit SK, dan lead time terbit SK (`sk_lead_time_days`).
-* **Biaya Asesor SBM PMK & SIMPONI Kemenkeu:** Pelaporan biaya perjalanan dinas, status verifikasi SBM, penerbitan billing SIMPONI, dan Quality Gate kesiapan terbit dokumen akreditasi.
 * **Kalender Kerja Interaktif 5 Jenis Event:** Visualisasi multi-event (Asesmen Lapangan, Pengingat Surveilen, Pengingat Batas TP, Overdue TP, dan Pengingat SK) dengan navigasi pemilih cepat bulan dan tahun.
 * **Impor Massal & Live Sync Data:** Impor LPK dan Asesmen (CSV/XLSX/Google Sheets) serta live feeds CSV terproteksi API key untuk Google Sheets `=IMPORTDATA`.
 
 #### 1.4.2 Luar Scope (*Out-of-Scope*)
-* Integrasi langsung secara online ke core-banking gateway perbankan real-time (verifikasi pembayaran menggunakan simulasi pencatatan nomor transaksi NTPN 16 karakter sah).
+* Integrasi langsung ke gateway perbankan atau pembayaran pihak ketiga.
 * Penyimpanan fisik dokumen ke storage cloud komersial multi-region (arsip dokumen ditautkan langsung melalui Google Drive terpadu instansi).
 
 ---
@@ -61,10 +59,10 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
 
 | Aktor | Peran Utama | Hak Akses & Tanggung Jawab |
 |---|---|---|
-| **Admin Unit Akreditasi Lab** (`admin`) | Penanggung jawab tata kelola sistem & akreditasi | Akses penuh: mengelola direktori master LPK, impor massal data, penjadwalan 8 tipe asesmen KAN, alur EHA, verifikasi biaya SBM PMK, billing SIMPONI, penandatanganan SK BSrE, manajemen akun pengguna, dan konfigurasi sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | Pendamping operasional teknis LPK | Mengakses LPK binaan, memantau tenggat surveilen dan toleransi pengisian, menginput laporan biaya asesor mandiri, mencatat kemajuan perbaikan temuan asesmen, dan menginput nomor surat permohonan perpanjangan waktu SLA. |
+| **Admin Unit Akreditasi Lab** (`admin`) | Penanggung jawab tata kelola sistem & akreditasi | Akses penuh: mengelola direktori master LPK, impor massal data, penjadwalan 8 tipe asesmen KAN, alur EHA, penetapan SK resmi KAN, manajemen akun pengguna, dan konfigurasi sistem. |
+| **PIC Laboratorium / Unit Teknis** (`pic`) | Pendamping operasional teknis LPK | Mengakses LPK binaan, memantau tenggat surveilen dan toleransi pengisian, mencatat kemajuan perbaikan temuan asesmen, dan menginput nomor surat permohonan perpanjangan waktu SLA. |
 | **Asesor KAN** (`assessor`) | Tenaga ahli / Lead Assessor KAN | Mengakses Portal Asesor (`/assessor`): melihat penugasan asesmen lapangan, meninjau profil teknis LPK yang diases, mengisi evaluasi asesmen, dan memantau status pemenuhan tindakan perbaikan. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | Pemegang sertifikat akreditasi KAN | Mengakses Portal LPK Mandiri (`/portal`): memantau status aktif sertifikat, hitung mundur batas toleransi pengisian surveilen, memantau SLA tindakan perbaikan, dan mengakses verifikasi QR Code keabsahan akreditasi. |
+| **Lembaga Penilaian Kesesuaian** (`lpk`) | Pemegang sertifikat akreditasi KAN | Pemantauan Mandiri LPK: memantau status aktif sertifikat, hitung mundur batas toleransi pengisian surveilen, dan memantau pemenuhan SLA tindakan perbaikan. |
 
 ---
 

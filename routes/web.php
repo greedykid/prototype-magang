@@ -1,10 +1,7 @@
 <?php
 
-use App\Http\Controllers\AccreditationBillingController;
 use App\Http\Controllers\AccreditationController;
-use App\Http\Controllers\AccreditationSignatureController;
 use App\Http\Controllers\AssessmentController;
-use App\Http\Controllers\AssessmentExpenseController;
 use App\Http\Controllers\AssessmentImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CalendarEventController;
@@ -24,11 +21,7 @@ Route::middleware('guest')->group(function (): void {
 });
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
-// Public verification for digital signature (BSrE QR Code simulation)
-Route::get('/verify-sk/{hash}', [AccreditationSignatureController::class, 'verifyPublic'])->name('accreditations.esign.verify');
-
 // Public live CSV feeds for Google Sheets =IMPORTDATA formula (protected by ?key= query)
-Route::get('/feeds/expenses.csv', [GoogleSheetsReportController::class, 'feedExpenses'])->name('feeds.expenses');
 Route::get('/feeds/lpks.csv', [GoogleSheetsReportController::class, 'feedLpks'])->name('feeds.lpks');
 Route::get('/feeds/assessments.csv', [GoogleSheetsReportController::class, 'feedAssessments'])->name('feeds.assessments');
 
@@ -64,10 +57,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
     Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
     Route::post('/assessments/{assessment}/tp-tracking', [AssessmentController::class, 'updateTp'])->name('assessments.tp.update')->whereNumber('assessment');
-    Route::post('/assessments/{assessment}/expenses', [AssessmentExpenseController::class, 'storeOrUpdate'])->name('assessments.expenses.store');
 
     // Ekspor CSV Terotentikasi & Integrasi Google Sheets
-    Route::get('/reports/expenses/export', [GoogleSheetsReportController::class, 'exportExpenses'])->name('reports.expenses.export');
     Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
     Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
@@ -85,11 +76,5 @@ Route::middleware('auth')->group(function (): void {
 
         Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');
         Route::get('/accreditations/{accreditation}', [AccreditationController::class, 'show'])->name('accreditations.show');
-        Route::post('/accreditations/{accreditation}/billings', [AccreditationBillingController::class, 'store'])->name('accreditations.billings.store');
-        Route::post('/accreditations/{accreditation}/billings/{billing}/pay', [AccreditationBillingController::class, 'pay'])->name('accreditations.billings.pay');
-        Route::post('/accreditations/{accreditation}/esign', [AccreditationSignatureController::class, 'sign'])->name('accreditations.esign.sign');
-
-        // Verifikasi Biaya Perjalanan Dinas SBM Asesor (Wewenang Admin)
-        Route::post('/assessments/{assessment}/expenses/verify', [AssessmentExpenseController::class, 'verify'])->name('assessments.expenses.verify');
     });
 });

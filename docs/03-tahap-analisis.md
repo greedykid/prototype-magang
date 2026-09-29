@@ -13,10 +13,10 @@ Analisis masalah operasional pengelolaan akreditasi LPK dilakukan menggunakan me
 |---|---|---|
 | **Performance (Kinerja)** | Informasi progres akreditasi, status surveilen, dan batas SLA tindakan perbaikan memerlukan waktu lama untuk direkap manual dari berbagai file terpisah. | Dashboard eksekutif menyajikan KPI instan, indikator pengawasan aktif, dan notifikasi persisten prioritas tinggi dengan waktu muat di bawah 200 ms. |
 | **Information (Informasi)** | Status akreditasi sering kali statis dan tidak mencerminkan keterlambatan surveilen atau pelanggaran batas waktu tindakan perbaikan secara real-time. | Mesin status dinamis menghitung kepatuhan secara otomatis: toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan), pembekuan bertahap dengan countdown 1 tahun, hingga pencabutan akreditasi. |
-| **Economics (Biaya & Waktu)** | Waktu staf habis untuk koordinasi manual, pengecekan surat permohonan perpanjangan waktu, serta rekapitulasi biaya perjalanan dinas yang rawan salah pagu. | Efisiensi administrasi meningkat melalui validasi sistem otomatis terhadap syarat perpanjangan SLA, kalkulasi biaya SBM PMK, dan kode billing SIMPONI. |
-| **Control & Security (Kontrol & Keamanan)** | Pembatasan hak akses belum terstandarisasi, risiko kelalaian verifikasi biaya, dan kerentanan modifikasi data LPK lintas unit. | Role-Based Access Control 4 peran (*Admin, PIC, Assessor, LPK*), pemisahan portal mandiri, serta Quality Gate pelepasan SK yang terkunci sebelum syarat terpenuhi. |
+| **Economics (Biaya & Waktu)** | Waktu staf habis untuk koordinasi manual, pengecekan surat permohonan perpanjangan waktu, serta pemantauan siklus surveilen secara parsial. | Efisiensi administrasi meningkat melalui validasi sistem otomatis terhadap syarat perpanjangan SLA, peringatan dini batas pengisian, dan otomasi alur EHA. |
+| **Control & Security (Kontrol & Keamanan)** | Pembatasan hak akses belum terstandarisasi, risiko kelalaian verifikasi, dan kerentanan modifikasi data LPK lintas unit. | Role-Based Access Control 4 peran (*Admin, PIC, Assessor, LPK*), pemisahan portal mandiri, serta Quality Gate pelepasan SK yang terkunci sebelum syarat terpenuhi. |
 | **Efficiency (Efisiensi)** | Penjadwalan asesmen, pemantauan pengingat SK, dan pelaporan spreadsheet dilakukan secara manual dan terfragmentasi. | Kalender interaktif 5 tipe event terintegrasi, impor massal (CSV/XLSX), serta live feed CSV otomatis untuk Google Sheets (`=IMPORTDATA`). |
-| **Service (Layanan)** | LPK dan publik kesulitan memverifikasi status keabsahan sertifikat dan kemajuan penyelesaian tindakan perbaikan secara transparan. | Portal mandiri LPK (`/portal`) dan portal asesor (`/assessor`) dilengkapi verifikasi QR Code keabsahan akreditasi resmi. |
+| **Service (Layanan)** | Pengguna internal dan LPK kesulitan memantau kemajuan tindak lanjut asesmen dan status akreditasi secara transparan. | Portal asesor (`/assessor`) dan antarmuka pemantauan status menyajikan kepatuhan akreditasi secara real-time. |
 
 #### 3.1.2 Fishbone Diagram (Analisis Sebab-Akibat Masalah)
 
@@ -36,7 +36,7 @@ graph LR
     end
     subgraph Data ["Faktor Data"]
         D1["Data surveilen lampau berstatus menggantung"]
-        D2["Rekapitulasi biaya SBM terpisah dari asesmen"]
+        D2["Pencatatan riwayat asesmen terpisah-pisah"]
     end
 
     M1 & M2 --> MasalahUtama["Risiko Keterlambatan Siklus Akreditasi & Ketidakpatuhan Regulasi KAN U-01"]
@@ -76,15 +76,11 @@ Setiap kebutuhan fungsional diberi kode unik (`REQ-F-XX`) untuk menjamin keterla
 | **REQ-F-21** | Kalender Kerja Multi-Event | Sistem harus menampilkan kalender kerja bulanan interaktif dengan 5 tipe event berkode warna kontras: Asesmen, Pengingat Surveilen, Pengingat TP, Overdue TP, dan Pengingat SK. | Semua Pengguna |
 | **REQ-F-22** | Navigasi Kalender Cepat | Sistem harus menyediakan dropdown pemilih langsung bulan dan tahun dengan jangkauan tahun dinamis hingga masa kedaluwarsa LPK terjauh. | Semua Pengguna |
 | **REQ-F-23** | Pembuatan Agenda Instan | Pengguna dapat mengklik langsung kotak tanggal pada kalender untuk membuka form penambahan agenda dengan tanggal mulai dan tanggal selesai terisi otomatis. | Admin & PIC |
-| **REQ-F-24** | Biaya Asesor SBM PMK | Sistem harus mencatat rincian realisasi biaya perjalanan dinas asesor (transportasi, uang harian, honorarium, paket data/akomodasi) dan status verifikasi persetujuan Sekretariat KAN. | Asesor & Admin |
-| **REQ-F-25** | Billing PNBP SIMPONI | Sistem harus menerbitkan kode billing SIMPONI 15 digit, status tagihan, dan simulasi pelunasan kas negara dengan nomor transaksi NTPN 16 digit yang sah. | Admin Unit Lab |
-| **REQ-F-26** | e-Sign BSrE BSSN | Sistem harus mendukung pembubuhan tanda tangan elektronik SK Akreditasi bersertifikat BSrE BSSN yang memuat segel digital dan hash kriptografi SHA-256. | Admin Unit Lab |
-| **REQ-F-27** | Quality Gate Terbit SK | Sistem harus memvalidasi agar SK Akreditasi tidak dapat dirilis sebelum billing PNBP berstatus `PAID` dan seluruh biaya perjalanan dinas asesor berstatus `TERVERIFIKASI`. | Semua Pengguna |
-| **REQ-F-28** | Portal Publik & QR Code | Sistem harus menyediakan portal verifikasi publik dan portal LPK (`/portal`) dengan kode QR resmi untuk memeriksa validitas akreditasi secara instan tanpa login. | Publik & LPK |
-| **REQ-F-29** | Impor Massal LPK | Sistem harus menyediakan fitur impor massal data master LPK dari file CSV, file spreadsheet XLSX, dan URL live Google Sheets dengan logika *Smart Upsert*. | Admin Unit Lab |
-| **REQ-F-30** | Impor Massal Asesmen | Sistem harus menyediakan fitur impor massal jadwal asesmen lapangan dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | Admin Unit Lab |
-| **REQ-F-31** | Live Feeds Google Sheets | Sistem harus menyediakan endpoint live CSV terproteksi API key (`/feeds/expenses.csv`, `/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk sinkronisasi formula `=IMPORTDATA`. | Admin & PIC |
-| **REQ-F-32** | Antarmuka Dual-Mode & UX | Sistem harus menyediakan toggle tampilan Tabel vs Grid Cards, drawer filter mobile yang meluncur mulus, active filter chips, dan baris tabel yang dapat diklik (*Clickable Rows*). | Semua Pengguna |
+| **REQ-F-24** | Quality Gate Terbit SK | Sistem harus memvalidasi agar SK Akreditasi hanya dapat dirilis setelah sidang EHA direalisasikan dan pemenuhan tindakan perbaikan berstatus selesai. | Semua Pengguna |
+| **REQ-F-25** | Impor Massal LPK | Sistem harus menyediakan fitur impor massal data master LPK dari file CSV, file spreadsheet XLSX, dan URL live Google Sheets dengan logika *Smart Upsert*. | Admin Unit Lab |
+| **REQ-F-26** | Impor Massal Asesmen | Sistem harus menyediakan fitur impor massal jadwal asesmen lapangan dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | Admin Unit Lab |
+| **REQ-F-27** | Live Feeds Google Sheets | Sistem harus menyediakan endpoint live CSV terproteksi API key (`/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk sinkronisasi formula `=IMPORTDATA`. | Admin & PIC |
+| **REQ-F-28** | Antarmuka Dual-Mode & UX | Sistem harus menyediakan toggle tampilan Tabel vs Grid Cards, drawer filter mobile yang meluncur mulus, active filter chips, dan baris tabel yang dapat diklik (*Clickable Rows*). | Semua Pengguna |
 
 ---
 
@@ -100,5 +96,5 @@ Setiap kebutuhan fungsional diberi kode unik (`REQ-F-XX`) untuk menjamin keterla
 | **REQ-NF-06** | **Responsivitas (Responsiveness)** | Tata letak beradaptasi mulus dari layar monitor desktop ultra-wide, laptop kerja, tablet verifikator (768px - 1024px), hingga smartphone (360px - 600px). |
 | **REQ-NF-07** | **Keandalan Uji (Reliability)** | Seluruh logika aturan KAN, kalkulasi status, SLA perbaikan, dan pembatasan peran wajib lolos 100% pada automated test suite (119 tests, 680 assertions). |
 | **REQ-NF-08** | **Portabilitas (Portability)** | Basis data menggunakan SQLite 3 terpadu dan konfigurasi multi-platform (Docker Compose dan Composer/Node.js lokal). |
-| **REQ-NF-09** | **Integritas Regulasi (Regulatory Compliance)** | Mengikuti format regulasi KAN U-01, Peraturan Menteri Keuangan Standar Biaya Masukan (SBM), dan penagihan PNBP SIMPONI. |
+| **REQ-NF-09** | **Integritas Regulasi (Regulatory Compliance)** | Mengikuti ketentuan regulasi KAN U-01, standar ISO/IEC 17011, serta pedoman tata kelola akreditasi nasional. |
 | **REQ-NF-10** | **Kemudahan Pemeliharaan (Maintainability)** | Struktur kode mematuhi standar PSR-12, arsitektur MVC terstruktur rapi, serta terdokumentasi lengkap dalam dokumen perancangan SDLC. |
