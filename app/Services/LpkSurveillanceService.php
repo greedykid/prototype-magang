@@ -57,6 +57,8 @@ class LpkSurveillanceService
         }
 
         $now = now();
+        $isLpkActive = $lpk->getRawOriginal('status') === 'ACTIVE';
+        $isCertValid = $expDate ? $now->lt($expDate) : true;
 
         // Cek asesmen yang sudah pernah dibuat untuk LPK ini
         $assessments = $lpk->relationLoaded('assessments') ? $lpk->assessments : $lpk->assessments()->get();
@@ -86,6 +88,9 @@ class LpkSurveillanceService
 
             if ($hasS1) {
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
+            } elseif ($isLpkActive && $isCertValid && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
+                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
+                $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s1']['target_date'])) {
                 $milestones['s1']['status'] = 'OVERDUE';
             } elseif ($now->gte($milestones['s1']['notice_date'])) {
@@ -114,6 +119,9 @@ class LpkSurveillanceService
             });
 
             if ($hasS2) {
+                $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
+            } elseif ($isLpkActive && $isCertValid && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
+                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s2']['target_date'])) {
                 $milestones['s2']['status'] = 'OVERDUE';

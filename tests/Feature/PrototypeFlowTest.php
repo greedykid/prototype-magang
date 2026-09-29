@@ -155,7 +155,9 @@ class PrototypeFlowTest extends TestCase
         ]);
 
         $milestonesS2 = $lpkS2->surveillance_milestones;
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestonesS2['s1']['status']);
         $this->assertEquals('DUE', $milestonesS2['s2']['status']);
+        $this->assertEquals('UPCOMING', $milestonesS2['ra']['status']);
 
         // LPK kurang dari 1 bulan sebelum habis (memasuki masa notif Re-Akreditasi, < 1 bulan)
         $lpkRA = Lpk::create([
@@ -168,7 +170,45 @@ class PrototypeFlowTest extends TestCase
         ]);
 
         $milestonesRA = $lpkRA->surveillance_milestones;
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestonesRA['s1']['status']);
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestonesRA['s2']['status']);
         $this->assertEquals('DUE', $milestonesRA['ra']['status']);
+    }
+
+    public function test_past_surveillance_milestones_are_auto_realized_for_active_lpks_with_valid_accreditation(): void
+    {
+        // Active LPK at month 50 (past S1 and S2 tolerance, in RA notice window)
+        $activeLpkYear5 = Lpk::create([
+            'registration_number' => 'LP-AUTO-REALIZED-01',
+            'name' => 'Lab Akreditasi Valid Siklus Lanjut',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(50)->toDateString(),
+            'expired_at' => now()->addMonths(10)->toDateString(),
+            'email' => 'pic.valid@labuji.id',
+        ]);
+
+        $milestones = $activeLpkYear5->surveillance_milestones;
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestones['s1']['status']);
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestones['s2']['status']);
+        $this->assertEquals('DUE', $milestones['ra']['status']);
+
+        // Only RA generates active alert, past S1 and S2 do not create false overdue alerts
+        $alerts = $activeLpkYear5->getActiveSurveillanceAlerts();
+        $this->assertCount(1, $alerts);
+        $this->assertEquals('RA', $alerts[0]['code']);
+
+        // Inactive LPK past tolerance dates should NOT be auto-realized (remains OVERDUE)
+        $inactiveLpk = Lpk::create([
+            'registration_number' => 'LP-AUTO-REALIZED-02',
+            'name' => 'Lab Inactive Tidak Terealisasi',
+            'status' => 'INACTIVE',
+            'certificate_date' => now()->subMonths(50)->toDateString(),
+            'expired_at' => now()->addMonths(10)->toDateString(),
+        ]);
+
+        $inactiveMilestones = $inactiveLpk->surveillance_milestones;
+        $this->assertEquals('OVERDUE', $inactiveMilestones['s1']['status']);
+        $this->assertEquals('OVERDUE', $inactiveMilestones['s2']['status']);
     }
 
     public function test_surveillance_reminder_email_can_be_sent_to_lab_pic(): void
