@@ -367,16 +367,21 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     .page-heading-actions a.button,
     .dashboard-header-actions .button,
     .dashboard-header-actions a.button {
-        flex: 1 1 140px !important;
+        flex: 1 1 calc(50% - 6px) !important;
         justify-content: center !important;
         min-height: 44px !important;
         width: auto !important;
     }
 
     .heading-actions a.button.primary,
+    .heading-actions .button.primary,
     .page-heading-actions a.button.primary,
-    .dashboard-header-actions a.button.primary {
+    .page-heading-actions .button.primary,
+    .dashboard-header-actions a.button.primary,
+    .dashboard-header-actions .button.primary {
         flex: 1 1 100% !important;
+        order: -1 !important;
+        width: 100% !important;
     }
 
     .table-filter-grid {
@@ -404,6 +409,12 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
         width: 100% !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom {
+        min-width: 860px !important;
+        table-layout: auto !important;
+        width: max-content !important;
     }
 
     .table-wrap:not(.table-mode-grid) th:first-child,
@@ -1145,8 +1156,49 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         border-collapse: separate !important;
         border-spacing: 0 !important;
         margin: 0 !important;
-        min-width: 520px !important;
-        width: 100% !important;
+        min-width: 860px !important;
+        width: max-content !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom {
+        min-width: 860px !important;
+        table-layout: auto !important;
+        width: max-content !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom th.col-th-checkbox,
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom td.col-td-checkbox {
+        max-width: 44px !important;
+        min-width: 44px !important;
+        padding: 10px 8px !important;
+        text-align: center !important;
+        width: 44px !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom th.col-th-no,
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom td.col-lpk-no {
+        min-width: 150px !important;
+        white-space: nowrap !important;
+        width: 160px !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom th.col-th-name,
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom td.col-lpk-name {
+        min-width: 240px !important;
+        width: 260px !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom th.col-th-validity,
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom td.col-lpk-validity {
+        min-width: 155px !important;
+        white-space: nowrap !important;
+        width: 165px !important;
+    }
+
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom th.col-th-notes,
+    .table-wrap:not(.table-mode-grid) table.table-lpks-custom td.col-lpk-notes {
+        min-width: 260px !important;
+        width: 280px !important;
     }
 
     /* Grid Mode - Perfectly fits 100% of mobile screen with no horizontal scroll */

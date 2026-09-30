@@ -188,14 +188,14 @@ export const initTableToolbar = (tableWrap) => {
     const lengthControl = document.createElement('div');
     lengthControl.className = 'table-length-control';
     lengthControl.innerHTML = `
-        <span>Show</span>
+        <span>Tampilkan</span>
         <select class="table-length-select" aria-label="Tampilkan baris per halaman" data-no-search="true">
             <option value="10" ${currentPerPage === '10' ? 'selected' : ''}>10</option>
             <option value="25" ${currentPerPage === '25' ? 'selected' : ''}>25</option>
             <option value="50" ${currentPerPage === '50' ? 'selected' : ''}>50</option>
             <option value="100" ${currentPerPage === '100' ? 'selected' : ''}>100</option>
         </select>
-        <span>entries</span>
+        <span>data</span>
     `;
 
     const select = lengthControl.querySelector('select');
@@ -232,7 +232,7 @@ export const initTableToolbar = (tableWrap) => {
 };
 
 export function syncViewToggleLocation() {
-    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     document.querySelectorAll('.table-wrap').forEach((tableWrap) => {
         const parentPanel = tableWrap.closest('.panel') || tableWrap.parentElement;
         if (!parentPanel) return;
@@ -284,7 +284,7 @@ export const initDataTables = () => {
             return header.dataset.label || header.querySelector('.th-label')?.textContent.trim() || header.textContent.trim();
         });
         const storageKey = `simasadi-table-view-${window.location.pathname}-${index}`;
-        const isMobile = window.matchMedia('(max-width: 600px)').matches;
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
         const savedView = localStorage.getItem(storageKey);
         const initialView = isMobile ? (savedView || 'grid') : 'table';
 
@@ -389,7 +389,7 @@ export const initDataTables = () => {
 
         // Ensure drawer and backdrop are mounted directly to document.body on mobile screens
         const syncDrawerMount = () => {
-            const isMobile = window.matchMedia('(max-width: 600px)').matches;
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
             if (isMobile) {
                 if (filter.parentElement !== document.body) {
                     document.body.appendChild(backdrop);
@@ -560,7 +560,7 @@ export const initDataTables = () => {
 
         const storageKey = 'simasadi-calendar-view';
         const savedView = localStorage.getItem(storageKey);
-        const initialView = savedView || (window.matchMedia('(max-width: 600px)').matches ? 'agenda' : 'calendar');
+        const initialView = savedView || (window.matchMedia('(max-width: 768px)').matches ? 'agenda' : 'calendar');
         const setView = (view, toggle) => {
             calendarPanel.classList.toggle('calendar-mode-calendar', view === 'calendar');
             calendarPanel.classList.toggle('calendar-mode-agenda', view === 'agenda');

@@ -46,6 +46,12 @@ class LpkController extends Controller
             ));
         if ($status === 'INACTIVE') {
             $query->where('status', 'INACTIVE');
+        } elseif ($status === 'GRACE_PERIOD') {
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'GRACE_PERIOD')->pluck('id');
+            $query->whereIn('id', $matchingIds);
+        } elseif ($status === 'REVOKED') {
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'REVOKED')->pluck('id');
+            $query->whereIn('id', $matchingIds);
         } elseif ($status === 'SUSPENDED') {
             $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SUSPENDED')->pluck('id');
             $query->whereIn('id', $matchingIds);
@@ -56,9 +62,11 @@ class LpkController extends Controller
             $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_DUE')->pluck('id');
             $query->whereIn('id', $matchingIds);
         } elseif ($status === 'EXPIRED') {
-            $query->whereNotNull('expired_at')->where('expired_at', '<', now()->startOfDay());
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'EXPIRED')->pluck('id');
+            $query->whereIn('id', $matchingIds);
         } elseif ($status === 'ACTIVE') {
-            $query->where('status', 'ACTIVE');
+            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'ACTIVE')->pluck('id');
+            $query->whereIn('id', $matchingIds);
         }
 
         // Filter Masa Berlaku Sertifikat Akreditasi

@@ -139,35 +139,35 @@ class CalendarEventTest extends TestCase
         $lpk = Lpk::factory()->create([
             'name' => 'Laboratorium Kalibrasi Uji Akurat',
             'certificate_date' => '2025-06-15',
-            'expired_at' => '2026-10-20',
+            'expired_at' => '2030-06-15',
         ]);
 
-        // 1. Visit calendar for July 2026: S1 Reminder (Month 13) should appear with amber theme
-        $responseJuly = $this->actingAs($user)->get('/calendar?view=month&month=2026-07');
+        // 1. Visit calendar for July 2031: S1 Reminder (Month 13) should appear with amber theme
+        $responseJuly = $this->actingAs($user)->get('/calendar?view=month&month=2031-07');
         $responseJuly->assertOk();
         $responseJuly->assertSee('Reminder');
         $responseJuly->assertSee('Reminder S1');
         $responseJuly->assertSee('Laboratorium Kalibrasi Uji Akurat');
         $responseJuly->assertSee('theme-amber');
 
-        // 2. Visit calendar for December 2026: S1 Jatuh Tempo (Month 18) should appear with rose theme
-        $responseDec = $this->actingAs($user)->get('/calendar?view=month&month=2026-12');
+        // 2. Visit calendar for December 2031: S1 Jatuh Tempo (Month 18) should appear with rose theme
+        $responseDec = $this->actingAs($user)->get('/calendar?view=month&month=2031-12');
         $responseDec->assertOk();
         $responseDec->assertSee('Jatuh Tempo');
         $responseDec->assertSee('JT S1');
         $responseDec->assertSee('Laboratorium Kalibrasi Uji Akurat');
         $responseDec->assertSee('theme-rose');
 
-        // 3. Visit calendar for October 2026: Expired_at milestone should appear
-        $responseOct = $this->actingAs($user)->get('/calendar?view=month&month=2026-10');
-        $responseOct->assertOk();
-        $responseOct->assertSee('Kedaluwarsa');
-        $responseOct->assertSee('Laboratorium Kalibrasi Uji Akurat');
-        $responseOct->assertSee('theme-rose');
-        $responseOct->assertSee('&quot;category_label&quot;:&quot;Kedaluwarsa&quot;', false);
+        // 3. Visit calendar for June 2030: Expired_at milestone should appear
+        $responseExpiry = $this->actingAs($user)->get('/calendar?view=month&month=2030-06');
+        $responseExpiry->assertOk();
+        $responseExpiry->assertSee('Kedaluwarsa');
+        $responseExpiry->assertSee('Laboratorium Kalibrasi Uji Akurat');
+        $responseExpiry->assertSee('theme-rose');
+        $responseExpiry->assertSee('&quot;category_label&quot;:&quot;Kedaluwarsa&quot;', false);
 
         // 4. Check agenda view displays the synchronized reminder milestone
-        $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2026-07-15');
+        $responseAgenda = $this->actingAs($user)->get('/calendar?view=agenda&date=2031-07-15');
         $responseAgenda->assertOk();
         $responseAgenda->assertSee('Reminder');
         $responseAgenda->assertSee('Laboratorium Kalibrasi Uji Akurat');

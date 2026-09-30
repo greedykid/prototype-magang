@@ -69,7 +69,12 @@ class LpkFactory extends Factory
             'email' => $item['email'],
             'phone' => $item['phone'],
             'status' => 'ACTIVE',
-            'expired_at' => now()->addYears(3)->toDateString(),
+            'expired_at' => function (array $attributes) {
+                if (! empty($attributes['certificate_date'])) {
+                    return \Illuminate\Support\Carbon::parse($attributes['certificate_date'])->copy()->addYears(5)->toDateString();
+                }
+                return now()->addYears(3)->toDateString();
+            },
             'drive_url' => 'https://drive.google.com/drive/folders/1demo-berkas-' . strtolower(str_replace(['-', ' '], '', $item['reg'])),
             'notes' => 'Lembaga Penilaian Kesesuaian terakreditasi KAN (Komite Akreditasi Nasional).',
         ];

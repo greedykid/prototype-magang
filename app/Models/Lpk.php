@@ -259,9 +259,110 @@ class Lpk extends Model
         return app(LpkSurveillanceService::class)->generateAssessments($this, $creatorId);
     }
 
+    public function getCycleBaseDateAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return $this->expired_at ?: ($this->certificate_date ? $this->certificate_date->copy()->addYears(5) : null);
+    }
+
+    public function getCycleExpiredAtAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return $this->cycle_base_date ? $this->cycle_base_date->copy()->addYears(5) : null;
+    }
+
     public function isExpired(): bool
     {
         return $this->expired_at && $this->expired_at->isPast();
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        if (! $this->expired_at || ! $this->isExpired()) {
+            return false;
+        }
+
+        $deadline = $this->grace_period_deadline;
+        if (! $deadline) {
+            return false;
+        }
+
+        return now()->lte($deadline);
+    }
+
+    public function isRevocationOverdue(): bool
+    {
+        if (! $this->expired_at || ! $this->isExpired()) {
+            return false;
+        }
+
+        $deadline = $this->grace_period_deadline;
+        if (! $deadline) {
+            return false;
+        }
+
+        return now()->gt($deadline);
+    }
+
+    public function getGracePeriodDeadlineAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return $this->expired_at ? $this->expired_at->copy()->addMonths(6) : null;
+    }
+
+    public function getDaysRemainingGracePeriodAttribute(): ?int
+    {
+        if (! $this->isInGracePeriod() || ! $this->grace_period_deadline) {
+            return null;
+        }
+
+        return max(0, (int) now()->diffInDays($this->grace_period_deadline, false));
+    }
+
+    public function getLatestCompletedReaccreditation(): ?Assessment
+    {
+        $assessments = $this->relationLoaded('assessments') ? $this->assessments : $this->assessments()->get();
+
+        return $assessments
+            ->filter(function (Assessment $a) {
+                $isRa = in_array($a->assessment_type, [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT'], true)
+                    || str_contains(strtolower($a->title ?: ''), 're-akreditasi')
+                    || str_contains(strtolower($a->title ?: ''), 'reakreditasi');
+
+                return $isRa && $a->status === 'COMPLETED' && ! empty($a->sk_number);
+            })
+            ->sortByDesc(fn (Assessment $a) => $a->sk_date ?: $a->end_at ?: $a->start_at)
+            ->first();
+    }
+
+    public function getS1DelayPenaltyMonthsAttribute(): int
+    {
+        if (! $this->certificate_date) {
+            return 0;
+        }
+
+        $latestRa = $this->getLatestCompletedReaccreditation();
+        if (! $latestRa) {
+            return 0;
+        }
+
+        $completedDate = $latestRa->sk_date
+            ?: ($latestRa->end_at ? $latestRa->end_at->copy()->startOfDay() : null);
+
+        if (! $completedDate) {
+            return 0;
+        }
+
+        // Jika tanggal selesai RA berada setelah titik awal siklus baru (certificate_date)
+        // dan masih dalam rentang toleransi masa tenggang 6 bulan dari siklus berjalan
+        if ($completedDate->gt($this->certificate_date) && $completedDate->lte($this->certificate_date->copy()->addMonths(6))) {
+            return (int) round($this->certificate_date->floatDiffInMonths($completedDate));
+        }
+
+        return 0;
+    }
+
+    public function getS1PrepRemainingMonthsAttribute(): int
+    {
+        $penalty = $this->s1_delay_penalty_months;
+        return max(0, 15 - $penalty);
     }
 
     public function isExpiringSoon(int $days = 90): bool

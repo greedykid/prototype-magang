@@ -698,8 +698,8 @@ class AssessmentStatusAutoTest extends TestCase
             'status' => 'ACTIVE',
         ]);
 
-        // Default: Month 18 (window bulan 15-18) from certificate_date
-        $expectedDefaultDue = $certDate->copy()->addMonths(18)->endOfDay();
+        // Default: Month 18 (window bulan 15-18) from cycle_base_date (expired_at)
+        $expectedDefaultDue = $lpk->cycle_base_date->copy()->addMonths(18)->endOfDay();
 
         $assessment = Assessment::factory()->create([
             'lpk_id' => $lpk->id,
@@ -712,7 +712,7 @@ class AssessmentStatusAutoTest extends TestCase
 
         $this->assertEquals($expectedDefaultDue->toDateString(), $assessment->submission_due_date->toDateString());
 
-        // Verifikasi contoh kasus resmi KAN: Terbit sertifikat 1 Okt 2026 -> Maks toleransi pengisian 1 April 2028
+        // Verifikasi contoh kasus resmi KAN: Acuan siklus 1 Okt 2031 -> Maks toleransi pengisian 1 April 2033
         $lpkOct = Lpk::factory()->create([
             'name' => 'Balai Besar Logam Sample',
             'certificate_date' => '2026-10-01',
@@ -724,7 +724,7 @@ class AssessmentStatusAutoTest extends TestCase
             'assessment_type' => 'Surveilen 1',
             'submission_due_date' => null,
         ]);
-        $this->assertEquals('2028-04-01', $assessmentOct->submission_due_date->format('Y-m-d'));
+        $this->assertEquals('2033-04-01', $assessmentOct->submission_due_date->format('Y-m-d'));
 
         // 2. Form renders the default submission due date
         $response = $this->actingAs($this->admin)->get(route('assessments.edit', $assessment));

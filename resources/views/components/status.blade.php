@@ -32,6 +32,7 @@
         'FAILED' => 'Gagal',
         'RUNNING' => 'Sedang Berjalan',
         // Siklus Pengawasan Akreditasi KAN
+        'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
         'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
         'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
     ];

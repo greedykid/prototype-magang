@@ -196,10 +196,9 @@ class AssessmentStatusService
     public function calculateDefaultSubmissionDueDate(Assessment $assessment): ?Carbon
     {
         $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : $assessment->lpk()->first();
-        $certDate = $lpk?->certificate_date ?: ($lpk?->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
-        $expDate = $lpk?->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
+        $baseDate = $lpk?->expired_at ?: ($lpk?->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
 
-        if ($certDate) {
+        if ($baseDate) {
             $type = strtolower((string) ($assessment->assessment_type ?: ''));
             $title = strtolower((string) ($assessment->title ?: ''));
 
@@ -208,7 +207,7 @@ class AssessmentStatusService
                 || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
 
             if ($isRa) {
-                return $expDate ? $expDate->copy()->endOfDay() : $certDate->copy()->addMonths(60)->endOfDay();
+                return $baseDate->copy()->addYears(5)->endOfDay();
             }
 
             $isS2 = in_array($assessment->assessment_type, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2'], true)
@@ -216,10 +215,10 @@ class AssessmentStatusService
                 || preg_match('/\b(Surveilen\s*2|S2)\b/i', $type);
 
             if ($isS2) {
-                return $certDate->copy()->addMonths(39)->endOfDay();
+                return $baseDate->copy()->addMonths(39)->endOfDay();
             }
 
-            return $certDate->copy()->addMonths(18)->endOfDay();
+            return $baseDate->copy()->addMonths(18)->endOfDay();
         }
 
         if ($assessment->end_at) {

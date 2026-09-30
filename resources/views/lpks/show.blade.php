@@ -66,11 +66,11 @@
         $s1 = $milestones['s1'];
         $s2 = $milestones['s2'];
         $ra = $milestones['ra'];
-        $certDate = $lpk->certificate_date ?: ($lpk->expired_at ? $lpk->expired_at->copy()->subYears(5) : null);
-        $expDate = $lpk->expired_at ?: ($certDate ? $certDate->copy()->addYears(5) : null);
+        $baseDate = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
+        $nextExpDate = $baseDate ? $baseDate->copy()->addYears(5) : null;
 
-        $linkedS1 = $lpk->assessments->first(function ($a) use ($s1, $certDate) {
-            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->subMonths(2)) && $a->start_at->lte($certDate->copy()->addMonths(26)));
+        $linkedS1 = $lpk->assessments->first(function ($a) use ($s1, $baseDate) {
+            $inCycle = ! $baseDate || ($a->start_at && $a->start_at->gte($baseDate->copy()->subMonths(2)) && $a->start_at->lte($baseDate->copy()->addMonths(26)));
 
             return $inCycle && (
                 str_contains(strtolower($a->title), 's1')
@@ -79,8 +79,8 @@
                 || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s1['target_date'] && abs($a->start_at->diffInMonths($s1['target_date'])) <= 6)
             );
         });
-        $linkedS2 = $lpk->assessments->first(function ($a) use ($s2, $certDate, $linkedS1) {
-            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->addMonths(24)) && $a->start_at->lte($certDate->copy()->addMonths(46)));
+        $linkedS2 = $lpk->assessments->first(function ($a) use ($s2, $baseDate, $linkedS1) {
+            $inCycle = ! $baseDate || ($a->start_at && $a->start_at->gte($baseDate->copy()->addMonths(24)) && $a->start_at->lte($baseDate->copy()->addMonths(46)));
 
             return $inCycle
                 && $a->id !== ($linkedS1?->id ?? null)
@@ -91,8 +91,8 @@
                     || (str_contains(strtolower($a->assessment_type), 'survei') && $a->start_at && $s2['target_date'] && abs($a->start_at->diffInMonths($s2['target_date'])) <= 6)
                 );
         });
-        $linkedRA = $lpk->assessments->first(function ($a) use ($ra, $certDate, $expDate) {
-            $inCycle = ! $certDate || ($a->start_at && $a->start_at->gte($certDate->copy()->addMonths(42)) && (! $expDate || $a->start_at->lte($expDate->copy()->addMonths(6))));
+        $linkedRA = $lpk->assessments->first(function ($a) use ($ra, $baseDate, $nextExpDate) {
+            $inCycle = ! $baseDate || ($a->start_at && $a->start_at->gte($baseDate->copy()->addMonths(42)) && (! $nextExpDate || $a->start_at->lte($nextExpDate->copy()->addMonths(6))));
 
             return $inCycle && (
                 str_contains(strtolower($a->title), 're-akreditasi')
@@ -217,6 +217,33 @@
         }
     @endphp
 
+    {{-- Alert Masa Tenggang 6 Bulan & Auto-Revocation --}}
+    @if($lpk->isInGracePeriod())
+        <div class="lpk-alert-callout" style="border-left-color: #d97706; background: #fffbeb;">
+            <div class="lpk-alert-callout-content">
+                <div class="lpk-alert-callout-head" style="color: #b45309;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <strong>Masa Tenggang Toleransi Re-Akreditasi (Jatah 6 Bulan)</strong>
+                </div>
+                <p class="lpk-alert-callout-desc" style="color: #92400e;">
+                    Sertifikat akreditasi telah habis masa berlakunya pada <strong>{{ $lpk->expired_at?->format('d M Y') }}</strong>. Laboratorium saat ini berada dalam masa toleransi 6 bulan untuk menuntaskan asesmen Re-Akreditasi. Sisa waktu toleransi: <strong>{{ $lpk->days_remaining_grace_period }} hari</strong> (batas akhir: <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong>). Jika melewati batas waktu tersebut tanpa penyelesaian, maka akreditasi otomatis dicabut.
+                </p>
+            </div>
+        </div>
+    @elseif($lpk->isRevocationOverdue())
+        <div class="lpk-alert-callout" style="border-left-color: #dc2626; background: #fef2f2;">
+            <div class="lpk-alert-callout-content">
+                <div class="lpk-alert-callout-head" style="color: #b91c1c;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <strong>Status Akreditasi Dicabut (Revoked)</strong>
+                </div>
+                <p class="lpk-alert-callout-desc" style="color: #991b1b;">
+                    Laboratorium telah melewati batas toleransi 6 bulan masa tenggang Re-Akreditasi pada <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong> tanpa menyelesaikan proses Re-Akreditasi. Status akreditasi resmi dicabut.
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- Alert Persisten Pengawasan KAN --}}
     @if(!empty($activeAlerts))
         <div class="lpk-alert-callout">
@@ -266,8 +293,8 @@
                         <span class="eyebrow" style="color: #4338ca;">SIKLUS KAN U-01</span>
                         <h2 style="font-size: 16px; margin: 2px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span>Siklus Pengawasan &amp; Re-Akreditasi</span>
-                            @if($lpk->certificate_date && $lpk->expired_at)
-                                <span style="font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px;">(Periode {{ $lpk->certificate_date->format('Y') }} - {{ $lpk->expired_at->format('Y') }})</span>
+                            @if($baseDate)
+                                <span style="font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 6px;">(Periode {{ $baseDate->format('Y') }} - {{ $baseDate->copy()->addYears(5)->format('Y') }})</span>
                             @endif
                             @php
                                 $focusLabel = match($currentFocusCode) {
@@ -323,6 +350,12 @@
                             <strong>{{ $s1['target_date'] ? $s1['target_date']->format('d M Y') : '-' }}</strong>
                         </div>
                     </div>
+
+                    @if($lpk->s1_delay_penalty_months > 0)
+                        <div style="margin-top: 8px; margin-bottom: 8px; padding: 7px 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 11.5px; color: #92400e;">
+                            <span style="font-weight: 600;">Penyempitan Jarak S1:</span> Terlambat RA {{ $lpk->s1_delay_penalty_months }} bulan pada siklus lalu. Jarak persiapan menuju S1 menyempit menjadi <strong>{{ $lpk->s1_prep_remaining_months }} bulan</strong>.
+                        </div>
+                    @endif
 
                     @if($linkedS1)
                         <div class="lpk-milestone-agenda-bar">
@@ -483,9 +516,15 @@
                             <strong>{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
-                            <span>Masa Berlaku Habis:</span>
-                            <strong>{{ ($expDate ?: ($ra['tolerance_date'] ?? null)) ? ($expDate ?: $ra['tolerance_date'])->format('d M Y') : '-' }}</strong>
+                            <span>Masa Berlaku Habis (Bulan 60):</span>
+                            <strong>{{ ($ra['tolerance_date'] ?? null) ? $ra['tolerance_date']->format('d M Y') : '-' }}</strong>
                         </div>
+                        @if($lpk->grace_period_deadline)
+                            <div class="lpk-milestone-date-row" style="color: #b45309;">
+                                <span>Batas Toleransi (Jatah 6 Bln):</span>
+                                <strong>{{ $lpk->grace_period_deadline->format('d M Y') }}</strong>
+                            </div>
+                        @endif
                     </div>
 
                     @if($linkedRA)

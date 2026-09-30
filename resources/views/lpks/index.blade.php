@@ -33,7 +33,9 @@
                 <select name="status">
                     <option value="">Semua status</option>
                     <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
+                    <option value="GRACE_PERIOD" @selected($status === 'GRACE_PERIOD')>Masa Tenggang (6 Bln)</option>
                     <option value="SUSPENDED" @selected($status === 'SUSPENDED')>Dibekukan</option>
+                    <option value="REVOKED" @selected($status === 'REVOKED')>Dicabut</option>
                     <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jadwal Surveilen</option>
                     <option value="SURVEILLANCE_DUE" @selected($status === 'SURVEILLANCE_DUE')>Jatuh Tempo Surveilen</option>
                     <option value="EXPIRED" @selected($status === 'EXPIRED')>Kedaluwarsa</option>
