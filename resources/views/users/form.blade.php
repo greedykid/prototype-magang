@@ -3,9 +3,15 @@
 @section('title', $formTitle . ' | SIMASADI')
 
 @section('content')
+<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
+    <a href="{{ route('users.index') }}" class="lpk-back-btn">
+        <x-icon name="chevron-left" size="14" />
+        <span>Kembali ke Manajemen Anggota</span>
+    </a>
+</div>
+
 <div class="page-heading">
     <div>
-        <a class="back-link" href="{{ route('users.index') }}">Kembali ke daftar pengguna</a>
         <h1>{{ $formTitle }}</h1>
         <p class="lede">
             @if($user->exists)
@@ -49,11 +55,22 @@
 
         <label class="full">
             Peran &amp; Hak Akses Pengguna
+            @php
+                $adminExists = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)
+                    ->when($user->exists, fn ($q) => $q->where('id', '!=', $user->id))
+                    ->exists();
+            @endphp
             <select name="role" required>
-                <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
-                    Ketua Tim (Dit. Akreditasi Laboratorium KAN)
-                </option>
-                <option value="pic" @selected(old('role', $user->role) === 'pic')>
+                @if(!$adminExists)
+                    <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
+                        Ketua Tim (Dit. Akreditasi Laboratorium KAN)
+                    </option>
+                @else
+                    <option value="admin" disabled style="color: var(--muted);">
+                        Ketua Tim (Maksimal 1 akun di sistem: sudah terisi)
+                    </option>
+                @endif
+                <option value="pic" @selected(old('role', $user->role ?: ($adminExists ? 'pic' : 'admin')) === 'pic')>
                     PIC Laboratorium (Laboratorium Penguji / Kalibrasi / Medik)
                 </option>
             </select>

@@ -254,10 +254,10 @@ export const initLiveFilters = () => {
 
     // 5. Pagination link clicks inside partial table container
     document.addEventListener('click', (event) => {
-        const link = event.target.closest('.lpk-table-container .pagination a, .lpk-table-container nav[role="navigation"] a');
+        const link = event.target.closest('.lpk-table-container .pagination a, .lpk-table-container nav[role="navigation"] a, .assessment-table-container .pagination a, .assessment-table-container nav[role="navigation"] a, .user-table-container .pagination a, .user-table-container nav[role="navigation"] a');
         if (!link) return;
 
-        const container = link.closest('.lpk-table-container');
+        const container = link.closest('.lpk-table-container, .assessment-table-container, .user-table-container');
         if (!container) return;
 
         event.preventDefault();

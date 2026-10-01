@@ -442,12 +442,18 @@ const navigateTo = async (url, pushState = true) => {
                 curShell.classList.add('gcal-is-updating');
             }
 
-            // Preserve active category checkbox filters and selected LPK
+            // Preserve active category checkbox filters, selected LPK, and selected PIC
             const activeCatStates = {};
             document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
                 activeCatStates[cb.dataset.filterCat] = cb.checked;
             });
             const selectedLpk = document.getElementById('gcal-filter-lpk')?.value;
+            const selectedPic = document.getElementById('gcal-filter-pic')?.value;
+
+            if (selectedPic && !targetUrlObj.searchParams.has('pic_id')) {
+                targetUrlObj.searchParams.set('pic_id', selectedPic);
+                url = targetUrlObj.toString();
+            }
 
             const response = await fetch(url, {
                 headers: {
@@ -523,6 +529,10 @@ const navigateTo = async (url, pushState = true) => {
             const lpkSelect = document.getElementById('gcal-filter-lpk');
             if (lpkSelect && selectedLpk !== undefined) {
                 lpkSelect.value = selectedLpk;
+            }
+            const picSelect = document.getElementById('gcal-filter-pic');
+            if (picSelect && selectedPic !== undefined) {
+                picSelect.value = selectedPic;
             }
 
             // Re-initialize calendar components and custom dropdowns

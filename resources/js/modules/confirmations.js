@@ -2,11 +2,11 @@ import Swal from 'sweetalert2';
 
 // ==========================================================================
 // Delete Confirmation Dialogs via SweetAlert2
-// Handles destructive action confirmations (e.g. Delete LPK)
+// Handles destructive action confirmations (e.g. Delete LPK, Account Links, Team Members, Users)
 // ==========================================================================
 export const initConfirmations = () => {
     document.addEventListener('submit', (event) => {
-        const form = event.target.closest('.form-delete-lpk, [data-confirm-delete]');
+        const form = event.target.closest('.form-delete-lpk, [data-confirm-delete], [data-confirm]');
         if (!form) return;
 
         if (form.dataset.confirmed === 'true') {
@@ -16,23 +16,46 @@ export const initConfirmations = () => {
         event.preventDefault();
         event.stopImmediatePropagation();
 
-        const lpkName = form.dataset.lpkName || 'LPK';
-        const lpkReg = form.dataset.lpkReg ? ` (${form.dataset.lpkReg})` : '';
+        let title = form.dataset.confirmTitle;
+        let htmlContent = '';
+        let confirmBtnText = form.dataset.confirmBtn;
+        const isDeleteLpk = form.matches('.form-delete-lpk');
+
+        if (form.dataset.confirmHtml) {
+            htmlContent = form.dataset.confirmHtml;
+        } else if (form.dataset.confirmText) {
+            htmlContent = escapeHtml(form.dataset.confirmText);
+        } else if (isDeleteLpk || (!title && form.matches('[data-confirm-delete]:not([data-confirm-title])'))) {
+            const lpkName = form.dataset.lpkName || 'LPK';
+            const lpkReg = form.dataset.lpkReg ? ` (${form.dataset.lpkReg})` : '';
+            title = title || 'Hapus data LPK?';
+            htmlContent = `Data LPK <strong>${escapeHtml(lpkName)}</strong>${escapeHtml(lpkReg)} dan seluruh proses akreditasi serta agenda asesmen terkait akan dihapus secara permanen.`;
+            confirmBtnText = confirmBtnText || 'Ya, Hapus LPK';
+        } else if (form.dataset.confirm) {
+            htmlContent = escapeHtml(form.dataset.confirm);
+        } else {
+            htmlContent = 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+        }
+
+        title = title || 'Konfirmasi Tindakan?';
+        confirmBtnText = confirmBtnText || 'Ya, Hapus';
+
+        const isDanger = form.dataset.confirmDanger !== 'false';
 
         Swal.fire({
-            title: 'Hapus data LPK?',
-            html: `Data LPK <strong>${escapeHtml(lpkName)}</strong>${escapeHtml(lpkReg)} dan seluruh proses akreditasi serta agenda asesmen terkait akan dihapus secara permanen.`,
-            icon: 'warning',
+            title: title,
+            html: htmlContent,
+            icon: form.dataset.confirmIcon || 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc2626',
+            confirmButtonColor: isDanger ? '#dc2626' : '#5645d4',
             cancelButtonColor: '#71717a',
-            confirmButtonText: 'Ya, Hapus LPK',
-            cancelButtonText: 'Batal',
+            confirmButtonText: confirmBtnText,
+            cancelButtonText: form.dataset.cancelBtn || 'Batal',
             reverseButtons: true,
             focusCancel: true,
             customClass: {
                 popup: 'simasadi-swal-popup',
-                confirmButton: 'simasadi-swal-btn simasadi-swal-danger-btn',
+                confirmButton: `simasadi-swal-btn ${isDanger ? 'simasadi-swal-danger-btn' : ''}`,
                 cancelButton: 'simasadi-swal-cancel-btn',
                 title: 'simasadi-swal-title',
                 htmlContainer: 'simasadi-swal-text'

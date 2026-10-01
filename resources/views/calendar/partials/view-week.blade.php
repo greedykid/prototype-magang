@@ -74,6 +74,7 @@
                                          data-event-id="{{ $ev['id'] }}"
                                          data-cat="{{ $ev['category'] }}"
                                          data-lpk-id="{{ $ev['lpk_id'] }}"
+                                         data-pic-id="{{ $ev['pic_id'] ?? '' }}"
                                          onclick="window.showEventPopover(this, {{ json_encode($ev) }})">
                                         <div class="gcal-card-inner">
                                             <div class="gcal-card-time">{{ $ev['start_at']->format('H:i') }} &ndash; {{ $ev['end_at']->format('H:i') }} WIB</div>

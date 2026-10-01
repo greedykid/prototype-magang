@@ -39,7 +39,7 @@
                 <span>Google Calendar</span>
             </a>
             <div class="gcal-popover-actions-right">
-                <a href="#" class="button secondary btn-sm" id="popover-edit-link" onclick="window.closeEventPopover(this)">
+                <a href="#" class="button secondary btn-sm" id="popover-edit-link" onclick="window.closeEventPopover(this)" style="display: none;">
                     <x-icon name="edit" size="14" />
                     <span id="popover-edit-label">Ubah</span>
                 </a>

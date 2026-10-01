@@ -27,7 +27,21 @@ class UpdateUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'role' => ['required', 'string', Rule::in([User::ROLE_ADMIN, User::ROLE_PIC])],
+            'role' => [
+                'required',
+                'string',
+                Rule::in([User::ROLE_ADMIN, User::ROLE_PIC]),
+                function ($attribute, $value, $fail) use ($userId) {
+                    if ($value === User::ROLE_ADMIN) {
+                        $adminExists = User::where('role', User::ROLE_ADMIN)
+                            ->where('id', '!=', $userId)
+                            ->exists();
+                        if ($adminExists) {
+                            $fail('Hanya diperbolehkan memiliki satu akun Ketua Tim dalam sistem.');
+                        }
+                    }
+                },
+            ],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }

@@ -199,9 +199,11 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs untuk performa
-        $lpksByReg = Lpk::all()->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
-        $lpksByName = Lpk::all()->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
+        // Cache LPKs untuk performa (disesuaikan dengan hak akses PIC / Admin)
+        $user = auth()->user();
+        $accessibleLpks = Lpk::accessibleBy($user)->get();
+        $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
+        $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
         foreach ($rows as $rowItem) {
             $row = $rowItem['values'];

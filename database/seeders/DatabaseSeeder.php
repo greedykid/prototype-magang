@@ -33,16 +33,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-
-        User::firstOrCreate(
-            ['email' => 'demo@simasadi.local'],
-            [
-                'name' => 'Petugas Demo',
-                'password' => 'password',
-                'role' => User::ROLE_ADMIN,
-            ]
-        );
-
         $this->call(AssessmentSeeder::class);
     }
 }

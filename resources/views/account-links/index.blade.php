@@ -1,0 +1,181 @@
+@extends('layouts.app')
+
+@section('title', 'Tautan Akun Kolaborasi | SIMASADI')
+
+@section('content')
+<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
+    <a href="{{ route('dashboard') }}" class="lpk-back-btn">
+        <x-icon name="chevron-left" size="14" />
+        <span>Kembali ke Dasbor</span>
+    </a>
+</div>
+
+<div class="page-heading">
+    <div>
+        <h1>Tautan Akun Kolaborasi</h1>
+        <p class="lede">Kelola hak akses pemantauan (viewer) per akun. Akun yang ditautkan dapat melihat seluruh daftar laboratorium, program asesmen, dan kalender kegiatan tanpa mengubah data.</p>
+    </div>
+</div>
+
+<div class="profile-layout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; align-items: start;">
+    {{-- Panel 1: Akun Viewer yang Ditautkan oleh Pengguna Ini --}}
+    <section class="panel">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: inline-flex; align-items: center; justify-content: center;">
+                    <x-icon name="link" size="18" />
+                </div>
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Akun Viewer yang Anda Tautkan</h2>
+                    <small style="color: var(--muted); font-size: 12px;">Beri izin pantau seluruh data akun Anda ke PIC lain</small>
+                </div>
+            </div>
+            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+                {{ $linkedViewers->count() }} Akun
+            </span>
+        </div>
+
+        {{-- Form Tambah Viewer --}}
+        @if($availableUsers->isNotEmpty())
+            <form method="POST" action="{{ route('account-links.store') }}" style="background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+                @csrf
+                <label for="viewer-select" style="display: block; font-size: 12.5px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                    Tautkan PIC Baru sebagai Viewer
+                </label>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <select id="viewer-select" name="viewer_id" required style="flex: 1; min-width: 200px; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff;">
+                        <option value="">-- Pilih Akun PIC --</option>
+                        @foreach($availableUsers as $u)
+                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="button primary" style="font-size: 12.5px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                        <x-icon name="link" size="14" />
+                        <span>Tautkan Akun</span>
+                    </button>
+                </div>
+                <small style="display: block; margin-top: 6px; font-size: 11.5px; color: var(--muted);">
+                    Akun yang ditautkan akan langsung melihat seluruh LPK binaan Anda, program asesmen, dan kalender kegiatan dengan hak baca (Viewer).
+                </small>
+            </form>
+        @endif
+
+        {{-- Daftar Akun Viewer yang Aktif --}}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            @forelse($linkedViewers as $viewer)
+                <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid #cbd5e1;">
+                            {{ $viewer->initials }}
+                        </div>
+                        <div style="min-width: 0;">
+                            <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $viewer->name }}
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $viewer->email }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                            Viewer Akun
+                        </span>
+
+                        <form method="POST" action="{{ route('account-links.destroy', $viewer) }}"
+                              data-confirm-delete
+                              data-confirm-title="Putuskan Akses Viewer?"
+                              data-confirm-text="Apakah Anda yakin ingin memutuskan akses viewer untuk akun {{ $viewer->name }}? Akun ini tidak akan dapat lagi memantau LPK, asesmen, dan kalender kegiatan Anda."
+                              data-confirm-btn="Ya, Putuskan Akses"
+                              style="margin: 0;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan akses viewer">
+                                <x-icon name="trash" size="15" />
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div style="padding: 28px 16px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #f1f5f9; color: var(--muted); margin-bottom: 10px;">
+                        <x-icon name="users" size="22" />
+                    </div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: #475569;">Belum Ada Akun Viewer Tertaut</div>
+                    <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 440px; line-height: 1.5;">
+                        Seluruh data laboratorium, asesmen, dan kalender kegiatan hanya dapat diakses oleh akun Anda sendiri.
+                    </p>
+                </div>
+            @endforelse
+        </div>
+    </section>
+
+    {{-- Panel 2: Akun yang Menautkan Anda (Akses Diterima) --}}
+    <section class="panel">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; justify-content: center;">
+                    <x-icon name="eye" size="18" />
+                </div>
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Akses Viewer yang Diterima</h2>
+                    <small style="color: var(--muted); font-size: 12px;">Akun PIC lain yang memberikan izin pantau kepada Anda</small>
+                </div>
+            </div>
+            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+                {{ $linkedOwners->count() }} Akun
+            </span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            @forelse($linkedOwners as $owner)
+                <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid #a7f3d0;">
+                            {{ $owner->initials }}
+                        </div>
+                        <div style="min-width: 0;">
+                            <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $owner->name }}
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $owner->email }} &bull; {{ $owner->lpks_count }} LPK dibagikan
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <span class="badge" style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                            Akses Aktif
+                        </span>
+
+                        <form method="POST" action="{{ route('account-links.destroy', $owner) }}"
+                              data-confirm-delete
+                              data-confirm-title="Lepaskan Akses Pemantauan?"
+                              data-confirm-text="Apakah Anda ingin melepaskan akses pemantauan ke akun {{ $owner->name }}? Seluruh LPK dan agenda dari akun ini tidak akan lagi tampil di halaman Anda."
+                              data-confirm-btn="Ya, Lepas Akses"
+                              style="margin: 0;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="button secondary" style="font-size: 11.5px; padding: 4px 10px;" title="Lepaskan akses pemantauan">
+                                Lepas Akses
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div style="padding: 28px 16px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #f1f5f9; color: var(--muted); margin-bottom: 10px;">
+                        <x-icon name="eye" size="22" />
+                    </div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: #475569;">Belum Menerima Akses Akun Lain</div>
+                    <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 440px; line-height: 1.5;">
+                        Saat ada PIC lain yang menautkan Anda sebagai viewer, seluruh LPK, asesmen, dan kalender mereka akan otomatis muncul di sini.
+                    </p>
+                </div>
+            @endforelse
+        </div>
+    </section>
+</div>
+@endsection

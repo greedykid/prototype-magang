@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,7 +24,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->role === self::ROLE_ADMIN || strtoupper((string) $this->role) === 'ADMIN_UNIT' || str_contains(strtolower((string) $this->role), 'admin');
     }
 
     public function isPic(): bool
@@ -93,6 +94,74 @@ class User extends Authenticatable
     public function lpks(): HasMany
     {
         return $this->hasMany(Lpk::class, 'pic_id');
+    }
+
+    public function memberLpks(): BelongsToMany
+    {
+        return $this->belongsToMany(Lpk::class, 'lpk_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Akun viewer yang ditautkan ke akun ini (diberikan izin membaca seluruh data LPK, asesmen, dan kalender kita).
+     */
+    public function linkedViewers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_account_links', 'user_id', 'viewer_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Akun pemilik data yang menautkan kita sebagai viewer (memberi kita izin membaca seluruh data LPK mereka).
+     */
+    public function linkedOwners(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_account_links', 'viewer_id', 'user_id')
+            ->withTimestamps();
+    }
+
+    public function isViewerFor(User|int $owner): bool
+    {
+        $ownerId = $owner instanceof User ? $owner->id : $owner;
+        return $this->linkedOwners()->where('users.id', $ownerId)->exists();
+    }
+
+    public function hasLinkedViewer(User|int $viewer): bool
+    {
+        $viewerId = $viewer instanceof User ? $viewer->id : $viewer;
+        return $this->linkedViewers()->where('users.id', $viewerId)->exists();
+    }
+
+    public function canManageLpk(Lpk $lpk): bool
+    {
+        return $lpk->canManage($this);
+    }
+
+    /**
+     * Daftar akun PIC yang dapat difilter oleh pengguna ini:
+     * - Admin: semua PIC dalam sistem.
+     * - PIC: akun sendiri ditambah seluruh akun pemilik data (linkedOwners),
+     *   akun viewer (linkedViewers), serta PIC dari LPK tempat pengguna menjadi anggota.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     */
+    public function getAccessiblePics()
+    {
+        if ($this->isAdmin()) {
+            return static::where('role', static::ROLE_PIC)->orderBy('name')->get();
+        }
+
+        $ownerIds = $this->linkedOwners()->pluck('users.id')->all();
+        $viewerIds = $this->linkedViewers()->pluck('users.id')->all();
+        $memberPicIds = Lpk::whereHas('members', fn ($m) => $m->where('users.id', $this->id))
+            ->whereNotNull('pic_id')
+            ->pluck('pic_id')
+            ->all();
+
+        $allPicIds = array_unique(array_filter(array_merge([$this->id], $ownerIds, $viewerIds, $memberPicIds)));
+
+        return static::whereIn('id', $allPicIds)->orderBy('name')->get();
     }
 
     /**

@@ -62,6 +62,19 @@
                     <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
                 </select>
             </label>
+            @if($pics->count() > 1 || (auth()->user() && auth()->user()->isAdmin()))
+                <label>
+                    Akun PIC
+                    <select name="pic_id">
+                        <option value="">Semua Akun PIC</option>
+                        @foreach($pics as $p)
+                            <option value="{{ $p->id }}" @selected((string)$picFilter === (string)$p->id)>
+                                {{ $p->id === auth()->id() ? 'Akun Saya (' . $p->name . ')' : $p->name . (auth()->user()?->isAdmin() ? '' : ' (Akun Tertaut)') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
         </div>
         <div class="table-filter-actions" id="lpk-filter-actions" style="margin-top: 8px;">
             <span id="lpk-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
@@ -77,6 +90,7 @@
         if ($status) $activeFiltersCount++;
         if ($surveillance) $activeFiltersCount++;
         if ($expiry) $activeFiltersCount++;
+        if ($picFilter) $activeFiltersCount++;
     @endphp
 
     @if($activeFiltersCount > 0)
@@ -127,6 +141,15 @@
                     <span class="filter-chip" data-field="expiry" title="Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}">
                         <span class="filter-chip-text">Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}</span>
                         <button type="button" class="filter-chip-remove" aria-label="Hapus filter Masa Berlaku">&times;</button>
+                    </span>
+                @endif
+                @if($picFilter)
+                    @php
+                        $selectedPicItem = $pics->firstWhere('id', $picFilter);
+                    @endphp
+                    <span class="filter-chip" data-field="pic_id" title="Akun PIC: {{ $selectedPicItem?->name ?? $picFilter }}">
+                        <span class="filter-chip-text">PIC: {{ $selectedPicItem?->name ?? $picFilter }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Akun PIC">&times;</button>
                     </span>
                 @endif
                 <a href="{{ route('lpks.index') }}" class="filter-reset-link" data-role="reset-filter">Reset Filter</a>

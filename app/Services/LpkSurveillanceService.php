@@ -47,10 +47,10 @@ class LpkSurveillanceService
                 'code' => 'RA',
                 'name' => Assessment::TYPE_RE_AKREDITASI,
                 'notice_date' => $baseDate ? $baseDate->copy()->addMonths(48) : null,
-                'visit_target_date' => $baseDate ? $baseDate->copy()->addMonths(48) : null,
-                'target_date' => $baseDate ? $baseDate->copy()->addMonths(54) : null,
+                'visit_target_date' => $baseDate ? $baseDate->copy()->addMonths(54) : null,
+                'target_date' => $baseDate ? $baseDate->copy()->addMonths(51) : null,
                 'tolerance_date' => $nextExpDate,
-                'description' => 'Reminder RA bulan ke-48, Jatuh Tempo (JT) RA bulan ke-54 (masa berlaku habis bulan ke-60)',
+                'description' => 'Pengajuan RA bulan ke-48 s/d 51, asesmen lapangan sebelum bulan ke-60',
                 'status' => 'PENDING',
             ],
         ];
@@ -309,7 +309,7 @@ class LpkSurveillanceService
         if (! $s1Assessment) {
             $lpk->assessments()->create([
                 'created_by' => $creatorId,
-                'title' => "Asesmen Surveilen 1 (S1) - {$lpk->name}",
+                'title' => 'Asesmen Surveilen 1 (S1)',
                 'assessment_type' => Assessment::TYPE_SURVEILEN_1,
                 'start_at' => $s1Target,
                 'end_at' => $s1End,
@@ -358,7 +358,7 @@ class LpkSurveillanceService
         if (! $s2Assessment) {
             $lpk->assessments()->create([
                 'created_by' => $creatorId,
-                'title' => "Asesmen Surveilen 2 (S2) - {$lpk->name}",
+                'title' => 'Asesmen Surveilen 2 (S2)',
                 'assessment_type' => Assessment::TYPE_SURVEILEN_2,
                 'start_at' => $s2Target,
                 'end_at' => $s2End,
@@ -407,7 +407,7 @@ class LpkSurveillanceService
         if (! $raAssessment) {
             $lpk->assessments()->create([
                 'created_by' => $creatorId,
-                'title' => "Asesmen Re-Akreditasi (RA) - {$lpk->name}",
+                'title' => 'Asesmen Re-Akreditasi (RA)',
                 'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
                 'start_at' => $raTarget,
                 'end_at' => $raEnd,
@@ -526,7 +526,7 @@ class LpkSurveillanceService
             }
 
             if ($lpk->isExpired()) {
-                return 'EXPIRED';
+                return 'REVOKED';
             }
         }
 
@@ -555,8 +555,13 @@ class LpkSurveillanceService
      */
     public function generateDynamicKeterangan(Lpk $lpk): string
     {
-        // 0a. Auto-revocation karena melewati batas 6 bulan masa tenggang Re-Akreditasi
+        // 0a. Auto-revocation Re-Akreditasi
         if ($lpk->isRevocationOverdue()) {
+            if (! $lpk->hasReaccreditationInFlight()) {
+                $exp = $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-';
+                return "Re-Akreditasi (RA): Akreditasi Dicabut (siklus akreditasi berakhir {$exp} tanpa pelaksanaan asesmen akreditasi ulang).";
+            }
+
             $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : '-';
             return "Re-Akreditasi (RA): Akreditasi Dicabut (melewati batas 6 bulan masa tenggang Re-Akreditasi s/d {$deadline}).";
         }
@@ -565,7 +570,7 @@ class LpkSurveillanceService
         if ($lpk->isInGracePeriod()) {
             $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : '-';
             $daysLeft = $lpk->days_remaining_grace_period ?? 0;
-            return "Re-Akreditasi (RA): Masa Tenggang Toleransi (sisa {$daysLeft} hari s/d {$deadline} sebelum akreditasi dicabut).";
+            return "Re-Akreditasi (RA): Masa Tenggang Toleransi (sisa {$daysLeft} hari s/d {$deadline}). Perhatian: Penggunaan simbol akreditasi KAN dibekukan sementara hingga keputusan akreditasi ulang ditetapkan.";
         }
 
         $activeAssessment = $lpk->getActiveOrUpcomingAssessment();

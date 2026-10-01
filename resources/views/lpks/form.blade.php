@@ -4,15 +4,16 @@
 
 @section('content')
 <div class="lpk-form-container">
-    {{-- Header Card dengan Breadcrumb, Informasi Status & Tombol Cepat --}}
-    <div class="lpk-form-header">
-        <div class="lpk-header-back-wrap">
-            <a href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}" class="lpk-back-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                <span>{{ $lpk->exists ? 'Kembali ke detail LPK' : 'Semua LPK' }}</span>
-            </a>
-        </div>
+    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
+    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+        <a href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}" class="lpk-back-btn">
+            <x-icon name="chevron-left" size="14" />
+            <span>{{ $lpk->exists ? 'Kembali ke detail LPK' : 'Semua LPK' }}</span>
+        </a>
+    </div>
 
+    {{-- Header Card dengan Informasi Status & Tombol Cepat --}}
+    <div class="lpk-form-header">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
                 <h1>{{ $formTitle }}</h1>

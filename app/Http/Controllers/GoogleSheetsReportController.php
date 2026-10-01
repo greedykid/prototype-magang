@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\Lpk;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -21,7 +22,7 @@ class GoogleSheetsReportController extends Controller
     public function exportLpks(Request $request): StreamedResponse
     {
         $ids = $this->parseIds($request);
-        return $this->generateLpksCsv(false, $ids);
+        return $this->generateLpksCsv(false, $ids, $request->user());
     }
 
     /**
@@ -44,7 +45,7 @@ class GoogleSheetsReportController extends Controller
     public function exportAssessments(Request $request): StreamedResponse
     {
         $ids = $this->parseIds($request);
-        return $this->generateAssessmentsCsv(false, $ids);
+        return $this->generateAssessmentsCsv(false, $ids, $request->user());
     }
 
     /**
@@ -91,7 +92,7 @@ class GoogleSheetsReportController extends Controller
     /**
      * Generate CSV Data Master LPK.
      */
-    protected function generateLpksCsv(bool $isFeed, ?array $ids = null): StreamedResponse
+    protected function generateLpksCsv(bool $isFeed, ?array $ids = null, ?User $user = null): StreamedResponse
     {
         $filename = 'data-master-lpk-simasadi-' . date('Y-m-d') . '.csv';
 
@@ -116,12 +117,13 @@ class GoogleSheetsReportController extends Controller
             'Tanggal Terdaftar',
         ];
 
-        return response()->stream(function () use ($columns, $ids) {
+        return response()->stream(function () use ($columns, $ids, $user) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
             $query = Lpk::withCount(['accreditations'])
+                ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
                 ->orderBy('name');
 
             if (! empty($ids)) {
@@ -156,7 +158,7 @@ class GoogleSheetsReportController extends Controller
     /**
      * Generate CSV Program Asesmen.
      */
-    protected function generateAssessmentsCsv(bool $isFeed, ?array $ids = null): StreamedResponse
+    protected function generateAssessmentsCsv(bool $isFeed, ?array $ids = null, ?User $user = null): StreamedResponse
     {
         $filename = 'jadwal-asesmen-simasadi-' . date('Y-m-d') . '.csv';
 
@@ -178,12 +180,13 @@ class GoogleSheetsReportController extends Controller
             'Batas Waktu TP',
         ];
 
-        return response()->stream(function () use ($columns, $ids) {
+        return response()->stream(function () use ($columns, $ids, $user) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
             $query = Assessment::with(['lpk'])
+                ->when($user && $user->isPic(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
                 ->orderByDesc('start_at');
 
             if (! empty($ids)) {

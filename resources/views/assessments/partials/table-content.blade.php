@@ -16,13 +16,25 @@
             </thead>
             <tbody>
                 @foreach($assessments as $assessment)
-                    <tr class="clickable-row" data-href="{{ route('assessments.show', $assessment) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->title }}">
+                    <tr class="clickable-row" data-href="{{ route('assessments.show', $assessment) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->display_title }}">
                         <td class="col-td-checkbox" data-no-row-click="true">
-                            <input type="checkbox" class="table-row-select" data-table-id="assessments-table" value="{{ $assessment->id }}" data-item-name="{{ $assessment->title }}" aria-label="Pilih asesmen {{ $assessment->title }}">
+                            <input type="checkbox" class="table-row-select" data-table-id="assessments-table" value="{{ $assessment->id }}" data-item-name="{{ $assessment->display_title }}" aria-label="Pilih asesmen {{ $assessment->display_title }}">
                         </td>
                         <td>
-                            <strong>{{ $assessment->title }}</strong>
-                            <span>{{ $assessment->assessment_type_label }}</span>
+                            <strong>{{ $assessment->display_title }}</strong>
+                            @php
+                                $typeLabel = $assessment->assessment_type_label;
+                                $displayTitle = $assessment->display_title;
+                                $titleLower = strtolower($displayTitle);
+                                $typeLower = strtolower($typeLabel);
+                                $isRedundantType = str_contains($titleLower, $typeLower)
+                                    || (str_contains($titleLower, 's1') && str_contains($typeLower, '1'))
+                                    || (str_contains($titleLower, 's2') && str_contains($typeLower, '2'))
+                                    || ((str_contains($titleLower, 're-akreditasi') || str_contains($titleLower, 're-asesmen') || str_contains($titleLower, 'ra')) && (str_contains($typeLower, 're-') || str_contains($typeLower, 'ra')));
+                            @endphp
+                            @if(!$isRedundantType)
+                                <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500;">{{ $typeLabel }}</span>
+                            @endif
                             @if($assessment->sk_number)
                                 <div style="margin-top: 3px;">
                                     <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date->format('d/m/Y') . ')' : '' }} {{ $assessment->sk_lead_time_label ? '| Rentang: ' . $assessment->sk_lead_time_label : '' }}">

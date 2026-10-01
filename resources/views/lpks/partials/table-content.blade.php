@@ -51,6 +51,11 @@
                             </a>
                             <div class="lpk-status-wrap">
                                 <x-status :value="$lpk->dynamic_status" />
+                                @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
+                                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px;" title="Anda terhubung sebagai Viewer (Hanya Lihat)">
+                                        Viewer
+                                    </span>
+                                @endif
                                 @if(!empty($lpkAlerts))
                                     @foreach($lpkAlerts as $alt)
                                         <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
@@ -76,9 +81,13 @@
                                         </div>
                                     </div>
                                     @if($lpk->isRevocationOverdue())
-                                        <span class="status status-danger lpk-expiry-badge">Dicabut (Lewat Toleransi)</span>
+                                        @if(! $lpk->hasReaccreditationInFlight())
+                                            <span class="status status-danger lpk-expiry-badge" title="Siklus akreditasi berakhir tanpa pelaksanaan asesmen akreditasi ulang">Dicabut (Tanpa RA)</span>
+                                        @else
+                                            <span class="status status-danger lpk-expiry-badge" title="Melewati batas 6 bulan masa tenggang tanpa keputusan baru">Dicabut (Lewat Toleransi)</span>
+                                        @endif
                                     @elseif($lpk->isInGracePeriod())
-                                        <span class="status status-warn lpk-expiry-badge" title="Toleransi 6 bulan s/d {{ $lpk->grace_period_deadline?->format('d/m/Y') }}">Masa Tenggang (6 Bln)</span>
+                                        <span class="status status-warn lpk-expiry-badge" title="Masa tenggang toleransi s/d {{ $lpk->grace_period_deadline?->format('d/m/Y') }}. Hak penggunaan simbol KAN dibekukan sementara.">Masa Tenggang (6 Bln)</span>
                                     @elseif($lpk->isExpired())
                                         <span class="status status-danger lpk-expiry-badge">Kedaluwarsa</span>
                                     @elseif($lpk->isExpiringSoon())

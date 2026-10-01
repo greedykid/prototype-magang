@@ -194,6 +194,32 @@ class Assessment extends Model
         return self::normalizeType($this->assessment_type, (string) $this->title);
     }
 
+    public function getDisplayTitleAttribute(): string
+    {
+        $title = (string) $this->title;
+
+        if ($this->relationLoaded('lpk') && $this->lpk?->name) {
+            $lpkName = trim($this->lpk->name);
+            if (str_ends_with($title, ' - ' . $lpkName)) {
+                return trim(substr($title, 0, -strlen(' - ' . $lpkName)));
+            }
+        } elseif ($this->lpk_id) {
+            $lpk = $this->lpk;
+            if ($lpk && $lpk->name) {
+                $trimmedLpk = trim($lpk->name);
+                if (str_ends_with($title, ' - ' . $trimmedLpk)) {
+                    return trim(substr($title, 0, -strlen(' - ' . $trimmedLpk)));
+                }
+            }
+        }
+
+        if (preg_match('/^(Asesmen\s+(?:Surveilen\s+\d+\s*\([^\)]+\)|Re-Akreditasi\s*\([^\)]+\)|Akreditasi\s+Awal)|Surveilen\s+\d+\s+Siklus\s+KAN|Re-asesmen\s+Siklus\s+KAN)\s*-\s*.+$/iu', $title, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return $title;
+    }
+
     public function calculateDefaultSubmissionDueDate(): ?Carbon
     {
         return app(AssessmentStatusService::class)->calculateDefaultSubmissionDueDate($this);
@@ -437,5 +463,22 @@ class Assessment extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function isManagedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->lpk) {
+            return (int) $this->created_by === (int) $user->id;
+        }
+
+        return $this->lpk->canManage($user);
     }
 }

@@ -63,7 +63,8 @@ class AccreditationCycleRenewalTest extends TestCase
         $this->assertEquals('2034-08-01', $milestones['s2']['notice_date']->toDateString());
         $this->assertEquals('2035-01-01', $milestones['s2']['target_date']->toDateString());
         $this->assertEquals('2035-10-01', $milestones['ra']['notice_date']->toDateString());
-        $this->assertEquals('2036-04-01', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2036-01-01', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2036-04-01', $milestones['ra']['visit_target_date']->toDateString());
 
         // 4. Asesmen Re-Akreditasi lama tetap tersimpan sebagai riwayat
         $this->assertDatabaseHas('assessments', [

@@ -25,6 +25,7 @@ class AssessmentController extends Controller
         $tpFilter = $request->string('tp_status')->toString();
         $startFrom = $request->date('start_from')?->format('Y-m-d');
         $startTo = $request->date('start_to')?->format('Y-m-d');
+        $picFilter = $request->input('pic_id') ?: $request->input('pic');
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
@@ -36,8 +37,13 @@ class AssessmentController extends Controller
             ->tpOverdue()
             ->update(['status' => 'SUSPENDED']);
 
+        $user = $request->user();
+        $isPic = $user && $user->isPic();
+
         $assessments = Assessment::query()
             ->with(['lpk'])
+            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($picFilter, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
             ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('sk_number', 'like', "%{$search}%")
@@ -136,16 +142,19 @@ class AssessmentController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        $pics = $user ? $user->getAccessiblePics() : collect();
+
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage'));
+            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'picFilter', 'perPage'));
         }
 
         return view('assessments.index', array_merge([
             'assessments' => $assessments,
-            'lpks' => Lpk::orderBy('registration_number')->get(['id', 'registration_number', 'name']),
+            'lpks' => Lpk::accessibleBy($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']),
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
-        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));
+            'pics' => $pics,
+        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'picFilter', 'perPage')));
     }
 
     public function create(Request $request): View
@@ -154,9 +163,8 @@ class AssessmentController extends Controller
         $lpksQuery = Lpk::orderBy('name');
         if ($user && $user->isPic()) {
             $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_user_id', $user->id)
-                    ->orWhere('pic_id', $user->id)
-                    ->orWhereNull('pic_user_id');
+                $q->where('pic_id', $user->id)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
             });
         }
 
@@ -165,6 +173,10 @@ class AssessmentController extends Controller
         if ($request->filled('lpk_id')) {
             $lpk = Lpk::find($request->input('lpk_id'));
             if ($lpk) {
+                if ($user && ! $lpk->canManage($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk menambah asesmen pada LPK ini.');
+                }
+
                 $assessment->lpk_id = $lpk->id;
                 $assessment->location = $lpk->address ?: '';
 
@@ -271,23 +283,39 @@ class AssessmentController extends Controller
             }
         }
 
-        $assessment = Assessment::create($data + ['created_by' => $request->user()->id]);
+        $user = $request->user();
+        $targetLpk = Lpk::find($data['lpk_id']);
+        if ($user && $targetLpk && ! $targetLpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menambah asesmen pada LPK ini.');
+        }
+
+        $assessment = Assessment::create($data + ['created_by' => $user->id]);
 
         return redirect()->route('assessments.show', $assessment)->with('success', 'Program asesmen berhasil dicatat.');
     }
 
-    public function show(Assessment $assessment): View
+    public function show(Assessment $assessment, Request $request): View
     {
+        $user = $request->user();
+        if ($user && $assessment->lpk && ! $assessment->lpk->canView($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk melihat program asesmen ini.');
+        }
+
         return view('assessments.show', ['assessment' => $assessment->load(['lpk'])]);
     }
 
     public function edit(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
+        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
+        }
+
         $lpksQuery = Lpk::orderBy('name');
         if ($user && $user->isPic()) {
             $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)->orWhereNull('pic_id');
+                $q->where('pic_id', $user->id)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
             });
         }
 
@@ -296,7 +324,19 @@ class AssessmentController extends Controller
 
     public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse
     {
+        $user = $request->user();
+        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
+        }
+
         $data = $request->normalizedPayload($assessment);
+        if (! empty($data['lpk_id']) && (int) $data['lpk_id'] !== (int) $assessment->lpk_id) {
+            $newLpk = Lpk::find($data['lpk_id']);
+            if ($user && $newLpk && ! $newLpk->canManage($user)) {
+                abort(403, 'Anda tidak memiliki hak untuk memindahkan asesmen ke LPK ini.');
+            }
+        }
+
         $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
         if ($data['tp_has_extension']) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
@@ -316,6 +356,11 @@ class AssessmentController extends Controller
 
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
     {
+        $user = request()->user();
+        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk memperbarui status tindakan perbaikan pada asesmen ini.');
+        }
+
         $validated = $request->normalizedData($assessment);
         $assessment->update($validated);
 
@@ -325,7 +370,7 @@ class AssessmentController extends Controller
     public function destroy(Assessment $assessment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $user->isPic() && $assessment->lpk && ! $assessment->lpk->isManagedBy($user)) {
+        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
             abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
         }
 
@@ -358,8 +403,7 @@ class AssessmentController extends Controller
         if ($user && $user->isPic()) {
             $query->whereHas('lpk', function ($q) use ($user) {
                 $q->where('pic_id', $user->id)
-                    ->orWhere('pic_user_id', $user->id)
-                    ->orWhereNull('pic_id');
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
             });
         }
 

@@ -374,6 +374,7 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-KET-001',
             'name' => 'Lab Pengujian Keterangan',
             'status' => 'ACTIVE',
+            'pic_id' => $pic->id,
             'notes' => null,
         ]);
 
@@ -745,15 +746,16 @@ class PrototypeFlowTest extends TestCase
         // Pastikan muncul pada halaman daftar asesmen
         $this->actingAs($admin)->get(route('assessments.index', ['lpk_id' => $lpk->id]))
             ->assertOk()
-            ->assertSee('Asesmen Surveilen 1 (S1) - Lab Otomatis Asesmen')
-            ->assertSee('Asesmen Surveilen 2 (S2) - Lab Otomatis Asesmen')
-            ->assertSee('Asesmen Re-Akreditasi (RA) - Lab Otomatis Asesmen');
+            ->assertSee('Asesmen Surveilen 1 (S1)')
+            ->assertSee('Asesmen Surveilen 2 (S2)')
+            ->assertSee('Asesmen Re-Akreditasi (RA)')
+            ->assertSee('Lab Otomatis Asesmen');
 
         // Pastikan muncul pada halaman detail LPK
         $this->actingAs($admin)->get(route('lpks.show', $lpk))
             ->assertOk()
             ->assertSee('Daftar Asesmen Surveilen')
-            ->assertSee('Asesmen Surveilen 1 (S1) - Lab Otomatis Asesmen');
+            ->assertSee('Asesmen Surveilen 1 (S1)');
 
         // Pastikan update tanggal sertifikat tidak membuat duplikat
         $lpk->update(['name' => 'Lab Otomatis Asesmen Updated']);

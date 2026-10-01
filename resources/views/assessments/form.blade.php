@@ -130,15 +130,16 @@
 @endphp
 
 <div class="lpk-form-container">
-    {{-- Header Card dengan Breadcrumb, Judul & Tombol Cepat --}}
-    <div class="lpk-form-header">
-        <div class="lpk-header-back-wrap">
-            <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                <span>Semua asesmen</span>
-            </a>
-        </div>
+    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
+    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+        <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
+            <x-icon name="chevron-left" size="14" />
+            <span>Semua asesmen</span>
+        </a>
+    </div>
 
+    {{-- Header Card dengan Judul & Tombol Cepat --}}
+    <div class="lpk-form-header">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
                 <h1>{{ $assessment->exists ? 'Ubah asesmen' : 'Tambah asesmen' }}</h1>
@@ -242,7 +243,7 @@
                             <span>Judul Agenda Asesmen</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1) - Balai Besar Logam dan Mesin">
+                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)">
                         <span class="lpk-field-hint">Nama penugasan yang tercantum pada surat tugas dan kalender asesmen.</span>
                     </div>
 

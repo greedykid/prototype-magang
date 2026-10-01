@@ -11,6 +11,8 @@ class AccreditationController extends Controller
 {
     public function index(Request $request): View
     {
+        $user = $request->user();
+        $isPic = $user && $user->isPic();
         $lpkId = $request->integer('lpk_id') ?: null;
         $status = $request->string('status')->toString();
         $startFrom = $request->date('start_from')?->format('Y-m-d');
@@ -21,13 +23,32 @@ class AccreditationController extends Controller
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
-        $accreditations = Accreditation::query()->with(['lpk'])->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))->when($status, fn ($query) => $query->where('status', $status))->when($startFrom, fn ($query) => $query->whereDate('start_date', '>=', $startFrom))->when($startTo, fn ($query) => $query->whereDate('start_date', '<=', $startTo))->when($targetFrom, fn ($query) => $query->whereDate('target_date', '>=', $targetFrom))->when($targetTo, fn ($query) => $query->whereDate('target_date', '<=', $targetTo))->latest()->paginate($perPage)->withQueryString();
+        $accreditations = Accreditation::query()
+            ->with(['lpk'])
+            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($startFrom, fn ($query) => $query->whereDate('start_date', '>=', $startFrom))
+            ->when($startTo, fn ($query) => $query->whereDate('start_date', '<=', $startTo))
+            ->when($targetFrom, fn ($query) => $query->whereDate('target_date', '>=', $targetFrom))
+            ->when($targetTo, fn ($query) => $query->whereDate('target_date', '<=', $targetTo))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
 
-        return view('accreditations.index', array_merge(['accreditations' => $accreditations, 'lpks' => Lpk::orderBy('name')->get(['id', 'name'])], compact('lpkId', 'status', 'startFrom', 'startTo', 'targetFrom', 'targetTo', 'perPage')));
+        return view('accreditations.index', array_merge([
+            'accreditations' => $accreditations,
+            'lpks' => Lpk::accessibleBy($user)->orderBy('name')->get(['id', 'name']),
+        ], compact('lpkId', 'status', 'startFrom', 'startTo', 'targetFrom', 'targetTo', 'perPage')));
     }
 
-    public function show(Accreditation $accreditation): View
+    public function show(Accreditation $accreditation, Request $request): View
     {
+        $user = $request->user();
+        if ($user && $accreditation->lpk && ! $accreditation->lpk->canView($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk melihat proses akreditasi ini.');
+        }
+
         return view('accreditations.show', [
             'accreditation' => $accreditation->load(['lpk.assessments']),
         ]);

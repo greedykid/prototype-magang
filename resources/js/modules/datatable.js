@@ -476,7 +476,7 @@ export const initDataTables = () => {
                     if (!bar) {
                         bar = document.createElement('div');
                         bar.className = 'active-filters-bar';
-                        const tableTarget = parentPanel.querySelector('.lpk-table-container, .assessment-table-container, .table-wrap, .empty');
+                        const tableTarget = parentPanel.querySelector('.lpk-table-container, .assessment-table-container, .user-table-container, .table-wrap, .empty');
                         if (tableTarget && tableTarget.parentElement === parentPanel) {
                             parentPanel.insertBefore(bar, tableTarget);
                         } else {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountLinkController;
 use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
+use App\Http\Controllers\LpkMemberController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -47,6 +49,8 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/lpks/{lpk}', [LpkController::class, 'destroy'])->name('lpks.destroy')->whereNumber('lpk');
     Route::post('/lpks/bulk-delete', [LpkController::class, 'bulkDestroy'])->name('lpks.bulk-destroy');
     Route::post('/lpks/{lpk}/notes', [LpkController::class, 'updateNotes'])->name('lpks.notes.update')->whereNumber('lpk');
+    Route::post('/lpks/{lpk}/members', [LpkMemberController::class, 'store'])->name('lpks.members.store')->whereNumber('lpk');
+    Route::delete('/lpks/{lpk}/members/{user}', [LpkMemberController::class, 'destroy'])->name('lpks.members.destroy')->whereNumber('lpk')->whereNumber('user');
 
     // Pengelolaan & Penjadwalan Asesmen (Dapat diakses Admin & PIC)
     Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
@@ -70,10 +74,15 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
+    // Tautan Akun Kolaborasi (Viewer Lintas Akun)
+    Route::get('/account-links', [AccountLinkController::class, 'index'])->name('account-links.index');
+    Route::post('/account-links', [AccountLinkController::class, 'store'])->name('account-links.store');
+    Route::delete('/account-links/{user}', [AccountLinkController::class, 'destroy'])->name('account-links.destroy')->whereNumber('user');
+
     // 2. Administrasi & Monitoring Sistem Khusus (Administrator Unit)
     Route::middleware('role:admin')->group(function (): void {
-        // Manajemen Pengguna & Hak Akses PIC / Admin
-        Route::resource('users', UserController::class)->except(['show']);
+        // Manajemen Anggota (Pengguna & Hak Akses PIC / Admin)
+        Route::resource('users', UserController::class);
         Route::get('/monitoring/backups', [MonitoringController::class, 'backups'])->name('monitoring.backups');
         Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
 

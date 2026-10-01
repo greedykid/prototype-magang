@@ -33,6 +33,7 @@ class AssessmentTpVtpTest extends TestCase
         $this->lpk = Lpk::factory()->create([
             'name' => 'Laboratorium Uji Presisi',
             'status' => 'ACTIVE',
+            'pic_id' => $this->staff->id,
         ]);
     }
 

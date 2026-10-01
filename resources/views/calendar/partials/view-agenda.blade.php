@@ -51,7 +51,8 @@
                                 <div class="gcal-agenda-row theme-{{ $ev['color_theme'] }} {{ $isHighlighted ? 'is-highlight-target' : '' }}"
                                      data-event-id="{{ $ev['id'] }}"
                                      data-cat="{{ $ev['category'] }}"
-                                     data-lpk-id="{{ $ev['lpk_id'] }}">
+                                     data-lpk-id="{{ $ev['lpk_id'] }}"
+                                     data-pic-id="{{ $ev['pic_id'] ?? '' }}">
                                     <div class="gcal-agenda-time-col">
                                         <strong>{{ $ev['start_at']->format('H:i') }}</strong>
                                         <small>{{ $ev['end_at']->format('H:i') }} WIB</small>

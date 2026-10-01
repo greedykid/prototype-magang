@@ -42,19 +42,24 @@ class LpkSurveillanceCycleLogicTest extends TestCase
         $this->assertEquals('2033-01-18', $milestones['s2']['visit_target_date']->toDateString());
         $this->assertEquals('2033-04-18', $milestones['s2']['target_date']->toDateString());
 
-        // RA Target Kunjungan & Jatuh Tempo (Bulan 54 kedepan): 2034-07-18
+        // RA Target Dokumen Lengkap (Bulan 51 kedepan): 2034-04-18
+        // RA Target Kunjungan Lapangan (Bulan 54 kedepan): 2034-07-18
         // RA Masa Berlaku Habis (Bulan 60 kedepan): 2035-01-18
-        $this->assertEquals('2034-07-18', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2034-04-18', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2034-07-18', $milestones['ra']['visit_target_date']->toDateString());
         $this->assertEquals('2035-01-18', $milestones['ra']['tolerance_date']->toDateString());
     }
 
     /**
      * Skenario 2: Masa tenggang 6 bulan (Grace Period)
-     * Sertifikat telah kedaluwarsa 2 bulan yang lalu (Bulan ke-62) namun masih di bawah toleransi 6 bulan.
+     * Sertifikat telah kedaluwarsa 2 bulan yang lalu (Bulan ke-62) namun memiliki agenda asesmen
+     * Re-Akreditasi yang telah berjalan/dilaksanakan sebelum siklus berakhir.
      */
     public function test_lpk_enters_grace_period_within_six_months_after_expiry(): void
     {
         Carbon::setTestNow(Carbon::parse('2031-09-24 10:00:00'));
+
+        $admin = User::factory()->admin()->create();
 
         $lpk = Lpk::create([
             'registration_number' => 'LP-GRACE-01',
@@ -64,23 +69,65 @@ class LpkSurveillanceCycleLogicTest extends TestCase
             'expired_at' => '2031-07-24',
         ]);
 
+        Assessment::create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $admin->id,
+            'title' => 'Asesmen Re-Akreditasi (RA) - Lab Masa Tenggang 6 Bulan',
+            'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
+            'start_at' => '2031-06-10 09:00:00',
+            'end_at' => '2031-06-12 17:00:00',
+            'status' => 'IN_PROGRESS',
+        ]);
+
+        $this->assertTrue($lpk->hasReaccreditationInFlight());
         $this->assertTrue($lpk->isInGracePeriod());
         $this->assertFalse($lpk->isRevocationOverdue());
         $this->assertEquals('2032-01-24', $lpk->grace_period_deadline->toDateString());
         $this->assertEquals('GRACE_PERIOD', $lpk->dynamic_status);
         $this->assertEquals('Masa Tenggang (6 Bln)', $lpk->dynamic_status_label);
         $this->assertStringContainsString('Masa Tenggang Toleransi', $lpk->dynamic_keterangan);
+        $this->assertStringContainsString('simbol akreditasi KAN dibekukan', $lpk->dynamic_keterangan);
 
         Carbon::setTestNow();
     }
 
     /**
-     * Skenario 3: Melewati batas toleransi 6 bulan -> Otomatis Dicabut (REVOKED).
+     * Skenario 3a: Langsung dicabut seketika saat siklus berakhir tanpa pelaksanaan asesmen RA.
+     * Jika tidak ada asesmen RA yang berjalan, LPK tidak mendapatkan fasilitas masa tenggang 6 bulan.
+     */
+    public function test_lpk_without_reaccreditation_is_immediately_revoked_at_expiry(): void
+    {
+        // 1 hari setelah kedaluwarsa (Bulan ke-60 lewat 1 hari) tanpa asesmen RA
+        Carbon::setTestNow(Carbon::parse('2031-07-25 10:00:00'));
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-REVOKED-333',
+            'name' => 'Lab Tanpa RA Langsung Dicabut',
+            'status' => 'ACTIVE',
+            'certificate_date' => '2026-07-24',
+            'expired_at' => '2031-07-24',
+        ]);
+
+        $this->assertFalse($lpk->hasReaccreditationInFlight());
+        $this->assertFalse($lpk->isInGracePeriod());
+        $this->assertTrue($lpk->isRevocationOverdue());
+        $this->assertEquals('REVOKED', $lpk->dynamic_status);
+        $this->assertEquals('Dicabut', $lpk->dynamic_status_label);
+        $this->assertStringContainsString('Dicabut', $lpk->dynamic_keterangan);
+        $this->assertStringContainsString('tanpa pelaksanaan asesmen akreditasi ulang', $lpk->dynamic_keterangan);
+
+        Carbon::setTestNow();
+    }
+
+    /**
+     * Skenario 3b: Melewati batas toleransi 6 bulan masa tenggang -> Otomatis Dicabut.
      */
     public function test_lpk_is_automatically_revoked_when_grace_period_expires(): void
     {
-        // 7 bulan setelah kedaluwarsa (lewat dari batas 6 bulan)
+        // 7 bulan setelah kedaluwarsa (lewat dari batas 6 bulan masa tenggang)
         Carbon::setTestNow(Carbon::parse('2032-02-25 10:00:00'));
+
+        $admin = User::factory()->admin()->create();
 
         $lpk = Lpk::create([
             'registration_number' => 'LP-REVOKED-01',
@@ -90,11 +137,23 @@ class LpkSurveillanceCycleLogicTest extends TestCase
             'expired_at' => '2031-07-24',
         ]);
 
+        Assessment::create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $admin->id,
+            'title' => 'Asesmen Re-Akreditasi (RA) - Lab Lewat Masa Tenggang',
+            'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
+            'start_at' => '2031-06-10 09:00:00',
+            'end_at' => '2031-06-12 17:00:00',
+            'status' => 'IN_PROGRESS',
+        ]);
+
+        $this->assertTrue($lpk->hasReaccreditationInFlight());
         $this->assertFalse($lpk->isInGracePeriod());
         $this->assertTrue($lpk->isRevocationOverdue());
         $this->assertEquals('REVOKED', $lpk->dynamic_status);
         $this->assertEquals('Dicabut', $lpk->dynamic_status_label);
         $this->assertStringContainsString('Dicabut', $lpk->dynamic_keterangan);
+        $this->assertStringContainsString('melewati batas 6 bulan masa tenggang', $lpk->dynamic_keterangan);
         $this->assertStringContainsString('6 bulan', $lpk->dynamic_keterangan);
 
         Carbon::setTestNow();

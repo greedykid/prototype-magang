@@ -29,14 +29,5 @@ class UserSeeder extends Seeder
                 'role' => User::ROLE_PIC,
             ]
         );
-
-        User::updateOrCreate(
-            ['email' => 'demo@simasadi.local'],
-            [
-                'name' => 'Petugas Demo Unit Lab',
-                'password' => 'password',
-                'role' => User::ROLE_ADMIN,
-            ]
-        );
     }
 }

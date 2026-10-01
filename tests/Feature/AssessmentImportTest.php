@@ -36,6 +36,7 @@ class AssessmentImportTest extends TestCase
         $this->lpk = Lpk::factory()->create([
             'registration_number' => 'LP-077-IDN',
             'name' => 'Balai Pengujian Standar Industri',
+            'pic_id' => $this->pic->id,
         ]);
     }
 

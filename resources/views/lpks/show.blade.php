@@ -4,15 +4,16 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Header Card dengan Breadcrumb, Nama LPK, Identitas & Tombol Aksi --}}
-    <div class="lpk-show-header">
-        <div class="lpk-header-back-wrap">
-            <a href="{{ route('lpks.index') }}" class="lpk-back-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                <span>Semua LPK</span>
-            </a>
-        </div>
+    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
+    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+        <a href="{{ route('lpks.index') }}" class="lpk-back-btn">
+            <x-icon name="chevron-left" size="14" />
+            <span>Semua LPK</span>
+        </a>
+    </div>
 
+    {{-- Header Card dengan Nama LPK, Identitas & Tombol Aksi --}}
+    <div class="lpk-show-header">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
                 <h1>{{ $lpk->name }}</h1>
@@ -28,6 +29,11 @@
                         <span class="lpk-badge-type">{{ $lpk->accreditation_type }}</span>
                     @endif
                     <x-status :value="$lpk->dynamic_status" />
+                    @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
+                        <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                            Akses: Viewer (Hanya Lihat)
+                        </span>
+                    @endif
                 </div>
             </div>
 
@@ -223,11 +229,14 @@
             <div class="lpk-alert-callout-content">
                 <div class="lpk-alert-callout-head" style="color: #b45309;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <strong>Masa Tenggang Toleransi Re-Akreditasi (Jatah 6 Bulan)</strong>
+                    <strong>Masa Tenggang Akreditasi Ulang &amp; Peringatan Penggunaan Simbol KAN</strong>
                 </div>
-                <p class="lpk-alert-callout-desc" style="color: #92400e;">
-                    Sertifikat akreditasi telah habis masa berlakunya pada <strong>{{ $lpk->expired_at?->format('d M Y') }}</strong>. Laboratorium saat ini berada dalam masa toleransi 6 bulan untuk menuntaskan asesmen Re-Akreditasi. Sisa waktu toleransi: <strong>{{ $lpk->days_remaining_grace_period }} hari</strong> (batas akhir: <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong>). Jika melewati batas waktu tersebut tanpa penyelesaian, maka akreditasi otomatis dicabut.
+                <p class="lpk-alert-callout-desc" style="color: #92400e; margin-bottom: 6px;">
+                    Sertifikat akreditasi telah habis masa berlakunya pada <strong>{{ $lpk->expired_at?->format('d M Y') }}</strong>. Karena asesmen akreditasi ulang telah dilaksanakan sebelum siklus berakhir, laboratorium berada dalam masa tenggang toleransi maksimal 6 bulan (sisa waktu: <strong>{{ $lpk->days_remaining_grace_period }} hari</strong> s/d <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong>) untuk menunggu keputusan akreditasi KAN.
                 </p>
+                <div style="font-size: 12.5px; line-height: 1.5; color: #78350f; background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; margin-top: 6px;">
+                    <strong>Peringatan Penggunaan Simbol KAN:</strong> Selama masa akreditasi telah habis dan keputusan akreditasi ulang belum ditetapkan, LPK <u>dilarang</u> menggunakan simbol akreditasi KAN dan/atau membuat pernyataan akreditasi pada sertifikat, laporan pengujian/kalibrasi, kop surat, maupun media publikasi lainnya.
+                </div>
             </div>
         </div>
     @elseif($lpk->isRevocationOverdue())
@@ -238,7 +247,11 @@
                     <strong>Status Akreditasi Dicabut (Revoked)</strong>
                 </div>
                 <p class="lpk-alert-callout-desc" style="color: #991b1b;">
-                    Laboratorium telah melewati batas toleransi 6 bulan masa tenggang Re-Akreditasi pada <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong> tanpa menyelesaikan proses Re-Akreditasi. Status akreditasi resmi dicabut.
+                    @if(! $lpk->hasReaccreditationInFlight())
+                        Siklus akreditasi telah berakhir pada <strong>{{ $lpk->expired_at?->format('d M Y') }}</strong> tanpa pelaksanaan asesmen akreditasi ulang. Status akreditasi laboratorium resmi dicabut. Laboratorium dapat mengajukan akreditasi kembali sebagai pemohon akreditasi awal dengan nomor akreditasi baru.
+                    @else
+                        Keputusan akreditasi ulang belum ditetapkan sampai dengan batas 6 bulan masa tenggang pada <strong>{{ $lpk->grace_period_deadline?->format('d M Y') }}</strong>. Proses akreditasi ulang dihentikan dan status akreditasi resmi dicabut. Laboratorium dapat mengajukan akreditasi kembali sebagai pemohon akreditasi awal dengan nomor akreditasi baru.
+                    @endif
                 </p>
             </div>
         </div>
@@ -303,8 +316,7 @@
                                     default => 'Re-Akreditasi',
                                 };
                             @endphp
-                            <span style="font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; gap: 5px;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #4f46e5;"></span>
+                            <span style="font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; display: inline-flex; align-items: center;">
                                 Fokus Siklus: {{ $focusLabel }}
                             </span>
                         </h2>
@@ -508,20 +520,24 @@
 
                     <div class="lpk-milestone-dates">
                         <div class="lpk-milestone-date-row">
-                            <span>Tanggal Notifikasi:</span>
+                            <span>Pengumuman Permohonan RA:</span>
                             <strong>{{ $ra['notice_date'] ? $ra['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
-                            <span>Batas Kunjungan RA (Bulan 54):</span>
+                            <span>Batas Permohonan Lengkap (Bulan 51):</span>
                             <strong>{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong>
+                        </div>
+                        <div class="lpk-milestone-date-row">
+                            <span>Target Asesmen Lapangan (Bulan 54):</span>
+                            <strong>{{ ($ra['visit_target_date'] ?? null) ? $ra['visit_target_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         <div class="lpk-milestone-date-row">
                             <span>Masa Berlaku Habis (Bulan 60):</span>
                             <strong>{{ ($ra['tolerance_date'] ?? null) ? $ra['tolerance_date']->format('d M Y') : '-' }}</strong>
                         </div>
-                        @if($lpk->grace_period_deadline)
+                        @if($lpk->isInGracePeriod() && $lpk->grace_period_deadline)
                             <div class="lpk-milestone-date-row" style="color: #b45309;">
-                                <span>Batas Toleransi (Jatah 6 Bln):</span>
+                                <span>Batas Masa Tenggang (6 Bulan):</span>
                                 <strong>{{ $lpk->grace_period_deadline->format('d M Y') }}</strong>
                             </div>
                         @endif
@@ -874,10 +890,12 @@
                             <div class="lpk-keterangan-head-left">
                                 <span class="lpk-keterangan-type-label">Catatan Khusus PIC</span>
                             </div>
-                            <button type="button" class="button secondary button-xs lpk-keterangan-edit-btn" onclick="window.openModal('modal-input-keterangan')">
-                                <x-icon name="edit" size="13" />
-                                <span>{{ $lpk->notes ? 'Ubah Keterangan' : 'Input Keterangan' }}</span>
-                            </button>
+                            @if($lpk->canManage(auth()->user()))
+                                <button type="button" class="button secondary button-xs lpk-keterangan-edit-btn" onclick="window.openModal('modal-input-keterangan')">
+                                    <x-icon name="edit" size="13" />
+                                    <span>{{ $lpk->notes ? 'Ubah Keterangan' : 'Input Keterangan' }}</span>
+                                </button>
+                            @endif
                         </div>
                         <div class="lpk-keterangan-body {{ $lpk->notes ? '' : 'is-empty' }}">
                             @if($lpk->notes)
@@ -891,8 +909,183 @@
             </div>
         </div>
 
-        {{-- KOLOM KANAN: Program Asesmen Surveilen & Proses Akreditasi --}}
+        {{-- KOLOM KANAN: Tim Kolaborasi, Program Asesmen Surveilen & Proses Akreditasi --}}
         <div class="lpk-show-col">
+            {{-- KARTU: Tim PIC Laboratorium (Kolaborasi Antar-PIC) --}}
+            <div class="lpk-form-card" id="card-tim-kolaborasi">
+                <div class="lpk-form-card-header" style="border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 14px;">
+                    <div class="lpk-card-icon-wrap" style="background: #ecfdf5; color: #047857;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="lpk-card-header-text" style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <span class="eyebrow" style="color: #047857;">KOLABORASI</span>
+                                <h2 style="font-size: 15.5px; margin: 2px 0 0;">Tim PIC Laboratorium</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Daftar Anggota Tim Kolaborasi --}}
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+                    {{-- 1. Ketua Tim Utama (Pemilik Utama / Penanggung Jawab) --}}
+                    <div style="background: #ffffff; border: 1px solid #d1fae5; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <div style="width: 32px; height: 32px; border-radius: 9999px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; border: 1px solid #a7f3d0;">
+                                {{ $lpk->pic ? $lpk->pic->initials : 'U' }}
+                            </div>
+                            <div style="min-width: 0;">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $lpk->pic ? $lpk->pic->name : 'PIC Belum Ditugaskan' }}
+                                </div>
+                                <div style="font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ $lpk->pic ? $lpk->pic->email : 'Laboratorium Terbuka' }}
+                                </div>
+                            </div>
+                        </div>
+                        <span style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; flex-shrink: 0;">
+                            {{ $lpk->pic && $lpk->pic->isAdmin() ? 'Ketua Tim' : 'PIC Utama' }}
+                        </span>
+                    </div>
+
+                    {{-- 2. Anggota PIC Tertaut --}}
+                    @forelse($lpk->members as $member)
+                        <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                <div style="width: 32px; height: 32px; border-radius: 9999px; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; border: 1px solid #cbd5e1;">
+                                    {{ $member->initials }}
+                                </div>
+                                <div style="min-width: 0;">
+                                    <div style="font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ $member->name }}
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ $member->email }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                @if($member->pivot->role === 'lead')
+                                    <span style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                                        {{ $member->isAdmin() ? 'Ketua Tim' : 'PIC Pendamping' }}
+                                    </span>
+                                @else
+                                    <span style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                                        Viewer
+                                    </span>
+                                @endif
+
+                                @if($lpk->canManage(auth()->user()))
+                                    <form method="POST" action="{{ route('lpks.members.destroy', [$lpk, $member]) }}"
+                                          data-confirm-delete
+                                          data-confirm-title="Putuskan Akses Tim?"
+                                          data-confirm-text="Apakah Anda yakin ingin memutuskan akses PIC {{ $member->name }} dari LPK ini?"
+                                          data-confirm-btn="Ya, Putuskan Akses"
+                                          style="margin: 0;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 4px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan tautan akun PIC ini">
+                                            <x-icon name="trash" size="14" />
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        @if(! $lpk->pic)
+                            <div style="font-size: 12px; color: var(--muted); padding: 4px 0;">
+                                Belum ada penanggung jawab khusus untuk LPK ini.
+                            </div>
+                        @endif
+                    @endforelse
+
+                    {{-- 3. Viewer dari Tautan Akun PIC --}}
+                    @if($lpk->pic && $lpk->pic->linkedViewers && $lpk->pic->linkedViewers->isNotEmpty())
+                        @php
+                            $memberIds = $lpk->members->pluck('id')->all();
+                            $accountViewers = $lpk->pic->linkedViewers->reject(fn ($v) => in_array($v->id, $memberIds));
+                        @endphp
+                        @foreach($accountViewers as $viewer)
+                            <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                    <div style="width: 32px; height: 32px; border-radius: 9999px; background: #e0f2fe; color: #0369a1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; border: 1px solid #bae6fd;">
+                                        {{ $viewer->initials }}
+                                    </div>
+                                    <div style="min-width: 0;">
+                                        <div style="font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ $viewer->name }}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ $viewer->email }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;" title="Memiliki akses lihat ke seluruh LPK akun ini">
+                                        Viewer (Akses Akun)
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+
+                {{-- Form Tautkan PIC Baru (Hanya tampil untuk Ketua Tim atau Admin) --}}
+                @if($lpk->canManage(auth()->user()))
+                    @php
+                        $linkedUserIds = $lpk->members->pluck('id')->all();
+                        if ($lpk->pic_id) {
+                            $linkedUserIds[] = $lpk->pic_id;
+                        }
+                        $availablePics = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)
+                            ->whereNotIn('id', $linkedUserIds)
+                            ->orderBy('name')
+                            ->get();
+                    @endphp
+
+                    @if($availablePics->isNotEmpty())
+                        <form method="POST" action="{{ route('lpks.members.store', $lpk) }}" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
+                            @csrf
+                            <label for="select-link-pic" style="display: block; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">
+                                Tautkan Akun PIC Lain (Per-LPK)
+                            </label>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                <select id="select-link-pic" name="user_id" required style="flex: 1; min-width: 150px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff;">
+                                    <option value="">-- Pilih PIC --</option>
+                                    @foreach($availablePics as $ap)
+                                        <option value="{{ $ap->id }}">{{ $ap->name }} ({{ $ap->email }})</option>
+                                    @endforeach
+                                </select>
+                                <select name="role" style="font-size: 12px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff;">
+                                    <option value="viewer" selected>Viewer</option>
+                                    <option value="lead">PIC Pendamping</option>
+                                </select>
+                                <button type="submit" class="button secondary button-xs" style="font-size: 12px; padding: 6px 12px; font-weight: 600; white-space: nowrap;">
+                                    + Tautkan
+                                </button>
+                            </div>
+                            <span style="display: block; font-size: 11px; color: var(--muted); margin-top: 6px;">
+                                PIC berstatus <em>Viewer</em> hanya dapat melihat data LPK dan agenda terkait.
+                            </span>
+                        </form>
+                    @endif
+
+                    <div style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+                        <span style="color: var(--muted);">Tautan Akun Kolaborasi (Seluruh LPK)</span>
+                        <a href="{{ route('account-links.index') }}" style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <span>Kelola Tautan Akun</span>
+                            <x-icon name="arrow-right" size="12" />
+                        </a>
+                    </div>
+                @endif
+            </div>
+
             {{-- KARTU: Program Asesmen Surveilen --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header" style="border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 14px;">
@@ -910,8 +1103,9 @@
                                 <span class="eyebrow" style="color: #0284c7;">PROGRAM ASESMEN</span>
                                 <h2 style="font-size: 15.5px; margin: 2px 0 0;">Daftar Asesmen Surveilen</h2>
                             </div>
-                            <a href="{{ route('assessments.index', ['lpk_id' => $lpk->id]) }}" style="font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none;">
-                                Semua asesmen &rarr;
+                            <a href="{{ route('assessments.index', ['lpk_id' => $lpk->id]) }}" style="font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">
+                                <span>Semua asesmen</span>
+                                <x-icon name="chevron-right" size="13" />
                             </a>
                         </div>
                     </div>
@@ -919,10 +1113,10 @@
 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     @forelse($lpk->assessments->sortBy('start_at') as $item)
-                        <div class="assessment-list-row clickable-row" data-href="{{ route('assessments.show', $item) }}" tabindex="0" role="link" aria-label="{{ $item->title }}" style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 140ms ease, box-shadow 140ms ease;">
+                        <div class="assessment-list-row clickable-row" data-href="{{ route('assessments.show', $item) }}" tabindex="0" role="link" aria-label="{{ $item->display_title }}" style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 140ms ease, box-shadow 140ms ease;">
                             <div class="assessment-list-content">
                                 <a href="{{ route('assessments.show', $item) }}" class="assessment-list-title" style="font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none;">
-                                    {{ $item->title }}
+                                    {{ $item->display_title }}
                                 </a>
                                 <div class="assessment-list-meta" style="font-size: 12px; color: var(--muted); margin-top: 3px;">
                                     <span>{{ $lpk->registration_number }} &bull; {{ $item->assessment_type_label }} &bull; {{ $item->start_at->format('d M Y') }}</span>
@@ -975,8 +1169,9 @@
                                     <span class="eyebrow" style="color: #7c3aed;">AKREDITASI</span>
                                     <h2 style="font-size: 15.5px; margin: 2px 0 0;">Proses terkait</h2>
                                 </div>
-                                <a href="{{ route('accreditations.index') }}" style="font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none;">
-                                    Semua proses &rarr;
+                                <a href="{{ route('accreditations.index') }}" style="font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">
+                                    <span>Semua proses</span>
+                                    <x-icon name="chevron-right" size="13" />
                                 </a>
                             </div>
                         </div>
@@ -1003,6 +1198,7 @@
     </div>
 </div>
 
+@if($lpk->canManage(auth()->user()))
 {{-- Modal: Input / Ubah Keterangan LPK --}}
 <div class="simasadi-modal" id="modal-input-keterangan" role="dialog" aria-modal="true">
     <div class="simasadi-modal-box" style="max-width: 540px;">
@@ -1053,4 +1249,5 @@
         </form>
     </div>
 </div>
+@endif
 @endsection

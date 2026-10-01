@@ -26,6 +26,7 @@ class UserController extends Controller
         }
 
         $query = User::query()
+            ->withCount(['lpks', 'memberLpks'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%")
@@ -38,6 +39,10 @@ class UserController extends Controller
             ->latest('id');
 
         $users = $query->paginate($perPage)->withQueryString();
+
+        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
+            return view('users.partials.table-content', compact('users', 'search', 'role', 'perPage'));
+        }
 
         $totalCount = User::count();
         $adminCount = User::where('role', User::ROLE_ADMIN)->count();
@@ -55,13 +60,61 @@ class UserController extends Controller
     }
 
     /**
+     * Tampilkan rincian profil anggota beserta seluruh laboratorium yang ditanganinya.
+     */
+    public function show(User $user, Request $request): View
+    {
+        // 1. LPK Utama (Lead PIC / Pemilik Utama)
+        $leadLpks = $user->lpks()
+            ->with(['assessments'])
+            ->orderBy('name')
+            ->get();
+
+        // 2. LPK Kolaborasi (Anggota / Viewer LPK)
+        $memberLpks = $user->memberLpks()
+            ->with(['assessments'])
+            ->orderBy('name')
+            ->get();
+
+        // 3. LPK dari Tautan Akun (Account-level Viewer)
+        $linkedOwners = $user->linkedOwners()->withCount('lpks')->get();
+        $linkedOwnerLpks = \App\Models\Lpk::whereIn('pic_id', $linkedOwners->pluck('id'))
+            ->with(['assessments'])
+            ->orderBy('name')
+            ->get();
+
+        $linkedViewers = $user->linkedViewers()->withCount('lpks')->get();
+
+        // 4. Gabungan unik LPK
+        $allLpks = $leadLpks->concat($memberLpks)->concat($linkedOwnerLpks)->unique('id');
+
+        // Statistik ringkas
+        $totalLead = $leadLpks->count();
+        $totalViewer = max(0, $allLpks->count() - $totalLead);
+        $totalLpks = $allLpks->count();
+
+        return view('users.show', compact(
+            'user',
+            'leadLpks',
+            'memberLpks',
+            'linkedOwnerLpks',
+            'linkedOwners',
+            'linkedViewers',
+            'allLpks',
+            'totalLead',
+            'totalViewer',
+            'totalLpks'
+        ));
+    }
+
+    /**
      * Tampilkan formulir penambahan akun pengguna baru.
      */
     public function create(): View
     {
         return view('users.form', [
             'user' => new User(),
-            'formTitle' => 'Tambah Pengguna Baru',
+            'formTitle' => 'Tambah Anggota Baru',
         ]);
     }
 

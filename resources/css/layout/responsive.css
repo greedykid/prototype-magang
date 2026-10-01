@@ -54,9 +54,8 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 .drawer-account {
     align-items: center;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: space-between;
-    margin-bottom: 20px;
     width: 100%;
 }
 
@@ -65,20 +64,8 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     flex: 1;
 }
 
-.drawer-account .link-button {
+.drawer-account .logout-form {
     flex: 0 0 auto;
-}
-
-.logout-icon {
-    min-height: 34px;
-    height: 34px;
-    width: 34px;
-    padding: 7px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
 }
 
 .filter-toggle {
@@ -391,8 +378,9 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     }
 
     .content-grid,
-    .detail-grid {
-        grid-template-columns: 1fr !important;
+    .detail-grid,
+    .dashboard-main-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
         gap: 18px !important;
     }
 
@@ -781,6 +769,94 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         grid-column: 2 !important;
         justify-self: start !important;
         margin-top: 4px !important;
+    }
+
+    /* Mobile Dashboard Health Panel & Managed LPKs */
+    .dashboard-main-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 16px !important;
+        margin-bottom: 24px !important;
+        width: 100% !important;
+    }
+
+    .dashboard-column {
+        width: 100% !important;
+        min-width: 0 !important;
+        gap: 16px !important;
+    }
+
+    .dashboard-column > .panel {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .dashboard-health-card {
+        padding: 12px 14px !important;
+        gap: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    .dashboard-health-metrics {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        padding-top: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .dashboard-health-stat {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 7px 10px !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    .dashboard-health-stat .stat-label {
+        font-size: 11.5px !important;
+    }
+
+    .dashboard-health-stat .stat-val {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+
+    .dashboard-lpk-item {
+        padding: 10px 12px !important;
+        gap: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    .dashboard-lpk-item-main {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .dashboard-lpk-name {
+        font-size: 13px !important;
+        white-space: normal !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+    }
+
+    .dashboard-lpk-meta {
+        font-size: 11px !important;
+        white-space: normal !important;
+        flex-wrap: wrap !important;
+        gap: 3px 6px !important;
+        word-break: break-word !important;
     }
 
     /* General Table Filters & Actions on Mobile */

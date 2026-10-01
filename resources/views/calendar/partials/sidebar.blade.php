@@ -121,5 +121,20 @@
                     @endforeach
                 </select>
             </div>
+
+            @if(isset($pics) && ($pics->count() > 1 || (auth()->user() && auth()->user()->isAdmin())))
+            {{-- Filter Akun PIC --}}
+            <div class="gcal-filters-group">
+                <span class="gcal-filter-title">Akun PIC</span>
+                <select id="gcal-filter-pic" name="pic_id" class="gcal-lpk-select">
+                    <option value="">Semua Akun PIC</option>
+                    @foreach($pics as $p)
+                        <option value="{{ $p->id }}" {{ (string)($picFilter ?? '') === (string)$p->id ? 'selected' : '' }}>
+                            {{ $p->id === auth()->id() ? 'Akun Saya (' . $p->name . ')' : $p->name . (auth()->user()?->isAdmin() ? '' : ' (Akun Tertaut)') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
         </div>
     </aside>

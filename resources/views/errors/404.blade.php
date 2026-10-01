@@ -50,7 +50,7 @@
                         <span>Daftar Laboratorium</span>
                     </a>
                     <button type="button" onclick="if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) { window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" class="button secondary">
-                        <x-icon name="arrow-left" size="16" />
+                        <x-icon name="chevron-left" size="16" />
                         <span>Halaman Sebelumnya</span>
                     </button>
                 @else

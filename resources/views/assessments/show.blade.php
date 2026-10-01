@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $assessment->title . ' | SIMASADI')
+@section('title', $assessment->display_title . ' | SIMASADI')
 
 @section('content')
 <div class="lpk-show-container">
     {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
     <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
         <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            <x-icon name="chevron-left" size="14" />
             <span>Semua asesmen</span>
         </a>
     </div>
@@ -16,7 +16,7 @@
     <div class="lpk-show-header">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
-                <h1>{{ $assessment->title }}</h1>
+                <h1>{{ $assessment->display_title }}</h1>
                 <div class="lpk-header-badges">
                     <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: #0f172a;" title="Buka detail LPK">
                         {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
@@ -41,10 +41,12 @@
                     <x-icon name="calendar" size="14" />
                     <span>Buka di Kalender</span>
                 </a>
-                <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
-                    <x-icon name="edit" size="14" />
-                    <span>Ubah asesmen</span>
-                </a>
+                @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
+                    <a class="button secondary" href="{{ route('assessments.edit', $assessment) }}">
+                        <x-icon name="edit" size="14" />
+                        <span>Ubah asesmen</span>
+                    </a>
+                @endif
             </div>
         </div>
     </div>

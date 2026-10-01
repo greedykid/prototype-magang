@@ -145,7 +145,7 @@
                         @if($alertCount > 0)
                             <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="notif-primary-cta notif-cta-btn">
                                 <span>Tinjau Seluruh LPK Jatuh Tempo ({{ $alertCount }})</span>
-                                <x-icon name="arrow-right" size="13" />
+                                <x-icon name="chevron-right" size="13" />
                             </a>
                         @endif
                         <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">

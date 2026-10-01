@@ -47,6 +47,7 @@
                                             data-event-source="{{ $ev['source'] }}"
                                             data-cat="{{ $ev['category'] }}"
                                             data-lpk-id="{{ $ev['lpk_id'] }}"
+                                            data-pic-id="{{ $ev['pic_id'] ?? '' }}"
                                             title="{{ $ev['title'] }}{{ !empty($ev['lpk_name']) ? ' &bull; ' . $ev['lpk_name'] : '' }}"
                                             onclick="window.showEventPopover(this, {{ json_encode($ev) }})">
                                         <span class="gcal-chip-title">{{ $ev['title'] }}</span>

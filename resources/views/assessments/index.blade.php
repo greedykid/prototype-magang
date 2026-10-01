@@ -40,6 +40,19 @@
             </label>
             <label>Mulai dari<input type="date" name="start_from" value="{{ $startFrom }}"></label>
             <label>Mulai sampai<input type="date" name="start_to" value="{{ $startTo }}"></label>
+            @if($pics->count() > 1 || (auth()->user() && auth()->user()->isAdmin()))
+                <label>
+                    Akun PIC
+                    <select name="pic_id">
+                        <option value="">Semua Akun PIC</option>
+                        @foreach($pics as $p)
+                            <option value="{{ $p->id }}" @selected((string)($picFilter ?? '') === (string)$p->id)>
+                                {{ $p->id === auth()->id() ? 'Akun Saya (' . $p->name . ')' : $p->name . (auth()->user()?->isAdmin() ? '' : ' (Akun Tertaut)') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
         </div>
         <div class="table-filter-actions" id="assessment-filter-actions" style="margin-top: 8px;">
             <span id="assessment-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
@@ -58,6 +71,7 @@
         if (!empty($tpFilter)) $activeFiltersCount++;
         if ($startFrom) $activeFiltersCount++;
         if ($startTo) $activeFiltersCount++;
+        if (!empty($picFilter)) $activeFiltersCount++;
     @endphp
 
     @if($activeFiltersCount > 0)
@@ -122,6 +136,15 @@
                     <span class="filter-chip" data-field="start_to" title="Mulai Sampai: {{ \Illuminate\Support\Carbon::parse($startTo)->translatedFormat('d M Y') }}">
                         <span class="filter-chip-text">Mulai Sampai: {{ \Illuminate\Support\Carbon::parse($startTo)->translatedFormat('d M Y') }}</span>
                         <button type="button" class="filter-chip-remove" aria-label="Hapus filter Mulai Sampai">&times;</button>
+                    </span>
+                @endif
+                @if(!empty($picFilter))
+                    @php
+                        $selectedPicItem = $pics->firstWhere('id', $picFilter);
+                    @endphp
+                    <span class="filter-chip" data-field="pic_id" title="Akun PIC: {{ $selectedPicItem?->name ?? $picFilter }}">
+                        <span class="filter-chip-text">PIC: {{ $selectedPicItem?->name ?? $picFilter }}</span>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Akun PIC">&times;</button>
                     </span>
                 @endif
                 <a href="{{ route('assessments.index') }}" class="filter-reset-link" data-role="reset-filter">Reset Filter</a>

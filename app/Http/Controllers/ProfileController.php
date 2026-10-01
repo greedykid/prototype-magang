@@ -16,9 +16,26 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+
+        $linkedViewers = $user->linkedViewers()
+            ->withCount('lpks')
+            ->orderBy('name')
+            ->get();
+
+        $linkedOwners = $user->linkedOwners()
+            ->withCount('lpks')
+            ->orderBy('name')
+            ->get();
+
+        $alreadyViewerIds = $linkedViewers->pluck('id')->push($user->id)->all();
+
+        $availableUsers = \App\Models\User::whereNotIn('id', $alreadyViewerIds)
+            ->where('role', \App\Models\User::ROLE_PIC)
+            ->orderBy('name')
+            ->get();
+
+        return view('profile.edit', compact('user', 'linkedViewers', 'linkedOwners', 'availableUsers'));
     }
 
     /**

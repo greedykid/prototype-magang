@@ -47,7 +47,7 @@
         <a href="{{ route('lpks.index') }}" class="metric">
             <div class="metric-head">
                 <span class="metric-label">LPK terdaftar</span>
-                <div class="metric-icon" aria-hidden="true">
+                <div class="metric-icon theme-indigo" aria-hidden="true">
                     <x-icon name="lpks" size="18" />
                 </div>
             </div>
@@ -59,8 +59,8 @@
         <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="metric {{ !empty($globalSurveillanceAlerts) ? 'warn' : '' }}">
             <div class="metric-head">
                 <span class="metric-label">Tindak lanjut surveilen</span>
-                <div class="metric-icon" aria-hidden="true">
-                    <x-icon name="alert-circle" size="18" />
+                <div class="metric-icon {{ !empty($globalSurveillanceAlerts) ? 'theme-rose' : 'theme-emerald' }}" aria-hidden="true">
+                    <x-icon name="{{ !empty($globalSurveillanceAlerts) ? 'alert-circle' : 'check-circle' }}" size="18" />
                 </div>
             </div>
             <div class="metric-body">
@@ -71,7 +71,7 @@
         <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
             <div class="metric-head">
                 <span class="metric-label">Asesmen bulan ini</span>
-                <div class="metric-icon" aria-hidden="true">
+                <div class="metric-icon theme-sky" aria-hidden="true">
                     <x-icon name="calendar" size="18" />
                 </div>
             </div>
@@ -83,7 +83,7 @@
         <a href="{{ route('assessments.index') }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
             <div class="metric-head">
                 <span class="metric-label">Tindakan perbaikan (TP)</span>
-                <div class="metric-icon" aria-hidden="true">
+                <div class="metric-icon {{ !empty($overdueTpCount) ? 'theme-rose' : ($activeTpCount > 0 ? 'theme-amber' : 'theme-emerald') }}" aria-hidden="true">
                     <x-icon name="assessments" size="18" />
                 </div>
             </div>
@@ -101,7 +101,7 @@
 
     {{-- Balanced 2-Column Responsive Workspace --}}
     <div class="dashboard-main-grid">
-        {{-- Left Column: Core Operations, Surveillance Alerts & TP Alerts --}}
+        {{-- Left Column: Core Operations, Surveillance Alerts & Managed LPKs --}}
         <div class="dashboard-column">
             @if(!empty($globalSurveillanceAlerts))
                 <section class="panel surveillance-alert-panel" aria-labelledby="surveillance-heading">
@@ -196,7 +196,7 @@
                                     </span>
                                     <div>
                                         <a href="{{ route('assessments.show', $assessment) }}" style="font-weight: 600; color: var(--text, #0f172a); text-decoration: none;">
-                                            {{ $assessment->title }}
+                                            {{ $assessment->display_title }}
                                         </a>
                                         <span style="font-size: 12px; color: var(--muted, #64748b); margin-left: 6px;">({{ $assessment->lpk->name }})</span>
                                         <div style="font-size: 12px; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : '#b45309' }};">
@@ -229,33 +229,93 @@
             @endif
 
             @if(empty($globalSurveillanceAlerts) && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty()))
-                <section class="panel" aria-labelledby="status-kepatuhan-heading">
-                    <div class="panel-head">
+                <section class="panel dashboard-health-panel" aria-labelledby="status-kepatuhan-heading">
+                    <div class="panel-head" style="margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div>
                             <h2 id="status-kepatuhan-heading">Status Pengawasan &amp; TP KAN</h2>
                         </div>
+                        <span class="badge" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 600; font-size: 11.5px; padding: 2px 10px; border-radius: 999px;">
+                            Semua Siklus Normal
+                        </span>
                     </div>
-                    <div class="empty" style="text-align: left; padding: 24px;">
-                        <div style="display: flex; align-items: flex-start; gap: 14px;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div class="dashboard-health-card">
+                        <div class="dashboard-health-main">
+                            <span class="dashboard-health-icon">
+                                <x-icon name="check-circle" size="18" />
+                            </span>
+                            <div class="dashboard-health-copy">
+                                <strong>Siklus &amp; Tindakan Perbaikan Terkendali</strong>
+                                <p>Tidak ada agenda surveilen (S1/S2/RA) yang jatuh tempo ataupun temuan perbaikan yang mendekati batas waktu KAN saat ini.</p>
                             </div>
-                            <div>
-                                <strong style="font-size: 15px; color: #0f172a; display: block; margin-bottom: 4px;">Siklus &amp; Tindakan Perbaikan Terkendali</strong>
-                                <p style="margin: 0 0 12px 0; font-size: 13px; color: #64748b; line-height: 1.5;">Tidak ada surveilen (S1/S2/RA) yang jatuh tempo atau tindakan perbaikan (TP &amp; VTP) yang mendekati batas waktu KAN saat ini.</p>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <a href="{{ route('lpks.index') }}" class="button secondary button-sm">
-                                        <span>Daftar LPK</span>
-                                    </a>
-                                    <a href="{{ route('calendar.index') }}" class="button secondary button-sm">
-                                        <span>Kalender Kerja</span>
-                                    </a>
-                                </div>
+                        </div>
+                        <div class="dashboard-health-metrics">
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot green"></span>Siklus Surveilen</span>
+                                <strong class="stat-val">100% Sesuai Skedul</strong>
+                            </div>
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot green"></span>Tindakan Perbaikan</span>
+                                <strong class="stat-val">0 Menunggak</strong>
+                            </div>
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot blue"></span>Masa Berlaku LPK</span>
+                                <strong class="stat-val">{{ $lpkCount }} Terakreditasi</strong>
                             </div>
                         </div>
                     </div>
                 </section>
             @endif
+
+            {{-- Panel Daftar Laboratorium Binaan / Terkelola --}}
+            <section class="panel dashboard-lpk-panel" aria-labelledby="managed-lpks-heading">
+                <div class="panel-head">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0;">
+                        <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
+                        <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
+                            {{ $lpkCount }} LPK
+                        </span>
+                    </div>
+                    <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar LPK">
+                        <span>Lihat Semua</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
+                </div>
+
+                @if(isset($managedLpks) && $managedLpks->isNotEmpty())
+                    <div class="dashboard-lpk-list">
+                        @foreach($managedLpks as $lpk)
+                            <a href="{{ route('lpks.show', $lpk) }}" class="dashboard-lpk-item" title="Lihat detail {{ $lpk->name }}">
+                                <div class="dashboard-lpk-item-main">
+                                    <div class="dashboard-lpk-item-top">
+                                        <span class="dashboard-lpk-reg">{{ $lpk->accreditation_number ?: $lpk->registration_number }}</span>
+                                        <x-status :value="$lpk->dynamic_status" />
+                                    </div>
+                                    <strong class="dashboard-lpk-name">{{ $lpk->name }}</strong>
+                                    <div class="dashboard-lpk-meta">
+                                        <span>{{ $lpk->accreditation_type ?: 'Laboratorium Terakreditasi' }}</span>
+                                        <span>&bull;</span>
+                                        <span>Masa Berlaku: <strong>{{ $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-' }}</strong></span>
+                                        @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
+                                            <span>&bull;</span>
+                                            <span style="color: #0284c7; font-weight: 600;">(Viewer Tertaut)</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="dashboard-lpk-arrow" aria-hidden="true">
+                                    <x-icon name="chevron-right" size="15" />
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty">
+                        <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--muted);">Belum ada data laboratorium terdaftar.</p>
+                        @if(auth()->user()?->isAdmin() || auth()->user()?->isPic())
+                            <a href="{{ route('lpks.create') }}" class="button primary button-sm">Tambah LPK Baru</a>
+                        @endif
+                    </div>
+                @endif
+            </section>
         </div>
 
         {{-- Right Column: Field Agenda (Asesmen Terdekat) --}}
@@ -263,11 +323,16 @@
             {{-- Upcoming Assessments Widget --}}
             <section class="panel" aria-labelledby="upcoming-assessments-heading">
                 <div class="panel-head">
-                    <div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0;">
                         <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
+                        @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
+                            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
+                                {{ $upcomingAssessments->count() }} Agenda
+                            </span>
+                        @endif
                     </div>
-                    <a href="{{ route('assessments.index') }}" style="display: inline-flex; align-items: center; gap: 4px;">
-                        <span>Buka agenda</span>
+                    <a href="{{ route('calendar.index') }}" class="dashboard-more-link" title="Buka seluruh jadwal di kalender kerja">
+                        <span>Kalender Kerja</span>
                         <x-icon name="chevron-right" size="14" />
                     </a>
                 </div>
@@ -280,7 +345,7 @@
                                     <span class="month">{{ $assessment->start_at->translatedFormat('M') }}</span>
                                 </div>
                                 <div class="agenda-card-main">
-                                    <div class="agenda-card-title">{{ $assessment->title }}</div>
+                                    <div class="agenda-card-title">{{ $assessment->display_title }}</div>
                                     <div class="agenda-card-meta">
                                         <span><strong>{{ $assessment->lpk->name }}</strong></span>
                                         <span>&bull;</span>
@@ -296,7 +361,12 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="empty">Belum ada agenda asesmen mendatang.@if(auth()->user()?->isAdmin()) <a href="{{ route('assessments.create') }}">Jadwalkan asesmen</a>.@endif</div>
+                    <div class="empty">
+                        <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--muted);">Belum ada agenda asesmen mendatang.</p>
+                        @if(auth()->user()?->isAdmin())
+                            <a href="{{ route('assessments.create') }}" class="button primary button-sm">Jadwalkan Asesmen</a>
+                        @endif
+                    </div>
                 @endif
             </section>
         </div>

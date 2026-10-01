@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Models\Assessment;
 use App\Models\User;
 use App\Services\LpkSurveillanceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -35,6 +37,9 @@ use Illuminate\Support\Carbon;
 class Lpk extends Model
 {
     use HasFactory;
+
+    public const MEMBER_ROLE_LEAD = 'lead';
+    public const MEMBER_ROLE_VIEWER = 'viewer';
 
     public const ACCREDITATION_TYPES = [
         'Laboratorium Penguji' => 'Laboratorium Penguji (LP)',
@@ -274,9 +279,44 @@ class Lpk extends Model
         return $this->expired_at && $this->expired_at->isPast();
     }
 
+    /**
+     * Memeriksa apakah LPK memiliki proses akreditasi ulang yang sedang aktif atau telah terlaksana
+     * sebelum berakhirnya siklus akreditasi.
+     */
+    public function hasReaccreditationInFlight(): bool
+    {
+        $assessments = $this->relationLoaded('assessments') ? $this->assessments : $this->assessments()->get();
+
+        return $assessments->contains(function (Assessment $a) {
+            $isRa = in_array($a->assessment_type, [Assessment::TYPE_RE_AKREDITASI, 'RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang'], true)
+                || str_contains(strtolower($a->title ?: ''), 're-akreditasi')
+                || str_contains(strtolower($a->title ?: ''), 'reakreditasi');
+
+            if (! $isRa) {
+                return false;
+            }
+
+            // Memenuhi syarat jika status asesmen SCHEDULED, IN_PROGRESS, atau COMPLETED (menunggu keputusan),
+            // atau terdapat proses tindakan perbaikan (TP) aktif / pemenuhan TP, atau proses EHA berjalan.
+            return in_array($a->status, ['IN_PROGRESS', 'SCHEDULED', 'COMPLETED'], true)
+                || in_array($a->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION, Assessment::TP_STATUS_SATISFIED], true)
+                || (! empty($a->eha_status) && $a->eha_status !== Assessment::EHA_STATUS_BELUM);
+        });
+    }
+
+    /**
+     * Masa tenggang akreditasi ulang (6 bulan sejak berakhirnya siklus).
+     * Hanya berlaku jika asesmen akreditasi ulang sudah dilaksanakan sebelum berakhirnya siklus.
+     */
     public function isInGracePeriod(): bool
     {
         if (! $this->expired_at || ! $this->isExpired()) {
+            return false;
+        }
+
+        // Jika sampai berakhirnya siklus belum dilaksanakan asesmen akreditasi ulang,
+        // akreditasi dicabut (tidak mendapatkan masa tenggang).
+        if (! $this->hasReaccreditationInFlight()) {
             return false;
         }
 
@@ -288,10 +328,20 @@ class Lpk extends Model
         return now()->lte($deadline);
     }
 
+    /**
+     * Memeriksa apakah akreditasi harus dicabut:
+     * 1. Langsung dicabut jika siklus berakhir tanpa ada pelaksanaan asesmen RA.
+     * 2. Dicabut jika lewat dari 6 bulan masa tenggang tanpa keputusan akreditasi baru.
+     */
     public function isRevocationOverdue(): bool
     {
         if (! $this->expired_at || ! $this->isExpired()) {
             return false;
+        }
+
+        // Tanpa asesmen RA in-flight, dicabut seketika saat expired_at terlampaui.
+        if (! $this->hasReaccreditationInFlight()) {
+            return true;
         }
 
         $deadline = $this->grace_period_deadline;
@@ -415,7 +465,14 @@ class Lpk extends Model
         return $this->belongsTo(User::class, 'pic_id');
     }
 
-    public function isManagedBy(?User $user): bool
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'lpk_members')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function isLeadPic(?User $user): bool
     {
         if (! $user) {
             return false;
@@ -425,7 +482,116 @@ class Lpk extends Model
             return true;
         }
 
-        return $this->pic_id === null || (int) $this->pic_id === (int) $user->id;
+        if ($this->pic_id !== null && (int) $this->pic_id === (int) $user->id) {
+            return true;
+        }
+
+        if ($this->relationLoaded('members')) {
+            $member = $this->members->firstWhere('id', $user->id);
+            return $member && $member->pivot?->role === 'lead';
+        }
+
+        return $this->members()->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead')->exists();
+    }
+
+    public function isViewerPic(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->isLeadPic($user)) {
+            return false;
+        }
+
+        if ($this->pic_id !== null) {
+            $isAccountViewer = \Illuminate\Support\Facades\DB::table('user_account_links')
+                ->where('user_id', $this->pic_id)
+                ->where('viewer_id', $user->id)
+                ->exists();
+
+            if ($isAccountViewer) {
+                return true;
+            }
+        }
+
+        if ($this->relationLoaded('members')) {
+            $member = $this->members->firstWhere('id', $user->id);
+            return $member && $member->pivot?->role === 'viewer';
+        }
+
+        return $this->members()->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'viewer')->exists();
+    }
+
+    public function canManage(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $this->isLeadPic($user);
+    }
+
+    public function isManagedBy(?User $user): bool
+    {
+        return $this->canManage($user);
+    }
+
+    public function canView(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($this->pic_id !== null && (int) $this->pic_id === (int) $user->id) {
+            return true;
+        }
+
+        if ($this->pic_id !== null) {
+            $isAccountViewer = \Illuminate\Support\Facades\DB::table('user_account_links')
+                ->where('user_id', $this->pic_id)
+                ->where('viewer_id', $user->id)
+                ->exists();
+
+            if ($isAccountViewer) {
+                return true;
+            }
+        }
+
+        if ($this->relationLoaded('members')) {
+            return $this->members->contains('id', $user->id);
+        }
+
+        return $this->members()->where('lpk_members.user_id', $user->id)->exists();
+    }
+
+    public function scopeAccessibleBy(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('lpks.pic_id', $user->id)
+              ->orWhereIn('lpks.pic_id', function ($sub) use ($user) {
+                  $sub->select('user_id')
+                      ->from('user_account_links')
+                      ->where('viewer_id', $user->id);
+              })
+              ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id));
+        })->distinct();
     }
 
     public function accreditations(): HasMany

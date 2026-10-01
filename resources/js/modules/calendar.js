@@ -142,7 +142,7 @@ function showEventPopover(triggerEl, eventData) {
     const editLink = popover.querySelector('#popover-edit-link');
     const editLabel = popover.querySelector('#popover-edit-label') || editLink?.querySelector('span');
     if (editLink) {
-        if (eventData.edit_url) {
+        if (eventData.edit_url && eventData.can_manage !== false && eventData.can_edit !== false) {
             editLink.href = eventData.edit_url;
             if (editLabel) {
                 editLabel.textContent = eventData.action_label || 'Ubah';
@@ -516,12 +516,13 @@ function initGcalLiveTimeLine() {
     }
 }
 
-// Client-side Instant Filter for Calendar Categories & LPK
+// Client-side Instant Filter for Calendar Categories, LPK, and PIC
 function initGcalFilters() {
     const categoryCheckboxes = document.querySelectorAll('[data-filter-cat]');
     const lpkSelect = document.getElementById('gcal-filter-lpk');
+    const picSelect = document.getElementById('gcal-filter-pic');
 
-    if (!categoryCheckboxes.length && !lpkSelect) return;
+    if (!categoryCheckboxes.length && !lpkSelect && !picSelect) return;
 
     function applyGcalFilters() {
         const activeCategories = new Set();
@@ -531,15 +532,20 @@ function initGcalFilters() {
             }
         });
         const selectedLpk = lpkSelect ? lpkSelect.value.trim() : '';
+        const selectedPic = picSelect ? picSelect.value.trim() : '';
 
         // Filter event chips in Month view, cards in Week/Day views, and rows in Agenda view
         const eventElements = document.querySelectorAll('[data-cat]');
         eventElements.forEach((el) => {
             const cat = el.dataset.cat;
             const lpk = el.dataset.lpkId ? String(el.dataset.lpkId) : '';
+            const pic = el.dataset.picId ? String(el.dataset.picId) : '';
 
             let visible = activeCategories.has(cat);
             if (selectedLpk && lpk !== selectedLpk) {
+                visible = false;
+            }
+            if (selectedPic && pic !== selectedPic) {
                 visible = false;
             }
 
@@ -564,6 +570,20 @@ function initGcalFilters() {
     if (lpkSelect && !lpkSelect.dataset.gcalFilterInit) {
         lpkSelect.dataset.gcalFilterInit = 'true';
         lpkSelect.addEventListener('change', applyGcalFilters);
+    }
+
+    if (picSelect && !picSelect.dataset.gcalFilterInit) {
+        picSelect.dataset.gcalFilterInit = 'true';
+        picSelect.addEventListener('change', () => {
+            applyGcalFilters();
+            const url = new URL(window.location.href);
+            if (picSelect.value) {
+                url.searchParams.set('pic_id', picSelect.value);
+            } else {
+                url.searchParams.delete('pic_id');
+            }
+            window.history.replaceState({}, '', url.toString());
+        });
     }
 
     applyGcalFilters();

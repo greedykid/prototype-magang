@@ -161,5 +161,56 @@ class RoleAccessControlTest extends TestCase
             ->assertSessionHas('success');
         $this->assertDatabaseMissing('lpks', ['id' => $ownLpk->id]);
     }
+
+    public function test_fresh_pic_without_assigned_lpks_sees_zero_data_and_cannot_access_other_pic_data(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $existingPic = User::factory()->pic()->create(['name' => 'PIC Senior', 'email' => 'senior@simasadi.local']);
+        $freshPic = User::factory()->pic()->create(['name' => 'Rizki PIC Baru', 'email' => 'rizki@local.id']);
+
+        $existingLpk = Lpk::factory()->create([
+            'name' => 'Laboratorium Kalibrasi Senior',
+            'registration_number' => 'LK-999-IDN',
+            'pic_id' => $existingPic->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $existingAssessment = Assessment::factory()->create([
+            'lpk_id' => $existingLpk->id,
+            'title' => 'Asesmen Khusus Senior',
+            'status' => 'SCHEDULED',
+            'start_at' => now()->addDays(5),
+            'end_at' => now()->addDays(7),
+        ]);
+
+        // 1. Dashboard PIC baru harus menampilkan 0 LPK dan 0 Asesmen
+        $dashboardResponse = $this->actingAs($freshPic)->get(route('dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertViewHas('lpkCount', 0);
+        $dashboardResponse->assertViewHas('assessmentCount', 0);
+        $dashboardResponse->assertDontSee('Laboratorium Kalibrasi Senior');
+        $dashboardResponse->assertDontSee('Asesmen Khusus Senior');
+
+        // 2. Dashboard Admin tetap melihat seluruh LPK dan Asesmen
+        $adminDashboard = $this->actingAs($admin)->get(route('dashboard'));
+        $adminDashboard->assertOk();
+        $adminDashboard->assertViewHas('lpkCount', 1);
+
+        // 3. Halaman index LPK untuk PIC baru kosong dari LPK milik PIC lain
+        $lpkIndex = $this->actingAs($freshPic)->get(route('lpks.index'));
+        $lpkIndex->assertOk();
+        $lpkIndex->assertDontSee('LK-999-IDN');
+        $lpkIndex->assertDontSee('Laboratorium Kalibrasi Senior');
+
+        // 4. Halaman index Program Asesmen untuk PIC baru kosong dari asesmen milik PIC lain
+        $assessmentIndex = $this->actingAs($freshPic)->get(route('assessments.index'));
+        $assessmentIndex->assertOk();
+        $assessmentIndex->assertDontSee('Asesmen Khusus Senior');
+        $this->assertCount(0, $assessmentIndex->viewData('assessments'));
+
+        // 5. PIC baru DITOLAK (403) membuka rincian LPK atau Asesmen milik PIC lain
+        $this->actingAs($freshPic)->get(route('lpks.show', $existingLpk))->assertForbidden();
+        $this->actingAs($freshPic)->get(route('assessments.show', $existingAssessment))->assertForbidden();
+    }
 }
 

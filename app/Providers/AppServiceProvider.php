@@ -59,7 +59,9 @@ class AppServiceProvider extends ServiceProvider
             if ($alerts === null) {
                 if (Schema::hasTable('lpks')) {
                     try {
-                        $activeLpks = \App\Models\Lpk::with('assessments')
+                        $user = $req ? $req->user() : null;
+                        $activeLpks = \App\Models\Lpk::accessibleBy($user)
+                            ->with('assessments')
                             ->where('status', 'ACTIVE')
                             ->where(function ($q) {
                                 $q->whereNotNull('certificate_date')

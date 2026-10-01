@@ -9,7 +9,7 @@ export const initButtonLoader = () => {
         if (!form || event.defaultPrevented) return;
 
         // Skip unconfirmed SweetAlert forms (e.g. logout or delete confirmation)
-        if ((form.matches('#logout-form, .logout-form') || form.matches('.form-delete-lpk, [data-confirm-delete]')) && form.dataset.confirmed !== 'true') {
+        if ((form.matches('#logout-form, .logout-form') || form.matches('.form-delete-lpk, [data-confirm-delete], [data-confirm]')) && form.dataset.confirmed !== 'true') {
             return;
         }
 

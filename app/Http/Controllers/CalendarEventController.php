@@ -135,14 +135,29 @@ class CalendarEventController extends Controller
         $queryStart = min($gridStart, $weekStart, $activeDate)->startOfDay();
         $queryEnd = max($gridEnd, $weekEnd, $activeDate->addDays(35))->endOfDay();
 
+        $user = $request->user();
+        $isPic = $user && $user->isPic();
+        $isAdmin = $user && $user->isAdmin();
+        $picFilter = $request->input('pic_id') ?: $request->input('pic');
+
         // 1. Fetch CalendarEvent
         $calendarEvents = CalendarEvent::with('lpk')
+            ->when($isPic, fn ($q) => $q->where(function ($sub) use ($user) {
+                $sub->whereNull('lpk_id')
+                    ->orWhereHas('lpk', fn ($lq) => $lq->accessibleBy($user));
+            }))
+            ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
+                $sub->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter))
+                    ->orWhere(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $picFilter));
+            }))
             ->whereBetween('start_at', [$queryStart, $queryEnd])
             ->orderBy('start_at')
             ->get();
 
         // 2. Fetch Assessment (Integrated Calendar)
         $assessments = Assessment::with('lpk')
+            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
             ->whereBetween('start_at', [$queryStart, $queryEnd])
             ->orderBy('start_at')
             ->get();
@@ -166,6 +181,8 @@ class CalendarEventController extends Controller
                 default => $item->event_type ?: 'Agenda',
             };
 
+            $canManage = $isAdmin || ($item->lpk_id ? ($item->lpk && $item->lpk->canManage($user)) : ($item->created_by === $user?->id));
+
             $unifiedEvents->push([
                 'id' => $item->id,
                 'source' => 'calendar_event',
@@ -174,6 +191,7 @@ class CalendarEventController extends Controller
                 'color_theme' => $isInternal ? 'indigo' : 'emerald',
                 'title' => $isInternal ? $item->title : $shortType,
                 'lpk_id' => $item->lpk_id,
+                'pic_id' => $item->lpk?->pic_id ?? $item->created_by,
                 'lpk_name' => $item->lpk?->name ?? 'Internal SIMASADI',
                 'start_at' => $item->start_at,
                 'end_at' => $item->end_at,
@@ -182,8 +200,9 @@ class CalendarEventController extends Controller
                 'notes' => $item->notes,
                 'description' => $item->description,
                 'lead' => null,
+                'can_manage' => $canManage,
                 'url' => route('calendar.events.show', $item),
-                'edit_url' => route('calendar.events.edit', $item),
+                'edit_url' => $canManage ? route('calendar.events.edit', $item) : null,
             ]);
         }
 
@@ -208,6 +227,8 @@ class CalendarEventController extends Controller
             $lpkReg = $item->lpk?->registration_number;
             $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
 
+            $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
+
             $unifiedEvents->push([
                 'id' => $item->id,
                 'source' => 'assessment',
@@ -216,6 +237,7 @@ class CalendarEventController extends Controller
                 'color_theme' => 'emerald',
                 'title' => $shortType,
                 'lpk_id' => $item->lpk_id,
+                'pic_id' => $item->lpk?->pic_id ?? $item->created_by,
                 'lpk_name' => $fullLpkName,
                 'lpk_reg' => $lpkReg,
                 'start_at' => $item->start_at,
@@ -225,8 +247,9 @@ class CalendarEventController extends Controller
                 'notes' => $item->notes,
                 'description' => 'Program asesmen akreditasi ' . $shortType . '. Lead Asesor: ' . ($item->lead_assessor ?: 'Asesor KAN'),
                 'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                'can_manage' => $canManage,
                 'url' => route('assessments.show', $item),
-                'edit_url' => route('assessments.edit', $item),
+                'edit_url' => $canManage ? route('assessments.edit', $item) : null,
             ]);
         }
 
@@ -234,6 +257,8 @@ class CalendarEventController extends Controller
         $tpAssessments = Assessment::with('lpk')
             ->whereNotNull('tp_status')
             ->where('tp_status', '!=', Assessment::TP_STATUS_NONE)
+            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
             ->get();
 
         foreach ($tpAssessments as $item) {
@@ -252,6 +277,8 @@ class CalendarEventController extends Controller
                     $lpkReg = $item->lpk?->registration_number;
                     $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
 
+                    $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
+
                     $unifiedEvents->push([
                         'id' => 'tp_' . $item->id,
                         'source' => 'assessment_tp',
@@ -260,6 +287,7 @@ class CalendarEventController extends Controller
                         'color_theme' => 'cyan',
                         'title' => 'Batas TP',
                         'lpk_id' => $item->lpk_id,
+                        'pic_id' => $item->lpk?->pic_id ?? $item->created_by,
                         'lpk_name' => $fullLpkName,
                         'lpk_reg' => $lpkReg,
                         'start_at' => $dueStart,
@@ -271,8 +299,9 @@ class CalendarEventController extends Controller
                             'Status: ' . $statusLabel,
                         'description' => 'Target batas waktu penyelesaian tindakan perbaikan KAN: 3 bulan untuk AA, 2 bulan untuk Survailen/PRL/RA. ' . ($item->tp_notes ?: ''),
                         'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                        'can_manage' => $canManage,
                         'url' => route('assessments.show', $item),
-                        'edit_url' => route('assessments.show', $item),
+                        'edit_url' => $canManage ? route('assessments.show', $item) : null,
                         'action_label' => 'Buka Detail Asesmen',
                     ]);
                 }
@@ -290,6 +319,8 @@ class CalendarEventController extends Controller
                         $lpkReg = $item->lpk?->registration_number;
                         $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
 
+                        $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
+
                         $unifiedEvents->push([
                             'id' => 'reminder_tp_' . $item->id,
                             'source' => 'assessment_tp_reminder',
@@ -298,6 +329,7 @@ class CalendarEventController extends Controller
                             'color_theme' => 'amber',
                             'title' => 'Reminder TP',
                             'lpk_id' => $item->lpk_id,
+                            'pic_id' => $item->lpk?->pic_id ?? $item->created_by,
                             'lpk_name' => $fullLpkName,
                             'lpk_reg' => $lpkReg,
                             'start_at' => $remStart,
@@ -307,8 +339,9 @@ class CalendarEventController extends Controller
                             'notes' => 'Pengingat 1,5 bulan (45 hari) dari tanggal selesai kunjungan untuk penyelesaian tindakan perbaikan (TP & VTP).',
                             'description' => 'Pengingat progres penyelesaian temuan asesmen ' . ($item->assessment_type ?: '') . ' agar tidak melebihi batas waktu 2 bulan.',
                             'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                            'can_manage' => $canManage,
                             'url' => route('assessments.show', $item),
-                            'edit_url' => route('assessments.show', $item),
+                            'edit_url' => $canManage ? route('assessments.show', $item) : null,
                             'action_label' => 'Buka Detail Asesmen',
                         ]);
                     }
@@ -327,6 +360,8 @@ class CalendarEventController extends Controller
                         $lpkReg = $item->lpk?->registration_number;
                         $fullLpkName = $lpkReg ? ($lpkName . ' (' . $lpkReg . ')') : $lpkName;
 
+                        $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
+
                         $unifiedEvents->push([
                             'id' => 'reminder_sk_' . $item->id,
                             'source' => 'assessment_sk_reminder',
@@ -335,6 +370,7 @@ class CalendarEventController extends Controller
                             'color_theme' => 'amber',
                             'title' => 'Reminder SK',
                             'lpk_id' => $item->lpk_id,
+                            'pic_id' => $item->lpk?->pic_id ?? $item->created_by,
                             'lpk_name' => $fullLpkName,
                             'lpk_reg' => $lpkReg,
                             'start_at' => $skRemStart,
@@ -344,8 +380,9 @@ class CalendarEventController extends Controller
                             'notes' => 'Pengingat 10 hari setelah verifikasi perbaikan memenuhi syarat untuk memantau penerbitan SK Akreditasi KAN.',
                             'description' => 'Pemantauan penerbitan SK Akreditasi KAN untuk asesmen ' . ($item->assessment_type ?: '') . '.',
                             'lead' => $item->lead_assessor ?: 'Asesor KAN',
+                            'can_manage' => $canManage,
                             'url' => route('assessments.show', $item),
-                            'edit_url' => route('assessments.show', $item),
+                            'edit_url' => $canManage ? route('assessments.show', $item) : null,
                             'action_label' => 'Buka Detail Asesmen',
                         ]);
                     }
@@ -354,7 +391,9 @@ class CalendarEventController extends Controller
         }
 
         // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
-        $lpksWithMilestones = Lpk::with('assessments')
+        $lpksWithMilestones = Lpk::accessibleBy($request->user())
+            ->with('assessments')
+            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
             ->where(function ($q) {
                 $q->whereNotNull('certificate_date')
                     ->orWhereNotNull('expired_at');
@@ -362,6 +401,7 @@ class CalendarEventController extends Controller
             ->get();
 
         foreach ($lpksWithMilestones as $lpkItem) {
+            $canManageLpk = $isAdmin || $lpkItem->canManage($user);
             $milestones = $lpkItem->surveillance_milestones;
             $lpkReg = $lpkItem->registration_number;
             $fullLpkName = $lpkReg ? ($lpkItem->name . ' (' . $lpkReg . ')') : $lpkItem->name;
@@ -383,6 +423,7 @@ class CalendarEventController extends Controller
                             'color_theme' => 'amber',
                             'title' => 'Reminder ' . strtoupper($key),
                             'lpk_id' => $lpkItem->id,
+                            'pic_id' => $lpkItem->pic_id,
                             'lpk_name' => $fullLpkName,
                             'lpk_reg' => $lpkReg,
                             'start_at' => $remDate,
@@ -392,13 +433,14 @@ class CalendarEventController extends Controller
                             'notes' => $milestone['description'] . ' (Periode pengingat siklus KAN)',
                             'description' => 'Target reminder siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name,
                             'lead' => null,
+                            'can_manage' => $canManageLpk,
                             'url' => route('lpks.show', $lpkItem),
-                            'edit_url' => route('assessments.create', [
+                            'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
                                 'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
                                 'start_at' => $remDate->format('Y-m-d\T09:00'),
                                 'end_at' => $remDateEnd->format('Y-m-d\T17:00'),
-                            ]),
+                            ]) : null,
                             'action_label' => 'Jadwalkan Asesmen',
                         ]);
                     }
@@ -418,6 +460,7 @@ class CalendarEventController extends Controller
                             'color_theme' => 'rose',
                             'title' => 'JT ' . strtoupper($key),
                             'lpk_id' => $lpkItem->id,
+                            'pic_id' => $lpkItem->pic_id,
                             'lpk_name' => $fullLpkName,
                             'lpk_reg' => $lpkReg,
                             'start_at' => $targetDate,
@@ -427,13 +470,14 @@ class CalendarEventController extends Controller
                             'notes' => $milestone['description'] . ' (Batas waktu jatuh tempo siklus pengawasan KAN)',
                             'description' => 'Batas jatuh tempo siklus akreditasi KAN (' . $milestone['name'] . ') untuk ' . $lpkItem->name,
                             'lead' => null,
+                            'can_manage' => $canManageLpk,
                             'url' => route('lpks.show', $lpkItem),
-                            'edit_url' => route('assessments.create', [
+                            'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
                                 'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
                                 'start_at' => $targetDate->format('Y-m-d\T09:00'),
                                 'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
-                            ]),
+                            ]) : null,
                             'action_label' => 'Jadwalkan Asesmen',
                         ]);
                     }
@@ -454,6 +498,7 @@ class CalendarEventController extends Controller
                         'color_theme' => 'rose',
                         'title' => 'Kedaluwarsa',
                         'lpk_id' => $lpkItem->id,
+                        'pic_id' => $lpkItem->pic_id,
                         'lpk_name' => $fullLpkName,
                         'lpk_reg' => $lpkReg,
                         'start_at' => $expDate,
@@ -463,8 +508,9 @@ class CalendarEventController extends Controller
                         'notes' => 'Masa berlaku sertifikat akreditasi KAN berakhir pada ' . $lpkItem->expired_at->format('d/m/Y'),
                         'description' => 'Masa berlaku sertifikat akreditasi KAN untuk ' . $lpkItem->name . ' telah habis.',
                         'lead' => null,
+                        'can_manage' => $canManageLpk,
                         'url' => route('lpks.show', $lpkItem),
-                        'edit_url' => route('lpks.edit', $lpkItem),
+                        'edit_url' => $canManageLpk ? route('lpks.edit', $lpkItem) : null,
                         'action_label' => 'Perpanjang Akreditasi',
                     ]);
                 }
@@ -477,7 +523,11 @@ class CalendarEventController extends Controller
         $events = $calendarEvents->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
         $weeks = $monthWeeks;
 
-        $lpks = Lpk::orderBy('name')->get(['id', 'name']);
+        $pics = $user ? $user->getAccessiblePics() : collect();
+        $lpks = Lpk::accessibleBy($user)
+            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
+            ->orderBy('name')
+            ->get(['id', 'name']);
         $hoursRange = range(7, 19);
 
         $viewData = compact(
@@ -493,6 +543,8 @@ class CalendarEventController extends Controller
             'eventsByDate',
             'unifiedEvents',
             'lpks',
+            'pics',
+            'picFilter',
             'hoursRange',
             'weeks',
             'events',
@@ -512,7 +564,7 @@ class CalendarEventController extends Controller
         $event = new CalendarEvent;
         $selectedDate = $request->date('date')?->toDateString();
 
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
     }
 
     public function store(StoreCalendarEventRequest $request): RedirectResponse
@@ -522,18 +574,33 @@ class CalendarEventController extends Controller
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil ditambahkan.');
     }
 
-    public function show(CalendarEvent $event): View
+    public function show(CalendarEvent $event, Request $request): View
     {
+        $user = $request->user();
+        if ($user && $event->lpk && ! $event->lpk->canView($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+        }
+
         return view('calendar.show', ['event' => $event->load(['lpk', 'creator'])]);
     }
 
-    public function edit(CalendarEvent $event): View
+    public function edit(CalendarEvent $event, Request $request): View
     {
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
+        $user = $request->user();
+        if ($user && $event->lpk && ! $event->lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
+        }
+
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($user)->orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
     }
 
     public function update(UpdateCalendarEventRequest $request, CalendarEvent $event): RedirectResponse
     {
+        $user = $request->user();
+        if ($user && $event->lpk && ! $event->lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
+        }
+
         $event->update($request->validated());
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');

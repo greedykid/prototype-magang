@@ -28,11 +28,8 @@ class LpkController extends Controller
         }
 
         $query = Lpk::query()
-            ->when($user && $user->isPic(), fn ($query) => $query->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                  ->orWhereNull('pic_id');
-            }))
-            ->when($user && $user->isAdmin() && $picFilter, fn ($query) => $query->where('pic_id', $picFilter))
+            ->accessibleBy($user)
+            ->when($picFilter, fn ($query) => $query->where('pic_id', $picFilter))
             ->when($search, fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
@@ -110,7 +107,7 @@ class LpkController extends Controller
             return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'perPage'));
         }
 
-        $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
+        $pics = $user ? $user->getAccessiblePics() : collect();
 
         return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'pics', 'perPage'));
     }
@@ -136,15 +133,20 @@ class LpkController extends Controller
         return redirect()->route('lpks.show', $lpk)->with('success', 'LPK berhasil ditambahkan.');
     }
 
-    public function show(Lpk $lpk): View
+    public function show(Lpk $lpk, Request $request): View
     {
-        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'assessments', 'pic'])]);
+        $user = $request->user();
+        if ($user && ! $lpk->canView($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
+        }
+
+        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers', 'members'])]);
     }
 
     public function edit(Lpk $lpk, Request $request): View
     {
         $user = $request->user();
-        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
+        if ($user && ! $lpk->canManage($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
         }
 
@@ -156,6 +158,10 @@ class LpkController extends Controller
     public function update(UpdateLpkRequest $request, Lpk $lpk): RedirectResponse
     {
         $user = $request->user();
+        if ($user && ! $lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
+        }
+
         $data = $request->normalizedData();
         if ($user && $user->isPic()) {
             $data['pic_id'] = $lpk->pic_id ?: $user->id;
@@ -168,6 +174,11 @@ class LpkController extends Controller
 
     public function updateNotes(UpdateLpkNotesRequest $request, Lpk $lpk): RedirectResponse
     {
+        $user = $request->user();
+        if ($user && ! $lpk->canManage($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah catatan LPK ini.');
+        }
+
         $data = $request->validated();
         $notes = isset($data['notes']) ? trim($data['notes']) : null;
 
@@ -181,7 +192,7 @@ class LpkController extends Controller
     public function destroy(Lpk $lpk, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $user->isPic() && ! $lpk->isManagedBy($user)) {
+        if ($user && ! $lpk->canManage($user)) {
             abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini.');
         }
 
@@ -215,8 +226,7 @@ class LpkController extends Controller
         if ($user && $user->isPic()) {
             $query->where(function ($q) use ($user) {
                 $q->where('pic_id', $user->id)
-                    ->orWhere('pic_user_id', $user->id)
-                    ->orWhereNull('pic_id');
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
             });
         }
 

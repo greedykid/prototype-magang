@@ -14,7 +14,7 @@
 <body class="auth-page">
 <main class="login-card" id="login-card">
     <div class="brand login-brand">
-        <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="login-brand-logo">
+        <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="login-brand-logo" width="86" height="36">
         <div class="login-brand-text">
             <strong>SIMASADI</strong>
             <small>Unit Akreditasi Laboratorium</small>
@@ -29,7 +29,7 @@
 
     <div class="role-selector-wrap" aria-label="Pemilih peran cepat">
         <span class="role-selector-title">Pilih Akun Peran (1-Klik)</span>
-        <div class="role-pills-grid" role="group" aria-label="Pilihan peran" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="role-pills-grid" role="group" aria-label="Pilihan peran">
             <button type="button" class="role-pill-btn is-active" data-email="admin@simasadi.local" data-pass="password">
                 <div class="role-pill-top">
                     <span class="role-pill-name">Ketua Tim</span>

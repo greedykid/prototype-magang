@@ -33,6 +33,10 @@
                     <x-icon name="calendar" size="18" />
                     <span class="nav-label">Kalender Pengawasan</span>
                 </a>
+                <a href="{{ route('account-links.index') }}" class="{{ request()->routeIs('account-links.*') ? 'active' : '' }}" data-tooltip="Tautan Akun">
+                    <x-icon name="link" size="18" />
+                    <span class="nav-label">Tautan Akun</span>
+                </a>
             </div>
         @else
             {{-- Menu Administrator Unit Akreditasi Laboratorium --}}
@@ -50,10 +54,6 @@
                     <x-icon name="lpks" size="18" />
                     <span class="nav-label">Data Lab (LPK)</span>
                 </a>
-                <a href="{{ route('accreditations.index') }}" class="{{ request()->routeIs('accreditations.*') ? 'active' : '' }}" data-tooltip="Akreditasi">
-                    <x-icon name="accreditations" size="18" />
-                    <span class="nav-label">Akreditasi</span>
-                </a>
             </div>
 
             <div class="nav-section">
@@ -70,34 +70,34 @@
 
             <div class="nav-section">
                 <span class="nav-section-title">Akses & Sistem</span>
-                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}" data-tooltip="Manajemen Pengguna">
+                <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}" data-tooltip="Manajemen Anggota">
                     <x-icon name="users" size="18" />
-                    <span class="nav-label">Manajemen Pengguna</span>
+                    <span class="nav-label">Manajemen Anggota</span>
+                </a>
+                <a href="{{ route('account-links.index') }}" class="{{ request()->routeIs('account-links.*') ? 'active' : '' }}" data-tooltip="Tautan Akun">
+                    <x-icon name="link" size="18" />
+                    <span class="nav-label">Tautan Akun</span>
                 </a>
             </div>
         @endif
     </nav>
     <div class="sidebar-foot">
         <div class="drawer-account">
-            <a href="{{ route('profile.edit') }}" class="user-identity" title="Pengaturan Profil &amp; Kata Sandi" style="text-decoration: none; color: inherit; min-width: 0; flex: 1;">
+            <a href="{{ route('profile.edit') }}" class="user-identity" title="Pengaturan Profil &amp; Kata Sandi">
                 <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
                 <div class="user-details">
                     <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
-                    <span class="badge-role {{ auth()->user()?->role_badge_class ?? 'badge-role-default' }}" title="{{ auth()->user()?->role_label ?? '' }}" style="margin-top: 3px;">
+                    <span class="badge-role {{ auth()->user()?->role_badge_class ?? 'badge-role-default' }}" title="{{ auth()->user()?->role_label ?? '' }}">
                         {{ auth()->user()?->role_short_label ?? auth()->user()?->role_label ?? 'Petugas' }}
                     </span>
                 </div>
             </a>
             <form method="POST" action="{{ route('logout') }}" id="logout-form" class="logout-form">
                 @csrf
-                <button type="submit" class="link-button logout-icon" aria-label="Keluar" title="Keluar">
+                <button type="submit" class="logout-icon" aria-label="Keluar dari akun" title="Keluar">
                     <x-icon name="log-out" size="16" />
                 </button>
             </form>
-        </div>
-        <div class="sidebar-foot-note">
-            <span class="eyebrow">SISTEM AKREDITASI</span>
-            <p>SIMASADI v1.0 &middot; Dit. Akreditasi Laboratorium KAN</p>
         </div>
     </div>
 </aside>
