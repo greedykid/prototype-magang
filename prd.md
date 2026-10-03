@@ -253,7 +253,42 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 |                                     ACCREDITATIONS                                      |
 | id (PK), lpk_id (FK), start_date, pantek_at, target_output_at, output_released_at       |
 +-----------------------------------------------------------------------------------------+
+       │
+       │ (1 to N)
+       ▼
++-----------------------------------------------------------------------------------------+
+|                                      LPK_MEMBERS                                        |
+| id (PK), lpk_id (FK), user_id (FK), role (viewer), created_at, updated_at               |
++-----------------------------------------------------------------------------------------+
+       ▲
+       │ (1 to N)
++-----------------------------------------------------------------------------------------+
+|                                  USER_ACCOUNT_LINKS                                     |
+| id (PK), user_id (FK), viewer_id (FK), created_at, updated_at                           |
++-----------------------------------------------------------------------------------------+
 ```
+
+### 4.7 Modul 7: Sistem Kolaborasi Tim & Tautan Akun Multi-PIC (Viewer Role)
+* **Tujuan**: Memfasilitasi pembagian beban kerja pendampingan LPK antar-analis PIC tanpa mengorbankan integritas data.
+* **Peran Tim**:
+  * **Lead PIC**: Personel utama yang ditugaskan membina LPK (`lpks.pic_id`), memiliki wewenang penuh untuk mengubah profil LPK, mengunggah bukti perbaikan, dan menjadwalkan agenda.
+  * **Viewer PIC**: Personel PIC rekanan yang ditautkan ke LPK binaan, memiliki akses baca menyeluruh (*read-only*) untuk meninjau direktori, riwayat asesmen, dan progres perbaikan.
+  * **Restriksi Ketat**: Akun Viewer dilarang mengedit profil LPK, dilarang menghapus LPK, dilarang mengelola anggota tim, dan dilarang membuat atau memodifikasi asesmen.
+* **Halaman `/account-links`**: Menyediakan dasbor pusat untuk meninjau keterhubungan antar-akun dan distribusi tanggung jawab pendampingan LPK.
+
+### 4.8 Modul 8: Sistem Desain Mode Gelap & Terang Adaptif (Instant Theme Switcher)
+* **Tujuan**: Menjamin kenyamanan visual dan keterbacaan tinggi (*ergonomics*) selama sesi pemantauan audit yang panjang.
+* **Mekanisme Operasional**:
+  * **1-Click Instant Toggle**: Tombol pengubah tema pada navbar atas (ikon Matahari & Bulan) beralih seketika tanpa *reload* halaman.
+  * **Persistensi & Deteksi Otomatis**: Mendeteksi preferensi tema sistem operasi (*prefers-color-scheme*) saat pertama kali dibuka, dan menyimpan preferensi pilihan pengguna di `localStorage`.
+  * **Anti-Flicker Script**: Pustaka inline pada elemen `<head>` yang menetapkan atribut `data-theme` sebelum halaman dirender untuk mengeliminasi efek kilatan putih (*white flash*).
+  * **Adaptasi Semantik Menyeluruh**: Menggunakan variabel token semantik (`var(--surface)`, `var(--ink)`, `var(--muted)`, `var(--line)`) pada seluruh tabel, formulir, modal, kalender, badge, SweetAlert2, hingga *empty state*.
+
+### 4.9 Modul 9: Peringatan Pengawasan Persisten Wajib (Non-Dismissible)
+* **Tujuan**: Menjamin tindak lanjut kepatuhan regulasi KAN tanpa ada peringatan kritis yang diabaikan atau disembunyikan.
+* **Karakteristik**:
+  * Banner peringatan pengawasan KAN tampil persisten di bagian atas konten utama saat terdapat LPK aktif yang memasuki bulan pengawasan (Bulan ke-14 S1, Bulan ke-35 S2, atau 1 Bulan sebelum kedaluwarsa).
+  * Tombol silang (*dismiss button*) dan logika penonaktifan sesi ditiadakan secara permanen, sehingga banner hanya akan selesai setelah tindakan penanganan (penjadwalan atau pemenuhan) direalisasikan.
 
 ---
 
@@ -261,7 +296,7 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
 
 1. **Persistent Alert Banner Prioritas Tinggi**:
    * Posisi paling atas pada dashboard utama dan halaman rincian LPK.
-   * Aktif otomatis jika ada pengawasan berstatus `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, atau batas SLA TP mendekati jatuh tempo. Banner tidak dapat ditutup secara sepihak sebelum ditindaklanjuti.
+   * Aktif otomatis jika ada pengawasan berstatus `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, atau batas SLA TP mendekati jatuh tempo. Banner wajib dan persisten, tidak dapat ditutup secara sepihak sebelum ditindaklanjuti.
 2. **Sistem Pewarnaan Badge Kepatuhan Kontras Tinggi (WCAG AAA/AA)**:
    * `ACTIVE` / `COMPLETED`: Badge Hijau (`#dcfce7`, teks `#15803d`).
    * `SURVEILLANCE_DUE` / `IN_PROGRESS`: Badge Kuning (`#fef9c3`, teks `#854d0e`).
@@ -274,7 +309,12 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Garis pemisah atas (`border-top`) membentang utuh 100% dari ujung kiri ke kanan panel.
    * Pada sisi kanan, badge status dan tombol pintas kalender (`.assessment-cal-shortcut`) tersusun sejajar secara horizontal (`align-items: center; gap: 8px;`), menghapus penumpukan vertikal tombol di atas badge.
    * Tombol pintas kalender dirancang seragam (tinggi 24px, latar soft sky `#f0f9ff`, border `#bae6fd`, teks aksen `#0284c7`) baik pada kartu milestone pengawasan (S1, S2, RA) maupun pada baris daftar asesmen.
-4. **Interaksi Baris Universal (Universal Clickable Rows)**:
+4. **Penyelarasan Avatar & Bentuk Kontrol Navbar**:
+   * Wadah profil pengguna pada navbar atas menggunakan sudut membulat persegi (*squircle*) ber-radius 9px yang selaras dengan tombol tema dan tombol notifikasi.
+   * Avatar inisial di dalam wadah profil ber-radius 6px, mengeliminasi ketidakserasian bentuk kapsul 999px.
+5. **Adaptasi Empty State di Mode Gelap**:
+   * Saat filter tabel tidak menemukan data yang cocok, kotak pesan kosong beradaptasi ke latar gelap semantik `var(--surface)` dengan border putus-putus bertekstur halus dan tombol reset filter sekunder.
+6. **Interaksi Baris Universal (Universal Clickable Rows)**:
    * Baris tabel pada tabel LPK, tabel Asesmen, dan kartu rincian asesmen dapat diklik langsung untuk membuka halaman detail tujuan.
    * Klik pada elemen interaktif di dalam baris (tombol, tautan kalender, checkbox) secara cerdas tidak memicu navigasi baris induk.
    * Dilengkapi dukungan penuh navigasi keyboard (`tabindex="0"`, Enter / Spasi untuk eksekusi, indikator fokus ring yang tegas).
@@ -287,7 +327,7 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Waktu render halaman utama di bawah 150 ms pada lingkungan intranet instansi.
    * Penggantian data tabel parsial (live filter) selesai dalam waktu di bawah 80 ms.
    * Pergantian tampilan kalender via partial AJAX selesai dalam waktu di bawah 100 ms.
-   * Implementasi Eager Loading (`with(['lpk', 'creator'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
+   * Implementasi Eager Loading (`with(['lpk', 'creator', 'teamMembers'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
 2. **Keamanan & Integritas Data**:
    * Proteksi token CSRF pada seluruh transaksi POST/PUT/DELETE.
    * Middleware otorisasi peran berbasis hak akses pengguna (`admin`, `pic`, `assessor`, `lpk`).
@@ -296,8 +336,8 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Logika tahapan pengawasan dan penegakan SLA mengacu pada pedoman Komite Akreditasi Nasional (KAN U-01).
    * Penatausahaan dokumen dan penetapan SK akreditasi mematuhi tata kelola administrasi resmi KAN.
 4. **Keandalan Uji Otomatis (Automated Testing Coverage)**:
-   * Dilengkapi rangkaian pengujian otomatis (*Feature Tests* & *Unit Tests*) mencakup **132 pengujian** dengan **747 asersi** yang lulus 100% tanpa kegagalan (`Tests: 132 passed`).
-   * Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.
+   * Dilengkapi rangkaian pengujian otomatis (*Feature Tests* & *Unit Tests*) mencakup **183 pengujian** dengan **1102 asersi** yang lulus 100% tanpa kegagalan (`Tests: 183 passed`).
+   * Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, kolaborasi tim multi-PIC, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.
 
 ---
 

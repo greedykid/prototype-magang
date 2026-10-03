@@ -48,6 +48,9 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
 * **Alur Evaluasi Hasil Asesmen (EHA) & Penerbitan SK:** Penjadwalan sidang EHA, nomor SK, tanggal terbit SK, dan lead time terbit SK (`sk_lead_time_days`).
 * **Kalender Kerja Interaktif 5 Jenis Event:** Visualisasi multi-event (Asesmen Lapangan, Pengingat Surveilen, Pengingat Batas TP, Overdue TP, dan Pengingat SK) dengan navigasi pemilih cepat bulan dan tahun.
 * **Impor Massal & Live Sync Data:** Impor LPK dan Asesmen (CSV/XLSX/Google Sheets) serta live feeds CSV terproteksi API key untuk Google Sheets `=IMPORTDATA`.
+* **Kolaborasi Tim & Penautan Akun Multi-PIC:** Kemampuan Lead PIC menautkan akun PIC lain sebagai Viewer (hanya-lihat) untuk memantau direktori dan histori asesmen LPK binaan secara transparan tanpa hak modifikasi.
+* **Sistem Desain Mode Gelap & Terang Adaptif:** Antarmuka ergonomis dengan tombol toggle instan 1-klik di navbar, deteksi preferensi sistem operasi, bebas kedipan layar putih (*anti-flicker*), dan kontras tinggi sesuai standar aksesibilitas WCAG 2.1 AA.
+* **Peringatan Pengawasan Persisten Wajib:** Banner peringatan jatuh tempo siklus pengawasan KAN yang tampil persisten dan tidak dapat disembunyikan sementara, menjamin kepatuhan tindak lanjut regulasi.
 
 #### 1.4.2 Luar Scope (*Out-of-Scope*)
 * Integrasi langsung ke gateway perbankan atau pembayaran pihak ketiga.

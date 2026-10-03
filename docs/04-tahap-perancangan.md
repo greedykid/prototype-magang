@@ -73,12 +73,12 @@ graph TD
     USR <--> USR_Add["Tambah Pengguna (/users/create)"]
     USR <--> USR_Edit["Ubah Pengguna (/users/{id}/edit)"]
 
-    Dash --> BCK["Histori Backup (/monitoring/backups)"]
+    Dash --> ACC_LINKS["Kolaborasi Tim & Tautan Akun (/account-links)"]
 
     Dash --> PORTAL_ASR["Portal Asesor (/assessor)"]
 
     classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,BCK,PORTAL_ASR pageBox;
+    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,ACC_LINKS,PORTAL_ASR pageBox;
 ```
 
 <p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
@@ -438,7 +438,7 @@ erDiagram
 
 #### 4.5.1 Kamus Data & Struktur Tabel SIMASADI (Data Dictionary)
 
-Rancangan struktur basis data SIMASADI terdiri dari 6 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
+Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
 
 ##### 1. Tabel `users` (Data Pengguna & Hak Akses Sistem)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
@@ -543,19 +543,24 @@ Rancangan struktur basis data SIMASADI terdiri dari 6 entitas tabel relasional t
 | 12 | created_at | TIMESTAMP | - | Waktu pembuatan data agenda |
 | 13 | updated_at | TIMESTAMP | - | Waktu pembaruan data agenda |
 
-##### 6. Tabel `backups` (Histori Pencadangan Basis Data)
+##### 6. Tabel `lpk_members` (Kolaborasi Tim Anggota LPK)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
-| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik rekaman arsip cadangan |
-| 2 | system | VARCHAR (50) | - | Nama subsistem yang dicadangkan (SIMASADI) |
-| 3 | status | VARCHAR (50) | - | Status pencadangan: SUCCESS, FAILED, RUNNING, UNKNOWN |
-| 4 | started_at | DATETIME | - | Waktu dimulainya proses pembuatan dump cadangan |
-| 5 | finished_at | DATETIME | - | Waktu selesai proses kompresi dan penyimpanan file |
-| 6 | size | VARCHAR (50) | - | Ukuran arsip cadangan (contoh: 12.4 MB, 1.2 GB) |
-| 7 | message | TEXT | - | Log ringkasan hasil atau pesan galat saat proses backup |
-| 8 | recorded_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id administrator yang memicu backup |
-| 9 | created_at | TIMESTAMP | - | Waktu pencatatan rekaman cadangan |
-| 10 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman cadangan |
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik penautan anggota tim LPK |
+| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium binaan |
+| 3 | user_id | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id personel PIC yang ditautkan |
+| 4 | role | VARCHAR (20) | - | Peran keanggotaan dalam tim LPK (contoh: viewer) |
+| 5 | created_at | TIMESTAMP | - | Waktu penautan anggota LPK |
+| 6 | updated_at | TIMESTAMP | - | Waktu pembaruan data penautan |
+
+##### 7. Tabel `user_account_links` (Penautan Relasi Akun Antar-Pengguna)
+| no | nama kolom | tipe data dan panjang | key | keterangan |
+|:--:|---|---|:--:|---|
+| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik relasi penautan akun pengguna |
+| 2 | user_id | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pemilik akun utama (Lead PIC) |
+| 3 | viewer_id | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pengguna terhubung (Viewer PIC) |
+| 4 | created_at | TIMESTAMP | - | Waktu pembuatan relasi penautan akun |
+| 5 | updated_at | TIMESTAMP | - | Waktu pembaruan relasi penautan akun |
 
 ---
 
@@ -625,11 +630,31 @@ classDiagram
         +lpk() BelongsTo
     }
 
+    class LpkMember {
+        +int id
+        +int lpk_id
+        +int user_id
+        +string role
+        +lpk() BelongsTo
+        +user() BelongsTo
+    }
+
+    class UserAccountLink {
+        +int id
+        +int user_id
+        +int viewer_id
+        +user() BelongsTo
+        +viewer() BelongsTo
+    }
+
     User "1" --> "*" Lpk : assigns
     User "1" --> "*" Assessment : creates
     Lpk "1" --> "*" Assessment : undergoes
     Lpk "1" --> "*" Accreditation : holds
     Accreditation "1" --> "*" CalendarEvent : schedules
+    Lpk "1" --> "*" LpkMember : includes
+    User "1" --> "*" LpkMember : memberOf
+    User "1" --> "*" UserAccountLink : links
 ```
 
 ---
@@ -639,7 +664,7 @@ classDiagram
 #### 4.7.1 Wireframe Halaman Detail Asesmen (Desktop)
 ```text
 +---------------------------------------------------------------------------------------------------+
-|  [LOGO BSN/KAN] SIMASADI Workspace                       [Lonceng: 2] [User: Admin Unit Lab v]    |
+|  [LOGO BSN/KAN] SIMASADI Workspace               [Tema] [Lonceng: 2] [Avatar PL v]                 |
 +---------------------------------------------------------------------------------------------------+
 |  <- Kembali ke Daftar Asesmen | No. Reg: LP-001-IDN | Status: [ DIBEKUKAN ] (Badge Ungu)          |
 +---------------------------------------------------------------------------------------------------+

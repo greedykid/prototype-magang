@@ -55,6 +55,19 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
    * Impor massal data LPK dan Asesmen dari file CSV, XLSX, atau URL Google Sheets live (*Smart Upsert*).
    * Live CSV Feeds terproteksi API key (`/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk formula `=IMPORTDATA` Google Sheets secara real-time.
 
+7. **Sistem Kolaborasi Tim & Tautan Akun Multi-PIC (Viewer Role):**
+   * Fasilitas penautan akun antar-PIC di mana Lead PIC dapat menambahkan PIC lain sebagai *Viewer* (hanya-lihat) untuk memantau LPK binaannya.
+   * Hak akses *Viewer* dibatasi secara ketat (*read-only*): tidak dapat mengubah/menghapus LPK, mengelola anggota tim, atau menjadwalkan asesmen.
+   * Halaman khusus `/account-links` untuk meninjau relasi tautan akun dan beban kerja tim secara terpusat.
+
+8. **Sistem Desain Mode Gelap & Terang Adaptif (1-Click Instant Theme):**
+   * Beralih tema instan antara Mode Terang dan Mode Gelap melalui tombol navbar tanpa *reload* halaman.
+   * Deteksi otomatis preferensi sistem operasi (`prefers-color-scheme: dark`) dan persistensi di `localStorage`.
+   * Adaptasi penuh pada seluruh komponen antarmuka, tabel, modal dialog, formulir, badge status, SweetAlert2, dan *empty state*.
+
+9. **Peringatan Pengawasan Persisten Wajib (Non-Dismissible):**
+   * Banner peringatan siklus pengawasan KAN (Bulan ke-14 S1, Bulan ke-35 S2, dan 1 Bulan sebelum kedaluwarsa) tampil persisten dan tidak dapat disembunyikan sementara, menjamin kepatuhan tindak lanjut regulasi.
+
 ---
 
 ## 👥 Profil Pengguna & Hak Akses (Role-Based Access Control)
@@ -140,8 +153,8 @@ docker exec prototype-magang-laravel php artisan test
 
 **Hasil Pengujian Terkini:**
 ```text
-Tests:    143 passed (829 assertions)
-Duration: ~69s
+Tests:    183 passed (1102 assertions)
+Duration: ~88s
 Status:   100% Passed
 ```
 
@@ -154,15 +167,15 @@ docker exec prototype-magang-laravel vendor/bin/pint --format agent
 
 ## 📂 Struktur Penting Proyek
 
-* `app/Http/Controllers`: Kontroler logika sistem (LpkController, AssessmentController, CalendarEventController, LpkImportController, AssessmentImportController, GoogleSheetsReportController, dll.).
-* `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, AccreditationSignature, CalendarEvent, User).
-* `database/migrations`: Skema migrasi tabel basis data relasional.
+* `app/Http/Controllers`: Kontroler logika sistem (LpkController, AssessmentController, CalendarEventController, LpkImportController, AssessmentImportController, UserAccountLinkController, GoogleSheetsReportController, dll.).
+* `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, CalendarEvent, User, LpkMember, UserAccountLink).
+* `database/migrations`: Skema migrasi tabel basis data relasional (users, lpks, assessments, accreditations, calendar_events, lpk_members, user_account_links).
 * `database/seeders`: Pembangkitan data awal master LPK, akun 4 peran, asesmen historis terealisasi, dan agenda kalender.
 * `docs/`: Dokumentasi perancangan sistem dan arsitektur perangkat lunak lengkap (SDLC bagian 1 sampai 5).
-* `resources/css`: Sistem desain antarmuka, variabel token warna, tata letak grid, dan responsivitas mobile.
-* `resources/js`: Logika interaktif antarmuka, sinkronisasi toggle mobile, filter drawer, dan modul kalender.
+* `resources/css`: Sistem desain antarmuka, variabel token warna tema terang & gelap, tata letak grid, dan responsivitas mobile.
+* `resources/js`: Logika interaktif antarmuka, modul theme switcher (`modules/theme.js`), sinkronisasi toggle mobile, filter drawer, dan modul kalender.
 * `resources/views`: Template antarmuka Blade Laravel.
-* `tests/Feature`: Test suite otomatis untuk seluruh fitur operasional dan kepatuhan regulasi.
+* `tests/Feature`: Test suite otomatis komprehensif (183 pengujian) untuk seluruh fitur operasional, hak akses, dan kepatuhan regulasi KAN.
 
 ---
 

@@ -81,6 +81,10 @@ Setiap kebutuhan fungsional diberi kode unik (`REQ-F-XX`) untuk menjamin keterla
 | **REQ-F-26** | Impor Massal Asesmen | Sistem harus menyediakan fitur impor massal jadwal asesmen lapangan dari file CSV dengan pemetaan otomatis nomor registrasi LPK dan tipe asesmen KAN. | Admin Unit Lab |
 | **REQ-F-27** | Live Feeds Google Sheets | Sistem harus menyediakan endpoint live CSV terproteksi API key (`/feeds/lpks.csv`, `/feeds/assessments.csv`) untuk sinkronisasi formula `=IMPORTDATA`. | Admin & PIC |
 | **REQ-F-28** | Antarmuka Dual-Mode & UX | Sistem harus menyediakan toggle tampilan Tabel vs Grid Cards, drawer filter mobile yang meluncur mulus, active filter chips, dan baris tabel yang dapat diklik (*Clickable Rows*). | Semua Pengguna |
+| **REQ-F-29** | Kolaborasi Tim & Tautan Akun Multi-PIC | Sistem harus menyediakan fasilitas penautan akun antar-PIC di mana Lead PIC dapat menambahkan PIC lain sebagai *Viewer* (hanya-lihat) untuk memantau LPK binaannya tanpa hak modifikasi. | Admin & PIC |
+| **REQ-F-30** | Sistem Tema Gelap & Terang Adaptif | Sistem harus mendukung perpindahan tema visual instan 1-klik antara Mode Terang dan Mode Gelap dengan deteksi preferensi sistem dan penyimpanan persisten di browser. | Semua Pengguna |
+| **REQ-F-31** | Banner Pengawasan Persisten Wajib | Peringatan jatuh tempo pengawasan akreditasi harus tampil persisten dan tidak dapat disembunyikan sementara, guna menjamin kepatuhan tindak lanjut regulasi KAN. | Semua Pengguna |
+| **REQ-F-32** | Tindakan Massal (Bulk Actions) | Pengguna dapat memilih banyak data sekaligus (multiselect checkbox) pada tabel LPK dan Asesmen untuk ekspor CSV massal maupun penghapusan massal terotorisasi. | Admin & PIC |
 
 ---
 
@@ -92,9 +96,9 @@ Setiap kebutuhan fungsional diberi kode unik (`REQ-F-XX`) untuk menjamin keterla
 | **REQ-NF-02** | **Keamanan (Security)** | Seluruh transaksi formulir POST/PUT/DELETE wajib dilindungi token CSRF. Password pengguna dienkripsi dengan algoritma bcrypt. |
 | **REQ-NF-03** | **Otorisasi (Authorization)** | Penerapan Role-Based Access Control (RBAC) ketat pada tingkat middleware rute, pengendali kontroler, dan tampilan tombol Blade. |
 | **REQ-NF-04** | **Usabilitas (Anti-Slop Usability)** | Antarmuka mematuhi standar desain profesional bebas slop: tipografi Instrument Sans, badge status kontras tinggi, tidak menggunakan karakter dekoratif artifisial. |
-| **REQ-NF-05** | **Aksesibilitas (Accessibility)** | Rasio kontras teks terhadap latar belakang memenuhi standar WCAG 2.1 AA (minimal 4.5:1), tombol aksi memiliki focus indicator yang tegas untuk navigasi keyboard. |
+| **REQ-NF-05** | **Aksesibilitas (Accessibility)** | Rasio kontras teks terhadap latar belakang memenuhi standar WCAG 2.1 AA (minimal 4.5:1) baik pada tema terang maupun gelap, tombol aksi memiliki focus indicator yang tegas untuk navigasi keyboard. |
 | **REQ-NF-06** | **Responsivitas (Responsiveness)** | Tata letak beradaptasi mulus dari layar monitor desktop ultra-wide, laptop kerja, tablet verifikator (768px - 1024px), hingga smartphone (360px - 600px). |
-| **REQ-NF-07** | **Keandalan Uji (Reliability)** | Seluruh logika aturan KAN, kalkulasi status, SLA perbaikan, dan pembatasan peran wajib lolos 100% pada automated test suite (119 tests, 680 assertions). |
+| **REQ-NF-07** | **Keandalan Uji (Reliability)** | Seluruh logika aturan KAN, kalkulasi status, SLA perbaikan, dan pembatasan peran wajib lolos 100% pada automated test suite (183 tests, 1102 assertions). |
 | **REQ-NF-08** | **Portabilitas (Portability)** | Basis data menggunakan SQLite 3 terpadu dan konfigurasi multi-platform (Docker Compose dan Composer/Node.js lokal). |
 | **REQ-NF-09** | **Integritas Regulasi (Regulatory Compliance)** | Mengikuti ketentuan regulasi KAN U-01, standar ISO/IEC 17011, serta pedoman tata kelola akreditasi nasional. |
 | **REQ-NF-10** | **Kemudahan Pemeliharaan (Maintainability)** | Struktur kode mematuhi standar PSR-12, arsitektur MVC terstruktur rapi, serta terdokumentasi lengkap dalam dokumen perancangan SDLC. |

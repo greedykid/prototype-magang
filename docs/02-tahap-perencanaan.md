@@ -25,7 +25,7 @@ flowchart LR
 
 ### 2.2 Rencana Jadwal & Garis Waktu Pengembangan (Timeline)
 
-Proses pengembangan sistem SIMASADI dilaksanakan dalam 6 fase terstruktur:
+Proses pengembangan sistem SIMASADI dilaksanakan dalam 7 fase terstruktur:
 
 | Fase | Durasi | Target Capaian (*Deliverables*) | Status |
 |---|---|---|---|
@@ -34,7 +34,8 @@ Proses pengembangan sistem SIMASADI dilaksanakan dalam 6 fase terstruktur:
 | **Fase 3: Implementasi Modul Inti & 8 Tipe Asesmen** | Minggu 3 | Implementasi Model Eloquent dan Controller untuk pengelolaan master LPK, penjadwalan 8 tipe asesmen KAN, kalender kegiatan interaktif 5 tipe event, dan navigasi multi-peran. | Selesai |
 | **Fase 4: Penegakan Toleransi Surveilen & Batas Waktu Tindakan Perbaikan** | Minggu 4 | Pembangunan mesin status dinamis: toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan dengan tanggal fleksibel tersimpan), pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan otomatis (REVOKED), auto-realisasi data lampau LPK aktif, serta aturan perpanjangan batas waktu TP maksimal 1 bulan bersurat resmi. | Selesai |
 | **Fase 5: Evaluasi Hasil Asesmen & Penetapan SK** | Minggu 5 | Integrasi alur evaluasi hasil asesmen (EHA), pencatatan nomor SK, lead time terbit SK, dan Quality Gate kesiapan rilis dokumen. | Selesai |
-| **Fase 6: Impor Massal, Live Feed Google Sheets, & Uji Komprehensif** | Minggu 6 | Implementasi smart importer (CSV/XLSX/Google Sheets) untuk LPK dan Asesmen, penyediaan live feed CSV terotentikasi, pelaksanaan automated feature test suite (143 pengujian, 829 assertions, 100% pass rate), serta finalisasi dokumentasi SDLC. | Selesai |
+| **Fase 6: Impor Massal & Live Feed Google Sheets** | Minggu 6 | Implementasi smart importer (CSV/XLSX/Google Sheets) untuk LPK dan Asesmen, penyediaan live feed CSV terotentikasi, serta formulasi integrasi spreadsheet. | Selesai |
+| **Fase 7: Kolaborasi Tim Multi-PIC, Mode Gelap, & Uji Komprehensif** | Minggu 7 | Implementasi penautan relasi akun antar-PIC (Viewer role), sistem mode gelap adaptif 1-klik dengan CSS semantic tokens, penegakan banner pengawasan persisten wajib, pelaksanaan automated feature test suite (183 pengujian, 1102 assertions, 100% pass rate), serta finalisasi dokumentasi SDLC. | Selesai |
 
 ---
 

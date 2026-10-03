@@ -42,7 +42,7 @@ prototype-magang/
 │   │   ├── features/             # Kalender kegiatan dan dashboard eksekutif
 │   │   └── layout/               # Shell navigasi sidebar, topbar, dan responsivitas mobile
 │   ├── js/
-│   │   ├── modules/              # Kalender interaktif, custom select, modal, SPA router
+│   │   ├── modules/              # Kalender interaktif, theme switcher (Dark Mode), modal, SPA router
 │   │   └── app.js                # Inisialisasi utama JavaScript antarmuka
 │   └── views/
 │       ├── components/           # Blade components: icon, status badge, alert
@@ -51,12 +51,13 @@ prototype-magang/
 │       ├── assessments/          # Halaman program asesmen, pelacakan TP, dan alur EHA
 │       ├── calendar/             # Halaman kalender interaktif dan modal quick add
 │       ├── users/                # Halaman manajemen pengguna dan profil
+│       ├── account-links/        # Halaman penautan relasi akun dan kolaborasi tim PIC
 │       └── portal/               # Antarmuka pemantauan status akreditasi LPK
 ├── routes/
 │   ├── console.php               # Perintah terjadwal CLI (check-surveillance)
 │   └── web.php                   # Definisi rute aplikasi terproteksi sesi dan peran
 └── tests/
-    └── Feature/                  # Test suite otomatis komprehensif (14 file test)
+    └── Feature/                  # Test suite otomatis komprehensif (183 pengujian pada 18 file test)
 ```
 
 #### 5.1.3 Fitur Teknis Kunci yang Diimplementasikan
@@ -244,8 +245,8 @@ Hasil eksekusi:
   ✓ user cannot update password with incorrect current password          0.05s  
   ✓ user cannot update password with mismatched confirmation             0.05s  
 
-  Tests:    143 passed (829 assertions)
-  Duration: 69.27s
+  Tests:    183 passed (1102 assertions)
+  Duration: 88.24s
 ```
 
 #### 5.2.4 Matriks Pengujian Antarmuka & Responsivitas Manual
@@ -257,4 +258,9 @@ Hasil eksekusi:
 | **Klik Baris Tabel (*Clickable Table Rows*)** | Klik pada sembarang area baris data pada tabel LPK / Asesmen | Sistem langsung merespons dan membuka halaman detail data terkait dengan kursor pointer interaktif. | **VALID** |
 | **Penyelarasan Kontrol Filter & Toggle di Mobile** | Layar smartphone (lebar <= 600px) | Tombol `[ Filter data ]` dan toggle `[ Tabel \| Grid ]` berposisi berdampingan horizontal rapi di baris atas. | **VALID** |
 | **Interaksi Drawer Filter Mobile** | Klik tombol `Filter data` di mobile | Filter drawer meluncur mulus dari sisi kanan layar (*slide-out* 240ms) dengan backdrop gelap dan tombol tutup berfungsi baik. | **VALID** |
+| **Sistem Mode Gelap & Terang (1-Click Toggle)** | Klik tombol ikon matahari/bulan pada navbar atas | Tema beralih seketika tanpa reload halaman, preferensi tersimpan di localStorage, dan bebas kedipan putih saat navigasi. | **VALID** |
+| **Adaptasi Empty State di Mode Gelap** | Filter tabel aktif tanpa data yang cocok (contoh: LPK / Asesmen) | Kotak pesan kosong beradaptasi mulus dengan latar gelap semantik `var(--surface)`, border putus-putus halus, dan tombol reset filter sekunder. | **VALID** |
+| **Banner Pengawasan Persisten Wajib** | Akun memiliki LPK jatuh tempo pengawasan akreditasi | Banner peringatan pengawasan KAN tampil persisten di bagian atas konten tanpa tombol silang atau opsi sembunyikan sementara. | **VALID** |
+| **Penyelarasan Avatar & Tombol Profil Navbar** | Tampilan navbar desktop & mobile | Wadah profil ber-radius 9px dan avatar inisial ber-radius 6px (*squircle*) serasi dengan tombol tema dan notifikasi. | **VALID** |
+| **Kolaborasi Tim Multi-PIC (Viewer Role)** | Penautan PIC lain sebagai Viewer pada LPK binaan | Akun Viewer dapat meninjau LPK dan histori asesmen secara transparan namun terkunci dari aksi edit, hapus, maupun penjadwalan. | **VALID** |
 | **Kompilasi Aset Frontend Vite** | Eksekusi `npm run build` | Seluruh berkas CSS dan JavaScript terkompilasi bersih tanpa ada kesalahan kompilasi. | **VALID** |
