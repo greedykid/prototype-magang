@@ -5,7 +5,7 @@ import { initMobileDrawer, initSidebarCollapse, toggleSidebarState } from './mod
 import { closeAllCustomSelects, initCustomSelects } from './modules/custom-select.js';
 import { initCustomPickers, closeAllCustomPickers, syncCustomPickers } from './modules/custom-picker.js';
 import { initDataTables, syncViewToggleLocation } from './modules/datatable.js';
-import { handleFlashNotifications } from './modules/notifications.js';
+import { handleFlashNotifications, initPersistentSurveillanceBanner } from './modules/notifications.js';
 import { initModalListeners, openModal, closeModal, returnModalToPlaceholder } from './modules/modals.js';
 import { initButtonLoader } from './modules/button-loader.js';
 import { initAuthTransitions } from './modules/auth-transitions.js';
@@ -27,6 +27,7 @@ import {
 import { initSpaRouter, navigateTo } from './modules/spa-router.js';
 import { initLiveFilters, executePartialFilter } from './modules/live-filter.js';
 import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
+import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -54,6 +55,8 @@ window.executePartialFilter = executePartialFilter;
 window.initTableMultiselect = initTableMultiselect;
 window.syncTableState = syncTableState;
 window.clearTableSelection = clearTableSelection;
+window.toggleTheme = toggleTheme;
+window.applyTheme = applyTheme;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -195,8 +198,9 @@ export const initPageComponents = () => {
         console.error('Error initializing datatables:', err);
     }
 
-    // 3. Flash Notifications via SweetAlert2
+    // 3. Flash Notifications via SweetAlert2 & Persistent Banners
     handleFlashNotifications();
+    initPersistentSurveillanceBanner();
 
     // 4. Google Calendar Components (live WIB timeline & instant filters)
     if (document.querySelector('.gcal-shell')) {
@@ -213,6 +217,9 @@ export const initPageComponents = () => {
     } catch (err) {
         console.error('Error initializing table multiselect:', err);
     }
+
+    // 7. Theme Switcher Sync
+    initTheme();
 };
 
 window.initPageComponents = initPageComponents;
@@ -283,6 +290,7 @@ initAuthTransitions();
 initConfirmations();
 initClickableRows();
 initLiveFilters();
+initTheme();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

@@ -48,7 +48,62 @@
                                 @endif
 
                                  {{-- Events placed in this day --}}
-                                @foreach($dayEvents as $ev)
+                                @php
+                                    $timedEvents = $dayEvents->values();
+                                    $eventColumns = [];
+                                    $eventTotalCols = [];
+
+                                    if ($timedEvents->isNotEmpty()) {
+                                        $clusters = [];
+                                        foreach ($timedEvents as $idx => $event) {
+                                            $placed = false;
+                                            foreach ($clusters as &$cluster) {
+                                                $overlapsCluster = false;
+                                                foreach ($cluster as $cIdx) {
+                                                    $other = $timedEvents[$cIdx];
+                                                    if ($event['start_at'] < $other['end_at'] && $event['end_at'] > $other['start_at']) {
+                                                        $overlapsCluster = true;
+                                                        break;
+                                                    }
+                                                }
+                                                if ($overlapsCluster) {
+                                                    $cluster[] = $idx;
+                                                    $placed = true;
+                                                    break;
+                                                }
+                                            }
+                                            unset($cluster);
+                                            if (!$placed) {
+                                                $clusters[] = [$idx];
+                                            }
+                                        }
+
+                                        foreach ($clusters as $cluster) {
+                                            $cols = [];
+                                            foreach ($cluster as $idx) {
+                                                $event = $timedEvents[$idx];
+                                                $assignedCol = -1;
+                                                foreach ($cols as $colIdx => $colEnd) {
+                                                    if ($event['start_at'] >= $colEnd) {
+                                                        $assignedCol = $colIdx;
+                                                        $cols[$colIdx] = $event['end_at'];
+                                                        break;
+                                                    }
+                                                }
+                                                if ($assignedCol === -1) {
+                                                    $cols[] = $event['end_at'];
+                                                    $assignedCol = count($cols) - 1;
+                                                }
+                                                $eventColumns[$idx] = $assignedCol;
+                                            }
+                                            $totalInCluster = max(1, count($cols));
+                                            foreach ($cluster as $idx) {
+                                                $eventTotalCols[$idx] = $totalInCluster;
+                                            }
+                                        }
+                                    }
+                                @endphp
+                                @foreach($timedEvents as $idx => $ev)
                                     @php
                                         $startHour = (int)$ev['start_at']->format('H');
                                         $startMinute = (int)$ev['start_at']->format('i');
@@ -62,6 +117,16 @@
                                         $topPct = ($topMinutes / $totalDayMinutes) * 100;
                                         $heightPct = min(100 - $topPct, ($durationMinutes / $totalDayMinutes) * 100);
 
+                                        $colIndex = $eventColumns[$idx] ?? 0;
+                                        $totalCols = $eventTotalCols[$idx] ?? 1;
+
+                                        $widthStyle = $totalCols > 1
+                                            ? "calc((100% - 6px) / {$totalCols} - 2px)"
+                                            : "calc(100% - 6px)";
+                                        $leftStyle = $totalCols > 1
+                                            ? "calc(3px + ({$colIndex} * (100% - 6px) / {$totalCols}))"
+                                            : "3px";
+
                                         $rawH = !empty($highlightId) ? preg_replace('/^assessment-/', '', $highlightId) : null;
                                         $isHighlighted = $rawH && (
                                             (string)$ev['id'] === (string)$highlightId ||
@@ -70,14 +135,14 @@
                                         );
                                     @endphp
                                     <div class="gcal-timed-card theme-{{ $ev['color_theme'] }} {{ $isHighlighted ? 'is-highlight-target' : '' }}"
-                                         style="top: {{ $topPct }}%; height: {{ $heightPct }}%;"
+                                         style="top: {{ $topPct }}%; height: {{ $heightPct }}%; left: {{ $leftStyle }}; width: {{ $widthStyle }}; right: auto;"
                                          data-event-id="{{ $ev['id'] }}"
                                          data-cat="{{ $ev['category'] }}"
                                          data-lpk-id="{{ $ev['lpk_id'] }}"
                                          data-pic-id="{{ $ev['pic_id'] ?? '' }}"
                                          onclick="window.showEventPopover(this, {{ json_encode($ev) }})">
                                         <div class="gcal-card-inner">
-                                            <div class="gcal-card-time">{{ $ev['start_at']->format('H:i') }} &ndash; {{ $ev['end_at']->format('H:i') }} WIB</div>
+                                            <div class="gcal-card-time">{{ $ev['start_at']->format('H:i') }} - {{ $ev['end_at']->format('H:i') }} WIB</div>
                                             <strong class="gcal-card-title">{{ $ev['title'] }}</strong>
                                             <span class="gcal-card-lpk">{{ $ev['lpk_name'] }}</span>
                                         </div>

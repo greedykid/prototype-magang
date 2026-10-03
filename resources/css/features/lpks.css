@@ -17,7 +17,7 @@
 /* Header & Back Navigation */
 .lpk-form-header,
 .lpk-show-header {
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
@@ -213,7 +213,7 @@
 
 /* Card Container */
 .lpk-form-card {
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
@@ -300,7 +300,7 @@
 
 .lpk-label {
     align-items: center;
-    color: #1e293b;
+    color: var(--ink);
     display: flex;
     font-size: 13px;
     font-weight: 600;
@@ -418,8 +418,8 @@
 
 .kan-cycle-step-item {
     align-items: flex-start;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
     border-radius: 8px;
     display: flex;
     gap: 10px;
@@ -478,7 +478,7 @@
 /* Action Bar */
 .lpk-form-actions-bar {
     align-items: center;
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
     border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
@@ -622,11 +622,115 @@
 }
 
 /* Milestone Cards */
+/* ==========================================================================
+   KAN U-01 Connected Process Timeline & Milestone Cards (Opsi A)
+   ========================================================================== */
+
+/* 1. Horizontal Stepper Timeline Bar */
+.lpk-cycle-timeline-bar {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    width: 100%;
+}
+
+.lpk-cycle-step-item {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.lpk-step-bullet {
+    align-items: center;
+    background: #e2e8f0;
+    border-radius: 50%;
+    color: #64748b;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    height: 28px;
+    justify-content: center;
+    transition: all 160ms ease;
+    width: 28px;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-bullet {
+    background: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+    color: #ffffff;
+}
+
+.lpk-cycle-step-item.is-completed .lpk-step-bullet {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.lpk-step-label-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.lpk-step-num {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-num {
+    color: #0f172a;
+}
+
+.lpk-step-name {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-name {
+    color: #0f172a;
+}
+
+.lpk-step-timing {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-line {
+    background: #e2e8f0;
+    flex: 1;
+    height: 2px;
+    min-width: 24px;
+    transition: background-color 160ms ease;
+}
+
+.lpk-cycle-step-line.is-passed {
+    background: #94a3b8;
+}
+
+/* 2. Milestone Cards Grid */
 .lpk-milestones-grid {
     box-sizing: border-box;
     display: grid;
     gap: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 100%;
     min-width: 0;
     width: 100%;
@@ -634,43 +738,222 @@
 
 .lpk-milestone-card {
     background: #ffffff;
-    border: 1.5px solid var(--line);
-    border-radius: 10px;
+    border: 1.5px solid var(--line, #e2e8f0);
+    border-top: 3.5px solid #cbd5e1;
+    border-radius: 12px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 16px;
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    padding: 18px;
+    position: relative;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease;
 }
 
+/* ==========================================================================
+   Warna Card Container Tahapan Siklus Berdasarkan Matrix 5 Warna Resmi KAN:
+   1. KUNING: Reminder S1 - RA, Reminder TP & VTP, Reminder SK
+   2. MERAH: JT S1 - RA (Jatuh Tempo / Overdue / Revoked / Expired)
+   3. HIJAU: Pelaksanaan S1 - RA, PRL, dan STT (Selesai, Terjadwal, Rencana, dsb.)
+   4. CYAN: Batas TP dan VTP (Tindakan Perbaikan Aktif)
+   5. BIRU: Dibekukan (Bukan Ungu)
+   6. NETRAL (SLATE): Belum Ada Agenda & Belum Reminder
+   ========================================================================== */
+
+/* 1. PELAKSANAAN S1 - RA, PRL, STT - HIJAU */
+.lpk-milestone-card.is-pelaksanaan,
+.lpk-milestone-card.is-completed,
+.lpk-milestone-card.is-scheduled,
+.lpk-milestone-card.is-in-progress,
+.lpk-milestone-card.is-planned {
+    background: #f4fbf6;
+    border: 1.5px solid #4ade80;
+    border-top: 4px solid #16a34a;
+    box-shadow: 0 3px 12px rgba(22, 163, 74, 0.08);
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-completed .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-planned .lpk-milestone-phase-tag {
+    color: #15803d;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-milestone-key-target,
+.lpk-milestone-card.is-completed .lpk-milestone-key-target,
+.lpk-milestone-card.is-scheduled .lpk-milestone-key-target,
+.lpk-milestone-card.is-in-progress .lpk-milestone-key-target,
+.lpk-milestone-card.is-planned .lpk-milestone-key-target {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-key-target-header,
+.lpk-milestone-card.is-completed .lpk-key-target-header,
+.lpk-milestone-card.is-scheduled .lpk-key-target-header,
+.lpk-milestone-card.is-in-progress .lpk-key-target-header,
+.lpk-milestone-card.is-planned .lpk-key-target-header {
+    color: #047857;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-key-target-date,
+.lpk-milestone-card.is-completed .lpk-key-target-date,
+.lpk-milestone-card.is-scheduled .lpk-key-target-date,
+.lpk-milestone-card.is-in-progress .lpk-key-target-date,
+.lpk-milestone-card.is-planned .lpk-key-target-date,
+.lpk-milestone-card.is-pelaksanaan .lpk-target-value,
+.lpk-milestone-card.is-completed .lpk-target-value,
+.lpk-milestone-card.is-scheduled .lpk-target-value,
+.lpk-milestone-card.is-in-progress .lpk-target-value,
+.lpk-milestone-card.is-planned .lpk-target-value {
+    color: #064e3b;
+}
+
+/* 2. REMINDER S1 - RA, TP & VTP, SK - KUNING */
+.lpk-milestone-card.is-reminder,
 .lpk-milestone-card.is-due {
-    background: #fff5f7;
-    border-color: #f43f5e;
-    box-shadow: 0 2px 8px rgba(244, 63, 94, 0.08);
+    background: #fffdf0;
+    border: 1.5px solid #facc15;
+    border-top: 4px solid #ca8a04;
+    box-shadow: 0 3px 12px rgba(202, 138, 4, 0.08);
+}
+.lpk-milestone-card.is-reminder .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-due .lpk-milestone-phase-tag {
+    color: #a16207;
+}
+.lpk-milestone-card.is-reminder .lpk-milestone-key-target,
+.lpk-milestone-card.is-due .lpk-milestone-key-target {
+    background: #fefce8;
+    border-color: #fef08a;
+}
+.lpk-milestone-card.is-reminder .lpk-key-target-header,
+.lpk-milestone-card.is-due .lpk-key-target-header {
+    color: #854d0e;
+}
+.lpk-milestone-card.is-reminder .lpk-key-target-date,
+.lpk-milestone-card.is-due .lpk-key-target-date,
+.lpk-milestone-card.is-reminder .lpk-target-value,
+.lpk-milestone-card.is-due .lpk-target-value {
+    color: #713f12;
 }
 
+/* 3. JT S1 - RA / LEWAT JADWAL / DICABUT - MERAH */
+.lpk-milestone-card.is-jt,
+.lpk-milestone-card.is-overdue,
+.lpk-milestone-card.is-expired,
+.lpk-milestone-card.is-revoked {
+    background: #fff5f5;
+    border: 1.5px solid #f87171;
+    border-top: 4px solid #dc2626;
+    box-shadow: 0 3px 12px rgba(220, 38, 38, 0.08);
+}
+.lpk-milestone-card.is-jt .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-overdue .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-expired .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-revoked .lpk-milestone-phase-tag {
+    color: #dc2626;
+}
+.lpk-milestone-card.is-jt .lpk-milestone-key-target,
+.lpk-milestone-card.is-overdue .lpk-milestone-key-target,
+.lpk-milestone-card.is-expired .lpk-milestone-key-target,
+.lpk-milestone-card.is-revoked .lpk-milestone-key-target {
+    background: #fff1f2;
+    border-color: #fecdd3;
+}
+.lpk-milestone-card.is-jt .lpk-key-target-header,
+.lpk-milestone-card.is-overdue .lpk-key-target-header,
+.lpk-milestone-card.is-expired .lpk-key-target-header,
+.lpk-milestone-card.is-revoked .lpk-key-target-header {
+    color: #be123c;
+}
+.lpk-milestone-card.is-jt .lpk-key-target-date,
+.lpk-milestone-card.is-overdue .lpk-key-target-date,
+.lpk-milestone-card.is-expired .lpk-key-target-date,
+.lpk-milestone-card.is-revoked .lpk-key-target-date,
+.lpk-milestone-card.is-jt .lpk-target-value,
+.lpk-milestone-card.is-overdue .lpk-target-value,
+.lpk-milestone-card.is-expired .lpk-target-value,
+.lpk-milestone-card.is-revoked .lpk-target-value {
+    color: #881337;
+}
+
+/* 4. BATAS TP DAN VTP - CYAN (BIRU MUDA) */
+.lpk-milestone-card.is-batas-tp {
+    background: #f0fdff;
+    border: 1.5px solid #22d3ee;
+    border-top: 4px solid #0891b2;
+    box-shadow: 0 3px 12px rgba(8, 145, 178, 0.08);
+}
+.lpk-milestone-card.is-batas-tp .lpk-milestone-phase-tag {
+    color: #0891b2;
+}
+.lpk-milestone-card.is-batas-tp .lpk-milestone-key-target {
+    background: #ecfeff;
+    border-color: #a5f3fc;
+}
+.lpk-milestone-card.is-batas-tp .lpk-key-target-header {
+    color: #0e7490;
+}
+.lpk-milestone-card.is-batas-tp .lpk-key-target-date,
+.lpk-milestone-card.is-batas-tp .lpk-target-value {
+    color: #155e75;
+}
+
+/* 5. DIBEKUKAN - BIRU */
+.lpk-milestone-card.is-dibekukan,
 .lpk-milestone-card.is-suspended {
-    background: #faf5ff;
-    border-color: #a855f7;
-    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+    background: #eff6ff;
+    border: 1.5px solid #60a5fa;
+    border-top: 4px solid #2563eb;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.08);
+}
+.lpk-milestone-card.is-dibekukan .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-suspended .lpk-milestone-phase-tag {
+    color: #1d4ed8;
+}
+.lpk-milestone-card.is-dibekukan .lpk-milestone-key-target,
+.lpk-milestone-card.is-suspended .lpk-milestone-key-target {
+    background: #f0f7ff;
+    border-color: #bfdbfe;
+}
+.lpk-milestone-card.is-dibekukan .lpk-key-target-header,
+.lpk-milestone-card.is-suspended .lpk-key-target-header {
+    color: #1e40af;
+}
+.lpk-milestone-card.is-dibekukan .lpk-key-target-date,
+.lpk-milestone-card.is-suspended .lpk-key-target-date,
+.lpk-milestone-card.is-dibekukan .lpk-target-value,
+.lpk-milestone-card.is-suspended .lpk-target-value {
+    color: #1e3a8a;
 }
 
-.lpk-milestone-card.is-in-progress {
-    background: #f0fdfa;
-    border-color: #0d9488;
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08);
+/* 6. AKAN DATANG (BELUM ADA AGENDA & BELUM REMINDER) - NETRAL SLATE */
+.lpk-milestone-card.is-upcoming {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-top: 3.5px solid #94a3b8;
 }
-
-.lpk-milestone-card.is-completed {
+.lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
+    color: #64748b;
+}
+.lpk-milestone-card.is-upcoming .lpk-milestone-key-target {
     background: #f8fafc;
-    border-color: #cbd5e1;
+    border-color: #e2e8f0;
+}
+.lpk-milestone-card.is-upcoming .lpk-key-target-header {
+    color: #64748b;
+}
+.lpk-milestone-card.is-upcoming .lpk-key-target-date,
+.lpk-milestone-card.is-upcoming .lpk-target-value {
+    color: #0f172a;
+}
+
+/* Current Focus State Ring: Memberi penegasan fokus alur tanpa mengubah warna border status */
+.lpk-milestone-card.is-current-focus {
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 0 8px 24px -4px rgba(15, 23, 42, 0.08);
 }
 
 .lpk-milestone-card-top {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
 }
 
 .lpk-milestone-header {
@@ -680,80 +963,321 @@
     justify-content: space-between;
 }
 
+.lpk-milestone-heading-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.lpk-milestone-phase-tag {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
 .lpk-milestone-title {
-    color: var(--ink);
-    font-size: 14px;
+    color: var(--ink, #0f172a);
+    font-size: 15px;
     font-weight: 700;
+    line-height: 1.25;
     margin: 0;
 }
 
-.lpk-milestone-desc {
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.45;
-    margin: 0 0 8px;
+.lpk-milestone-badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
 }
 
-.lpk-milestone-dates {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    box-sizing: border-box;
+.badge-focus {
+    align-items: center;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 9999px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    padding: 2.5px 8px;
+    white-space: nowrap;
+}
+
+.lpk-milestone-desc {
+    color: var(--muted, #64748b);
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* 3. Primary Milestone Target Date */
+.lpk-milestone-primary-target {
     display: flex;
     flex-direction: column;
-    font-size: 11.5px;
-    gap: 5px;
-    margin-bottom: 8px;
-    padding: 8px 10px;
+    gap: 3px;
+    margin: 4px 0 6px;
 }
 
-.lpk-milestone-date-row {
-    align-items: center;
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-}
-
-.lpk-milestone-date-row strong {
-    color: var(--ink);
+.lpk-target-label {
+    color: var(--muted, #64748b);
+    font-size: 11px;
     font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
-.lpk-milestone-agenda-bar {
+.lpk-target-value {
+    color: var(--ink, #0f172a);
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+/* Backward compatibility for previous key-target selectors */
+.lpk-milestone-key-target {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 4px 0 6px;
+}
+
+.lpk-key-target-header {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.lpk-key-target-date {
+    color: var(--ink, #0f172a);
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+/* 4. Supporting Dates Rows */
+.lpk-milestone-subdates {
+    border-top: 1px dashed var(--line, #e2e8f0);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 8px;
+}
+
+.lpk-subdate-row {
     align-items: center;
-    background: rgba(0, 0, 0, 0.025);
-    border: 1px solid #e2e8f0;
+    color: var(--muted, #64748b);
+    display: flex;
+    font-size: 11.5px;
+    justify-content: space-between;
+    line-height: 1.35;
+}
+
+.lpk-subdate-val {
+    color: var(--ink, #0f172a);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.lpk-delay-penalty-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
     border-radius: 6px;
     box-sizing: border-box;
+    color: #92400e;
+    font-size: 11.5px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    margin-top: 6px;
+}
+
+/* 5. Agenda Asesmen Strip */
+.lpk-milestone-agenda-strip {
+    align-items: center;
+    border-top: 1px dashed var(--line, #e2e8f0);
     display: flex;
     flex-wrap: wrap;
     font-size: 11.5px;
-    gap: 6px;
+    gap: 8px;
     justify-content: space-between;
-    margin-top: 6px;
-    padding: 6px 10px;
+    margin-top: 10px;
+    padding-top: 10px;
 }
 
-.lpk-milestone-agenda-label {
-    color: var(--muted);
-}
-
-.lpk-milestone-agenda-link {
+.lpk-agenda-main {
     align-items: center;
-    color: var(--primary);
     display: inline-flex;
-    font-weight: 600;
-    gap: 3px;
-    text-decoration: underline;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.lpk-milestone-actions {
-    border-top: 1px solid var(--line);
+.lpk-agenda-caption {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.lpk-agenda-chip {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--line, #cbd5e1);
+    border-radius: 6px;
+    color: var(--ink, #1e293b);
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    padding: 3px 8px;
+    text-decoration: none !important;
+    transition: all 140ms ease;
+}
+
+.lpk-agenda-chip:hover {
+    border-color: var(--ink, #0f172a);
+    color: var(--ink, #0f172a);
+}
+
+.lpk-agenda-pulse {
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    height: 6px;
+    width: 6px;
+}
+
+.lpk-agenda-unassigned {
+    color: var(--muted, #94a3b8);
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* 6. Distilled Team Member List */
+.lpk-team-list {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.lpk-team-member {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 10px 12px;
+    transition: background-color 120ms ease;
+}
+
+.lpk-team-member:last-child {
+    border-bottom: none;
+}
+
+.lpk-team-member.is-lead {
+    background: #fbfdfc;
+}
+
+.lpk-member-info {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+}
+
+.lpk-member-avatar {
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    color: #475569;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-weight: 700;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+}
+
+.lpk-member-avatar.is-lead {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.lpk-member-avatar.is-viewer {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: #0369a1;
+}
+
+.lpk-member-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.lpk-member-name {
+    color: var(--ink, #0f172a);
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lpk-member-email {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lpk-member-actions {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+/* 7. Footer Actions */
+.lpk-milestone-footer-actions {
+    border-top: 1px solid var(--line, #e2e8f0);
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr;
+    margin-top: 14px;
     padding-top: 12px;
+}
+
+.lpk-primary-action-btn {
+    align-items: center;
+    display: flex;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 5px;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 10px;
+    width: 100%;
 }
 
 /* Detail Show Layout (2-Columns) */
@@ -915,10 +1439,9 @@
     padding-top: 10px;
 }
 
-/* Assessment Form Helper Components */
 .lpk-status-preview-box {
     align-items: center;
-    background: #f8fafc;
+    background: var(--surface-subtle, #f8fafc);
     border: 1px solid var(--line);
     border-radius: 8px;
     box-sizing: border-box;
@@ -929,7 +1452,7 @@
 }
 
 .lpk-checkbox-card {
-    background: #ffffff;
+    background: var(--surface-subtle, #ffffff);
     border: 1px solid var(--line);
     border-radius: 8px;
     box-sizing: border-box;
@@ -937,6 +1460,29 @@
     flex-direction: column;
     gap: 10px;
     padding: 14px;
+}
+
+.icon-wrap-blue { background: #eff6ff; color: #1d4ed8; }
+.icon-wrap-green { background: #f0fdf4; color: #166534; }
+.icon-wrap-amber { background: #fffbeb; color: #b45309; }
+.icon-wrap-rose { background: #fdf2f8; color: #be185d; }
+.icon-wrap-emerald { background: #f0fdf4; color: #15803d; }
+.icon-wrap-slate { background: #f8fafc; color: #475569; }
+
+.lpk-alert-callout.is-success {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.05);
+}
+
+.lpk-sk-lead-time-box {
+    font-size: 12px;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 8px 12px;
+    border-radius: 6px;
 }
 
 .form-extension-grid {
@@ -1001,6 +1547,147 @@
     flex-shrink: 0;
     min-width: 0;
     text-align: right;
+}
+
+/* Tablet & Medium Screen Reflow for Milestone Grid & Timeline */
+@media (max-width: 1140px) {
+    .lpk-milestones-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* Vertical Connected Timeline Bar for Mobile & Tablet */
+    .lpk-cycle-timeline-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .lpk-cycle-step-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0;
+        width: 100%;
+        box-sizing: border-box;
+        flex-shrink: 0;
+    }
+
+    .lpk-step-bullet {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .lpk-cycle-step-line {
+        flex: none;
+        width: 2px;
+        height: 14px;
+        margin-left: 13px; /* (28px - 2px) / 2 = 13px */
+        background: #cbd5e1;
+        border-radius: 1px;
+    }
+
+    .lpk-cycle-step-line.is-passed {
+        background: #818cf8;
+    }
+
+    .lpk-step-label-group {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+        flex-wrap: wrap;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .lpk-step-num {
+        color: #94a3b8;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .lpk-cycle-step-item.is-current .lpk-step-num {
+        color: #0f172a;
+    }
+
+    .lpk-step-name {
+        color: #1e293b;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+
+    .lpk-cycle-step-item.is-current .lpk-step-name {
+        color: #0f172a;
+    }
+
+    .lpk-step-timing {
+        font-size: 11.5px;
+        color: #64748b;
+        white-space: nowrap;
+    }
+
+    .lpk-step-timing::before {
+        content: "•";
+        margin-right: 4px;
+        color: #cbd5e1;
+    }
+
+    .lpk-milestone-card {
+        padding: 16px 14px;
+    }
+
+    .lpk-milestone-header {
+        align-items: flex-start;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .lpk-milestone-agenda-strip {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .lpk-agenda-main {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .lpk-milestone-footer-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .lpk-milestone-footer-actions .button,
+    .lpk-milestone-footer-actions form,
+    .lpk-milestone-footer-actions form button {
+        justify-content: center;
+        min-height: 40px;
+        width: 100%;
+    }
 }
 
 /* Master Mobile Reflow for LPK and Assessment Views (Screens <= 640px) */
@@ -1110,19 +1797,25 @@
 
     .lpk-milestone-header {
         align-items: flex-start;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .lpk-milestone-footer-actions {
+        width: 100%;
+        display: flex;
         flex-direction: column;
         gap: 6px;
     }
 
-    .lpk-milestone-actions {
-        width: 100%;
-    }
-
-    .lpk-milestone-actions .button,
-    .lpk-milestone-actions form,
-    .lpk-milestone-actions form button {
+    .lpk-milestone-footer-actions .button,
+    .lpk-milestone-footer-actions form,
+    .lpk-milestone-footer-actions form button {
         justify-content: center;
-        min-height: 40px;
+        min-height: 38px;
         width: 100%;
     }
 
@@ -1158,6 +1851,587 @@
         width: 100%;
     }
 }
+
+/* ==========================================================================
+   LPK Feature Dark Theme Overrides
+   ========================================================================== */
+html[data-theme="dark"] .lpk-form-header,
+html[data-theme="dark"] .lpk-show-header,
+html[data-theme="dark"] .lpk-form-card,
+html[data-theme="dark"] .lpk-form-actions-bar,
+html[data-theme="dark"] .kan-cycle-step-item {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-danger-card {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+html[data-theme="dark"] .lpk-field input,
+html[data-theme="dark"] .lpk-field select,
+html[data-theme="dark"] .lpk-field textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-field input:focus,
+html[data-theme="dark"] .lpk-field select:focus,
+html[data-theme="dark"] .lpk-field textarea:focus {
+    border-color: var(--maroon);
+    background: #0f172a;
+}
+
+html[data-theme="dark"] .lpk-label,
+html[data-theme="dark"] .lpk-label span,
+html[data-theme="dark"] .lpk-checkbox-card label,
+html[data-theme="dark"] .lpk-checkbox-card label span {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-field-hint,
+html[data-theme="dark"] .lpk-checkbox-card span,
+html[data-theme="dark"] #status-desc-preview,
+html[data-theme="dark"] #tp-status-desc-preview {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .lpk-status-preview-box,
+html[data-theme="dark"] .lpk-checkbox-card {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .form-extension-grid {
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .icon-wrap-blue { background: rgba(59, 130, 246, 0.16); color: #60a5fa; }
+html[data-theme="dark"] .icon-wrap-green { background: rgba(34, 197, 94, 0.16); color: #4ade80; }
+html[data-theme="dark"] .icon-wrap-amber { background: rgba(245, 158, 11, 0.16); color: #fbbf24; }
+html[data-theme="dark"] .icon-wrap-rose { background: rgba(244, 63, 94, 0.16); color: #fb7185; }
+html[data-theme="dark"] .icon-wrap-emerald { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+html[data-theme="dark"] .icon-wrap-slate { background: rgba(148, 163, 184, 0.16); color: #94a3b8; }
+
+html[data-theme="dark"] .lpk-badge-reg,
+html[data-theme="dark"] .lpk-badge-acc {
+    background: var(--neutral-chip-bg);
+    border-color: var(--neutral-chip-border);
+    color: var(--neutral-chip-text);
+}
+
+html[data-theme="dark"] .lpk-badge-type {
+    background: var(--info-bg);
+    border-color: var(--info-border);
+    color: var(--info-text);
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-success {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(74, 222, 128, 0.3);
+    color: #86efac;
+}
+
+html[data-theme="dark"] .lpk-sk-lead-time-box {
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+html[data-theme="dark"] .tp-sk-banner {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+/* LPK Detail Timeline Stepper Bar */
+html[data-theme="dark"] .lpk-cycle-timeline-bar {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-step-bullet {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-bullet {
+    background: #f8fafc;
+    color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-completed .lpk-step-bullet {
+    background: #10b981;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .lpk-step-num {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-num {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .lpk-step-name {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-name {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .lpk-step-timing {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-line {
+    background: #334155;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-line.is-passed {
+    background: #64748b;
+}
+
+/* LPK Detail Milestone Cards */
+html[data-theme="dark"] .lpk-milestone-card {
+    background: var(--surface);
+    border-color: var(--line);
+    border-top-color: #475569;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming {
+    background: var(--surface);
+    border-color: #334155;
+    border-top-color: #64748b;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-key-target {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-key-target-header {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-target-value {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan,
+html[data-theme="dark"] .lpk-milestone-card.is-completed,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress,
+html[data-theme="dark"] .lpk-milestone-card.is-planned {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(74, 222, 128, 0.3);
+    border-top-color: #22c55e;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-milestone-phase-tag {
+    color: #4ade80;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-milestone-key-target {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-key-target-header {
+    color: #86efac;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-target-value {
+    color: #f0fdf4;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-reminder,
+html[data-theme="dark"] .lpk-milestone-card.is-due {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(251, 191, 36, 0.3);
+    border-top-color: #f59e0b;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-reminder .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-due .lpk-milestone-phase-tag {
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-reminder .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-due .lpk-milestone-key-target {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-reminder .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-due .lpk-key-target-header {
+    color: #fde68a;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-reminder .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-due .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-reminder .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-due .lpk-target-value {
+    color: #fefce8;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-jt,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue,
+html[data-theme="dark"] .lpk-milestone-card.is-expired,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(248, 113, 113, 0.3);
+    border-top-color: #ef4444;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-jt .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-expired .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked .lpk-milestone-phase-tag {
+    color: #f87171;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-jt .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-expired .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked .lpk-milestone-key-target {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(248, 113, 113, 0.25);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-jt .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-expired .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked .lpk-key-target-header {
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-jt .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-expired .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-jt .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-overdue .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-expired .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-revoked .lpk-target-value {
+    color: #fff1f2;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp {
+    background: rgba(6, 182, 212, 0.08);
+    border-color: rgba(34, 211, 238, 0.3);
+    border-top-color: #06b6d4;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp .lpk-milestone-phase-tag {
+    color: #38bdf8;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp .lpk-milestone-key-target {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(34, 211, 238, 0.25);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp .lpk-key-target-header {
+    color: #7dd3fc;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-batas-tp .lpk-target-value {
+    color: #f0f9ff;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(96, 165, 250, 0.3);
+    border-top-color: #3b82f6;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan .lpk-milestone-phase-tag,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-milestone-phase-tag {
+    color: #60a5fa;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan .lpk-milestone-key-target,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-milestone-key-target {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(96, 165, 250, 0.25);
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan .lpk-key-target-header,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-key-target-header {
+    color: #93c5fd;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-dibekukan .lpk-target-value,
+html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-target-value {
+    color: #eff6ff;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .badge-focus {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .lpk-milestone-desc,
+html[data-theme="dark"] .lpk-target-label,
+html[data-theme="dark"] .lpk-subdate-row,
+html[data-theme="dark"] .lpk-agenda-caption {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-target-value,
+html[data-theme="dark"] .lpk-subdate-val {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-milestone-subdates,
+html[data-theme="dark"] .lpk-milestone-agenda-strip,
+html[data-theme="dark"] .lpk-milestone-footer-actions {
+    border-top-color: #334155;
+}
+
+html[data-theme="dark"] .lpk-agenda-chip {
+    background: #0f172a;
+    border-color: #334155;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-agenda-chip:hover {
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .lpk-agenda-unassigned {
+    color: #64748b;
+}
+
+html[data-theme="dark"] .lpk-delay-penalty-banner {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+}
+
+/* PIC Team List */
+html[data-theme="dark"] .lpk-team-list {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-team-member {
+    background: var(--surface);
+    border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-team-member.is-lead {
+    background: rgba(34, 197, 94, 0.06);
+}
+
+html[data-theme="dark"] .lpk-member-avatar {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .lpk-member-avatar.is-lead {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #4ade80;
+}
+
+html[data-theme="dark"] .lpk-member-avatar.is-viewer {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #60a5fa;
+}
+
+html[data-theme="dark"] .lpk-member-name {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-member-email {
+    color: #94a3b8;
+}
+
+/* Scope Box & Assessment Card Item */
+html[data-theme="dark"] .lpk-scope-box {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-assessment-card-item {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-assessment-card-item:hover {
+    border-color: #475569;
+}
+
+/* Tambah LPK Visual Guidance Callout */
+html[data-theme="dark"] .kan-cycle-box {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .kan-cycle-box-header,
+html[data-theme="dark"] .kan-step-title {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .kan-step-timing,
+html[data-theme="dark"] .kan-cycle-notice {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .kan-cycle-notice {
+    border-top-color: var(--line);
+}
+
+/* Global LPK Back Navigation Button */
+html[data-theme="dark"] .lpk-back-btn {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .lpk-back-btn:hover {
+    background: var(--surface-hover);
+    border-color: #475569;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .lpk-back-btn svg {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .lpk-back-btn:hover svg {
+    color: #ffffff;
+}
+
+.lpk-alert-callout.is-warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.lpk-alert-callout.is-warning .lpk-alert-callout-head {
+    color: #b45309;
+}
+
+.lpk-alert-callout.is-warning .lpk-alert-callout-desc {
+    color: #92400e;
+}
+
+.lpk-grace-warning-box {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #78350f;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+}
+
+/* Alert Callouts Dark Overrides */
+html[data-theme="dark"] .lpk-alert-callout {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+html[data-theme="dark"] .lpk-alert-callout-head {
+    color: #f87171;
+}
+
+html[data-theme="dark"] .lpk-alert-callout-desc {
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-warning .lpk-alert-callout-head {
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-warning .lpk-alert-callout-desc {
+    color: #fde68a;
+}
+
+.lpk-alert-callout.is-suspended {
+    background: #faf5ff;
+    border-color: #d8b4fe;
+}
+
+.lpk-alert-callout.is-suspended .lpk-alert-callout-head {
+    color: #581c87;
+}
+
+.lpk-alert-callout.is-suspended .lpk-alert-callout-desc {
+    color: #6b21a8;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-suspended {
+    background: rgba(168, 85, 247, 0.12);
+    border-color: rgba(168, 85, 247, 0.35);
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-suspended .lpk-alert-callout-head {
+    color: #d8b4fe;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-suspended .lpk-alert-callout-desc {
+    color: #e9d5ff;
+}
+
+html[data-theme="dark"] .lpk-grace-warning-box {
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+
+
 
 
 

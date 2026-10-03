@@ -94,11 +94,6 @@
         </a>
     </section>
 
-    @php
-        $accreditationStatuses = ['NOT_STARTED' => 'Belum Dimulai', 'IN_PROGRESS' => 'Sedang Berlangsung', 'COMPLETED' => 'Selesai'];
-        $accreditationTotal = $accreditationStatusCounts->sum();
-    @endphp
-
     {{-- Balanced 2-Column Responsive Workspace --}}
     <div class="dashboard-main-grid">
         {{-- Left Column: Core Operations, Surveillance Alerts & Managed LPKs --}}
@@ -108,27 +103,35 @@
                     <div class="surveillance-alert-header">
                         <div>
                             <h2 id="surveillance-heading" class="surveillance-alert-title">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                 Peringatan Jatuh Tempo Siklus Pengawasan KAN (Surveilen 1, 2 &amp; Re-Akreditasi)
                             </h2>
-                            <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ count($globalSurveillanceAlerts) }} LPK yang memerlukan penjadwalan kunjungan asesmen penilikan atau re-akreditasi KAN.</p>
+                            <p style="margin: 0; font-size: 13px; color: var(--muted);">Terdapat {{ count($globalSurveillanceAlerts) }} LPK yang memerlukan penjadwalan kunjungan asesmen penilikan atau re-akreditasi KAN.</p>
                         </div>
-                        <span class="badge" style="background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; font-weight: 600; font-size: 11px; padding: 2.5px 9px; border-radius: 999px;">Wajib Tindak Lanjut</span>
+                        <span class="badge lpk-alert-badge is-urgent">Wajib Tindak Lanjut</span>
                     </div>
                     <div class="surveillance-alert-list">
                         @foreach(array_slice($globalSurveillanceAlerts, 0, 5) as $alert)
                             <div class="surveillance-alert-item">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="badge" style="background-color: {{ $alert['is_urgent'] ? '#fee2e2' : '#fffbeb' }}; border: 1px solid {{ $alert['is_urgent'] ? '#fca5a5' : '#fde68a' }}; color: {{ $alert['is_urgent'] ? '#991b1b' : '#92400e' }}; font-weight: 700; font-size: 10.5px; padding: 2px 7.5px; border-radius: 999px;">
+                                    <span class="badge lpk-alert-badge {{ $alert['is_urgent'] ? 'is-urgent' : 'is-warning' }}">
                                         {{ $alert['code'] }}
                                     </span>
                                     <div>
-                                        <a href="{{ route('lpks.show', $alert['lpk_id']) }}" style="font-weight: 600; color: var(--text, #0f172a); text-decoration: none;">
+                                        <a href="{{ route('lpks.show', $alert['lpk_id']) }}" style="font-weight: 600; color: var(--ink); text-decoration: none;">
                                             {{ $alert['lpk_name'] }}
                                         </a>
-                                        <span style="font-size: 12px; color: var(--muted, #64748b); margin-left: 6px;">({{ $alert['lpk_reg'] }})</span>
-                                        <div style="font-size: 12px; color: {{ $alert['is_urgent'] ? '#b91c1c' : '#b45309' }};">
+                                        <span style="font-size: 12px; color: var(--muted); margin-left: 6px;">({{ $alert['lpk_reg'] }})</span>
+                                        <div class="dashboard-alert-desc {{ $alert['is_urgent'] ? 'is-urgent' : 'is-warning' }}" style="font-size: 12px;">
                                             {{ $alert['description'] }} &bull; Target Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong>
+                                            @if(!empty($alert['target_date']))
+                                                @php
+                                                    $diffDays = (int) now()->startOfDay()->diffInDays($alert['target_date']->startOfDay(), false);
+                                                @endphp
+                                                <span class="badge {{ $diffDays < 0 ? 'status-danger' : ($diffDays <= 14 ? 'status-warn' : 'status-scheduled') }}" style="font-size: 11px; padding: 1px 7px; margin-left: 4px;">
+                                                    {{ $diffDays < 0 ? 'Terlewat ' . abs($diffDays) . ' Hari' : ($diffDays === 0 ? 'Hari Ini' : 'H-' . $diffDays) }}
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -163,7 +166,7 @@
                         @endforeach
                         @if(count($globalSurveillanceAlerts) > 5)
                             <div style="text-align: center; margin-top: 6px;">
-                                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                                     <span>Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo</span>
                                     <x-icon name="chevron-right" size="14" />
                                 </a>
@@ -178,13 +181,13 @@
                 <section class="panel surveillance-alert-panel tp-alert-panel" aria-labelledby="tp-alert-heading" style="margin-bottom: 20px;">
                     <div class="surveillance-alert-header">
                         <div>
-                            <h2 id="tp-alert-heading" class="surveillance-alert-title" style="color: #991b1b;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <h2 id="tp-alert-heading" class="surveillance-alert-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                 Peringatan Batas Waktu Tindakan Perbaikan (TP &amp; VTP) KAN
                             </h2>
-                            <p style="margin: 0; font-size: 13px; color: var(--muted, #64748b);">Terdapat {{ $urgentTpAssessments->count() }} asesmen dengan tindakan perbaikan yang mendekati jatuh tempo (&le; 14 hari) atau melewati batas regulasi KAN.</p>
+                            <p style="margin: 0; font-size: 13px; color: var(--muted);">Terdapat {{ $urgentTpTotalCount ?? $urgentTpAssessments->count() }} asesmen dengan tindakan perbaikan yang mendekati jatuh tempo (&le; 14 hari) atau melewati batas regulasi KAN.</p>
                         </div>
-                        <span class="badge" style="background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; font-weight: 600; font-size: 11px; padding: 2.5px 9px; border-radius: 999px;">Batas Waktu Ketat</span>
+                        <span class="badge lpk-alert-badge is-urgent">Batas Waktu Ketat</span>
                     </div>
                     <div class="surveillance-alert-list">
                         @foreach($urgentTpAssessments as $assessment)
@@ -195,14 +198,22 @@
                                         {{ $tpBadge['label'] }}
                                     </span>
                                     <div>
-                                        <a href="{{ route('assessments.show', $assessment) }}" style="font-weight: 600; color: var(--text, #0f172a); text-decoration: none;">
+                                        <a href="{{ route('assessments.show', $assessment) }}" style="font-weight: 600; color: var(--ink); text-decoration: none;">
                                             {{ $assessment->display_title }}
                                         </a>
-                                        <span style="font-size: 12px; color: var(--muted, #64748b); margin-left: 6px;">({{ $assessment->lpk->name }})</span>
-                                        <div style="font-size: 12px; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : '#b45309' }};">
+                                        <span style="font-size: 12px; color: var(--muted); margin-left: 6px;">({{ $assessment->lpk->name }})</span>
+                                        <div class="dashboard-alert-desc {{ $assessment->is_tp_overdue ? 'is-urgent' : 'is-warning' }}" style="font-size: 12px;">
                                             {{ $assessment->assessment_type_label }} &bull; Batas Akhir: <strong>{{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d/m/Y') : '-' }}</strong>
+                                            @if($assessment->effective_tp_due_date)
+                                                @php
+                                                    $diffTpDays = (int) now()->startOfDay()->diffInDays($assessment->effective_tp_due_date->startOfDay(), false);
+                                                @endphp
+                                                <span class="badge {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }}" style="font-size: 11px; padding: 1px 7px; margin-left: 4px;">
+                                                    {{ $diffTpDays < 0 ? 'Terlewat ' . abs($diffTpDays) . ' Hari' : ($diffTpDays === 0 ? 'Hari Ini' : 'H-' . $diffTpDays) }}
+                                                </span>
+                                            @endif
                                             @if($assessment->tp_has_extension)
-                                                <span style="color: #7c3aed; margin-left: 4px; font-weight: 600;">(+1 Bulan Surat Resmi)</span>
+                                                <span style="color: var(--terracotta); margin-left: 4px; font-weight: 600;">(+1 Bulan Surat Resmi)</span>
                                             @endif
                                         </div>
                                     </div>
@@ -224,6 +235,14 @@
                                 </div>
                             </div>
                         @endforeach
+                        @if(($urgentTpTotalCount ?? $urgentTpAssessments->count()) > 5)
+                            <div style="text-align: center; margin-top: 6px;">
+                                <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span>Lihat seluruh {{ $urgentTpTotalCount ?? $urgentTpAssessments->count() }} asesmen TP yang mendesak</span>
+                                    <x-icon name="chevron-right" size="14" />
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </section>
             @endif
@@ -234,7 +253,7 @@
                         <div>
                             <h2 id="status-kepatuhan-heading">Status Pengawasan &amp; TP KAN</h2>
                         </div>
-                        <span class="badge" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 600; font-size: 11.5px; padding: 2px 10px; border-radius: 999px;">
+                        <span class="badge status-completed">
                             Semua Siklus Normal
                         </span>
                     </div>
@@ -271,7 +290,7 @@
                 <div class="panel-head">
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0;">
                         <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
-                        <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
+                        <span class="badge badge-counter">
                             {{ $lpkCount }} LPK
                         </span>
                     </div>
@@ -297,7 +316,7 @@
                                         <span>Masa Berlaku: <strong>{{ $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-' }}</strong></span>
                                         @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
                                             <span>&bull;</span>
-                                            <span style="color: #0284c7; font-weight: 600;">(Viewer Tertaut)</span>
+                                            <span class="badge badge-viewer-linked">(Viewer Tertaut)</span>
                                         @endif
                                     </div>
                                 </div>
@@ -326,7 +345,7 @@
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0;">
                         <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
                         @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
-                            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
+                            <span class="badge badge-counter">
                                 {{ $upcomingAssessments->count() }} Agenda
                             </span>
                         @endif

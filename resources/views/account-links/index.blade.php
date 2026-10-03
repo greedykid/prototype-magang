@@ -22,28 +22,28 @@
     <section class="panel">
         <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: inline-flex; align-items: center; justify-content: center;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: inline-flex; align-items: center; justify-content: center;">
                     <x-icon name="link" size="18" />
                 </div>
                 <div>
-                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Akun Viewer yang Anda Tautkan</h2>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Akun Viewer yang Anda Tautkan</h2>
                     <small style="color: var(--muted); font-size: 12px;">Beri izin pantau seluruh data akun Anda ke PIC lain</small>
                 </div>
             </div>
-            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
                 {{ $linkedViewers->count() }} Akun
             </span>
         </div>
 
         {{-- Form Tambah Viewer --}}
         @if($availableUsers->isNotEmpty())
-            <form method="POST" action="{{ route('account-links.store') }}" style="background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+            <form method="POST" action="{{ route('account-links.store') }}" style="background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin-bottom: 18px;">
                 @csrf
-                <label for="viewer-select" style="display: block; font-size: 12.5px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                <label for="viewer-select" style="display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">
                     Tautkan PIC Baru sebagai Viewer
                 </label>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <select id="viewer-select" name="viewer_id" required style="flex: 1; min-width: 200px; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff;">
+                    <select id="viewer-select" name="viewer_id" required style="flex: 1; min-width: 200px; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
                         <option value="">-- Pilih Akun PIC --</option>
                         @foreach($availableUsers as $u)
                             <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
@@ -63,13 +63,13 @@
         {{-- Daftar Akun Viewer yang Aktif --}}
         <div style="display: flex; flex-direction: column; gap: 10px;">
             @forelse($linkedViewers as $viewer)
-                <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid #cbd5e1;">
+                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid var(--neutral-chip-border, #cbd5e1);">
                             {{ $viewer->initials }}
                         </div>
                         <div style="min-width: 0;">
-                            <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <div style="font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 {{ $viewer->name }}
                             </div>
                             <div style="font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -79,7 +79,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                        <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
                             Viewer Akun
                         </span>
 
@@ -98,11 +98,11 @@
                     </div>
                 </div>
             @empty
-                <div style="padding: 28px 16px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #f1f5f9; color: var(--muted); margin-bottom: 10px;">
+                <div style="padding: 28px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 10px;">
                         <x-icon name="users" size="22" />
                     </div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #475569;">Belum Ada Akun Viewer Tertaut</div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: var(--ink);">Belum Ada Akun Viewer Tertaut</div>
                     <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 440px; line-height: 1.5;">
                         Seluruh data laboratorium, asesmen, dan kalender kegiatan hanya dapat diakses oleh akun Anda sendiri.
                     </p>
@@ -115,28 +115,28 @@
     <section class="panel">
         <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; justify-content: center;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; justify-content: center;">
                     <x-icon name="eye" size="18" />
                 </div>
                 <div>
-                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Akses Viewer yang Diterima</h2>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Akses Viewer yang Diterima</h2>
                     <small style="color: var(--muted); font-size: 12px;">Akun PIC lain yang memberikan izin pantau kepada Anda</small>
                 </div>
             </div>
-            <span class="badge" style="background: #f1f5f9; color: #475569; font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
                 {{ $linkedOwners->count() }} Akun
             </span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
             @forelse($linkedOwners as $owner)
-                <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid #a7f3d0;">
+                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
                             {{ $owner->initials }}
                         </div>
                         <div style="min-width: 0;">
-                            <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <div style="font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 {{ $owner->name }}
                             </div>
                             <div style="font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -146,7 +146,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <span class="badge" style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                        <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
                             Akses Aktif
                         </span>
 
@@ -165,11 +165,11 @@
                     </div>
                 </div>
             @empty
-                <div style="padding: 28px 16px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #f1f5f9; color: var(--muted); margin-bottom: 10px;">
+                <div style="padding: 28px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 10px;">
                         <x-icon name="eye" size="22" />
                     </div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #475569;">Belum Menerima Akses Akun Lain</div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: var(--ink);">Belum Menerima Akses Akun Lain</div>
                     <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 440px; line-height: 1.5;">
                         Saat ada PIC lain yang menautkan Anda sebagai viewer, seluruh LPK, asesmen, dan kalender mereka akan otomatis muncul di sini.
                     </p>

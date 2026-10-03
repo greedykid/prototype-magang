@@ -25,7 +25,7 @@
                         @if($lpk->accreditation_number)
                             <span class="lpk-badge-acc">No. Akreditasi: {{ $lpk->accreditation_number }}</span>
                         @else
-                            <span class="lpk-badge-acc" style="color: #64748b; background: #f8fafc;">Asesmen Awal</span>
+                            <span class="lpk-badge-acc">Asesmen Awal</span>
                         @endif
                         @if($lpk->accreditation_type)
                             <span class="lpk-badge-type">{{ $lpk->accreditation_type }}</span>

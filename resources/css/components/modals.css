@@ -48,7 +48,7 @@ body.modal-open .sidebar {
 
 .simasadi-modal-box {
     margin: auto;
-    background: #ffffff;
+    background: var(--modal-bg, #ffffff);
     border: 1px solid var(--line);
     border-radius: 12px;
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
@@ -88,17 +88,35 @@ body.modal-open .sidebar {
 }
 
 .simasadi-modal-close {
-    background: none;
-    border: none;
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
     color: var(--muted);
     cursor: pointer;
-    font-size: 22px;
+    display: inline-flex;
+    font-size: 20px;
+    height: 32px;
+    justify-content: center;
     line-height: 1;
-    padding: 4px;
+    padding: 0;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    width: 32px;
 }
 
 .simasadi-modal-close:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
     color: var(--ink);
+}
+
+.simasadi-modal-close:focus {
+    outline: none;
+}
+
+.simasadi-modal-close:focus-visible {
+    outline: 2px solid var(--terracotta, #7b3ff2);
+    outline-offset: 2px;
 }
 
 .modal-form-actions {
@@ -108,7 +126,7 @@ body.modal-open .sidebar {
     margin-top: 18px;
     padding-top: 14px;
     border-top: 1px solid var(--line, #e2e8f0);
-    background: #ffffff;
+    background: var(--modal-bg, #ffffff);
     position: sticky;
     bottom: -24px;
     margin-bottom: -24px;
@@ -124,13 +142,13 @@ body.modal-open .sidebar {
 
 /* Modal Import Component */
 .simasadi-modal-box.modal-lg {
-    max-width: 620px;
+    max-width: 660px;
     width: 100%;
     padding: 0;
     display: flex;
     flex-direction: column;
-    max-height: min(720px, calc(100vh - 48px));
-    max-height: min(720px, calc(100dvh - 48px));
+    max-height: min(840px, calc(100vh - 40px));
+    max-height: min(840px, calc(100dvh - 40px));
     overflow: hidden;
 }
 
@@ -139,7 +157,7 @@ body.modal-open .sidebar {
     margin-bottom: 0;
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
-    background: #ffffff;
+    background: var(--modal-bg, #ffffff);
     z-index: 2;
 }
 
@@ -236,8 +254,8 @@ body.modal-open .sidebar {
 }
 
 .import-step-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
     border-radius: 8px;
     padding: 14px 16px;
     display: flex;
@@ -248,14 +266,14 @@ body.modal-open .sidebar {
 }
 
 .import-step-card.bordered {
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
     display: block;
 }
 
 .import-step-title {
     font-size: 13px;
-    color: #1e293b;
+    color: var(--ink);
     display: block;
     font-weight: 600;
 }
@@ -309,23 +327,34 @@ body.modal-open .sidebar {
 
 .import-file-input {
     width: 100%;
-    padding: 10px;
-    border: 1px dashed var(--line);
-    border-radius: 6px;
-    background: #fafaf9;
-    font-size: 12.5px;
+    padding: 10px 14px;
+    border: 1.5px dashed var(--line, #cbd5e1);
+    border-radius: 8px;
+    background: var(--surface-subtle, #f8fafc);
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
     min-height: 44px;
     box-sizing: border-box;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.import-file-input:hover,
+.import-file-input:focus {
+    border-color: var(--maroon, #5645d4);
+    background: var(--surface-hover, #fbfbfe);
 }
 
 .import-url-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--input-border, var(--line));
     border-radius: 6px;
     font-size: 12.5px;
     min-height: 44px;
     box-sizing: border-box;
+    background: var(--input-bg, #ffffff);
+    color: var(--ink);
 }
 
 .import-form-help {
@@ -353,7 +382,7 @@ body.modal-open .sidebar {
 
 .import-or-divider span {
     position: relative;
-    background: #fff;
+    background: var(--modal-bg, #ffffff);
     padding: 0 10px;
     font-size: 11.5px;
     font-weight: 600;
@@ -371,15 +400,32 @@ body.modal-open .sidebar {
     line-height: 1.5;
 }
 
+.import-info-note code {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 11.5px;
+}
+
 .import-modal-footer {
     border-top: 1px solid var(--line);
     padding: 14px 24px;
-    background: #fafaf9;
+    background: var(--surface, #fafaf9);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     flex-shrink: 0;
     z-index: 2;
+}
+
+.modal-tp-info-callout {
+    padding: 12px 14px;
+    background: var(--lavender, #f5f3ff);
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: #5b21b6;
+    line-height: 1.5;
 }
 
 @media (max-width: 640px) {
@@ -454,4 +500,97 @@ body.modal-open .sidebar {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Modals Dark Theme Overrides
+   ========================================================================== */
+html[data-theme="dark"] .simasadi-modal-box {
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+}
+
+html[data-theme="dark"] .simasadi-modal-close:hover {
+    background: #1e293b;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .import-step-card {
+    background: #0f172a;
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .import-step-card.bordered {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .import-step-title,
+html[data-theme="dark"] .import-step-header,
+html[data-theme="dark"] .import-form-label {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .import-step-desc,
+html[data-theme="dark"] .import-form-help {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .import-drag-area {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .import-file-input {
+    background: #0f172a;
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .import-file-input:hover,
+html[data-theme="dark"] .import-file-input:focus {
+    background: #1e293b;
+    border-color: var(--maroon);
+}
+
+html[data-theme="dark"] .import-url-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .import-url-input:focus {
+    background: #0f172a;
+    border-color: var(--maroon);
+}
+
+html[data-theme="dark"] .import-or-divider::before {
+    background: var(--line);
+}
+
+html[data-theme="dark"] .import-or-divider span {
+    background: var(--surface);
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .import-info-note {
+    background: rgba(3, 105, 161, 0.2);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #7dd3fc;
+}
+
+html[data-theme="dark"] .import-info-note code {
+    background: rgba(255, 255, 255, 0.12);
+    color: #bae6fd;
+}
+
+html[data-theme="dark"] .import-modal-footer {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .modal-tp-info-callout {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: rgba(99, 102, 241, 0.35);
+    color: #c7d2fe;
+}
+
 

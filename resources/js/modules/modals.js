@@ -16,6 +16,7 @@ export function returnModalToPlaceholder(modal) {
 }
 
 let savedModalScrollY = 0;
+let previousActiveElement = null;
 
 export function openModal(modalId) {
     let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
@@ -35,8 +36,9 @@ export function openModal(modalId) {
         }
     }
 
-    // Capture current scroll offset before body scroll-lock applies
+    // Capture currently focused element to restore upon close
     if (!document.querySelector('.simasadi-modal.is-active')) {
+        previousActiveElement = document.activeElement;
         savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     }
 
@@ -61,10 +63,10 @@ export function openModal(modalId) {
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
 
-    // Auto-focus first input on non-touch devices without causing scroll jumps
+    // Auto-focus first input on non-touch devices without causing scroll jumps or focus outlines on the close button
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
     if (!isTouch) {
-        const focusable = modal.querySelector('.custom-select-trigger, input:not([type="hidden"]):not(.custom-select-native), select:not(.custom-select-native), textarea, button.primary:not([data-modal-close])');
+        const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');
         if (focusable) {
             setTimeout(() => {
                 try {
@@ -73,6 +75,16 @@ export function openModal(modalId) {
                     focusable.focus();
                 }
             }, 60);
+        } else {
+            const modalBox = modal.querySelector('.simasadi-modal-box') || modal;
+            if (!modalBox.hasAttribute('tabindex')) {
+                modalBox.setAttribute('tabindex', '-1');
+            }
+            try {
+                modalBox.focus({ preventScroll: true });
+            } catch {
+                modalBox.focus();
+            }
         }
     }
 }
@@ -89,6 +101,7 @@ export function closeModal(modalIdOrEl) {
         if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
             window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
         }
+        restoreFocus();
         return;
     }
 
@@ -116,7 +129,19 @@ export function closeModal(modalIdOrEl) {
         if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
             window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
         }
+        restoreFocus();
     }
+}
+
+function restoreFocus() {
+    if (previousActiveElement && typeof previousActiveElement.focus === 'function' && document.contains(previousActiveElement)) {
+        try {
+            previousActiveElement.focus({ preventScroll: true });
+        } catch {
+            previousActiveElement.focus();
+        }
+    }
+    previousActiveElement = null;
 }
 
 // Expose globally for inline blade onclick attributes (e.g. window.openModal('modal-id'))
@@ -141,11 +166,50 @@ export const initModalListeners = () => {
         }
     });
 
+    // Keyboard navigation: Escape to close, Tab for focus trapping
     document.addEventListener('keydown', (e) => {
+        const activeModal = document.querySelector('.simasadi-modal.is-active');
+        if (!activeModal) return;
+
         if (e.key === 'Escape') {
-            const activeModal = document.querySelector('.simasadi-modal.is-active');
-            if (activeModal) {
-                window.closeModal(activeModal);
+            window.closeModal(activeModal);
+            return;
+        }
+
+        if (e.key === 'Tab') {
+            const focusableSelector = [
+                'a[href]',
+                'button:not([disabled])',
+                'textarea:not([disabled])',
+                'input:not([disabled]):not([type="hidden"]):not(.custom-select-native)',
+                'select:not([disabled]):not(.custom-select-native)',
+                '[tabindex]:not([tabindex="-1"])',
+                '.custom-select-trigger'
+            ].join(', ');
+
+            const focusables = Array.from(activeModal.querySelectorAll(focusableSelector)).filter((el) => {
+                return (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0) &&
+                       window.getComputedStyle(el).visibility !== 'hidden';
+            });
+
+            if (focusables.length === 0) {
+                e.preventDefault();
+                return;
+            }
+
+            const firstEl = focusables[0];
+            const lastEl = focusables[focusables.length - 1];
+
+            if (e.shiftKey) {
+                if (document.activeElement === firstEl || !activeModal.contains(document.activeElement)) {
+                    e.preventDefault();
+                    lastEl.focus();
+                }
+            } else {
+                if (document.activeElement === lastEl || !activeModal.contains(document.activeElement)) {
+                    e.preventDefault();
+                    firstEl.focus();
+                }
             }
         }
     });

@@ -6,9 +6,17 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SIMASADI Workspace')</title>
     <script>
-        if (localStorage.getItem('simasadi_sidebar_collapsed') === 'true') {
-            document.documentElement.classList.add('sidebar-is-collapsed');
-        }
+        (function () {
+            var savedTheme = localStorage.getItem('simasadi_theme');
+            var theme = savedTheme;
+            if (!theme) {
+                theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+            if (localStorage.getItem('simasadi_sidebar_collapsed') === 'true') {
+                document.documentElement.classList.add('sidebar-is-collapsed');
+            }
+        })();
     </script>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -28,7 +36,7 @@
 
         <div class="page-wrap" id="page-content-wrapper">
             @if(!empty($globalSurveillanceAlerts))
-                <aside class="persistent-surveillance-banner" role="alert" aria-label="Peringatan Siklus Pengawasan Akreditasi">
+                <aside id="persistent-surveillance-banner" class="persistent-surveillance-banner" role="alert" aria-label="Peringatan Siklus Pengawasan Akreditasi">
                     <div class="persistent-surveillance-banner-inner">
                         <div class="persistent-surveillance-banner-main">
                             <div class="persistent-surveillance-banner-badge">
@@ -39,10 +47,16 @@
                                 Peringatan Siklus Pengawasan Akreditasi: {{ count($globalSurveillanceAlerts) }} Kunjungan Memerlukan Tindak Lanjut!
                             </strong>
                             <p class="persistent-surveillance-banner-desc">
-                                Sesuai siklus KAN, notifikasi aktif di <strong>Bulan ke-14 (S1)</strong>, <strong>Bulan ke-35 (S2)</strong>, dan <strong>1 Bulan sebelum kedaluwarsa (Re-Akreditasi)</strong>. Notifikasi ini persisten dan tidak dapat diabaikan hingga jadwal kunjungan diagendakan.
+                                Sesuai siklus KAN, notifikasi aktif di <strong>Bulan ke-14 (S1)</strong>, <strong>Bulan ke-35 (S2)</strong>, dan <strong>1 Bulan sebelum kedaluwarsa (Re-Akreditasi)</strong>.
                             </p>
                         </div>
                         <div class="persistent-surveillance-banner-action">
+                            @if(request()->routeIs('dashboard'))
+                                <a href="#surveillance-heading" class="persistent-surveillance-banner-jump-btn" title="Lompat ke rincian peringatan di dashboard">
+                                    <span>Lihat Rincian</span>
+                                    <x-icon name="arrow-down" size="14" />
+                                </a>
+                            @endif
                             <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button primary persistent-surveillance-banner-btn">
                                 <span>Tinjau LPK Jatuh Tempo</span>
                                 <x-icon name="chevron-right" size="14" />

@@ -108,4 +108,30 @@
     background: var(--maroon) !important;
 }
 
-/* ==========================================================================
+/* SweetAlert2 Dark Theme Overrides */
+html[data-theme="dark"] .swal2-popup.simasadi-swal-popup,
+html[data-theme="dark"] .swal2-container .swal2-popup {
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65) !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-title {
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-text {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-cancel-btn {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-cancel-btn:hover {
+    background: #334155 !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}

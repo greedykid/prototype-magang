@@ -1,4 +1,4 @@
-<div class="gcal-popover" id="gcal-event-popover" role="dialog" aria-hidden="true" style="display: none;">
+<div class="gcal-popover" id="gcal-event-popover" role="dialog" aria-modal="false" aria-labelledby="popover-title" aria-hidden="true" style="display: none;">
     <div class="gcal-popover-card">
         <div class="gcal-popover-head">
             <span class="gcal-popover-cat-pill" id="popover-cat-badge">Agenda</span>

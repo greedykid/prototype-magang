@@ -5,7 +5,7 @@
             <span class="menu-icon" aria-hidden="true"></span>
         </button>
         <button class="navbar-sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
-            <x-icon name="chevron-left" size="18" />
+            <x-icon name="panel-left" size="18" />
         </button>
         <div class="page-context">
             <span class="context-label" title="Unit Akreditasi Laboratorium &bull; Direktorat Akreditasi Laboratorium KAN">Unit Akreditasi Lab &bull; Dit. Akreditasi Laboratorium KAN</span>
@@ -22,6 +22,16 @@
     </div>
     @if(auth()->check())
         <div class="topbar-actions">
+            {{-- Theme Switcher (1-click Instant Toggle) --}}
+            <button type="button" id="theme-toggle-btn" class="topbar-theme-btn" aria-label="Beralih ke mode gelap" title="Beralih ke mode gelap">
+                <span class="theme-icon-sun">
+                    <x-icon name="sun" size="18" />
+                </span>
+                <span class="theme-icon-moon">
+                    <x-icon name="moon" size="18" />
+                </span>
+            </button>
+
             @php($alertCount = count($globalSurveillanceAlerts ?? []))
             <div class="topbar-notifications">
                 <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn {{ $alertCount > 0 ? 'has-alerts' : '' }}" aria-expanded="false" aria-haspopup="true" aria-label="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}">

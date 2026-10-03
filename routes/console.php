@@ -27,7 +27,6 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
         'accreditations',
         'assessments',
         'calendar_events',
-        'backups',
         'lpks',
     ];
 

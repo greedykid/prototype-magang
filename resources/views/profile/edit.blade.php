@@ -65,7 +65,7 @@
 
             <label class="full">
                 Peran Pengguna (Hak Akses)
-                <input type="text" value="{{ $user->role_label }}" disabled readonly style="background: #f8fafc; color: #64748b; cursor: not-allowed;">
+                <input type="text" value="{{ $user->role_label }}" disabled readonly style="background: var(--surface-subtle, var(--input-bg)); color: var(--muted); border: 1px solid var(--input-border); cursor: not-allowed;">
                 <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Hak akses ditetapkan oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
             </label>
 
@@ -81,11 +81,11 @@
     {{-- Panel Ganti Kata Sandi --}}
     <section class="panel">
         <div class="panel-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #e2e8f0);">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0e7ff; color: #3730a3; display: inline-flex; align-items: center; justify-content: center;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.16); color: var(--maroon, #6366f1); border: 1px solid rgba(99, 102, 241, 0.3); display: inline-flex; align-items: center; justify-content: center;">
                 <x-icon name="key" size="18" />
             </div>
             <div>
-                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Keamanan &amp; Kata Sandi</h2>
+                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Keamanan &amp; Kata Sandi</h2>
                 <small style="color: var(--muted); font-size: 12px;">Perbarui kata sandi akun secara berkala.</small>
             </div>
         </div>
@@ -136,11 +136,11 @@
     <section class="panel full" id="account-links" style="grid-column: 1 / -1; margin-top: 8px;">
         <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #e2e8f0);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: inline-flex; align-items: center; justify-content: center;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: inline-flex; align-items: center; justify-content: center;">
                     <x-icon name="link" size="18" />
                 </div>
                 <div>
-                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Tautan Akun Kolaborasi (Viewer per Akun)</h2>
+                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Tautan Akun Kolaborasi (Viewer per Akun)</h2>
                     <small style="color: var(--muted); font-size: 12px;">Tautkan akun PIC lain sebagai viewer untuk memantau seluruh daftar LPK, asesmen, dan kalender kegiatan Anda.</small>
                 </div>
             </div>
@@ -153,16 +153,16 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
             {{-- Kolom 1: Akun Viewer yang Ditautkan --}}
             <div>
-                <h3 style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
+                <h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
                     <span>Akun Viewer yang Anda Tautkan</span>
-                    <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px;">{{ $linkedViewers->count() }}</span>
+                    <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-size: 11px;">{{ $linkedViewers->count() }}</span>
                 </h3>
 
                 @if($availableUsers->isNotEmpty())
-                    <form method="POST" action="{{ route('account-links.store') }}" style="background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                    <form method="POST" action="{{ route('account-links.store') }}" style="background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
                         @csrf
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                            <select name="viewer_id" required style="flex: 1; min-width: 160px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff;">
+                            <select name="viewer_id" required style="flex: 1; min-width: 160px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
                                 <option value="">-- Pilih Akun PIC --</option>
                                 @foreach($availableUsers as $u)
                                     <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
@@ -178,9 +178,9 @@
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     @forelse($linkedViewers as $viewer)
-                        <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                             <div style="min-width: 0;">
-                                <strong style="font-size: 13px; color: #1e293b; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $viewer->name }}</strong>
+                                <strong style="font-size: 13px; color: var(--ink); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $viewer->name }}</strong>
                                 <small style="font-size: 11px; color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $viewer->email }}</small>
                             </div>
                             <form method="POST" action="{{ route('account-links.destroy', $viewer) }}"
@@ -197,7 +197,7 @@
                             </form>
                         </div>
                     @empty
-                        <div style="padding: 14px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
+                        <div style="padding: 14px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
                             Belum ada akun viewer yang ditautkan ke akun Anda.
                         </div>
                     @endforelse
@@ -206,16 +206,16 @@
 
             {{-- Kolom 2: Akses Viewer yang Diterima --}}
             <div>
-                <h3 style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
+                <h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
                     <span>Akses Viewer yang Diterima</span>
-                    <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px;">{{ $linkedOwners->count() }}</span>
+                    <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-size: 11px;">{{ $linkedOwners->count() }}</span>
                 </h3>
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     @forelse($linkedOwners as $owner)
-                        <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                             <div style="min-width: 0;">
-                                <strong style="font-size: 13px; color: #1e293b; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $owner->name }}</strong>
+                                <strong style="font-size: 13px; color: var(--ink); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $owner->name }}</strong>
                                 <small style="font-size: 11px; color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $owner->email }} &bull; {{ $owner->lpks_count }} LPK</small>
                             </div>
                             <form method="POST" action="{{ route('account-links.destroy', $owner) }}"
@@ -232,7 +232,7 @@
                             </form>
                         </div>
                     @empty
-                        <div style="padding: 14px; text-align: center; background: #f8fafc; border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
+                        <div style="padding: 14px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
                             Belum ada akun lain yang menautkan Anda sebagai viewer.
                         </div>
                     @endforelse

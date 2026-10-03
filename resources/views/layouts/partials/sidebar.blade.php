@@ -2,7 +2,7 @@
     <div class="brand">
         <div class="brand-info">
             <a href="{{ route('dashboard') }}" class="brand-mark" title="SIMASADI - Badan Standardisasi Nasional">
-                <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img">
+                <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img" width="34" height="34">
             </a>
             <div class="brand-text"><strong>SIMASADI</strong><small>Unit Akreditasi Lab KAN</small></div>
         </div>

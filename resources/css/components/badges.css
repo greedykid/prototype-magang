@@ -8,11 +8,13 @@
     border-radius: 999px;
     box-sizing: border-box;
     display: inline-flex;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--text-2xs);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    font-weight: var(--font-semibold);
     gap: 4px;
-    letter-spacing: .01em;
-    line-height: 1.3;
+    letter-spacing: var(--tracking-normal);
+    line-height: var(--leading-snug);
     max-width: max-content;
     padding: 2.5px 8.5px;
     transition: transform 160ms var(--ease-out-expo), box-shadow 160ms ease, background-color 160ms ease;
@@ -29,13 +31,61 @@
 .status-planned, .status-closed { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
 .status-scheduled, .status-submitted { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
 .status-in_progress, .status-open { background: var(--peach); border-color: #e4b894; color: #793b12; }
-.status-completed, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--mint); border-color: #9bcda8; color: var(--green); }
+.status-completed, .status-pelaksanaan, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--mint); border-color: #9bcda8; color: var(--green); font-weight: 650; }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: #f0eeec; border-color: #c8c4be; color: #5d5b54; }
-.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-grace_period { background: #fff8e6; border-color: #f3d18c; color: #925400; font-weight: 600; }
-.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut { background: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
-.status-suspended, .status-dibekukan { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }
+.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-grace_period, .status-reminder, .status-warn { background: #fff8e6; border-color: #f3d18c; color: #925400; font-weight: 650; }
+.status-batas-tp { background: #ecfeff; border-color: #a5f3fc; color: #0891b2; font-weight: 650; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
+.status-suspended, .status-dibekukan { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 700; }
+
+/* Dark Mode Status Badges */
+html[data-theme="dark"] .status-planned,
+html[data-theme="dark"] .status-closed { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .status-scheduled,
+html[data-theme="dark"] .status-submitted { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
+html[data-theme="dark"] .status-in_progress,
+html[data-theme="dark"] .status-open { background: rgba(249, 115, 22, 0.16); border-color: rgba(249, 115, 22, 0.4); color: #fb923c; }
+html[data-theme="dark"] .status-completed,
+html[data-theme="dark"] .status-pelaksanaan,
+html[data-theme="dark"] .status-resolved,
+html[data-theme="dark"] .status-active,
+html[data-theme="dark"] .status-terverifikasi,
+html[data-theme="dark"] .status-verified,
+html[data-theme="dark"] .status-paid,
+html[data-theme="dark"] .status-signed,
+html[data-theme="dark"] .status-output_released,
+html[data-theme="dark"] .status-approved { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+html[data-theme="dark"] .status-not_started,
+html[data-theme="dark"] .status-inactive,
+html[data-theme="dark"] .status-belum_dilaporkan,
+html[data-theme="dark"] .status-unreported,
+html[data-theme="dark"] .status-unpaid,
+html[data-theme="dark"] .status-unsigned { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .status-menunggu_verifikasi,
+html[data-theme="dark"] .status-pending_verification,
+html[data-theme="dark"] .status-waiting_output,
+html[data-theme="dark"] .status-under_review,
+html[data-theme="dark"] .status-surveillance_due,
+html[data-theme="dark"] .status-grace_period,
+html[data-theme="dark"] .status-reminder,
+html[data-theme="dark"] .status-warn { background: rgba(234, 179, 8, 0.16); border-color: rgba(234, 179, 8, 0.4); color: #facc15; }
+html[data-theme="dark"] .status-batas-tp { background: rgba(6, 182, 212, 0.16); border-color: rgba(6, 182, 212, 0.4); color: #38bdf8; }
+html[data-theme="dark"] .status-perlu_revisi,
+html[data-theme="dark"] .status-rejected,
+html[data-theme="dark"] .status-expired,
+html[data-theme="dark"] .status-cancelled,
+html[data-theme="dark"] .status-surveillance_overdue,
+html[data-theme="dark"] .status-revoked,
+html[data-theme="dark"] .status-dicabut,
+html[data-theme="dark"] .status-jt,
+html[data-theme="dark"] .status-danger { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+html[data-theme="dark"] .status-suspended,
+html[data-theme="dark"] .status-dibekukan { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
 
 .priority-high { color: #b42318; }.priority-medium { color: var(--amber); }.priority-low { color: var(--green); }
+html[data-theme="dark"] .priority-high { color: #f87171; }
+html[data-theme="dark"] .priority-medium { color: #fbbf24; }
+html[data-theme="dark"] .priority-low { color: #4ade80; }
 
 /* User Role Badges */
 .badge-role {
@@ -48,6 +98,11 @@
 .badge-role-staff { background: var(--lavender); border-color: #d6ccff; color: var(--maroon); }
 .badge-role-assessor { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
+.badge-viewer { background: var(--neutral-chip-bg, #f1f5f9); border-color: var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 10px; font-weight: 600; padding: 1px 6px; }
+.badge-viewer-linked { background: var(--info-bg, #e0f2fe); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0369a1); font-size: 10.5px; font-weight: 600; padding: 2px 8px; }
+.badge-pic-lead { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #065f46); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; }
+.badge-pic-viewer { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; }
+.badge-counter { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
 
 /* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
 .badge-tp-neutral { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
@@ -55,7 +110,7 @@
 .badge-tp-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
 .badge-tp-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
 .badge-tp-danger, .badge-tp-revoked { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
-.badge-tp-suspended { background: #f3e8ff; border-color: #d8b4fe; color: #6b21a8; font-weight: 700; }
+.badge-tp-suspended { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 700; }
 
 /* Alert & Surveillance Badges (LPK Tables & Dashboards) */
 .lpk-alert-badge {
@@ -101,6 +156,24 @@
     width: fit-content;
     flex-shrink: 0;
 }
+
+/* Dark Mode Overrides for Roles & Specialized Badges */
+html[data-theme="dark"] .badge-role-admin { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+html[data-theme="dark"] .badge-role-pic,
+html[data-theme="dark"] .badge-role-assessor { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
+html[data-theme="dark"] .badge-role-staff { background: rgba(99, 102, 241, 0.16); border-color: rgba(99, 102, 241, 0.4); color: #818cf8; }
+
+html[data-theme="dark"] .badge-tp-neutral { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .badge-tp-success { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+html[data-theme="dark"] .badge-tp-info { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
+html[data-theme="dark"] .badge-tp-warning { background: rgba(234, 179, 8, 0.16); border-color: rgba(234, 179, 8, 0.4); color: #facc15; }
+html[data-theme="dark"] .badge-tp-danger,
+html[data-theme="dark"] .badge-tp-revoked { background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+html[data-theme="dark"] .badge-tp-suspended { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
+
+html[data-theme="dark"] .lpk-alert-badge.is-urgent { background-color: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+html[data-theme="dark"] .lpk-alert-badge.is-warning { background-color: rgba(234, 179, 8, 0.16); border-color: rgba(234, 179, 8, 0.4); color: #facc15; }
+html[data-theme="dark"] .lpk-pic-badge { background: #1e293b; border-color: #334155; color: #94a3b8; }
 
 @media (max-width: 640px) {
     .badge, .status, .priority, .badge-role, .badge-tp, .lpk-alert-badge, .lpk-pic-badge {

@@ -89,9 +89,20 @@
     {{ $assessments->links() }}
 @else
     <div class="empty">
-        {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }}
+        <div class="empty-icon-wrap" aria-hidden="true">
+            <x-icon name="search" size="22" />
+        </div>
+        <strong class="empty-title">
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak Ada Asesmen yang Cocok' : 'Belum Ada Program Asesmen' }}
+        </strong>
+        <p class="empty-desc">
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }}
+        </p>
         @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))
-            <button type="button" class="button ghost empty-action" id="empty-reset-filter-btn" data-role="reset-filter">Reset filter</button>
+            <button type="button" class="button secondary empty-action" id="empty-reset-filter-btn" data-role="reset-filter">
+                <x-icon name="x" size="14" />
+                <span>Reset filter</span>
+            </button>
         @endif
     </div>
 @endif

@@ -83,3 +83,16 @@ export function handleFlashNotifications() {
         }
     }
 }
+
+// ==========================================================================
+// Persistent Surveillance Banner Controller
+// Notification banner is strictly persistent and cannot be dismissed
+// ==========================================================================
+export function initPersistentSurveillanceBanner() {
+    try {
+        sessionStorage.removeItem('simasadi_surveillance_dismissed');
+    } catch {
+        // Ignore storage exceptions
+    }
+}
+

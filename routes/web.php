@@ -11,7 +11,6 @@ use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
 use App\Http\Controllers\LpkMemberController;
-use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -83,7 +82,6 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('role:admin')->group(function (): void {
         // Manajemen Anggota (Pengguna & Hak Akses PIC / Admin)
         Route::resource('users', UserController::class);
-        Route::get('/monitoring/backups', [MonitoringController::class, 'backups'])->name('monitoring.backups');
         Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
 
         Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');

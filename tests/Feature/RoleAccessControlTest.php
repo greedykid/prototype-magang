@@ -24,12 +24,9 @@ class RoleAccessControlTest extends TestCase
             ->assertSee('pic@simasadi.local');
     }
 
-    public function test_admin_has_full_access_to_monitoring_and_administration(): void
+    public function test_admin_has_full_access_to_administration(): void
     {
         $admin = User::factory()->admin()->create();
-
-        // Dapat mengakses monitoring
-        $this->actingAs($admin)->get(route('monitoring.backups'))->assertOk();
 
         // Dapat mengakses form tambah LPK
         $this->actingAs($admin)->get(route('lpks.create'))->assertOk();
@@ -96,10 +93,7 @@ class RoleAccessControlTest extends TestCase
             ->assertOk()
             ->assertSee('Ubah asesmen');
 
-        // 5. PIC DITOLAK (403) mengakses monitoring server teknis
-        $this->actingAs($pic)->get(route('monitoring.backups'))->assertForbidden();
-
-        // 6. PIC DITOLAK (403) mengakses proses akreditasi internal
+        // 5. PIC DITOLAK (403) mengakses proses akreditasi internal
         $this->actingAs($pic)->get(route('accreditations.index'))->assertForbidden();
 
         // Tampilan Dashboard PIC TIDAK memuat tombol atau tautan yang dibatasi (403)
@@ -109,7 +103,6 @@ class RoleAccessControlTest extends TestCase
             ->assertSee('Data Laboratorium')
             ->assertDontSee('<span class="nav-label">Administrasi Laboratorium</span>', false)
             ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
-            ->assertDontSee('<span class="nav-label">Backup</span>', false)
             ->assertDontSee(route('accreditations.index'))
             ->assertDontSee('Finansial &amp; Administrasi', false);
     }

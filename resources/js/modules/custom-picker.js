@@ -63,8 +63,7 @@ const setupGlobalPickerListeners = () => {
         if (openPicker && window.innerWidth > 640) {
             const trigger = openPicker.querySelector('.custom-picker-trigger');
             if (trigger) {
-                const isDate = openPicker.classList.contains('custom-datepicker-wrapper');
-                adjustPickerPosition(openPicker, trigger, isDate ? 340 : 380, 310);
+                adjustPickerPosition(openPicker, trigger);
             }
         }
     }, true);
@@ -96,15 +95,24 @@ const elevateParents = (wrapper, isOpen) => {
     }
 };
 
-const adjustPickerPosition = (wrapper, trigger, popoverHeight = 340, popoverWidth = 310) => {
+const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitWidth = null) => {
     wrapper.classList.remove('dropup', 'align-right');
 
     if (window.innerWidth <= 640) {
         return;
     }
 
+    const popover = wrapper.querySelector('.custom-picker-popover');
+    const measuredHeight = popover && popover.offsetHeight > 50 ? popover.offsetHeight : 0;
+    const measuredWidth = popover && popover.offsetWidth > 50 ? popover.offsetWidth : 0;
+
+    const isClock = wrapper.classList.contains('custom-clockpicker-wrapper');
+    const defaultHeight = isClock ? 380 : 360;
+    const popoverHeight = explicitHeight || measuredHeight || defaultHeight;
+    const popoverWidth = explicitWidth || measuredWidth || 300;
+
     const triggerRect = trigger.getBoundingClientRect();
-    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, [role="dialog"]');
+    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
 
     let spaceBelow = window.innerHeight - triggerRect.bottom;
     let spaceAbove = triggerRect.top;
@@ -116,18 +124,21 @@ const adjustPickerPosition = (wrapper, trigger, popoverHeight = 340, popoverWidt
         spaceAbove = triggerRect.top - modalRect.top;
         boundaryRight = modalRect.right - 14;
 
-        // Inside a modal container with scrollable content:
-        // NEVER drop up if spaceAbove is less than the popover height.
-        // Doing so pushes the top header (Month/Year nav) off the top of the modal where it gets clipped.
-        // Only drop up when there is genuinely enough vertical clearance above the trigger.
-        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 12) {
+        // Inside a modal container with scrollable content (overflow-y: auto):
+        // Dropping up is only allowed if there is guaranteed clearance above the trigger within the modal box,
+        // so that the popover top never extends above modalRect.top (which would be clipped because scrollTop cannot scroll negative).
+        // Therefore, spaceAbove must strictly exceed popoverHeight + 24px safety buffer.
+        // Otherwise, always drop down. Dropping down expands the modal scrollable area,
+        // which ensurePickerInModalView smoothly scrolls into view with zero clipping.
+        const requiredAbove = popoverHeight + 24;
+        if (spaceBelow < popoverHeight && spaceAbove >= requiredAbove) {
             wrapper.classList.add('dropup');
         }
     } else {
         // Outside of modal (viewport context)
-        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight) {
+        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 8) {
             wrapper.classList.add('dropup');
-        } else if (spaceBelow < 220 && spaceAbove > spaceBelow && spaceAbove >= 260) {
+        } else if (spaceBelow < 220 && spaceAbove > spaceBelow && spaceAbove >= popoverHeight * 0.8) {
             wrapper.classList.add('dropup');
         }
     }
@@ -139,23 +150,23 @@ const adjustPickerPosition = (wrapper, trigger, popoverHeight = 340, popoverWidt
 
 const ensurePickerInModalView = (wrapper) => {
     if (window.innerWidth <= 640) return;
-    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, [role="dialog"]');
+    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
     if (!modalBox) return;
 
     requestAnimationFrame(() => {
         const popover = wrapper.querySelector('.custom-picker-popover');
-        if (!popover) return;
+        if (!popover || !wrapper.classList.contains('is-open')) return;
 
         const popoverRect = popover.getBoundingClientRect();
         const modalRect = modalBox.getBoundingClientRect();
 
         // If bottom extends below modal's visible bottom
-        if (popoverRect.bottom > modalRect.bottom - 10) {
+        if (popoverRect.bottom > modalRect.bottom - 12) {
             const scrollDistance = popoverRect.bottom - modalRect.bottom + 24;
             modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
         }
-        // If top extends above modal's visible top (in case dropup was used)
-        else if (popoverRect.top < modalRect.top + 10) {
+        // If top extends above modal's visible top (in case dropup was used with prior scroll)
+        else if (popoverRect.top < modalRect.top + 12) {
             const scrollDistance = popoverRect.top - modalRect.top - 24;
             modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
         }
@@ -723,27 +734,26 @@ const createCustomDatePicker = (input) => {
 
         if (currentView === 'years') {
             renderYearView();
-            return;
-        }
-
-        if (currentView === 'months') {
+        } else if (currentView === 'months') {
             renderMonthView();
-            return;
+        } else {
+            renderDayView();
         }
 
-        renderDayView();
+        if (wrapper.classList.contains('is-open')) {
+            adjustPickerPosition(wrapper, trigger);
+            ensurePickerInModalView(wrapper);
+        }
     };
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
-        adjustPickerPosition(wrapper, trigger, 340, 310);
         currentView = 'days';
         yearGridStart = Math.floor(viewYear / 12) * 12;
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
         elevateParents(wrapper, true);
         renderCalendar();
-        ensurePickerInModalView(wrapper);
     };
 
     const closePopover = () => {
@@ -1165,16 +1175,19 @@ const createCustomClockPicker = (input) => {
 
         footer.append(nowBtn, clearBtn, doneBtn);
         popover.appendChild(footer);
+
+        if (wrapper.classList.contains('is-open')) {
+            adjustPickerPosition(wrapper, trigger);
+            ensurePickerInModalView(wrapper);
+        }
     };
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
-        adjustPickerPosition(wrapper, trigger, 380, 310);
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
         elevateParents(wrapper, true);
         renderClock();
-        ensurePickerInModalView(wrapper);
     };
 
     const closePopover = () => {

@@ -174,17 +174,17 @@
             $prefilledLpk = $lpks->firstWhere('id', old('lpk_id', $assessment->lpk_id ?: request('lpk_id')));
         @endphp
         @if($prefilledLpk)
-            <div class="lpk-alert-callout" style="background: #f0fdf4; border-color: #86efac; color: #166534; box-shadow: 0 1px 3px rgba(22, 101, 52, 0.05);">
+            <div class="lpk-alert-callout is-success">
                 <div class="lpk-alert-callout-content">
-                    <div class="lpk-alert-callout-head" style="color: #166534;">
-                        <x-icon name="check-circle" size="18" style="color: #16a34a; flex-shrink: 0;" />
+                    <div class="lpk-alert-callout-head">
+                        <x-icon name="check-circle" size="18" style="flex-shrink: 0;" />
                         <strong>Jadwal Kunjungan Otomatis Disiapkan</strong>
                     </div>
-                    <p class="lpk-alert-callout-desc" style="color: #15803d;">
+                    <p class="lpk-alert-callout-desc">
                         Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->registration_number }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
                     </p>
                 </div>
-                <span class="badge" style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;">
+                <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;">
                     Auto Pre-filled
                 </span>
             </div>
@@ -204,7 +204,7 @@
                 {{-- KARTU 1: Informasi Lembaga & Judul Agenda --}}
                 <div class="lpk-form-card">
                     <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap" style="background: #eff6ff; color: #1d4ed8;">
+                        <div class="lpk-card-icon-wrap icon-wrap-blue">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
                                 <path d="M9 22v-4h6v4"/>
@@ -294,7 +294,7 @@
                 {{-- KARTU 2: Jadwal Pelaksanaan & Personil Asesor --}}
                 <div class="lpk-form-card">
                     <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap" style="background: #f0fdf4; color: #166534;">
+                        <div class="lpk-card-icon-wrap icon-wrap-green">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
                                 <line x1="16" y1="2" x2="16" y2="6"/>
@@ -383,7 +383,7 @@
                 {{-- KARTU 3: Tindakan Perbaikan & Verifikasi (TP & VTP) - Standar KAN --}}
                 <div class="lpk-form-card">
                     <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap" style="background: #fffbeb; color: #b45309;">
+                        <div class="lpk-card-icon-wrap icon-wrap-amber">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                                 <path d="m9 12 2 2 4-4"/>
@@ -483,7 +483,7 @@
                 {{-- KARTU 4: Laporan Asesmen & Evaluasi Hasil Asesmen (EHA) --}}
                 <div class="lpk-form-card">
                     <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap" style="background: #fdf2f8; color: #be185d;">
+                        <div class="lpk-card-icon-wrap icon-wrap-rose">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                 <path d="M14 2v6h6"/>
@@ -538,7 +538,7 @@
                 {{-- KARTU 5: Keputusan Akreditasi / SK KAN --}}
                 <div id="form-sk-block" class="lpk-form-card">
                     <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap" style="background: #f0fdf4; color: #15803d;">
+                        <div class="lpk-card-icon-wrap icon-wrap-emerald">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="12" cy="8" r="6"/>
                                 <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
@@ -572,7 +572,7 @@
                     </div>
 
                     @if($assessment->sk_lead_time_label)
-                        <div style="font-size: 12px; color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 6px;">
+                        <div class="lpk-sk-lead-time-box">
                             <strong>Rentang Proses:</strong> {{ $assessment->sk_lead_time_label }}
                             (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->format('d M Y') }} s/d SK {{ $assessment->sk_date->format('d M Y') }})
                         </div>

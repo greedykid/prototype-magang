@@ -16,32 +16,32 @@
 {{-- Kartu Metrik Ringkas --}}
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
     <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 42px; height: 42px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div class="user-stat-icon user-stat-icon-indigo">
             <x-icon name="users" size="22" />
         </div>
         <div>
             <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);">Total Anggota</div>
-            <strong style="font-size: 22px; color: #1e293b; line-height: 1.2;">{{ $totalCount }}</strong>
+            <strong style="font-size: 22px; color: var(--ink); line-height: 1.2;">{{ $totalCount }}</strong>
         </div>
     </div>
 
     <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 42px; height: 42px; border-radius: 10px; background: #ede9fe; color: #6d28d9; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div class="user-stat-icon user-stat-icon-purple">
             <x-icon name="shield" size="22" />
         </div>
         <div>
             <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);">Ketua Tim</div>
-            <strong style="font-size: 22px; color: #1e293b; line-height: 1.2;">{{ $adminCount }}</strong>
+            <strong style="font-size: 22px; color: var(--ink); line-height: 1.2;">{{ $adminCount }}</strong>
         </div>
     </div>
 
     <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-        <div style="width: 42px; height: 42px; border-radius: 10px; background: #dbeafe; color: #1d4ed8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div class="user-stat-icon user-stat-icon-blue">
             <x-icon name="user" size="22" />
         </div>
         <div>
             <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);">PIC Laboratorium</div>
-            <strong style="font-size: 22px; color: #1e293b; line-height: 1.2;">{{ $picCount }}</strong>
+            <strong style="font-size: 22px; color: var(--ink); line-height: 1.2;">{{ $picCount }}</strong>
         </div>
     </div>
 </div>

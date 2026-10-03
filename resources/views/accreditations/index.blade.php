@@ -89,9 +89,20 @@
         {{ $accreditations->links() }}
     @else
         <div class="empty">
-            {{ $lpkId || $status || $startFrom || $startTo || $targetFrom || $targetTo ? 'Tidak ada proses akreditasi yang cocok dengan filter.' : 'Belum ada proses akreditasi untuk ditampilkan.' }}
+            <div class="empty-icon-wrap" aria-hidden="true">
+                <x-icon name="search" size="22" />
+            </div>
+            <strong class="empty-title">
+                {{ $lpkId || $status || $startFrom || $startTo || $targetFrom || $targetTo ? 'Tidak Ada Proses yang Cocok' : 'Belum Ada Proses Akreditasi' }}
+            </strong>
+            <p class="empty-desc">
+                {{ $lpkId || $status || $startFrom || $startTo || $targetFrom || $targetTo ? 'Tidak ada proses akreditasi yang cocok dengan filter.' : 'Belum ada proses akreditasi untuk ditampilkan.' }}
+            </p>
             @if($lpkId || $status || $startFrom || $startTo || $targetFrom || $targetTo)
-                <a class="button ghost empty-action" href="{{ route('accreditations.index') }}">Reset filter</a>
+                <a class="button secondary empty-action" href="{{ route('accreditations.index') }}" data-role="reset-filter">
+                    <x-icon name="x" size="14" />
+                    <span>Reset filter</span>
+                </a>
             @endif
         </div>
     @endif

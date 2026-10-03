@@ -6,7 +6,7 @@
 <section class="lpk-form-card" aria-labelledby="tp-tracking-heading">
     <div class="lpk-form-card-header tp-tracking-header" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0;">
-            <div class="lpk-card-icon-wrap" style="background: #f0fdf4; color: #16a34a;">
+            <div class="lpk-card-icon-wrap icon-wrap-green">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
                     <path d="m9 12 2 2 4-4"/>
@@ -38,7 +38,7 @@
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Status Tindakan Perbaikan
             </span>
-            <div style="font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">
                 {{ $assessment->tp_status_label }}
             </div>
             <small style="color: var(--muted); font-size: 12px; display: block; line-height: 1.4;">
@@ -50,7 +50,7 @@
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Batas Waktu Awal (KAN)
             </span>
-            <div style="font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 4px;">
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">
                 @if($assessment->tp_due_date)
                     {{ $assessment->tp_due_date->format('d M Y') }}
                 @elseif($defaultDueDate)
@@ -73,7 +73,7 @@
                 <div style="margin-bottom: 6px;">
                     <span class="badge-tp badge-tp-warning">+1 Bulan Disetujui</span>
                 </div>
-                <small style="color: var(--text); font-size: 12px; display: block;">
+                <small style="color: var(--ink); font-size: 12px; display: block;">
                     No. Surat: <strong>{{ $assessment->tp_extension_letter_no ?: 'Ada permohonan' }}</strong>
                 </small>
                 @if($assessment->tp_extension_date)
@@ -96,7 +96,7 @@
                 Batas Akhir Efektif / Hasil
             </span>
             @if($assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED)
-                <div style="font-size: 14.5px; font-weight: 700; color: #166534; margin-bottom: 4px;">
+                <div style="font-size: 14.5px; font-weight: 700; color: var(--green, #166534); margin-bottom: 4px;">
                     Dinyatakan Memenuhi
                 </div>
                 <small style="color: var(--muted); font-size: 12px; display: block;">
@@ -110,10 +110,10 @@
                     Tidak ada ketidaksesuaian saat asesmen
                 </small>
             @else
-                <div style="font-size: 14.5px; font-weight: 700; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : ($assessment->days_remaining_tp <= 14 ? '#b45309' : 'var(--text)') }}; margin-bottom: 4px;">
+                <div style="font-size: 14.5px; font-weight: 700; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : ($assessment->days_remaining_tp <= 14 ? '#b45309' : 'var(--ink)') }}; margin-bottom: 4px;">
                     {{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}
                 </div>
-                <small style="font-size: 12px; font-weight: 600; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : ($assessment->days_remaining_tp <= 14 ? '#b45309' : '#1e40af') }}; display: block;">
+                <small style="font-size: 12px; font-weight: 600; color: {{ $assessment->is_tp_overdue ? '#b91c1c' : ($assessment->days_remaining_tp <= 14 ? '#b45309' : 'var(--maroon, #1e40af)') }}; display: block;">
                     @if($assessment->is_tp_overdue)
                         Melewati batas {{ abs($assessment->days_remaining_tp ?? 0) }} hari (Status Dibekukan)
                     @elseif($assessment->days_remaining_tp <= 14)
@@ -130,24 +130,24 @@
     @if($assessment->sk_number)
         <div class="tp-sk-banner">
             <div class="tp-sk-banner-left">
-                <div style="width: 40px; height: 40px; border-radius: 8px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
+                <div class="icon-wrap-emerald" style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
                     <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
                 <div style="min-width: 0;">
-                    <span style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 2px;">
+                    <span style="font-size: 11px; font-weight: 700; color: var(--green, #15803d); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 2px;">
                         Surat Keputusan (SK) Hasil Asesmen Telah Terbit
                     </span>
-                    <strong style="font-size: 15px; color: #14532d; letter-spacing: 0.01em; word-break: break-word;">{{ $assessment->sk_number }}</strong>
+                    <strong style="font-size: 15px; color: var(--ink); letter-spacing: 0.01em; word-break: break-word;">{{ $assessment->sk_number }}</strong>
                 </div>
             </div>
             @if($assessment->sk_date)
                 <div class="tp-sk-banner-right">
-                    <span style="font-size: 11.5px; color: #15803d; display: block;">Tanggal Penerbitan SK</span>
-                    <strong style="font-size: 14px; color: #14532d;">{{ $assessment->sk_date->format('d M Y') }}</strong>
+                    <span style="font-size: 11.5px; color: var(--muted); display: block;">Tanggal Penerbitan SK</span>
+                    <strong style="font-size: 14px; color: var(--ink);">{{ $assessment->sk_date->format('d M Y') }}</strong>
                     @if($assessment->sk_lead_time_label)
-                        <span style="display: block; font-size: 11.5px; color: #166534; font-weight: 600; margin-top: 3px;" title="Durasi sejak akhir pelaksanaan asesmen hingga tanggal SK">
+                        <span style="display: block; font-size: 11.5px; color: var(--green, #166534); font-weight: 600; margin-top: 3px;" title="Durasi sejak akhir pelaksanaan asesmen hingga tanggal SK">
                             Rentang: {{ $assessment->sk_lead_time_label }}
                         </span>
                     @endif
@@ -161,13 +161,13 @@
         <div style="display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line);">
             @if($assessment->tp_notes)
                 <div>
-                    <strong style="font-size: 13px; color: var(--text); display: block; margin-bottom: 4px;">Catatan Temuan &amp; Tindakan Perbaikan:</strong>
+                    <strong style="font-size: 13px; color: var(--ink); display: block; margin-bottom: 4px;">Catatan Temuan &amp; Tindakan Perbaikan:</strong>
                     <p style="margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; white-space: pre-line;">{{ $assessment->tp_notes }}</p>
                 </div>
             @endif
             @if($assessment->tp_has_extension && $assessment->tp_extension_notes)
                 <div>
-                    <strong style="font-size: 13px; color: var(--text); display: block; margin-bottom: 4px;">Catatan Surat Permohonan Perpanjangan:</strong>
+                    <strong style="font-size: 13px; color: var(--ink); display: block; margin-bottom: 4px;">Catatan Surat Permohonan Perpanjangan:</strong>
                     <p style="margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; white-space: pre-line;">{{ $assessment->tp_extension_notes }}</p>
                 </div>
             @endif

@@ -210,3 +210,58 @@
     color: var(--muted, #64748b);
     margin-top: 24px;
 }
+
+/* Error Pages Dark Mode Overrides */
+html[data-theme="dark"] .standalone-error-page {
+    background: var(--bg);
+}
+
+html[data-theme="dark"] .error-card {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .error-icon-box.forbidden {
+    background: rgba(225, 29, 72, 0.15);
+    color: #fb7185;
+    border-color: rgba(225, 29, 72, 0.3);
+}
+
+html[data-theme="dark"] .error-icon-box.not-found {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .error-icon-box.server-error {
+    background: rgba(234, 88, 12, 0.15);
+    color: #fb923c;
+    border-color: rgba(234, 88, 12, 0.3);
+}
+
+html[data-theme="dark"] .error-icon-box.session-expired {
+    background: rgba(37, 99, 235, 0.15);
+    color: #60a5fa;
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+html[data-theme="dark"] .error-code-badge.forbidden {
+    background: rgba(225, 29, 72, 0.2);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .error-code-badge.not-found {
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .error-code-badge.server-error {
+    background: rgba(234, 88, 12, 0.2);
+    color: #fdba74;
+}
+
+html[data-theme="dark"] .error-code-badge.session-expired {
+    background: rgba(37, 99, 235, 0.2);
+    color: #93c5fd;
+}

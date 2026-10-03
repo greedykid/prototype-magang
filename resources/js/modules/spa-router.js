@@ -332,9 +332,6 @@ const getPageTypeAndTitle = (url) => {
     if (path === '/' || path === '/dashboard') {
         return { type: 'dashboard', title: 'Ringkasan' };
     }
-    if (path.startsWith('/monitoring/backups')) {
-        return { type: 'table', title: 'Riwayat Backup' };
-    }
     if (path.startsWith('/calendar')) {
         if (path.includes('/create') || path.includes('/edit')) {
             return { type: 'form', title: 'Kalender Kegiatan' };

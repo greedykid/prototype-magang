@@ -20,11 +20,11 @@
                                 </span>
                                 <div style="min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="color: #1e293b; font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
+                                        <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="color: var(--ink); font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
                                             {{ $userItem->name }}
                                         </a>
                                         @if(auth()->id() === $userItem->id)
-                                            <span style="font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px;">Akun Anda</span>
+                                            <span class="badge badge-counter" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">Akun Anda</span>
                                         @endif
                                     </div>
                                     <div style="color: var(--muted); font-size: 12px; margin-top: 2px;">{{ $userItem->email }}</div>
@@ -46,12 +46,12 @@
                                 <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="display: inline-flex; flex-direction: column; gap: 3px; text-decoration: none;" title="Lihat rincian {{ $totalLab }} laboratorium yang dikerjakan">
                                     <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                                         @if($leadCount > 0)
-                                            <span style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 9999px;">
+                                            <span class="badge badge-pic-lead">
                                                 {{ $leadCount }} Utama
                                             </span>
                                         @endif
                                         @if($memberCount > 0)
-                                            <span style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 9999px;">
+                                            <span class="badge badge-pic-viewer">
                                                 {{ $memberCount }} Viewer
                                             </span>
                                         @endif
@@ -65,7 +65,7 @@
                                 <span style="color: var(--muted); font-size: 12px;">0 Lab</span>
                             @endif
                         </td>
-                        <td style="color: #475569; font-size: 12.5px;">
+                        <td style="color: var(--muted); font-size: 12.5px;">
                             {{ $userItem->created_at ? $userItem->created_at->translatedFormat('d M Y') : 'Sistem Bawaan' }}
                         </td>
                         <td>
@@ -89,7 +89,7 @@
                                           style="margin: 0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="button secondary" style="padding: 6px 10px; min-height: 32px; color: #b91c1c; border-color: #fecaca;" title="Hapus anggota">
+                                        <button type="submit" class="button secondary btn-action-delete" style="padding: 6px 10px; min-height: 32px;" title="Hapus anggota">
                                             <x-icon name="trash" size="14" />
                                             <span class="sr-only">Hapus</span>
                                         </button>
@@ -113,22 +113,26 @@
     </div>
 @else
     {{-- Empty State --}}
-    <div style="text-align: center; padding: 48px 16px;">
-        <div style="width: 52px; height: 52px; border-radius: 26px; background: #f1f5f9; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-            <x-icon name="users" size="24" />
+    <div class="empty">
+        <div class="empty-icon-wrap" aria-hidden="true">
+            <x-icon name="users" size="22" />
         </div>
-        <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 6px 0;">Tidak ada pengguna ditemukan</h3>
-        <p style="font-size: 13px; color: var(--muted); margin: 0 0 16px 0;">
-            @if($search || $role)
-                Tidak ada pengguna yang cocok dengan kriteria filter pencarian Anda.
-            @else
-                Belum ada data pengguna yang terdaftar di sistem.
-            @endif
+        <strong class="empty-title">
+            {{ $search || $role ? 'Tidak Ada Pengguna yang Cocok' : 'Belum Ada Pengguna' }}
+        </strong>
+        <p class="empty-desc">
+            {{ $search || $role ? 'Tidak ada pengguna yang cocok dengan kriteria filter pencarian Anda.' : 'Belum ada data pengguna yang terdaftar di sistem.' }}
         </p>
         @if($search || $role)
-            <a href="{{ route('users.index') }}" class="button secondary" data-role="reset-filter">Reset Filter</a>
+            <a href="{{ route('users.index') }}" class="button secondary empty-action" data-role="reset-filter">
+                <x-icon name="x" size="14" />
+                <span>Reset filter</span>
+            </a>
         @else
-            <a href="{{ route('users.create') }}" class="button primary">Tambah Pengguna Pertama</a>
+            <a href="{{ route('users.create') }}" class="button primary empty-action">
+                <x-icon name="plus" size="14" />
+                <span>Tambah Pengguna Pertama</span>
+            </a>
         @endif
     </div>
 @endif

@@ -1,25 +1,59 @@
-.button { align-items: center; border: 1px solid transparent; border-radius: 8px; cursor: pointer; display: inline-flex; font: 500 14px 'Instrument Sans', sans-serif; gap: 8px; justify-content: center; min-height: 44px; padding: 10px 18px; text-decoration: none; transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--ease-out-expo); }
+.button {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
+    gap: 8px;
+    justify-content: center;
+    line-height: var(--leading-none);
+    min-height: 44px;
+    padding: 10px 18px;
+    text-decoration: none;
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--ease-out-expo);
+}
 .button svg { flex-shrink: 0; }
 .button.primary { background: var(--maroon); color: white; }.button.primary:hover { background: var(--maroon-dark); color: white; box-shadow: 0 4px 14px rgba(86, 69, 212, 0.28); }
-.button.secondary { background: #fff; border-color: #c8c4be; color: var(--ink); }.button.secondary:hover { background: #fff; border-color: #b0aba3; box-shadow: 0 2px 8px rgba(26, 26, 26, 0.07); }
-.button.ghost { background: transparent; border-color: var(--line); color: var(--ink); }.button.ghost:hover { background: var(--surface); border-color: #c8c4be; }
+.button.secondary { background: var(--surface, #fff); border-color: var(--line, #c8c4be); color: var(--ink); }.button.secondary:hover { background: var(--surface-hover, #fff); border-color: var(--line); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); }
+.button.ghost { background: transparent; border-color: var(--line); color: var(--ink); }.button.ghost:hover { background: var(--surface-hover); border-color: var(--line); }
+.button.button-drive { background: var(--drive-btn-bg, #eff6ff); border-color: var(--drive-btn-border, #bfdbfe); color: var(--drive-btn-text, #1e40af); }.button.button-drive:hover { background: #dbeafe; border-color: #93c5fd; color: #1e3a8a; }
 
-/* Compact button modifier with mobile tap target (44px) adaptation */
+/* Compact button modifiers with mobile tap target (44px) adaptation */
 .button.button-sm,
 .button-sm {
-    font-size: 12.5px;
-    font-weight: 500;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
     min-height: 34px;
     padding: 6px 12px;
     gap: 6px;
 }
 
-@media (max-width: 640px) {
+.button.button-xs,
+.button-xs {
+    font-size: var(--text-xs);
+    font-weight: var(--font-medium);
+    min-height: 28px;
+    padding: 4px 10px;
+    gap: 5px;
+}
+
+@media (max-width: 640px), (pointer: coarse) {
     .button.button-sm,
     .button-sm {
         font-size: 13px;
         min-height: 44px;
         padding: 8px 14px;
+    }
+
+    .button.button-xs,
+    .button-xs {
+        font-size: 13px;
+        min-height: 44px;
+        padding: 8px 14px;
+        gap: 6px;
     }
 }
 
@@ -178,4 +212,27 @@ button.is-loading > svg:not(.btn-spinner svg),
     transform-origin: 50% 50%;
 }
 
-/* ==========================================================================
+/* Action Delete Outline Button */
+.button.btn-action-delete {
+    background: var(--surface, #ffffff);
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.button.btn-action-delete:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
+html[data-theme="dark"] .button.btn-action-delete {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #f87171;
+}
+
+html[data-theme="dark"] .button.btn-action-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #fca5a5;
+}

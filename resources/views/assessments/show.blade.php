@@ -18,7 +18,7 @@
             <div class="lpk-header-title-group">
                 <h1>{{ $assessment->display_title }}</h1>
                 <div class="lpk-header-badges">
-                    <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: #0f172a;" title="Buka detail LPK">
+                    <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: var(--ink);" title="Buka detail LPK">
                         {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
                     </a>
                     <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
@@ -53,29 +53,29 @@
 
     {{-- Banner Notifikasi Status Pembekuan / Pencabutan --}}
     @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-        <div class="lpk-alert-callout" style="background: #fef2f2; border-color: #fca5a5;">
+        <div class="lpk-alert-callout">
             <div class="lpk-alert-callout-content">
-                <div class="lpk-alert-callout-head" style="color: #991b1b;">
+                <div class="lpk-alert-callout-head">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                     <strong>Perhatian: Status Akreditasi Dicabut</strong>
                 </div>
-                <p class="lpk-alert-callout-desc" style="color: #b91c1c;">
+                <p class="lpk-alert-callout-desc">
                     Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>) tanpa penyelesaian.
                 </p>
             </div>
         </div>
     @elseif($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue || $assessment->is_submission_overdue)
-        <div class="lpk-alert-callout" style="background: #faf5ff; border-color: #d8b4fe;">
+        <div class="lpk-alert-callout is-suspended">
             <div class="lpk-alert-callout-content">
-                <div class="lpk-alert-callout-head" style="color: #581c87;">
+                <div class="lpk-alert-callout-head">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <strong>Perhatian: Status Asesmen / Akreditasi Dibekukan</strong>
                 </div>
-                <p class="lpk-alert-callout-desc" style="color: #6b21a8;">
+                <p class="lpk-alert-callout-desc">
                     @if($assessment->is_submission_overdue)
                         Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->format('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
                     @else
@@ -93,7 +93,7 @@
             {{-- KARTU 1: Detail Pelaksanaan Asesmen --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header">
-                    <div class="lpk-card-icon-wrap" style="background: #eff6ff; color: #1d4ed8;">
+                    <div class="lpk-card-icon-wrap icon-wrap-blue">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
                             <line x1="16" y1="2" x2="16" y2="6"/>
@@ -164,11 +164,11 @@
                                 <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
                                 <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(masa pengisian bulan {{ str_contains(strtolower($assessment->assessment_type ?: ''), 's2') || str_contains(strtolower($assessment->title ?: ''), 's2') ? '36-39' : '15-18' }} siklus KAN)</span>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                                    <div style="margin-top: 4px; font-size: 12px; color: #991b1b; font-weight: 600;">
+                                    <div style="margin-top: 4px; font-size: 12px; color: var(--danger-text, #ef4444); font-weight: 600;">
                                         &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
                                     </div>
                                 @elseif($assessment->is_submission_overdue || $assessment->status === 'SUSPENDED')
-                                    <div style="margin-top: 4px; font-size: 12px; color: #6b21a8; font-weight: 600;">
+                                    <div style="margin-top: 4px; font-size: 12px; color: var(--terracotta, #c084fc); font-weight: 600;">
                                         &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->format('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
                                     </div>
                                 @endif
@@ -181,7 +181,7 @@
             {{-- KARTU 2: Laporan Asesmen, Evaluasi Hasil Asesmen (EHA) & SK KAN --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header">
-                    <div class="lpk-card-icon-wrap" style="background: #fdf2f8; color: #be185d;">
+                    <div class="lpk-card-icon-wrap icon-wrap-rose">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -232,7 +232,7 @@
                             @if($assessment->sk_number || $assessment->sk_date)
                                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
                                     @if($assessment->sk_number)
-                                        <strong style="color: #15803d; font-size: 14px;">{{ $assessment->sk_number }}</strong>
+                                        <strong style="color: var(--green); font-size: 14px;">{{ $assessment->sk_number }}</strong>
                                     @endif
                                     @if($assessment->sk_date)
                                         <span style="color: var(--muted); font-size: 12.5px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
@@ -254,7 +254,7 @@
             {{-- KARTU 3: Catatan Pelaksanaan --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header">
-                    <div class="lpk-card-icon-wrap" style="background: #f8fafc; color: #475569;">
+                    <div class="lpk-card-icon-wrap icon-wrap-slate">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                         </svg>
@@ -265,7 +265,7 @@
                     </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #334155; line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
+                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
             </div>
         </div>
 

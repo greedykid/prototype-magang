@@ -60,7 +60,7 @@
 }
 
 .skeleton-metric-card {
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
     display: flex;
@@ -148,4 +148,20 @@
         align-items: flex-start;
         gap: 16px;
     }
+}
+
+/* Skeleton Loading Dark Mode Overrides */
+html[data-theme="dark"] .skeleton-box {
+    background: #1e293b;
+}
+
+html[data-theme="dark"] .skeleton-box::after {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.05) 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 70%,
+        rgba(255, 255, 255, 0) 100%
+    );
 }

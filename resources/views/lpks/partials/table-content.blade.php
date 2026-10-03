@@ -52,7 +52,7 @@
                             <div class="lpk-status-wrap">
                                 <x-status :value="$lpk->dynamic_status" />
                                 @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
-                                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9999px;" title="Anda terhubung sebagai Viewer (Hanya Lihat)">
+                                    <span class="badge badge-viewer" title="Anda terhubung sebagai Viewer (Hanya Lihat)">
                                         Viewer
                                     </span>
                                 @endif
@@ -114,7 +114,10 @@
                                     } elseif ($lpk->isInGracePeriod() || str_contains($ketLower, 'masa tenggang') || str_contains($ketLower, 'toleransi')) {
                                         $theme = 'amber';
                                         $catLabel = 'Toleransi 6 Bln';
-                                    } elseif (str_contains($ketLower, 'jatuh tempo') || str_contains($ketLower, 'terlampaui') || str_contains($ketLower, 'lewat jadwal') || str_contains($ketLower, 'kedaluwarsa')) {
+                                    } elseif (str_contains($ketLower, 'dibekukan')) {
+                                        $theme = 'blue';
+                                        $catLabel = 'Dibekukan';
+                                    } elseif (str_contains($ketLower, 'jatuh tempo') || str_contains($ketLower, 'terlampaui') || str_contains($ketLower, 'lewat jadwal') || str_contains($ketLower, 'kedaluwarsa') || str_contains($ketLower, 'dicabut')) {
                                         $theme = 'rose';
                                         $catLabel = 'Jatuh Tempo';
                                     } elseif (str_contains($ketLower, 'segera berakhir') || str_contains($ketLower, 'reminder') || str_contains($ketLower, 'mendekati kedaluwarsa') || str_contains($ketLower, 'masa berlaku berakhir')) {
@@ -123,9 +126,6 @@
                                     } elseif (str_contains($ketLower, 'batas tp') || str_contains($ketLower, 'penyusunan tp') || str_contains($ketLower, 'verifikasi tp') || str_contains($ketLower, 'perpanjangan tp')) {
                                         $theme = 'cyan';
                                         $catLabel = 'Batas TP';
-                                    } elseif (str_contains($ketLower, 'dibekukan')) {
-                                        $theme = 'rose';
-                                        $catLabel = 'Jatuh Tempo';
                                     } else {
                                         $theme = 'emerald';
                                         $catLabel = 'Pelaksanaan';
@@ -176,11 +176,25 @@
     {{ $lpks->links() }}
 @else
     <div class="empty">
-        {{ $search || $status || $surveillance || $expiry ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
+        <div class="empty-icon-wrap" aria-hidden="true">
+            <x-icon name="search" size="22" />
+        </div>
+        <strong class="empty-title">
+            {{ $search || $status || $surveillance || $expiry ? 'Tidak Ada LPK yang Cocok' : 'Belum Ada Data LPK' }}
+        </strong>
+        <p class="empty-desc">
+            {{ $search || $status || $surveillance || $expiry ? 'Tidak ada LPK yang cocok dengan filter.' : 'Belum ada data LPK.' }}
+        </p>
         @if($search || $status || $surveillance || $expiry)
-            <button type="button" class="button ghost empty-action" id="empty-reset-filter-btn" data-role="reset-filter">Reset filter</button>
+            <button type="button" class="button secondary empty-action" id="empty-reset-filter-btn" data-role="reset-filter">
+                <x-icon name="x" size="14" />
+                <span>Reset filter</span>
+            </button>
         @elseif(auth()->user()?->isAdmin())
-            <a href="{{ route('lpks.create') }}">Tambah LPK pertama</a>.
+            <a href="{{ route('lpks.create') }}" class="button primary empty-action">
+                <x-icon name="plus" size="14" />
+                <span>Tambah LPK pertama</span>
+            </a>
         @endif
     </div>
 @endif

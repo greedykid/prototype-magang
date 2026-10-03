@@ -155,7 +155,7 @@ docker exec prototype-magang-laravel vendor/bin/pint --format agent
 ## 📂 Struktur Penting Proyek
 
 * `app/Http/Controllers`: Kontroler logika sistem (LpkController, AssessmentController, CalendarEventController, LpkImportController, AssessmentImportController, GoogleSheetsReportController, dll.).
-* `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, AccreditationSignature, CalendarEvent, User, Backup).
+* `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, AccreditationSignature, CalendarEvent, User).
 * `database/migrations`: Skema migrasi tabel basis data relasional.
 * `database/seeders`: Pembangkitan data awal master LPK, akun 4 peran, asesmen historis terealisasi, dan agenda kalender.
 * `docs/`: Dokumentasi perancangan sistem dan arsitektur perangkat lunak lengkap (SDLC bagian 1 sampai 5).

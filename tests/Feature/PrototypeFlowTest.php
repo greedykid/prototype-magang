@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Accreditation;
 use App\Models\Assessment;
-use App\Models\Backup;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +29,9 @@ class PrototypeFlowTest extends TestCase
         $this->get('/dashboard')->assertOk()
             ->assertSee('Selamat datang')
             ->assertSee('Asesmen Terdekat')
-            ->assertSee('Tidak Ada Tindakan Mendesak', false);
+            ->assertSee('Tidak Ada Tindakan Mendesak', false)
+            ->assertSee('id="theme-toggle-btn"', false)
+            ->assertSee('simasadi_theme', false);
     }
 
     public function test_user_can_create_lpk(): void
@@ -53,14 +54,11 @@ class PrototypeFlowTest extends TestCase
         $otherLpk = Lpk::factory()->create(['name' => 'LPK Filter Lain', 'status' => 'INACTIVE']);
         $assessment = Assessment::factory()->create(['lpk_id' => $matchingLpk->id, 'title' => 'Agenda Filter Cocok', 'status' => 'COMPLETED', 'start_at' => '2026-09-20 09:00', 'end_at' => '2026-09-20 12:00']);
         Assessment::factory()->create(['lpk_id' => $otherLpk->id, 'title' => 'Agenda Filter Lain', 'status' => 'PLANNED']);
-        $backup = Backup::factory()->create(['status' => 'FAILED', 'finished_at' => '2026-09-20 12:00', 'size' => 'FILTER-FAILED', 'recorded_by' => $user->id]);
-        Backup::factory()->create(['status' => 'SUCCESS', 'finished_at' => '2026-08-20 12:00', 'size' => 'FILTER-SUCCESS', 'recorded_by' => $user->id]);
         $accreditation = Accreditation::factory()->create(['lpk_id' => $matchingLpk->id, 'status' => 'COMPLETED', 'start_date' => '2026-09-20', 'target_date' => '2026-09-30']);
         Accreditation::factory()->create(['lpk_id' => $otherLpk->id, 'status' => 'NOT_STARTED']);
 
         $this->actingAs($user)->get('/lpks?status=ACTIVE')->assertOk()->assertSee($matchingLpk->name);
         $this->actingAs($user)->get('/assessments?lpk_id='.$matchingLpk->id.'&status=COMPLETED&start_from=2026-09-20')->assertOk()->assertSee($assessment->title);
-        $this->actingAs($user)->get('/monitoring/backups?status=FAILED&finished_from=2026-09-20')->assertOk()->assertSee($backup->size)->assertDontSee('FILTER-SUCCESS');
         $this->actingAs($user)->get('/accreditations?lpk_id='.$matchingLpk->id.'&status=COMPLETED&target_to=2026-09-30')->assertOk()->assertSee($matchingLpk->name);
     }
 
@@ -293,7 +291,9 @@ class PrototypeFlowTest extends TestCase
         $dashboardRes->assertOk()
             ->assertSee('Peringatan Siklus Pengawasan Akreditasi')
             ->assertSee('Peringatan Jatuh Tempo Siklus Pengawasan KAN')
-            ->assertSee('Lab Banner Test');
+            ->assertSee('Lab Banner Test')
+            ->assertDontSee('data-dismiss-surveillance')
+            ->assertDontSee('Notifikasi dapat disembunyikan sementara');
 
         // Halaman show memuat Siklus Pengawasan
         $showRes = $this->actingAs($user)->get(route('lpks.show', $lpk));
