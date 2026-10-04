@@ -72,14 +72,12 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 
 ## 👥 Profil Pengguna & Hak Akses (Role-Based Access Control)
 
-Sistem mengimplementasikan pemisahan hak akses berbasis 4 peran nyata:
+Sistem mengimplementasikan pemisahan hak akses berbasis 2 peran operasional nyata:
 
 | Peran (*Role*) | Akun Login | Deskripsi Hak Akses Utama | Batasan Keamanan |
 |---|---|---|---|
-| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; manajemen akun pengguna; ekspor live feeds. | Tanpa batasan akses dalam sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Monitoring operasional LPK kelolaan: melihat direktori LPK binaan, memantau tenggat waktu surveilen dan toleransi pengisian, pelacakan progres TP, input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data massal, dilarang mengakses LPK di luar tanggung jawabnya, dan dilarang mengelola user. |
-| **Asesor KAN** (`assessor`) | `assessor@simasadi.local` | Portal Asesor (`/assessor`): Melihat jadwal penugasan asesmen lapangan, profil LPK binaan yang diases, evaluasi teknis, dan verifikasi pemenuhan tindakan perbaikan. | Terbatas hanya pada asesmen di mana dirinya ditugaskan. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Pemantauan Mandiri LPK: Memantau masa aktif sertifikat, hitung mundur batas surveilen, dan SLA tindakan perbaikan. | Terbatas hanya pada data entitas lembaganya sendiri. |
+| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; rilis SK; pembatasan tunggal 1 akun Ketua Tim; manajemen akun pengguna; ekspor live feeds. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
+| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Monitoring operasional LPK kelolaan: melihat direktori LPK binaan (dan LPK tertaut sebagai viewer), memantau tenggat waktu surveilen dan toleransi pengisian, pelacakan progres TP, input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data massal, dilarang mengakses LPK di luar tanggung jawabnya tanpa tautan viewer, dan dilarang mengelola user. |
 
 *(Kata sandi bawaan untuk seluruh akun pengujian:* `password`*)*
 
@@ -170,7 +168,7 @@ docker exec prototype-magang-laravel vendor/bin/pint --format agent
 * `app/Http/Controllers`: Kontroler logika sistem (LpkController, AssessmentController, CalendarEventController, LpkImportController, AssessmentImportController, UserAccountLinkController, GoogleSheetsReportController, dll.).
 * `app/Models`: Model Eloquent relasional (Lpk, Assessment, Accreditation, CalendarEvent, User, LpkMember, UserAccountLink).
 * `database/migrations`: Skema migrasi tabel basis data relasional (users, lpks, assessments, accreditations, calendar_events, lpk_members, user_account_links).
-* `database/seeders`: Pembangkitan data awal master LPK, akun 4 peran, asesmen historis terealisasi, dan agenda kalender.
+* `database/seeders`: Pembangkitan data awal master LPK, akun 2 peran resmi (Ketua Tim & PIC), asesmen historis terealisasi, dan agenda kalender.
 * `docs/`: Dokumentasi perancangan sistem dan arsitektur perangkat lunak lengkap (SDLC bagian 1 sampai 5).
 * `resources/css`: Sistem desain antarmuka, variabel token warna tema terang & gelap, tata letak grid, dan responsivitas mobile.
 * `resources/js`: Logika interaktif antarmuka, modul theme switcher (`modules/theme.js`), sinkronisasi toggle mobile, filter drawer, dan modul kalender.

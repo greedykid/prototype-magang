@@ -31,7 +31,7 @@ Proses pengembangan sistem SIMASADI dilaksanakan dalam 7 fase terstruktur:
 |---|---|---|---|
 | **Fase 1: Inisiasi & Analisis Kebutuhan KAN** | Minggu 1 | Pengumpulan regulasi akreditasi KAN (KAN U-01), perumusan kebutuhan fungsional 8 tipe asesmen, serta penetapan batasan prototype operasional. | Selesai |
 | **Fase 2: Perancangan Arsitektur Basis Data** | Minggu 2 | Perancangan skema relasional terpadu (LPK, Asesmen, Akreditasi, dan Kalender Event), pembersihan tabel usang, serta penyiapan baseline seeder data. | Selesai |
-| **Fase 3: Implementasi Modul Inti & 8 Tipe Asesmen** | Minggu 3 | Implementasi Model Eloquent dan Controller untuk pengelolaan master LPK, penjadwalan 8 tipe asesmen KAN, kalender kegiatan interaktif 5 tipe event, dan navigasi multi-peran. | Selesai |
+| **Fase 3: Implementasi Modul Inti & 8 Tipe Asesmen** | Minggu 3 | Implementasi Model Eloquent dan Controller untuk pengelolaan master LPK, penjadwalan 8 tipe asesmen KAN, kalender kegiatan interaktif 5 tipe event, dan navigasi dua peran (Ketua Tim & PIC Laboratorium). | Selesai |
 | **Fase 4: Penegakan Toleransi Surveilen & Batas Waktu Tindakan Perbaikan** | Minggu 4 | Pembangunan mesin status dinamis: toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan dengan tanggal fleksibel tersimpan), pembekuan otomatis (SUSPENDED) dengan jendela 1 tahun, pencabutan otomatis (REVOKED), auto-realisasi data lampau LPK aktif, serta aturan perpanjangan batas waktu TP maksimal 1 bulan bersurat resmi. | Selesai |
 | **Fase 5: Evaluasi Hasil Asesmen & Penetapan SK** | Minggu 5 | Integrasi alur evaluasi hasil asesmen (EHA), pencatatan nomor SK, lead time terbit SK, dan Quality Gate kesiapan rilis dokumen. | Selesai |
 | **Fase 6: Impor Massal & Live Feed Google Sheets** | Minggu 6 | Implementasi smart importer (CSV/XLSX/Google Sheets) untuk LPK dan Asesmen, penyediaan live feed CSV terotentikasi, serta formulasi integrasi spreadsheet. | Selesai |
@@ -47,7 +47,7 @@ Proses pengembangan sistem SIMASADI dilaksanakan dalam 7 fase terstruktur:
 * **Frontend Efisien & Nir-Overhead:** Menggunakan Vanilla CSS modern dengan Design Tokens dan Vanilla JS modular yang dikompilasi oleh Vite, menghasilkan bundle aset yang sangat ringan (< 150 kB) dan waktu muat instan tanpa ketergantungan framework JavaScript klien yang masif.
 
 #### 2.3.2 Kelayakan Operasional (*Operational Feasibility*)
-* **Pemisahan Peran Tegas (RBAC 4 Peran):** Hak akses dikelompokkan secara proporsional sesuai tugas operasional nyata di instansi: Admin Unit Lab, PIC Unit Teknis, Asesor KAN, dan LPK pemegang akreditasi.
+* **Pemisahan Peran Tegas (RBAC 2 Peran):** Hak akses dikelompokkan secara proporsional sesuai tugas operasional nyata di instansi: Ketua Tim (Administrator Unit Akreditasi) dengan otoritas menyeluruh dan PIC Laboratorium dengan lingkup kerja LPK binaan.
 * **Otomasi Status Tanpa Beban Input Manual:** Status tindakan perbaikan (TP) dan status pengawasan LPK dihitung secara otomatis oleh sistem, mencegah inkonsistensi data akibat kelalaian pembaruan manual oleh operator.
 * **Dukungan Lintas Perangkat:** Antarmuka responsif penuh dari layar monitor desktop kerja kantor, tablet verifikator, hingga smartphone staf di lapangan.
 

@@ -30,7 +30,7 @@ prototype-magang/
 │   └── Models/                   # Model Eloquent (Lpk, Assessment, Accreditation, User, dll.)
 ├── database/
 │   ├── migrations/               # File migrasi skema tabel relasional
-│   ├── seeders/                  # Seeder akun 4 peran, data master LPK, dan riwayat asesmen
+│   ├── seeders/                  # Seeder akun 2 peran resmi (Ketua Tim & PIC), data master LPK, dan riwayat asesmen
 │   └── database.sqlite           # File basis data lokal
 ├── docs/                         # Seluruh dokumentasi perancangan SDLC komprehensif (.md)
 │   ├── adr/                      # Catatan keputusan arsitektur (Architecture Decision Records)
@@ -83,7 +83,7 @@ prototype-magang/
 ### 5.2 Pengujian Sistem (Testing)
 
 #### 5.2.1 Strategi Pengujian
-Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasis PHPUnit & Database Refresh) untuk memverifikasi fungsionalitas backend, aturan regulasi KAN, dan RBAC 4 peran, serta **Manual Cross-Device Testing** untuk menguji ketepatan interaksi visual dan antarmuka.
+Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasis PHPUnit & Database Refresh) untuk memverifikasi fungsionalitas backend, aturan regulasi KAN, dan RBAC 2 peran (Ketua Tim & PIC), serta **Manual Cross-Device Testing** untuk menguji ketepatan interaksi visual dan antarmuka.
 
 #### 5.2.2 Matriks Kasus Uji Otomatis (PHPUnit Feature Tests)
 

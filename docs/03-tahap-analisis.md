@@ -14,9 +14,9 @@ Analisis masalah operasional pengelolaan akreditasi LPK dilakukan menggunakan me
 | **Performance (Kinerja)** | Informasi progres akreditasi, status surveilen, dan batas SLA tindakan perbaikan memerlukan waktu lama untuk direkap manual dari berbagai file terpisah. | Dashboard eksekutif menyajikan KPI instan, indikator pengawasan aktif, dan notifikasi persisten prioritas tinggi dengan waktu muat di bawah 200 ms. |
 | **Information (Informasi)** | Status akreditasi sering kali statis dan tidak mencerminkan keterlambatan surveilen atau pelanggaran batas waktu tindakan perbaikan secara real-time. | Mesin status dinamis menghitung kepatuhan secara otomatis: toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan), pembekuan bertahap dengan countdown 1 tahun, hingga pencabutan akreditasi. |
 | **Economics (Biaya & Waktu)** | Waktu staf habis untuk koordinasi manual, pengecekan surat permohonan perpanjangan waktu, serta pemantauan siklus surveilen secara parsial. | Efisiensi administrasi meningkat melalui validasi sistem otomatis terhadap syarat perpanjangan SLA, peringatan dini batas pengisian, dan otomasi alur EHA. |
-| **Control & Security (Kontrol & Keamanan)** | Pembatasan hak akses belum terstandarisasi, risiko kelalaian verifikasi, dan kerentanan modifikasi data LPK lintas unit. | Role-Based Access Control 4 peran (*Admin, PIC, Assessor, LPK*), pemisahan portal mandiri, serta Quality Gate pelepasan SK yang terkunci sebelum syarat terpenuhi. |
+| **Control & Security (Kontrol & Keamanan)** | Pembatasan hak akses belum terstandarisasi, risiko kelalaian verifikasi, dan kerentanan modifikasi data LPK lintas unit. | Role-Based Access Control 2 peran (*Ketua Tim dan PIC Laboratorium*), pembatasan tunggal 1 akun Ketua Tim, serta Quality Gate pelepasan SK yang terkunci sebelum syarat terpenuhi. |
 | **Efficiency (Efisiensi)** | Penjadwalan asesmen, pemantauan pengingat SK, dan pelaporan spreadsheet dilakukan secara manual dan terfragmentasi. | Kalender interaktif 5 tipe event terintegrasi, impor massal (CSV/XLSX), serta live feed CSV otomatis untuk Google Sheets (`=IMPORTDATA`). |
-| **Service (Layanan)** | Pengguna internal dan LPK kesulitan memantau kemajuan tindak lanjut asesmen dan status akreditasi secara transparan. | Portal asesor (`/assessor`) dan antarmuka pemantauan status menyajikan kepatuhan akreditasi secara real-time. |
+| **Service (Layanan)** | Pengguna internal kesulitan memantau kemajuan tindak lanjut asesmen dan status akreditasi secara transparan. | Antarmuka pemantauan status dinamis dan kalender interaktif menyajikan kepatuhan akreditasi secara real-time bagi Ketua Tim dan PIC. |
 
 #### 3.1.2 Fishbone Diagram (Analisis Sebab-Akibat Masalah)
 
@@ -24,7 +24,7 @@ Analisis masalah operasional pengelolaan akreditasi LPK dilakukan menggunakan me
 graph LR
     subgraph Manusia ["Faktor Manusia"]
         M1["Koordinasi manual perpanjangan waktu"]
-        M2["Kurang keterbukaan status bagi LPK & Asesor"]
+        M2["Kurang visibilitas status pengawasan lintas PIC"]
     end
     subgraph Metode ["Faktor Regulasi & Metode"]
         T1["Penegakan SLA TP KAN belum otomatis"]
@@ -53,18 +53,18 @@ Setiap kebutuhan fungsional diberi kode unik (`REQ-F-XX`) untuk menjamin keterla
 
 | Kode Kebutuhan | Kategori Modul | Deskripsi Kebutuhan Fungsional | Aktor Terkait |
 |---|---|---|---|
-| **REQ-F-01** | Autentikasi & RBAC | Sistem harus menyediakan halaman login dan memvalidasi kredensial pengguna internal berdasarkan 4 peran nyata: `admin`, `pic`, `assessor`, dan `lpk`. | Semua Pengguna |
+| **REQ-F-01** | Autentikasi & RBAC | Sistem harus menyediakan halaman login dan memvalidasi kredensial pengguna internal berdasarkan 2 peran nyata: Ketua Tim (`admin`) dan PIC Laboratorium (`pic`), dengan pembatasan tunggal 1 akun Ketua Tim. | Semua Pengguna |
 | **REQ-F-02** | Autentikasi & RBAC | Sistem harus membatasi akses antarmuka dan endpoint mutasi data sesuai batasan peran (*role middleware*). | Tamu & Pengguna Terdaftar |
 | **REQ-F-03** | Profil Pengguna | Sistem harus menyediakan halaman profil pengguna untuk mengubah nama, email, dan kata sandi dengan verifikasi kata sandi lama. | Semua Pengguna |
 | **REQ-F-04** | Dashboard Eksekutif | Sistem harus menyajikan ringkasan KPI utama: total LPK, akreditasi aktif, pengawasan jatuh tempo, dan tindakan perbaikan mendesak. | Semua Pengguna |
-| **REQ-F-05** | Dashboard Eksekutif | Sistem harus menampilkan Persistent Alert Banner prioritas tinggi di urutan teratas yang tidak dapat ditutup sampai jadwal ditindaklanjuti. | Admin & PIC |
-| **REQ-F-06** | Dashboard Eksekutif | Sistem harus menampilkan widget tabel cepat LPK jatuh tempo dan asesmen yang membutuhkan tindakan segera. | Admin & PIC |
-| **REQ-F-07** | Data Master LPK | Sistem harus mengelola nomor registrasi resmi KAN (`no_reg`), nama LPK, skema akreditasi KAN (`kan_schema`), alamat, email, telepon, dan penugasan PIC. | Admin Unit Lab |
-| **REQ-F-08** | Data Master LPK | Sistem harus mengotomasi tanggal kedaluwarsa sertifikat (+5 tahun dari tanggal terbit jika dikosongkan) dan tautan berkas Google Drive terpadu. | Admin Unit Lab |
+| **REQ-F-05** | Dashboard Eksekutif | Sistem harus menampilkan Persistent Alert Banner prioritas tinggi di urutan teratas yang tidak dapat ditutup sampai jadwal ditindaklanjuti. | Ketua Tim & PIC |
+| **REQ-F-06** | Dashboard Eksekutif | Sistem harus menampilkan widget tabel cepat LPK jatuh tempo dan asesmen yang membutuhkan tindakan segera. | Ketua Tim & PIC |
+| **REQ-F-07** | Data Master LPK | Sistem harus mengelola nomor registrasi resmi KAN (`no_reg`), nama LPK, skema akreditasi KAN (`kan_schema`), alamat, email, telepon, dan penugasan PIC. | Ketua Tim |
+| **REQ-F-08** | Data Master LPK | Sistem harus mengotomasi tanggal kedaluwarsa sertifikat (+5 tahun dari tanggal terbit jika dikosongkan) dan tautan berkas Google Drive terpadu. | Ketua Tim |
 | **REQ-F-09** | Status Akreditasi Dinamis | Sistem harus menghitung status LPK secara dinamis di memori: `ACTIVE`, `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, `SUSPENDED`, `REVOKED`, `EXPIRED`, `INACTIVE`. | Semua Pengguna |
 | **REQ-F-10** | Keterangan Operasional | Sistem harus memformat keterangan operasional otomatis (`dynamic_keterangan`) langsung pada isi kegiatan utama dalam teks tebal tanpa imbuhan teks awalan yang redundan. | Semua Pengguna |
-| **REQ-F-11** | 8 Tipe Asesmen KAN | Sistem harus mendukung pengelolaan 8 tipe proses asesmen resmi KAN (Akreditasi Awal, S1, S1 + PRL, S2, S2 + PRL, STT, PRL, dan Re-Akreditasi). | Admin & PIC |
-| **REQ-F-12** | Validasi Tanggal Asesmen | Sistem harus memvalidasi agar tanggal/jam selesai asesmen tidak boleh lebih lampau daripada tanggal/jam mulai. | Admin & Asesor |
+| **REQ-F-11** | 8 Tipe Asesmen KAN | Sistem harus mendukung pengelolaan 8 tipe proses asesmen resmi KAN (Akreditasi Awal, S1, S1 + PRL, S2, S2 + PRL, STT, PRL, dan Re-Akreditasi). | Ketua Tim & PIC |
+| **REQ-F-12** | Validasi Tanggal Asesmen | Sistem harus memvalidasi agar tanggal/jam selesai asesmen tidak boleh lebih lampau daripada tanggal/jam mulai. | Ketua Tim & PIC |
 | **REQ-F-13** | Toleransi Pengisian Surveilen | Sistem harus menetapkan batas toleransi pengisian dokumen asesmen surveilen maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan, tersimpan pada kolom `submission_due_date` yang fleksibel dapat diedit. | Semua Pengguna |
 | **REQ-F-14** | Pembekuan & Pencabutan Bertahap | Sistem harus mengubah status asesmen dan LPK menjadi DIBEKUKAN (`SUSPENDED`, badge ungu) jika melewati toleransi, memberikan kesempatan penyelesaian 1 tahun, dan mencabut akreditasi (`REVOKED`) bila 1 tahun terlewati tanpa penyelesaian. | Semua Pengguna |
 | **REQ-F-15** | Auto-Realisasi LPK Aktif | Sistem harus menganggap seluruh asesmen surveilen dan TP tahun-tahun sebelumnya (`end_at < now()->startOfYear()`) dari LPK aktif otomatis terealisasi (`COMPLETED` dan `SATISFIED`). | Semua Pengguna |

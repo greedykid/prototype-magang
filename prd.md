@@ -27,14 +27,12 @@ Dokumen ini berfungsi sebagai spesifikasi kebutuhan produk komprehensif yang mer
 
 ## 2. Profil Pengguna & Hak Akses (Role-Based Access Control)
 
-Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **4 peran (*roles*) nyata**:
+Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **2 peran (*roles*) operasional**:
 
 | Peran (*Role*) | Akun Referensi | Deskripsi Tanggung Jawab | Hak Akses Utama | Batasan Keamanan |
 | :--- | :--- | :--- | :--- | :--- |
-| **Admin Unit Akreditasi Lab** (`admin`) | `admin@simasadi.local` | Penanggung jawab administrasi operasional akreditasi, verifikasi kepatuhan, dan pemeliharaan teknis sistem BSN. | Akses penuh (*Full Control*) ke seluruh modul: Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; dan pemicu simulasi/notifikasi surveilen. | Tanpa batasan hak akses di sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan, mengimpor data master LPK, memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya, dan dilarang mengelola akun pengguna sistem. |
-| **Asesor KAN** (`assessor`) | `assessor@simasadi.local` | Tenaga ahli / asesor kepala (*Lead Assessor*) yang ditugaskan KAN untuk melakukan asesmen lapangan atau audit dokumen. | Akses ke Portal Asesor (`/assessor`): melihat penugasan asesmen lapangan yang sedang dan akan berjalan, meninjau profil LPK yang diases, mengisi evaluasi teknis, serta memantau status pemenuhan tindakan perbaikan dari LPK terkait. | Dibatasi hanya pada data asesmen di mana dirinya ditugaskan sebagai asesor/lead assessor. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | `lpk@simasadi.local` | Entitas laboratorium atau lembaga inspeksi terakreditasi pemegang sertifikat KAN. | Pemantauan Mandiri LPK: memantau status aktif sertifikat akreditasi, memantau hitung mundur batas waktu surveilen, serta memeriksa batas waktu SLA tindakan perbaikan. | Akses terbatas hanya pada data entitas lembaganya sendiri secara transparan (*read-only status & compliance tracking*). |
+| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Penanggung jawab tata kelola sistem, administrasi operasional akreditasi, dan verifikasi kepatuhan. | Akses penuh (*Full Control*): Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; pembatasan tunggal 1 akun Ketua Tim; dan pemicu notifikasi surveilen. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
+| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan (dan LPK tertaut sebagai viewer), memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya tanpa tautan viewer, dan dilarang mengelola akun pengguna sistem. |
 
 ---
 
@@ -330,7 +328,7 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Implementasi Eager Loading (`with(['lpk', 'creator', 'teamMembers'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
 2. **Keamanan & Integritas Data**:
    * Proteksi token CSRF pada seluruh transaksi POST/PUT/DELETE.
-   * Middleware otorisasi peran berbasis hak akses pengguna (`admin`, `pic`, `assessor`, `lpk`).
+   * Middleware otorisasi peran berbasis hak akses pengguna (`admin` dan `pic`).
    * Pencegahan akses lintas data antar PIC pada tingkat kueri basis data.
 3. **Kepatuhan Audit & Standar Regulasi**:
    * Logika tahapan pengawasan dan penegakan SLA mengacu pada pedoman Komite Akreditasi Nasional (KAN U-01).

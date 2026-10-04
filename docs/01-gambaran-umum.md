@@ -18,7 +18,7 @@ Dalam tata kelola pengawasan berkala dan kepatuhan akreditasi, sekretariat KAN, 
 1. **Penegakan Regulasi KAN U-01 yang Kompleks:** Kebutuhan standarisasi alur untuk 8 tipe proses asesmen resmi KAN, penegakan batas waktu Tindakan Perbaikan (TP & VTP), serta penghitungan toleransi pengisian dokumen dan konsekuensi pembekuan status.
 2. **Kebutuhan Monitoring Siklus Hidup Akreditasi Bertahap:** Penentuan status kepatuhan LPK membutuhkan aturan bertingkat yang jelas: masa toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan), masa pembekuan sementara dengan jendela penyelesaian 1 tahun, hingga sanksi pencabutan akreditasi bila kewajiban tidak diselesaikan.
 3. **Akuntabilitas & Validitas Dokumen Sah:** Diperlukan penatausahaan alur evaluasi hasil asesmen (EHA) dan penerbitan Surat Keputusan (SK) akreditasi KAN yang transparan serta terdokumentasi.
-4. **Sentralisasi Data & Integrasi Multi-Peran:** Diperlukan ruang kerja digital yang mampu menghubungkan Administrator Unit Akreditasi, PIC Unit Teknis, Asesor KAN di lapangan, serta perwakilan LPK pemegang sertifikat.
+4. **Sentralisasi Data & Integrasi Dua Peran:** Diperlukan ruang kerja digital yang mampu menghubungkan Ketua Tim (Administrator Unit Akreditasi) dan PIC Laboratorium dalam tata kelola akreditasi dan pemantauan LPK.
 
 SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi seluruh alur bisnis, aturan regulasi, dan antarmuka kerja tersebut secara presisi.
 
@@ -29,14 +29,14 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
 2. **Otomasi Siklus Pengawasan & 8 Proses Asesmen:** Memfasilitasi penjadwalan dan pemantauan 8 proses asesmen resmi KAN (Akreditasi Awal, Surveilen 1, Surveilen 1 + PRL, Surveilen 2, Surveilen 2 + PRL, Surveilen Tidak Terjadwal, Perluasan Ruang Lingkup, dan Re-Akreditasi).
 3. **Penegakan Toleransi Kunjungan & Siklus Pembekuan Bertahap:** Menerapkan mesin status kepatuhan dinamis yang menghitung toleransi pengisian dokumen (maksimal 4 bulan dari bulan ke-15 siklus akreditasi atau tanggal kunjungan, dengan tanggal tersimpan yang fleksibel disesuaikan sesuai kondisi proses), memberikan jendela kesempatan penyelesaian 1 tahun bagi LPK yang berstatus dibekukan (`SUSPENDED`), dan mencabut status akreditasi (`REVOKED`) jika batas 1 tahun terlewati.
 4. **Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):** Menghitung batas waktu awal secara otomatis (3 bulan untuk AA, 2 bulan untuk asesmen lainnya), mengontrol syarat perpanjangan maksimal 1 bulan bersurat resmi hanya bagi LPK yang telah menunjukkan progres perbaikan temuan, serta melarang perpanjangan jika laporan perbaikan nihil/kosong.
-5. **Aksesibilitas Multi-Peran:** Menyediakan ruang kerja mandiri bagi pemantauan LPK dan portal bagi asesor (`/assessor`) untuk transparansi tindak lanjut asesmen.
+5. **Pemisahan Hak Akses Terfokus (RBAC 2 Peran):** Menyediakan ruang kerja terintegrasi dengan batasan wewenang jelas antara Ketua Tim (pengawasan penuh, master data, dan manajemen pengguna) dan PIC Laboratorium (pengelolaan operasional LPK binaan).
 
 ---
 
 ### 1.4 Ruang Lingkup Sistem
 
 #### 1.4.1 Dalam Scope (*In-Scope*)
-* **Manajemen Autentikasi & RBAC 4 Peran:** Pengelolaan hak akses berbasis sesi untuk Admin Unit Akreditasi Lab (`admin`), PIC Laboratorium / Unit Teknis (`pic`), Asesor KAN (`assessor`), dan Perwakilan LPK (`lpk`).
+* **Manajemen Autentikasi & RBAC 2 Peran:** Pengelolaan hak akses berbasis sesi untuk Ketua Tim (`admin`) dan PIC Laboratorium (`pic`), dengan aturan khusus pembatasan tunggal 1 akun Ketua Tim.
 * **Manajemen Master Data LPK:** Pengelolaan nomor registrasi resmi KAN, skema akreditasi, alamat, email, kontak, penugasan PIC, masa berlaku sertifikat (otomasi +5 tahun), dan kalkulasi status dinamis (`ACTIVE`, `SURVEILLANCE_DUE`, `SURVEILLANCE_OVERDUE`, `SUSPENDED`, `REVOKED`, `EXPIRED`, `INACTIVE`).
 * **Keterangan Operasional Otomatis (`dynamic_keterangan`):** Ringkasan operasional ringkas dan tegas dalam format cetak tebal tanpa imbuhan teks awalan yang berulang.
 * **Siklus Hidup 3 Tahap Pengawasan:**
@@ -62,10 +62,8 @@ SIMASADI dibangun untuk menjadi platform operasional terpadu yang memvalidasi se
 
 | Aktor | Peran Utama | Hak Akses & Tanggung Jawab |
 |---|---|---|
-| **Admin Unit Akreditasi Lab** (`admin`) | Penanggung jawab tata kelola sistem & akreditasi | Akses penuh: mengelola direktori master LPK, impor massal data, penjadwalan 8 tipe asesmen KAN, alur EHA, penetapan SK resmi KAN, manajemen akun pengguna, dan konfigurasi sistem. |
-| **PIC Laboratorium / Unit Teknis** (`pic`) | Pendamping operasional teknis LPK | Mengakses LPK binaan, memantau tenggat surveilen dan toleransi pengisian, mencatat kemajuan perbaikan temuan asesmen, dan menginput nomor surat permohonan perpanjangan waktu SLA. |
-| **Asesor KAN** (`assessor`) | Tenaga ahli / Lead Assessor KAN | Mengakses Portal Asesor (`/assessor`): melihat penugasan asesmen lapangan, meninjau profil teknis LPK yang diases, mengisi evaluasi asesmen, dan memantau status pemenuhan tindakan perbaikan. |
-| **Lembaga Penilaian Kesesuaian** (`lpk`) | Pemegang sertifikat akreditasi KAN | Pemantauan Mandiri LPK: memantau status aktif sertifikat, hitung mundur batas toleransi pengisian surveilen, dan memantau pemenuhan SLA tindakan perbaikan. |
+| **Ketua Tim (Admin Unit)** (`admin`) | Penanggung jawab tata kelola sistem & akreditasi unit | Akses penuh (*Full Authority*): mengelola direktori master LPK, impor massal data, seluruh siklus asesmen KAN, alur EHA, penetapan SK resmi KAN, penugasan PIC, pembatasan 1 akun Ketua Tim, dan manajemen pengguna. |
+| **PIC Laboratorium** (`pic`) | Pendamping teknis operasional LPK | Mengakses LPK binaan sendiri (dan LPK tertaut sebagai viewer), memantau tenggat surveilen dan batas toleransi pengisian, mencatat kemajuan perbaikan temuan asesmen, serta menginput nomor surat permohonan perpanjangan SLA. |
 
 ---
 

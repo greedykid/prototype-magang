@@ -5,12 +5,11 @@
 
 ### 4.1 Struktur Navigasi (Sitemap)
 
-Struktur navigasi menggambarkan alur perpindahan antarmuka pengguna dalam mengakses seluruh menu dan fitur pada sistem SIMASADI. Sesuai dengan pembagian hak akses 4 peran nyata, struktur navigasi dibagi menjadi:
-1. **Navigasi Utama Admin & PIC**: Menggambarkan hubungan dari halaman Login, menuju Dashboard utama, hingga ke seluruh menu operasional tingkat satu yang saling terhubung secara horizontal (*bi-directional*).
-2. **Navigasi Khusus Portal Asesor & Portal LPK**: Menggambarkan antarmuka terfokus untuk Asesor Lapangan (`/assessor`) dan perwakilan LPK mandiri (`/portal`).
-3. **Struktur Navigasi Hierarki Sub-Halaman**: Menggambarkan pohon navigasi dari setiap menu utama hingga ke halaman formulir penambahan, pengubahan, import massal, dan halaman detail data.
+Struktur navigasi menggambarkan alur perpindahan antarmuka pengguna dalam mengakses seluruh menu dan fitur pada sistem SIMASADI. Sesuai dengan pembagian hak akses 2 peran nyata (Ketua Tim dan PIC Laboratorium), struktur navigasi dibagi menjadi:
+1. **Navigasi Tingkat Utama Antarmuka**: Menggambarkan hubungan dari halaman Login, menuju Dashboard utama, hingga ke seluruh menu operasional tingkat satu yang saling terhubung secara horizontal (*bi-directional*).
+2. **Struktur Navigasi Hierarki Sub-Halaman**: Menggambarkan pohon navigasi dari setiap menu utama hingga ke halaman formulir penambahan, pengubahan, import massal, dan halaman detail data.
 
-#### 4.1.1 Struktur Navigasi Tingkat Utama (Admin & PIC)
+#### 4.1.1 Struktur Navigasi Tingkat Utama (Ketua Tim & PIC)
 
 ```mermaid
 graph TD
@@ -75,10 +74,8 @@ graph TD
 
     Dash --> ACC_LINKS["Kolaborasi Tim & Tautan Akun (/account-links)"]
 
-    Dash --> PORTAL_ASR["Portal Asesor (/assessor)"]
-
     classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,ACC_LINKS,PORTAL_ASR pageBox;
+    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,ACC_LINKS pageBox;
 ```
 
 <p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
@@ -87,19 +84,15 @@ graph TD
 
 ### 4.2 Use Case Diagram
 
-Diagram Use Case memodelkan fungsi-fungsi sistem dari sudut pandang 4 peran pengguna (*aktor*). Notasi yang digunakan merujuk pada standar UML (*Unified Modeling Language*):
-* **Admin Unit Akreditasi Lab (`admin`)**: Pengelola operasional dengan akses menyeluruh.
-* **PIC Laboratorium / Unit Teknis (`pic`)**: Pendamping LPK kelolaan.
-* **Asesor KAN (`assessor`)**: Tenaga ahli pelaksana asesmen lapangan.
-* **Lembaga Penilaian Kesesuaian (`lpk`)**: Entitas pemegang akreditasi KAN.
+Diagram Use Case memodelkan fungsi-fungsi sistem dari sudut pandang 2 peran pengguna (*aktor*). Notasi yang digunakan merujuk pada standar UML (*Unified Modeling Language*):
+* **Ketua Tim (Admin Unit Akreditasi)** (`admin`): Pengelola sistem dengan akses penuh terhadap seluruh fitur administrasi, master LPK, asesmen, rilis SK, dan manajemen pengguna.
+* **PIC Laboratorium** (`pic`): Pendamping teknis operasional dengan fokus pada pengelolaan LPK binaan, pemantauan pengawasan, pelacakan tindakan perbaikan, dan agenda kalender.
 
 ```mermaid
 flowchart LR
     %% Definisi Aktor
-    Admin["👤 Admin Unit Lab"]:::actorBox
-    PIC["👤 PIC Unit Teknis"]:::actorBox
-    Asesor["👤 Asesor KAN"]:::actorBox
-    LPK["🏢 Lembaga (LPK)"]:::actorBox
+    Admin["👤 Ketua Tim (Admin Unit)"]:::actorBox
+    PIC["👤 PIC Laboratorium"]:::actorBox
 
     %% Use Case Kelompok Utama
     UC_Login(["Melakukan Login Sesi"]):::ucMain
@@ -108,11 +101,11 @@ flowchart LR
     UC_LPK_Import(["Mengimpor Massal LPK & Asesmen"]):::ucMain
     UC_Asm_Manage(["Mengelola 8 Tipe Asesmen KAN"]):::ucMain
     UC_Tolerance(["Memantau Toleransi 3 Tahap & Pembekuan"]):::ucMain
-    UC_TP_SLA(["Mengelola SLA Tindakan Perbaikan (TP & VTP)"]): extension:::ucMain
+    UC_TP_SLA(["Mengelola SLA Tindakan Perbaikan (TP & VTP)"]):::ucMain
     UC_EHA(["Mencatat Alur Sidang EHA & Lead Time SK"]):::ucMain
     UC_Cal(["Mengelola Kalender Interaktif 5 Event"]):::ucMain
     UC_Release(["Penerbitan Dokumen SK & Quality Gate"]):::ucMain
-    UC_User_Mgmt(["Mengelola Pengguna & Hak Akses"]):::ucMain
+    UC_User_Mgmt(["Mengelola Pengguna & Pembatasan 1 Ketua Tim"]):::ucMain
 
     %% Relasi Admin
     Admin --- UC_Login
@@ -130,19 +123,11 @@ flowchart LR
     %% Relasi PIC
     PIC --- UC_Login
     PIC --- UC_Dash
+    PIC --- UC_LPK_Manage
+    PIC --- UC_Asm_Manage
     PIC --- UC_Tolerance
     PIC --- UC_TP_SLA
     PIC --- UC_Cal
-
-    %% Relasi Asesor
-    Asesor --- UC_Login
-    Asesor --- UC_Asm_Manage
-    Asesor --- UC_TP_SLA
-
-    %% Relasi LPK
-    LPK --- UC_Login
-    LPK --- UC_Tolerance
-    LPK --- UC_TP_SLA
 
     classDef actorBox fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a,font-weight:bold;
     classDef ucMain fill:#ffffff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-size:12px;
@@ -448,7 +433,7 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | 3 | email | VARCHAR (255) | Unique Key | Alamat surat elektronik unik untuk otentikasi login |
 | 4 | email_verified_at | TIMESTAMP | - | Waktu verifikasi alamat email pengguna |
 | 5 | password | VARCHAR (255) | - | Kata sandi pengguna terenkripsi hash Bcrypt / Argon2id |
-| 6 | role | VARCHAR (50) | - | Hak akses peran: admin, pic, assessor, atau lpk |
+| 6 | role | VARCHAR (50) | - | Hak akses 2 peran: admin (Ketua Tim) atau pic (PIC Laboratorium) |
 | 7 | remember_token | VARCHAR (100) | - | Token acak persistensi sesi login Remember Me |
 | 8 | created_at | TIMESTAMP | - | Waktu pembuatan data pengguna |
 | 9 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data pengguna |
