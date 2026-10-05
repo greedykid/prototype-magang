@@ -20,20 +20,16 @@ graph TD
 
     BusTrunk --- M1["Data Master LPK"]
     BusTrunk --- M2["Program Asesmen"]
-    BusTrunk --- M3["Kalender Kegiatan"]
-    BusTrunk --- M4["Kepatuhan & Finansial"]
-    BusTrunk --- M5["Manajemen Pengguna"]
-    BusTrunk --- M6["Histori Backup"]
+    BusTrunk --- M3["Kalender Pengawasan"]
+    BusTrunk --- M4["Manajemen Pengguna"]
 
     M1 <--> M2
     M2 <--> M3
     M3 <--> M4
-    M4 <--> M5
-    M5 <--> M6
 
     classDef navBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:13px;
     classDef invisibleTrunk fill:none,stroke:none;
-    class UserLogin,Dashboard,M1,M2,M3,M4,M5,M6 navBox;
+    class UserLogin,Dashboard,M1,M2,M3,M4 navBox;
     class BusTrunk invisibleTrunk;
 ```
 
@@ -61,12 +57,9 @@ graph TD
     ASM_Detail <--> ASM_TP["Pelacakan Tindakan Perbaikan (SLA)"]
     ASM_Detail <--> ASM_EHA["Evaluasi Hasil Asesmen (EHA)"]
 
-    Dash --> CAL["Kalender Kegiatan (/calendar)"]
+    Dash --> CAL["Kalender Pengawasan (/calendar)"]
     CAL <--> CAL_Add["Klik Tanggal -> Tambah Agenda (/calendar/events/create)"]
     CAL <--> CAL_Detail["Detail Agenda Event (/calendar/events/{id})"]
-
-    Dash --> VAL["Penerbitan SK & Quality Gate"]
-    VAL <--> FIN_Gate["Quality Gate Kesiapan Rilis SK"]
 
     Dash --> USR["Manajemen Pengguna (/users)"]
     USR <--> USR_Add["Tambah Pengguna (/users/create)"]
@@ -75,7 +68,7 @@ graph TD
     Dash --> ACC_LINKS["Kolaborasi Tim & Tautan Akun (/account-links)"]
 
     classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,VAL,FIN_Gate,USR,USR_Add,USR_Edit,ACC_LINKS pageBox;
+    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,USR,USR_Add,USR_Edit,ACC_LINKS pageBox;
 ```
 
 <p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
