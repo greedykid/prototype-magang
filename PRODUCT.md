@@ -51,7 +51,7 @@ Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otom
 
 ## Evidence on Hand
 - PRD lengkap: prd.md
-- Ringkasan Arsitektur: docs/RINGKASAN_ARSITEKTUR_SIMASADI.docx
+- Dokumentasi Arsitektur Aplikasi: docs/DOKUMENTASI_ARSITEKTUR_APLIKASI.docx
 - Rencana implementasi dan alur kerja di docs/
 - Rangkaian pengujian otomatis: 183 kasus uji fitur lulus 100% (1.102 asersi) memverifikasi kalkulasi SLA, transisi status pembekuan, perpanjangan bersyarat, tautan akun, dan kontrol akses.
 

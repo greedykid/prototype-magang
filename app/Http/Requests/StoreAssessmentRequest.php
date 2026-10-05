@@ -33,8 +33,8 @@ class StoreAssessmentRequest extends FormRequest
 
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'assessment_type' => ['required', 'string', 'max:80'],
+            'title' => ['required', 'string', 'max:150'],
+            'assessment_type' => ['required', 'string', 'max:30'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
             'start_time' => ['nullable', 'string', 'max:10'],
             'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
@@ -42,9 +42,9 @@ class StoreAssessmentRequest extends FormRequest
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'submission_due_date' => ['nullable', 'date'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:150'],
             'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
-            'lead_assessor' => ['nullable', 'string', 'max:1000'],
+            'lead_assessor' => ['nullable', 'string', 'max:100'],
             'assessment_team' => ['nullable', 'string', 'max:1000'],
             'report_date' => ['nullable', 'date'],
             'eha_date' => ['nullable', 'date'],
@@ -55,12 +55,12 @@ class StoreAssessmentRequest extends FormRequest
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
             'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
-            'tp_extension_letter_no' => ['nullable', 'string', 'max:255'],
+            'tp_extension_letter_no' => ['nullable', 'string', 'max:80'],
             'tp_extension_date' => ['nullable', 'date'],
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
             'tp_notes' => ['nullable', 'string'],
-            'sk_number' => ['nullable', 'string', 'max:150'],
+            'sk_number' => ['nullable', 'string', 'max:80'],
             'sk_date' => ['nullable', 'date'],
         ];
     }

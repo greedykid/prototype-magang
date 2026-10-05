@@ -4,32 +4,36 @@
 @endphp
 
 <section class="lpk-form-card" aria-labelledby="tp-tracking-heading">
-    <div class="lpk-form-card-header tp-tracking-header" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0;">
-            <div class="lpk-card-icon-wrap icon-wrap-green">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-                    <path d="m9 12 2 2 4-4"/>
-                </svg>
-            </div>
-            <div class="lpk-card-header-text" style="flex: 1; min-width: 0;">
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <h2 id="tp-tracking-heading" style="margin: 0; font-size: 15.5px; font-weight: 700; color: var(--ink);">
-                        Tindakan Perbaikan &amp; Verifikasi (TP &amp; VTP)
-                    </h2>
-                    <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
-                        {{ $tpBadge['label'] }}
-                    </span>
+    <div class="lpk-form-card-header tp-tracking-header">
+        <div class="tp-tracking-header-top">
+            <div class="tp-tracking-header-left">
+                <div class="lpk-card-icon-wrap icon-wrap-green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
                 </div>
-                <p>Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.</p>
+                <div class="tp-tracking-title-wrap">
+                    <div class="tp-tracking-title-row">
+                        <h2 id="tp-tracking-heading">
+                            Tindakan Perbaikan &amp; Verifikasi (TP &amp; VTP)
+                        </h2>
+                        <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
+                            {{ $tpBadge['label'] }}
+                        </span>
+                    </div>
+                </div>
             </div>
+            @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
+                <button type="button" class="button secondary tp-manage-btn" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
+                    <x-icon name="edit" size="14" />
+                    <span>Kelola Status TP</span>
+                </button>
+            @endif
         </div>
-        @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
-            <button type="button" class="button secondary tp-manage-btn" style="flex-shrink: 0; font-size: 13px;" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
-                <x-icon name="edit" size="14" />
-                <span>Kelola Status TP</span>
-            </button>
-        @endif
+        <p class="tp-tracking-desc">
+            Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.
+        </p>
     </div>
 
     {{-- Batas Waktu Metrics Grid --}}

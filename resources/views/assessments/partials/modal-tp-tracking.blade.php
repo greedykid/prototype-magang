@@ -179,7 +179,7 @@
                 </label>
             </div>
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-tp-tracking')">Batal</button>
+                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal('modal-tp-tracking')">Batal</button>
                 <button type="submit" class="button primary">Simpan Status TP</button>
             </div>
         </form>

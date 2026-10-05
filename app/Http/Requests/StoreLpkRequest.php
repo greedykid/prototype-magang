@@ -15,16 +15,16 @@ class StoreLpkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'no_reg' => ['nullable', 'string', 'max:50', 'unique:lpks,no_reg'],
+            'no_reg' => ['nullable', 'string', 'max:30', 'unique:lpks,no_reg'],
             'accreditation_number' => ['nullable', 'string', 'max:50'],
-            'accreditation_type' => ['nullable', 'string', 'max:100'],
+            'accreditation_type' => ['nullable', 'string', 'max:50'],
             'registration_number' => ['nullable', 'string', 'max:50', 'unique:lpks,registration_number'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:150'],
             'scope' => ['nullable', 'string', 'max:50000'],
             'certificate_date' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'status' => ['required', 'in:ACTIVE,INACTIVE,SUSPENDED'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'expired_at' => ['nullable', 'date'],

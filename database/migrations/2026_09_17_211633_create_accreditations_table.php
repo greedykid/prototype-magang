@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('accreditations', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('lpk_id')->constrained()->cascadeOnDelete();
-            $table->string('status')->default('NOT_STARTED');
+            $table->string('status', 25)->default('NOT_STARTED');
             $table->date('start_date')->nullable();
             $table->date('pantek_at')->nullable();
             $table->date('target_date')->nullable();
             $table->date('target_output_at')->nullable();
             $table->date('output_released_at')->nullable();
-            $table->string('pic')->nullable();
+            $table->string('pic', 100)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

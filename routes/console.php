@@ -61,7 +61,7 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $force = (bool) $this->option('force');
     $this->info('Memeriksa status siklus pengawasan KAN (S1, S2, Re-Akreditasi)...');
 
-    $lpks = \App\Models\Lpk::where('status', 'ACTIVE')->get();
+    $lpks = \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])->get();
     $notifiedCount = 0;
     $activeNoticeCount = 0;
 

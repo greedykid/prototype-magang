@@ -62,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
                         $user = $req ? $req->user() : null;
                         $activeLpks = \App\Models\Lpk::accessibleBy($user)
                             ->with('assessments')
-                            ->where('status', 'ACTIVE')
+                            ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
                             ->where(function ($q) {
                                 $q->whereNotNull('certificate_date')
                                   ->orWhereNotNull('expired_at');

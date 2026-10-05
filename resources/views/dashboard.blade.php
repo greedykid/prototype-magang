@@ -36,7 +36,7 @@
         </div>
         <div class="dashboard-header-actions">
             @if(auth()->user()?->isAdmin())
-                <a class="button secondary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a>
+                <a class="button primary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a>
             @endif
             <a class="button secondary" href="{{ route('calendar.index') }}"><x-icon name="calendar" size="16" /><span>Kalender Kerja</span></a>
         </div>

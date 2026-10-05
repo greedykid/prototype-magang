@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('lpks', function (Blueprint $table): void {
             $table->id();
-            $table->string('registration_number')->unique();
-            $table->string('name');
+            $table->string('registration_number', 50)->unique();
+            $table->string('name', 150);
             $table->text('scope')->nullable();
             $table->date('certificate_date')->nullable();
             $table->text('address')->nullable();
-            $table->string('email')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('status')->default('ACTIVE');
+            $table->string('email', 100)->nullable();
+            $table->string('phone', 30)->nullable();
+            $table->string('status', 25)->default('ACTIVE');
             $table->date('expired_at')->nullable();
             $table->text('drive_url')->nullable();
             $table->timestamp('last_surveillance_notified_at')->nullable();

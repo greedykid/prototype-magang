@@ -32,6 +32,7 @@
 @import './features/lpks.css';
 @import './features/calendar.css';
 @import './features/auth.css';
+@import './features/profile.css';
 @import './features/errors.css';
 
 /* 5. Master Responsive Layout (Must load last to override base component rules) */

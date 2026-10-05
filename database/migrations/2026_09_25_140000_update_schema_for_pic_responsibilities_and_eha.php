@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('assessment_team')->nullable()->after('lead_assessor');
             $table->date('report_date')->nullable()->after('end_at');
             $table->date('eha_date')->nullable()->after('report_date');
-            $table->string('eha_status', 50)->nullable()->default('BELUM_EHA')->after('eha_date');
+            $table->string('eha_status', 25)->nullable()->default('BELUM_EHA')->after('eha_date');
             $table->text('eha_notes')->nullable()->after('eha_status');
         });
     }

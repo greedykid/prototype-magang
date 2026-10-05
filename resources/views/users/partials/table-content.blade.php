@@ -69,13 +69,13 @@
                             {{ $userItem->created_at ? $userItem->created_at->translatedFormat('d M Y') : 'Sistem Bawaan' }}
                         </td>
                         <td>
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                <a href="{{ route('users.show', $userItem) }}" class="button secondary" style="padding: 6px 10px; min-height: 32px;" title="Lihat rincian LPK">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <a href="{{ route('users.show', $userItem) }}" class="table-action-btn" title="Lihat rincian LPK">
                                     <x-icon name="lpks" size="14" />
                                     <span class="sr-only">Lihat LPK</span>
                                 </a>
 
-                                <a href="{{ route('users.edit', $userItem) }}" class="button secondary" style="padding: 6px 10px; min-height: 32px;" title="Edit data anggota">
+                                <a href="{{ route('users.edit', $userItem) }}" class="table-action-btn" title="Edit data anggota">
                                     <x-icon name="edit" size="14" />
                                     <span class="sr-only">Edit</span>
                                 </a>
@@ -89,13 +89,13 @@
                                           style="margin: 0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="button secondary btn-action-delete" style="padding: 6px 10px; min-height: 32px;" title="Hapus anggota">
+                                        <button type="submit" class="table-action-btn table-action-btn-danger" title="Hapus anggota">
                                             <x-icon name="trash" size="14" />
                                             <span class="sr-only">Hapus</span>
                                         </button>
                                     </form>
                                 @else
-                                    <button type="button" class="button secondary" disabled style="padding: 6px 10px; min-height: 32px; opacity: 0.4; cursor: not-allowed;" title="Anda tidak dapat menghapus akun Anda sendiri">
+                                    <button type="button" class="table-action-btn is-disabled" disabled title="Anda tidak dapat menghapus akun Anda sendiri">
                                         <x-icon name="trash" size="14" />
                                         <span class="sr-only">Tidak dapat dihapus</span>
                                     </button>

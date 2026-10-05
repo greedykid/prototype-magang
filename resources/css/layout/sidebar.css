@@ -101,6 +101,7 @@
     margin-bottom: 12px;
     overflow-y: auto;
     overflow-x: hidden;
+    padding: 2px 6px 2px 2px;
     scrollbar-color: #e2e8f0 transparent;
     scrollbar-width: thin;
     flex: 1;
@@ -148,7 +149,7 @@
     font-weight: 500;
     gap: 12px;
     border: 1px solid transparent;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms var(--ease-out-expo);
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
 .sidebar nav a svg {
@@ -157,14 +158,13 @@
     width: 18px;
     margin: 0;
     color: #64748b;
-    transition: color 150ms ease, transform 150ms ease;
+    transition: color 150ms ease;
 }
 
 .sidebar nav a:hover {
     background: #f8fafc;
     border-color: #e2e8f0;
     color: #0f172a;
-    transform: translateX(1px);
 }
 
 .sidebar nav a:hover svg {
@@ -449,6 +449,7 @@
     .app-shell.sidebar-collapsed .sidebar nav {
         gap: 6px;
         overflow: visible !important;
+        padding: 0;
     }
 
     html.sidebar-is-collapsed .sidebar nav a,
@@ -595,6 +596,14 @@ html[data-theme="dark"] .sidebar nav a:hover {
 
 html[data-theme="dark"] .sidebar nav a:hover svg {
     color: #f8fafc;
+}
+
+html[data-theme="dark"] .sidebar nav {
+    scrollbar-color: #334155 transparent;
+}
+
+html[data-theme="dark"] .sidebar nav::-webkit-scrollbar-thumb {
+    background: #334155;
 }
 
 html[data-theme="dark"] .sidebar nav a.active {

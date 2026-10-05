@@ -907,7 +907,7 @@
                                     <span>{{ $catLabel }}</span>
                                 </span>
                                 <a href="{{ $calStatusSiklusUrl }}"
-                                   class="button secondary button-xs lpk-keterangan-cal-btn"
+                                   class="button ghost button-xs lpk-keterangan-cal-btn"
                                    title="Buka langsung agenda siklus ini di kalender">
                                     <x-icon name="calendar" size="13" />
                                     <span>Lihat di Kalender</span>
@@ -1229,7 +1229,7 @@
                 </label>
             </div>
             <div class="modal-form-actions" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 8px;">
-                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-input-keterangan')">Batal</button>
+                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal('modal-input-keterangan')">Batal</button>
                 <button type="submit" class="button primary">
                     <span>Simpan Keterangan</span>
                 </button>

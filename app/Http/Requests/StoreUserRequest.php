@@ -16,11 +16,12 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'string', 'email', 'max:100', 'unique:users,email'],
             'role' => [
                 'required',
                 'string',
+                'max:20',
                 Rule::in([User::ROLE_ADMIN, User::ROLE_PIC]),
                 function ($attribute, $value, $fail) {
                     if ($value === User::ROLE_ADMIN && User::where('role', User::ROLE_ADMIN)->exists()) {

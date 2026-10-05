@@ -44,7 +44,7 @@
    * 5.3 Bukti Eksekusi Test Suite (183 Tests Passed, 1102 Assertions, 100% Pass Rate)
 
 6. **Berkas Dokumen Pendukung & Referensi:**
-   * 📑 **[Ringkasan Arsitektur Sistem (.docx)](RINGKASAN_ARSITEKTUR_SIMASADI.docx)**: Dokumen deskripsi teknis arsitektur aplikasi SIMASADI.
+   * 📑 **[Dokumentasi Arsitektur Aplikasi (.docx)](DOKUMENTASI_ARSITEKTUR_APLIKASI.docx)**: Dokumen deskripsi teknis arsitektur aplikasi SIMASADI.
    * 📁 **[Direktori Dokumen Referensi & Presentasi](references/)**: Brosur pengujian laboratorium KAN dan lembar ringkas presentasi (*cheat sheet*).
 
 ---

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('calendar_events', function (Blueprint $table): void {
-            $table->string('event_type', 100)->nullable()->change();
+            $table->string('event_type', 30)->nullable()->change();
         });
     }
 

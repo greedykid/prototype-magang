@@ -213,6 +213,91 @@ class LpkSurveillanceService
     public function getActiveAlerts(Lpk $lpk): array
     {
         $alerts = [];
+
+        // 1. Cek status kritis tingkat LPK (Pencabutan Akreditasi, Masa Tenggang, atau Pembekuan)
+        $dynamicStatus = $lpk->dynamic_status;
+
+        if ($dynamicStatus === 'REVOKED') {
+            $expStr = $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-';
+            $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : $expStr;
+            $desc = ! $lpk->hasReaccreditationInFlight()
+                ? "Siklus akreditasi 5 tahun telah berakhir ({$expStr}) tanpa pelaksanaan asesmen akreditasi ulang (RA). Status akreditasi resmi dicabut."
+                : "Melewati batas 6 bulan masa tenggang Re-Akreditasi ({$deadline}) tanpa penetapan status baru. Status akreditasi resmi dicabut.";
+
+            $alerts[] = [
+                'lpk_id' => $lpk->id,
+                'lpk_reg' => $lpk->registration_number,
+                'lpk_name' => $lpk->name,
+                'lpk_email' => $lpk->email,
+                'code' => 'RA',
+                'name' => Assessment::TYPE_RE_AKREDITASI,
+                'notice_date' => $lpk->expired_at,
+                'target_date' => $lpk->expired_at,
+                'status' => 'REVOKED',
+                'status_label' => 'AKREDITASI DICABUT',
+                'is_urgent' => true,
+                'severity' => 'danger',
+                'description' => $desc,
+                'last_notified_at' => $lpk->last_surveillance_notified_at,
+            ];
+
+            return $alerts;
+        }
+
+        if ($dynamicStatus === 'GRACE_PERIOD') {
+            $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : '-';
+            $daysLeft = $lpk->days_remaining_grace_period ?? 0;
+
+            $alerts[] = [
+                'lpk_id' => $lpk->id,
+                'lpk_reg' => $lpk->registration_number,
+                'lpk_name' => $lpk->name,
+                'lpk_email' => $lpk->email,
+                'code' => 'RA',
+                'name' => Assessment::TYPE_RE_AKREDITASI,
+                'notice_date' => $lpk->expired_at,
+                'target_date' => $lpk->grace_period_deadline,
+                'status' => 'GRACE_PERIOD',
+                'status_label' => 'MASA TENGGANG (6 BLN)',
+                'is_urgent' => true,
+                'severity' => 'danger',
+                'description' => "Masa berlaku akreditasi berakhir. Sisa toleransi masa tenggang Re-Akreditasi: {$daysLeft} hari (s/d {$deadline}).",
+                'last_notified_at' => $lpk->last_surveillance_notified_at,
+            ];
+
+            return $alerts;
+        }
+
+        if ($dynamicStatus === 'SUSPENDED') {
+            $activeAssessment = $lpk->getActiveOrUpcomingAssessment();
+            $code = 'S1';
+            $name = Assessment::TYPE_SURVEILEN_1;
+            if ($activeAssessment) {
+                $code = str_contains(strtolower($activeAssessment->title ?: ''), 's2') ? 'S2' : (str_contains(strtolower($activeAssessment->title ?: ''), 'ra') ? 'RA' : 'S1');
+                $name = $activeAssessment->assessment_type_label;
+            }
+
+            $alerts[] = [
+                'lpk_id' => $lpk->id,
+                'lpk_reg' => $lpk->registration_number,
+                'lpk_name' => $lpk->name,
+                'lpk_email' => $lpk->email,
+                'code' => $code,
+                'name' => $name,
+                'notice_date' => $activeAssessment?->start_at,
+                'target_date' => $activeAssessment?->effective_tp_due_date ?: $activeAssessment?->submission_due_date,
+                'status' => 'SUSPENDED',
+                'status_label' => 'STATUS DIBEKUKAN',
+                'is_urgent' => true,
+                'severity' => 'danger',
+                'description' => "Akreditasi laboratorium dibekukan karena melewati batas waktu surveilen atau tindakan perbaikan.",
+                'last_notified_at' => $lpk->last_surveillance_notified_at,
+            ];
+
+            return $alerts;
+        }
+
+        // 2. Cek milestone siklus KAN (S1, S2, RA)
         $milestones = $this->calculateMilestones($lpk);
 
         foreach ($milestones as $milestone) {

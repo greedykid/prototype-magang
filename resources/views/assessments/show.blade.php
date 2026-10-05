@@ -37,7 +37,7 @@
             </div>
 
             <div class="lpk-header-actions">
-                <a class="button secondary" href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" title="Lompat ke tanggal agenda di kalender">
+                <a class="button ghost" href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" title="Lompat ke tanggal agenda di kalender">
                     <x-icon name="calendar" size="14" />
                     <span>Buka di Kalender</span>
                 </a>
@@ -87,7 +87,7 @@
     @endif
 
     {{-- 2-Column Responsive Layout --}}
-    <div class="lpk-show-grid">
+    <div class="lpk-show-grid assessment-show-grid">
         {{-- KOLOM KIRI: Informasi Pelaksanaan, Tim Asesor, Evaluasi EHA & SK KAN --}}
         <div class="lpk-show-col">
             {{-- KARTU 1: Detail Pelaksanaan Asesmen --}}

@@ -21,7 +21,7 @@ class UpdateAssessmentTpRequest extends FormRequest
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
             'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
-            'tp_extension_letter_no' => ['nullable', 'string', 'max:255'],
+            'tp_extension_letter_no' => ['nullable', 'string', 'max:80'],
             'tp_extension_date' => ['nullable', 'date'],
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
@@ -30,7 +30,7 @@ class UpdateAssessmentTpRequest extends FormRequest
             'eha_date' => ['nullable', 'date'],
             'eha_status' => ['nullable', 'string', 'in:BELUM_EHA,DIREKOMENDASIKAN,PERLU_VERIFIKASI,CATATAN_KHUSUS'],
             'eha_notes' => ['nullable', 'string'],
-            'sk_number' => ['nullable', 'string', 'max:150'],
+            'sk_number' => ['nullable', 'string', 'max:80'],
             'sk_date' => ['nullable', 'date'],
         ];
     }

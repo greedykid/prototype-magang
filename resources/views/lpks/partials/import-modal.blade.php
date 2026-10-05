@@ -83,7 +83,7 @@
             </div>
 
             <div class="import-modal-footer">
-                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal('modal-import-lpk')">Batal</button>
+                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal('modal-import-lpk')">Batal</button>
                 <button type="submit" class="button primary">
                     <x-icon name="import" size="14" />
                     <span>Mulai Proses Impor</span>

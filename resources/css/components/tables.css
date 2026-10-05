@@ -2346,8 +2346,8 @@ tr.is-selected:hover {
 
 .table-bulk-bar .button.ghost:hover,
 .floating-bulk-bar .button.ghost:hover {
-    background: var(--surface);
-    border-color: #c8c4be;
+    background: var(--surface-hover, #f1f5f9);
+    border-color: transparent;
     color: var(--ink);
 }
 
@@ -2844,8 +2844,8 @@ html[data-theme="dark"] .floating-bulk-bar .button.ghost {
 
 html[data-theme="dark"] .table-bulk-bar .button.ghost:hover,
 html[data-theme="dark"] .floating-bulk-bar .button.ghost:hover {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-hover);
+    border-color: transparent;
     color: var(--ink);
 }
 

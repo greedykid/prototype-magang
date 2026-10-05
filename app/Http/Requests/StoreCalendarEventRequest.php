@@ -31,11 +31,11 @@ class StoreCalendarEventRequest extends FormRequest
 
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:150'],
             'event_type' => [
                 'nullable',
                 'string',
-                'max:100',
+                'max:30',
                 \Illuminate\Validation\Rule::in(array_merge(
                     array_keys(\App\Models\Assessment::TYPES),
                     ['PRL', 'STT', 'AGENDA_INTERNAL']
@@ -48,7 +48,7 @@ class StoreCalendarEventRequest extends FormRequest
             'end_time' => ['nullable', 'date_format:H:i'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:150'],
             'status' => ['required', 'in:PLANNED,IN_PROGRESS,COMPLETED,CANCELLED'],
             'notes' => ['nullable', 'string'],
         ];

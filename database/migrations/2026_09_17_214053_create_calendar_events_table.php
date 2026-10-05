@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('lpk_id')->constrained()->cascadeOnDelete();
             $table->foreignId('created_by')->constrained('users');
-            $table->string('title');
+            $table->string('title', 150);
             $table->text('description')->nullable();
             $table->dateTime('start_at');
             $table->dateTime('end_at');
-            $table->string('location')->nullable();
-            $table->string('status')->default('PLANNED');
+            $table->string('location', 150)->nullable();
+            $table->string('status', 25)->default('PLANNED');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

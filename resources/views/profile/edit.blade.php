@@ -3,185 +3,252 @@
 @section('title', 'Profil & Kata Sandi | SIMASADI')
 
 @section('content')
-<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
-    <a href="{{ route('dashboard') }}" class="lpk-back-btn">
-        <x-icon name="chevron-left" size="14" />
-        <span>Kembali ke Dasbor</span>
-    </a>
-</div>
-
-<div class="page-heading">
-    <div>
-        <h1>Profil &amp; Kata Sandi</h1>
-        <p class="lede">Kelola data identitas pengguna dan perbarui kata sandi akses akun SIMASADI Anda.</p>
+<div class="profile-container">
+    {{-- Navigasi Kembali ke Dasbor --}}
+    <div class="lpk-header-back-wrap" style="margin-bottom: 16px;">
+        <a href="{{ route('dashboard') }}" class="lpk-back-btn">
+            <x-icon name="chevron-left" size="14" />
+            <span>Kembali ke Dasbor</span>
+        </a>
     </div>
-</div>
 
-<div class="profile-layout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start;">
-    {{-- Panel Informasi Akun --}}
-    <section class="panel">
-        <div class="panel-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #e2e8f0);">
-            <div class="user-avatar" style="width: 48px; height: 48px; font-size: 16px; flex: 0 0 48px;" aria-hidden="true">
+    {{-- Banner Identitas Pengguna (Hero Card) --}}
+    <section class="profile-hero-card" aria-label="Identitas Akun">
+        <div class="profile-hero-content">
+            <div class="profile-hero-avatar" aria-hidden="true">
                 {{ $user->initials }}
             </div>
-            <div>
-                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #1e293b;">Data Pengguna</h2>
-                <div style="margin-top: 4px;">
+            <div class="profile-hero-details">
+                <div class="profile-hero-name-row">
+                    <h1>{{ $user->name }}</h1>
                     <span class="badge-role {{ $user->role_badge_class }}">
                         {{ $user->role_label }}
                     </span>
                 </div>
+                <div class="profile-hero-meta">
+                    <span class="profile-meta-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <span>{{ $user->email }}</span>
+                    </span>
+                    <span class="profile-meta-divider" aria-hidden="true">&bull;</span>
+                    <span class="profile-meta-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Terdaftar sejak {{ $user->created_at ? $user->created_at->translatedFormat('d F Y') : 'Sistem Bawaan' }}</span>
+                    </span>
+                </div>
             </div>
         </div>
-
-        @if($errors->hasBag('default') && ($errors->has('name') || $errors->has('email')))
-            <div class="alert danger" style="margin-bottom: 16px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
-                <ul style="margin: 0; padding-left: 18px;">
-                    @foreach($errors->get('name') as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                    @foreach($errors->get('email') as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('profile.update') }}" class="form-grid">
-            @csrf
-            @method('PUT')
-
-            <label class="full">
-                Nama Lengkap
-                <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name">
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Nama resmi yang ditampilkan pada sistem dan riwayat aktivitas.</small>
-            </label>
-
-            <label class="full">
-                Alamat Email
-                <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Alamat email aktif yang digunakan untuk masuk ke sistem.</small>
-            </label>
-
-            <label class="full">
-                Peran Pengguna (Hak Akses)
-                <input type="text" value="{{ $user->role_label }}" disabled readonly style="background: var(--surface-subtle, var(--input-bg)); color: var(--muted); border: 1px solid var(--input-border); cursor: not-allowed;">
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Hak akses ditetapkan oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
-            </label>
-
-            <div class="form-actions full" style="margin-top: 8px; display: flex; justify-content: flex-end;">
-                <button type="submit" class="button primary">
-                    <x-icon name="check" size="16" />
-                    <span>Simpan Perubahan</span>
-                </button>
-            </div>
-        </form>
     </section>
 
-    {{-- Panel Ganti Kata Sandi --}}
-    <section class="panel">
-        <div class="panel-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #e2e8f0);">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.16); color: var(--maroon, #6366f1); border: 1px solid rgba(99, 102, 241, 0.3); display: inline-flex; align-items: center; justify-content: center;">
-                <x-icon name="key" size="18" />
+    {{-- 2-Column Responsive Layout --}}
+    <div class="profile-grid-main">
+        {{-- KARTU 1: Informasi Profil Pengguna --}}
+        <section class="profile-card" aria-labelledby="profile-info-heading">
+            <div class="profile-card-header">
+                <div class="profile-card-icon-wrap icon-blue" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="profile-card-header-text">
+                    <h2 id="profile-info-heading">Informasi Profil</h2>
+                    <p>Perbarui identitas diri dan alamat email resmi Anda.</p>
+                </div>
             </div>
-            <div>
-                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Keamanan &amp; Kata Sandi</h2>
-                <small style="color: var(--muted); font-size: 12px;">Perbarui kata sandi akun secara berkala.</small>
+
+            @if($errors->hasBag('default') && ($errors->has('name') || $errors->has('email')))
+                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                    <ul style="margin: 0; padding-left: 18px;">
+                        @foreach($errors->get('name') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                        @foreach($errors->get('email') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('profile.update') }}" class="profile-form">
+                @csrf
+                @method('PUT')
+
+                <div class="profile-fields-wrap">
+                    <div class="profile-field">
+                        <label class="profile-field-label" for="profile-name">
+                            <span>Nama Lengkap</span>
+                            <span class="required-mark" aria-hidden="true">*</span>
+                        </label>
+                        <input id="profile-name" type="text" name="name" class="profile-input" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
+                        <small class="profile-field-hint">Nama resmi yang ditampilkan pada sistem dan riwayat penugasan.</small>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="profile-field-label" for="profile-email">
+                            <span>Alamat Email</span>
+                            <span class="required-mark" aria-hidden="true">*</span>
+                        </label>
+                        <input id="profile-email" type="email" name="email" class="profile-input" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: nama@lab.co.id">
+                        <small class="profile-field-hint">Digunakan untuk notifikasi dan autentikasi login SIMASADI.</small>
+                    </div>
+
+                    <div class="profile-field">
+                        <label class="profile-field-label">
+                            <span>Peran &amp; Hak Akses Pengguna</span>
+                        </label>
+                        <div class="profile-role-display">
+                            <div class="profile-role-info">
+                                <span class="badge-role {{ $user->role_badge_class }}">
+                                    {{ $user->role_label }}
+                                </span>
+                            </div>
+                            <span class="profile-role-lock-tag" title="Hak akses ditetapkan oleh Ketua Tim Akreditasi KAN">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <span>Dikelola Admin</span>
+                            </span>
+                        </div>
+                        <small class="profile-field-hint">Hak akses operasional Anda dikelola langsung oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
+                    </div>
+                </div>
+
+                <div class="profile-form-actions">
+                    <button type="submit" class="button primary">
+                        <x-icon name="check" size="16" />
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        {{-- KARTU 2: Keamanan Akun & Ganti Kata Sandi --}}
+        <section class="profile-card" aria-labelledby="profile-security-heading">
+            <div class="profile-card-header">
+                <div class="profile-card-icon-wrap icon-purple" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/>
+                        <path d="m21 2-9.6 9.6"/>
+                        <circle cx="7.5" cy="15.5" r="5.5"/>
+                    </svg>
+                </div>
+                <div class="profile-card-header-text">
+                    <h2 id="profile-security-heading">Keamanan &amp; Kata Sandi</h2>
+                    <p>Perbarui kata sandi akun secara berkala untuk menjaga keamanan akses.</p>
+                </div>
             </div>
-        </div>
 
-        @if($errors->has('current_password') || $errors->has('password'))
-            <div class="alert danger" style="margin-bottom: 16px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
-                <ul style="margin: 0; padding-left: 18px;">
-                    @foreach($errors->get('current_password') as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                    @foreach($errors->get('password') as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+            @if($errors->has('current_password') || $errors->has('password'))
+                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                    <ul style="margin: 0; padding-left: 18px;">
+                        @foreach($errors->get('current_password') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                        @foreach($errors->get('password') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-        <form method="POST" action="{{ route('profile.password.update') }}" class="form-grid">
-            @csrf
-            @method('PUT')
+            <form method="POST" action="{{ route('profile.password.update') }}" class="profile-form">
+                @csrf
+                @method('PUT')
 
-            <label class="full">
-                Kata Sandi Saat Ini
-                <input type="password" name="current_password" required autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
-            </label>
+                <div class="profile-fields-wrap">
+                    <div class="profile-field">
+                        <label class="profile-field-label" for="current-password">
+                            <span>Kata Sandi Saat Ini</span>
+                            <span class="required-mark" aria-hidden="true">*</span>
+                        </label>
+                        <input id="current-password" type="password" name="current_password" class="profile-input" required autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
+                    </div>
 
-            <label class="full">
-                Kata Sandi Baru
-                <input type="password" name="password" required autocomplete="new-password" placeholder="Minimal 8 karakter">
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal.</small>
-            </label>
+                    <div class="profile-field">
+                        <label class="profile-field-label" for="new-password">
+                            <span>Kata Sandi Baru</span>
+                            <span class="required-mark" aria-hidden="true">*</span>
+                        </label>
+                        <input id="new-password" type="password" name="password" class="profile-input" required autocomplete="new-password" placeholder="Minimal 8 karakter">
+                        <small class="profile-field-hint">Gunakan kombinasi minimal 8 karakter huruf, angka, dan simbol.</small>
+                    </div>
 
-            <label class="full">
-                Konfirmasi Kata Sandi Baru
-                <input type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Ulangi kata sandi baru">
-            </label>
+                    <div class="profile-field">
+                        <label class="profile-field-label" for="confirm-password">
+                            <span>Konfirmasi Kata Sandi Baru</span>
+                            <span class="required-mark" aria-hidden="true">*</span>
+                        </label>
+                        <input id="confirm-password" type="password" name="password_confirmation" class="profile-input" required autocomplete="new-password" placeholder="Ulangi kata sandi baru">
+                    </div>
+                </div>
 
-            <div class="form-actions full" style="margin-top: 8px; display: flex; justify-content: flex-end;">
-                <button type="submit" class="button primary">
-                    <x-icon name="shield" size="16" />
-                    <span>Perbarui Kata Sandi</span>
-                </button>
-            </div>
-        </form>
-    </section>
+                <div class="profile-form-actions">
+                    <button type="submit" class="button primary">
+                        <x-icon name="shield" size="16" />
+                        <span>Perbarui Kata Sandi</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
 
-    {{-- Panel Tautan Akun Kolaborasi (Account Linking) --}}
-    <section class="panel full" id="account-links" style="grid-column: 1 / -1; margin-top: 8px;">
-        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line, #e2e8f0);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: inline-flex; align-items: center; justify-content: center;">
-                    <x-icon name="link" size="18" />
+    {{-- KARTU 3: Tautan Akun Kolaborasi (Account Linking) --}}
+    <section class="profile-links-card" id="account-links" aria-labelledby="profile-links-heading">
+        <div class="profile-links-header">
+            <div class="profile-links-header-left">
+                <div class="profile-card-icon-wrap icon-emerald" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
                 </div>
                 <div>
-                    <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--ink);">Tautan Akun Kolaborasi (Viewer per Akun)</h2>
-                    <small style="color: var(--muted); font-size: 12px;">Tautkan akun PIC lain sebagai viewer untuk memantau seluruh daftar LPK, asesmen, dan kalender kegiatan Anda.</small>
+                    <h2 id="profile-links-heading" style="font-size: 16px; font-weight: 700; color: var(--ink); margin: 0 0 3px 0;">
+                        Tautan Akun Kolaborasi (Viewer per Akun)
+                    </h2>
+                    <p style="font-size: 12.5px; color: var(--muted); margin: 0;">
+                        Tautkan akun PIC lain sebagai viewer untuk memantau seluruh daftar LPK, asesmen, dan kalender kegiatan Anda tanpa berbagi kata sandi.
+                    </p>
                 </div>
             </div>
-            <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
-                <span>Buka Layar Penuh</span>
+            <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12.5px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                <span>Kelola Layar Penuh</span>
                 <x-icon name="chevron-right" size="13" />
             </a>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-            {{-- Kolom 1: Akun Viewer yang Ditautkan --}}
-            <div>
-                <h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
-                    <span>Akun Viewer yang Anda Tautkan</span>
-                    <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-size: 11px;">{{ $linkedViewers->count() }}</span>
-                </h3>
+        <div class="profile-links-grid">
+            {{-- Kolom 1: Akun Viewer yang Ditautkan (Pemantau Saya) --}}
+            <div class="profile-links-column">
+                <div class="profile-links-col-header">
+                    <h3>Akun Viewer yang Anda Tautkan</h3>
+                    <span class="profile-links-count-chip">{{ $linkedViewers->count() }}</span>
+                </div>
 
                 @if($availableUsers->isNotEmpty())
-                    <form method="POST" action="{{ route('account-links.store') }}" style="background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                    <form method="POST" action="{{ route('account-links.store') }}" class="profile-link-add-form">
                         @csrf
-                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                            <select name="viewer_id" required style="flex: 1; min-width: 160px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
-                                <option value="">-- Pilih Akun PIC --</option>
-                                @foreach($availableUsers as $u)
-                                    <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
-                                @endforeach
-                            </select>
-                            <button type="submit" class="button primary" style="font-size: 12px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                <x-icon name="link" size="13" />
-                                <span>Tautkan</span>
-                            </button>
-                        </div>
+                        <select name="viewer_id" required class="profile-link-add-select">
+                            <option value="">-- Pilih Akun PIC Rekan --</option>
+                            @foreach($availableUsers as $u)
+                                <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="button primary profile-link-add-btn">
+                            <x-icon name="plus" size="13" />
+                            <span>Tautkan</span>
+                        </button>
                     </form>
                 @endif
 
-                <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="profile-links-list">
                     @forelse($linkedViewers as $viewer)
-                        <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                            <div style="min-width: 0;">
-                                <strong style="font-size: 13px; color: var(--ink); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $viewer->name }}</strong>
-                                <small style="font-size: 11px; color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $viewer->email }}</small>
+                        <div class="profile-link-item">
+                            <div class="profile-link-item-left">
+                                <span class="profile-link-avatar" aria-hidden="true">{{ $viewer->initials }}</span>
+                                <div class="profile-link-details">
+                                    <strong class="profile-link-name">{{ $viewer->name }}</strong>
+                                    <small class="profile-link-email">{{ $viewer->email }}</small>
+                                </div>
                             </div>
                             <form method="POST" action="{{ route('account-links.destroy', $viewer) }}"
                                   data-confirm-delete
@@ -191,32 +258,41 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 4px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan tautan">
+                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center; border-radius: 6px;" title="Putuskan tautan">
                                     <x-icon name="trash" size="14" />
                                 </button>
                             </form>
                         </div>
                     @empty
-                        <div style="padding: 14px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
-                            Belum ada akun viewer yang ditautkan ke akun Anda.
+                        <div class="profile-empty-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span>Belum ada akun viewer yang ditautkan ke akun Anda.</span>
                         </div>
                     @endforelse
                 </div>
             </div>
 
-            {{-- Kolom 2: Akses Viewer yang Diterima --}}
-            <div>
-                <h3 style="font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between;">
-                    <span>Akses Viewer yang Diterima</span>
-                    <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-size: 11px;">{{ $linkedOwners->count() }}</span>
-                </h3>
+            {{-- Kolom 2: Akses Viewer yang Diterima (Dipantau oleh Saya) --}}
+            <div class="profile-links-column">
+                <div class="profile-links-col-header">
+                    <h3>Akses Viewer yang Diterima</h3>
+                    <span class="profile-links-count-chip">{{ $linkedOwners->count() }}</span>
+                </div>
 
-                <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="profile-links-list">
                     @forelse($linkedOwners as $owner)
-                        <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                            <div style="min-width: 0;">
-                                <strong style="font-size: 13px; color: var(--ink); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $owner->name }}</strong>
-                                <small style="font-size: 11px; color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $owner->email }} &bull; {{ $owner->lpks_count }} LPK</small>
+                        <div class="profile-link-item">
+                            <div class="profile-link-item-left">
+                                <span class="profile-link-avatar" aria-hidden="true">{{ $owner->initials }}</span>
+                                <div class="profile-link-details">
+                                    <strong class="profile-link-name">{{ $owner->name }}</strong>
+                                    <small class="profile-link-email">{{ $owner->email }} &bull; {{ $owner->lpks_count }} LPK</small>
+                                </div>
                             </div>
                             <form method="POST" action="{{ route('account-links.destroy', $owner) }}"
                                   data-confirm-delete
@@ -226,14 +302,18 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="button secondary" style="font-size: 11px; padding: 3px 8px;" title="Lepaskan akses">
+                                <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 11.5px; padding: 4px 10px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                     Lepas
                                 </button>
                             </form>
                         </div>
                     @empty
-                        <div style="padding: 14px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 6px; font-size: 12px; color: var(--muted);">
-                            Belum ada akun lain yang menautkan Anda sebagai viewer.
+                        <div class="profile-empty-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <span>Belum ada akun lain yang menautkan Anda sebagai viewer.</span>
                         </div>
                     @endforelse
                 </div>

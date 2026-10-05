@@ -158,7 +158,7 @@
                               style="margin: 0;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="button secondary" style="font-size: 11.5px; padding: 4px 10px;" title="Lepaskan akses pemantauan">
+                            <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 12px; padding: 4px 10px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                 Lepas Akses
                             </button>
                         </form>

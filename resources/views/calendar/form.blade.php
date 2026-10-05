@@ -22,7 +22,7 @@
     <label class="full">Deskripsi<textarea name="description" rows="4">{{ old('description', $event->description) }}</textarea></label>
     <label class="full">Catatan<textarea name="notes" rows="3">{{ old('notes', $event->notes) }}</textarea></label>
     <div class="form-actions full">
-        <a class="button secondary" href="{{ route('calendar.index') }}">Batal</a>
+        <a class="button ghost" href="{{ route('calendar.index') }}">Batal</a>
         <button class="button primary" type="submit">
             <x-icon :name="$event->exists ? 'edit' : 'plus'" size="16" />
             <span>{{ $event->exists ? 'Simpan perubahan' : 'Simpan agenda' }}</span>

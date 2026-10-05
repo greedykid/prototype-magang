@@ -422,11 +422,11 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik data pengguna sistem |
-| 2 | name | VARCHAR (255) | - | Nama lengkap pengguna atau personel pengelola |
-| 3 | email | VARCHAR (255) | Unique Key | Alamat surat elektronik unik untuk otentikasi login |
+| 2 | name | VARCHAR (100) | - | Nama lengkap pengguna atau personel pengelola |
+| 3 | email | VARCHAR (100) | Unique Key | Alamat surat elektronik unik untuk otentikasi login |
 | 4 | email_verified_at | TIMESTAMP | - | Waktu verifikasi alamat email pengguna |
-| 5 | password | VARCHAR (255) | - | Kata sandi pengguna terenkripsi hash Bcrypt / Argon2id |
-| 6 | role | VARCHAR (50) | - | Hak akses 2 peran: admin (Ketua Tim) atau pic (PIC Laboratorium) |
+| 5 | password | VARCHAR (100) | - | Kata sandi pengguna terenkripsi hash Bcrypt / Argon2id |
+| 6 | role | VARCHAR (20) | - | Hak akses 2 peran: admin (Ketua Tim) atau pic (PIC Laboratorium) |
 | 7 | remember_token | VARCHAR (100) | - | Token acak persistensi sesi login Remember Me |
 | 8 | created_at | TIMESTAMP | - | Waktu pembuatan data pengguna |
 | 9 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data pengguna |
@@ -435,16 +435,16 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik data LPK / laboratorium |
-| 2 | registration_number | VARCHAR (100) | - | Nomor identitas registrasi internal laboratorium |
-| 3 | no_reg | VARCHAR (100) | Unique Key | Nomor registrasi resmi KAN (contoh: LP-001-IDN, LK-015-IDN) |
-| 4 | name | VARCHAR (255) | - | Nama resmi laboratorium atau badan hukum LPK |
-| 5 | accreditation_type | VARCHAR (100) | - | Kategori skema akreditasi (Lab Penguji, Kalibrasi, Medik) |
-| 6 | accreditation_number | VARCHAR (100) | - | Nomor sertifikat akreditasi atau nomor referensi legalitas |
+| 2 | registration_number | VARCHAR (50) | - | Nomor identitas registrasi internal laboratorium |
+| 3 | no_reg | VARCHAR (30) | Unique Key | Nomor registrasi resmi KAN (contoh: LP-001-IDN, LK-015-IDN) |
+| 4 | name | VARCHAR (150) | - | Nama resmi laboratorium atau badan hukum LPK |
+| 5 | accreditation_type | VARCHAR (50) | - | Kategori skema akreditasi (Lab Penguji, Kalibrasi, Medik) |
+| 6 | accreditation_number | VARCHAR (50) | - | Nomor sertifikat akreditasi atau nomor referensi legalitas |
 | 7 | scope | TEXT | - | Ringkasan lingkup bidang pengujian / kalibrasi |
 | 8 | address | TEXT | - | Alamat fisik fasilitas laboratorium |
-| 9 | email | VARCHAR (255) | - | Alamat email resmi kontak operasional laboratorium |
-| 10 | phone | VARCHAR (50) | - | Nomor kontak telepon / narahubung laboratorium |
-| 11 | status | VARCHAR (50) | - | Status siklus: ACTIVE, SUSPENDED, REVOKED, atau INACTIVE |
+| 9 | email | VARCHAR (100) | - | Alamat email resmi kontak operasional laboratorium |
+| 10 | phone | VARCHAR (30) | - | Nomor kontak telepon / narahubung laboratorium |
+| 11 | status | VARCHAR (25) | - | Status siklus: ACTIVE, SUSPENDED, REVOKED, atau INACTIVE |
 | 12 | certificate_date | DATE | - | Tanggal penetapan sertifikat (patokan siklus pengawasan 5 tahun) |
 | 13 | expired_at | DATE | - | Tanggal akhir masa berlaku sertifikat akreditasi (5 tahun) |
 | 14 | drive_url | TEXT | - | Tautan penyimpanan cloud berkas profil laboratorium |
@@ -460,29 +460,29 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik kegiatan asesmen laboratorium |
 | 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium yang dinilai |
 | 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat agenda asesmen |
-| 4 | title | VARCHAR (255) | - | Judul deskriptif pelaksanaan kegiatan asesmen |
-| 5 | assessment_type | VARCHAR (50) | - | 8 Tipe KAN U-01: INITIAL, SURVEILLANCE_1, S1_PRL, S2, dll |
+| 4 | title | VARCHAR (150) | - | Judul deskriptif pelaksanaan kegiatan asesmen |
+| 5 | assessment_type | VARCHAR (30) | - | 8 Tipe KAN U-01: INITIAL, SURVEILLANCE_1, S1_PRL, S2, dll |
 | 6 | start_at | DATETIME | - | Tanggal dan waktu dimulainya asesmen lapangan |
 | 7 | end_at | DATETIME | - | Tanggal dan waktu berakhirnya kunjungan (acuan batas waktu) |
 | 8 | submission_due_date | DATE | - | Batas toleransi pengisian dokumen asesmen (default 4 bulan dari bulan ke-15 siklus akreditasi / tanggal kunjungan, dapat diedit) |
-| 9 | location | VARCHAR (255) | - | Lokasi fisik pelaksanaan audit lapangan |
-| 10 | lead_assessor | VARCHAR (255) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
+| 9 | location | VARCHAR (150) | - | Lokasi fisik pelaksanaan audit lapangan |
+| 10 | lead_assessor | VARCHAR (100) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
 | 11 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis |
-| 12 | status | VARCHAR (50) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
-| 13 | tp_status | VARCHAR (50) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
+| 12 | status | VARCHAR (25) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
+| 13 | tp_status | VARCHAR (25) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
 | 14 | tp_due_date | DATE | - | Batas waktu awal perbaikan (3 bln AA, 2 bln lainnya) |
 | 15 | tp_has_extension | TINYINT (1) | - | Status perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
 | 16 | tp_extension_months | INTEGER | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
-| 17 | tp_extension_letter_no | VARCHAR (100) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
+| 17 | tp_extension_letter_no | VARCHAR (80) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
 | 18 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu |
 | 19 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
 | 20 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
 | 21 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan tindakan perbaikan |
 | 22 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen |
 | 23 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
-| 24 | eha_status | VARCHAR (50) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
+| 24 | eha_status | VARCHAR (25) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
 | 25 | eha_notes | TEXT | - | Keputusan dan rekomendasi panitia teknis sidang EHA |
-| 26 | sk_number | VARCHAR (100) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
+| 26 | sk_number | VARCHAR (80) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
 | 27 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
 | 28 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
 | 29 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
@@ -493,13 +493,13 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik siklus akreditasi laboratorium |
 | 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium pemilik sertifikat |
-| 3 | status | VARCHAR (50) | - | Status siklus: NOT_STARTED, IN_PROGRESS, RELEASED |
+| 3 | status | VARCHAR (25) | - | Status siklus: NOT_STARTED, IN_PROGRESS, RELEASED |
 | 4 | start_date | DATE | - | Tanggal inisiasi pendaftaran berkas akreditasi |
 | 5 | pantek_at | DATE | - | Tanggal pelaksanaan rapat panitia teknis / komite |
 | 6 | target_date | DATE | - | Target estimasi penyelesaian seluruh rangkaian pengawasan |
 | 7 | target_output_at | DATE | - | Target batas waktu penyerahan draf SK dan sertifikat |
 | 8 | output_released_at | DATE | - | Tanggal aktual rilis dokumen SK dan sertifikat akreditasi |
-| 9 | pic | VARCHAR (255) | - | Nama personel PIC pendamping laboratorium |
+| 9 | pic | VARCHAR (100) | - | Nama personel PIC pendamping laboratorium |
 | 10 | notes | TEXT | - | Catatan kemajuan proses akreditasi |
 | 11 | created_at | TIMESTAMP | - | Waktu pembuatan rekaman siklus akreditasi |
 | 12 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman siklus akreditasi |
@@ -510,12 +510,12 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik agenda kegiatan kalender |
 | 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium terkait agenda |
 | 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat catatan agenda |
-| 4 | title | VARCHAR (255) | - | Judul ringkas kegiatan atau jadwal pengawasan |
-| 5 | event_type | VARCHAR (50) | - | Kategori event: assessment, surveillance_reminder, tp_reminder, tp_overdue, sk_reminder |
+| 4 | title | VARCHAR (150) | - | Judul ringkas kegiatan atau jadwal pengawasan |
+| 5 | event_type | VARCHAR (30) | - | Kategori event: assessment, surveillance_reminder, tp_reminder, tp_overdue, sk_reminder |
 | 6 | start_at | DATETIME | - | Tanggal dan jam pelaksanaan kegiatan |
 | 7 | end_at | DATETIME | - | Tanggal dan jam berakhirnya kegiatan |
-| 8 | location | VARCHAR (255) | - | Lokasi fisik atau tautan ruang rapat daring |
-| 9 | status | VARCHAR (50) | - | Status operasional kegiatan: PLANNED, DONE, CANCELLED |
+| 8 | location | VARCHAR (150) | - | Lokasi fisik atau tautan ruang rapat daring |
+| 9 | status | VARCHAR (25) | - | Status operasional kegiatan: PLANNED, DONE, CANCELLED |
 | 10 | description | TEXT | - | Deskripsi detail rencana pelaksanaan kegiatan |
 | 11 | notes | TEXT | - | Catatan tambahan pelaksanaan agenda |
 | 12 | created_at | TIMESTAMP | - | Waktu pembuatan data agenda |

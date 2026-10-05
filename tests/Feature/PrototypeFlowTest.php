@@ -497,13 +497,13 @@ class PrototypeFlowTest extends TestCase
             'expired_at' => now()->subMonths(14)->toDateString(),
         ]);
 
-        // Fresh cert: cert baseline 1 month ago (no alerts)
+        // Fresh cert: cert date 1 month ago (no alerts)
         $freshLpk = Lpk::create([
             'registration_number' => 'LP-FRESH-01',
             'name' => 'Lab Baru Terakreditasi',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonth()->toDateString(),
-            'expired_at' => now()->subMonth()->toDateString(),
+            'certificate_date' => now()->subMonth()->toDateString(),
+            'expired_at' => now()->addMonths(59)->toDateString(),
         ]);
 
         // Test filter NEEDS_ACTION
@@ -682,8 +682,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-BADGE-ACTIVE',
             'name' => 'Lab Badge Aktif Sejati',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(2)->toDateString(),
-            'expired_at' => now()->subMonths(2)->toDateString(),
+            'certificate_date' => now()->subMonths(2)->toDateString(),
+            'expired_at' => now()->addYears(4)->toDateString(),
         ]);
 
         // Check index page renders dynamic status badge

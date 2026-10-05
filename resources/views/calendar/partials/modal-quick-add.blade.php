@@ -63,7 +63,7 @@
             </div>
 
             <div class="modal-form-actions">
-                <button type="button" class="button secondary" data-modal-close onclick="window.closeModal(this)">
+                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal(this)">
                     Batal
                 </button>
                 <button type="submit" class="button primary">

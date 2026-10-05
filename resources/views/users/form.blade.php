@@ -99,7 +99,7 @@
         </label>
 
         <div class="form-actions full" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-            <a href="{{ route('users.index') }}" class="button link" style="text-decoration: none;">Batal</a>
+            <a href="{{ route('users.index') }}" class="button ghost">Batal</a>
             <button type="submit" class="button primary">
                 <x-icon name="check" size="16" />
                 <span>{{ $user->exists ? 'Perbarui Pengguna' : 'Simpan Pengguna Baru' }}</span>

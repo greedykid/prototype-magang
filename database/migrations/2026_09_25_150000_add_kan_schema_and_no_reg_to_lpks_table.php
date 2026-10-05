@@ -13,9 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('lpks', function (Blueprint $table): void {
-            $table->string('no_reg')->nullable()->unique()->after('id');
-            $table->string('accreditation_number')->nullable()->index()->after('no_reg');
-            $table->string('accreditation_type')->nullable()->after('name');
+            $table->string('no_reg', 30)->nullable()->unique()->after('id');
+            $table->string('accreditation_number', 50)->nullable()->index()->after('no_reg');
+            $table->string('accreditation_type', 50)->nullable()->after('name');
         });
 
         // Backfill data awal dari registration_number yang sudah ada

@@ -895,13 +895,13 @@ html[data-theme="dark"] .surveillance-alert-actions .button.secondary:hover {
 
 html[data-theme="dark"] .surveillance-alert-actions .button.ghost {
     background: transparent;
-    border-color: var(--line);
+    border-color: transparent;
     color: #cbd5e1;
 }
 
 html[data-theme="dark"] .surveillance-alert-actions .button.ghost:hover {
     background: #1e293b;
-    border-color: #475569;
+    border-color: transparent;
     color: #ffffff;
 }
 
