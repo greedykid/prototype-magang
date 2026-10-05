@@ -1,0 +1,123 @@
+name: Simasadi Automation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: simasadi-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, gd, zip, bcmath
+          coverage: none
+
+      - name: Setup Node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install backend packages
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install frontend packages
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Setup environment keys
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Verify application cache integrity
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
+
+      - name: Execute automated test suite
+        run: php artisan test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+  deploy-package:
+    name: Deployment Package
+    needs: [test-and-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, gd, zip, bcmath
+          coverage: none
+
+      - name: Setup Node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare production backend dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Prepare production frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create release bundle
+        run: |
+          mkdir -p dist
+          tar -czf dist/simasadi-release.tar.gz \
+            --exclude='./dist' \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./node_modules' \
+            --exclude='./tests' \
+            --exclude='./docs/references' \
+            .
+
+      - name: Save release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simasadi-release-tarball
+          path: dist/simasadi-release.tar.gz
+          retention-days: 7
