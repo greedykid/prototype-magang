@@ -70,7 +70,7 @@ body {
 }
 
 ::selection {
-    background: rgba(86, 69, 212, 0.18);
+    background: var(--primary-subtle);
     color: var(--ink);
 }
 

@@ -1,15 +1,16 @@
 a {
-    color: var(--maroon-dark);
+    color: var(--primary);
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
+    transition: color 120ms ease;
 }
 a:hover {
-    color: var(--maroon);
+    color: var(--primary-hover);
 }
 
 :focus-visible {
-    outline: 3px solid #7b3ff2;
-    outline-offset: 3px;
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -84,11 +85,12 @@ code, kbd, samp, pre {
 }
 
 .eyebrow {
-    color: var(--terracotta);
+    color: var(--muted);
     display: block;
     font-size: var(--text-2xs);
-    font-weight: var(--font-bold);
+    font-weight: var(--font-semibold);
     letter-spacing: var(--tracking-wider);
+    text-transform: uppercase;
 }
 
 .page-heading .eyebrow {
