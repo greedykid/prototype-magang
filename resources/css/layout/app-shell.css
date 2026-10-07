@@ -106,10 +106,10 @@
     }
 }
 
-/* Persistent Global Surveillance Banner (Notion Callout Style) */
+/* Persistent Global Surveillance Banner (Notion Callout Style - Danger Red) */
 .persistent-surveillance-banner {
-    background: var(--warning-bg);
-    border: 1px solid var(--warning-border);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
     border-radius: var(--radius-md, 8px);
     box-shadow: var(--shadow-xs);
     margin-bottom: 24px;
@@ -131,7 +131,7 @@
 
 .persistent-surveillance-banner-badge {
     align-items: center;
-    background-color: var(--warning-text);
+    background-color: var(--danger, #e32d14);
     border-radius: var(--radius-xs, 4px);
     color: #ffffff;
     display: inline-flex;
@@ -146,7 +146,7 @@
 }
 
 .persistent-surveillance-banner-title {
-    color: var(--warning-text);
+    color: var(--danger-text);
     display: block;
     font-size: 13.5px;
     font-weight: 700;
@@ -155,12 +155,12 @@
 }
 
 .persistent-surveillance-banner-desc {
-    color: var(--warning-text);
+    color: var(--danger-text);
     display: block;
     font-size: 12.5px;
     line-height: 1.45;
     margin: 0;
-    opacity: 0.9;
+    opacity: 0.95;
 }
 
 .persistent-surveillance-banner-action {
@@ -301,26 +301,31 @@ html[data-theme="dark"] .back-link:hover::before {
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner {
-    background: rgba(225, 29, 72, 0.12);
-    border-color: rgba(244, 63, 94, 0.3);
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+html[data-theme="dark"] .persistent-surveillance-banner-badge {
+    background-color: var(--danger, #ff6854);
+    color: #ffffff;
+}
+
 html[data-theme="dark"] .persistent-surveillance-banner-title {
-    color: #fda4af;
+    color: var(--danger-text);
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner-desc {
-    color: #fecdd3;
+    color: var(--danger-text);
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner-jump-btn {
-    background: rgba(244, 63, 94, 0.16);
-    border-color: rgba(244, 63, 94, 0.4);
-    color: #fecdd3;
+    background: rgba(247, 116, 99, 0.14);
+    border-color: rgba(247, 116, 99, 0.35);
+    color: #ff8b7c;
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner-jump-btn:hover {
-    background: rgba(244, 63, 94, 0.28);
+    background: rgba(247, 116, 99, 0.24);
     color: #ffffff;
 }

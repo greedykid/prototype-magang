@@ -121,7 +121,7 @@
     margin: 0;
 }
 .metric.warn strong {
-    color: var(--warning, #ab4a00);
+    color: var(--danger, #e32d14);
 }
 .metric small {
     color: var(--muted);
