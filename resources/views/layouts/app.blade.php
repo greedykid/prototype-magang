@@ -59,7 +59,7 @@
                                     <x-icon name="arrow-down" size="14" />
                                 </a>
                             @endif
-                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button primary persistent-surveillance-banner-btn">
+                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button danger persistent-surveillance-banner-btn">
                                 <span>Tinjau LPK Jatuh Tempo</span>
                                 <x-icon name="chevron-right" size="14" />
                             </a>

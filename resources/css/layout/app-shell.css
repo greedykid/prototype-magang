@@ -173,11 +173,11 @@
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
     align-items: center;
-    background-color: var(--primary);
-    border-color: transparent;
-    color: #ffffff;
+    background-color: var(--danger, #e32d14);
+    border: 1px solid var(--danger, #e32d14);
     border-radius: var(--radius-sm, 6px);
-    box-shadow: var(--shadow-xs);
+    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.2);
+    color: #ffffff;
     display: inline-flex;
     flex-shrink: 0;
     font-size: 12.5px;
@@ -185,11 +185,23 @@
     gap: 6px;
     min-height: 34px;
     padding: 5px 13px;
+    text-decoration: none;
+    transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:hover {
-    background-color: var(--primary-hover);
+    background-color: #b01601;
+    border-color: #b01601;
+    box-shadow: 0 2px 6px rgba(176, 22, 1, 0.25);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:active {
+    background-color: #6f0d00;
+    border-color: #6f0d00;
+    transform: translateY(0);
 }
 
 .persistent-surveillance-banner-jump-btn {
@@ -329,3 +341,17 @@ html[data-theme="dark"] .persistent-surveillance-banner-jump-btn:hover {
     background: rgba(247, 116, 99, 0.24);
     color: #ffffff;
 }
+
+html[data-theme="dark"] .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
+    background-color: var(--danger, #e32d14);
+    border-color: var(--danger, #e32d14);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:hover {
+    background-color: #f64932;
+    border-color: #f64932;
+    color: #ffffff;
+}
+
