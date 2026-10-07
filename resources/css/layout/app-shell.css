@@ -106,14 +106,14 @@
     }
 }
 
-/* Persistent Global Surveillance Banner */
+/* Persistent Global Surveillance Banner (Notion Callout Style) */
 .persistent-surveillance-banner {
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: var(--shadow-xs);
     margin-bottom: 24px;
-    padding: 16px 20px;
+    padding: 14px 18px;
 }
 
 .persistent-surveillance-banner-inner {
@@ -131,8 +131,8 @@
 
 .persistent-surveillance-banner-badge {
     align-items: center;
-    background-color: #e11d48;
-    border-radius: 5px;
+    background-color: var(--warning-text);
+    border-radius: var(--radius-xs, 4px);
     color: #ffffff;
     display: inline-flex;
     font-size: 10.5px;
@@ -140,13 +140,13 @@
     gap: 5px;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
-    padding: 3px 8px;
+    padding: 2px 7px;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-title {
-    color: #9f1239;
+    color: var(--warning-text);
     display: block;
     font-size: 13.5px;
     font-weight: 700;
@@ -155,11 +155,12 @@
 }
 
 .persistent-surveillance-banner-desc {
-    color: #881337;
+    color: var(--warning-text);
     display: block;
     font-size: 12.5px;
     line-height: 1.45;
     margin: 0;
+    opacity: 0.9;
 }
 
 .persistent-surveillance-banner-action {
@@ -172,46 +173,46 @@
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
     align-items: center;
-    background-color: #e11d48;
-    border-color: #e11d48;
-    box-shadow: 0 1px 2px rgba(225, 29, 72, 0.2);
+    background-color: var(--primary);
+    border-color: transparent;
+    color: #ffffff;
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: var(--shadow-xs);
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 12.5px;
+    font-weight: 500;
     gap: 6px;
-    min-height: 36px;
-    padding: 6px 14px;
+    min-height: 34px;
+    padding: 5px 13px;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:hover {
-    background-color: #be123c;
-    border-color: #be123c;
+    background-color: var(--primary-hover);
 }
 
 .persistent-surveillance-banner-jump-btn {
     align-items: center;
-    background: rgba(225, 29, 72, 0.1);
-    border: 1px solid rgba(225, 29, 72, 0.3);
-    border-radius: 6px;
-    color: #9f1239;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--ink);
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 12.5px;
+    font-weight: 500;
     gap: 6px;
-    min-height: 36px;
-    padding: 6px 14px;
+    min-height: 34px;
+    padding: 5px 13px;
     text-decoration: none;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-jump-btn:hover {
-    background: rgba(225, 29, 72, 0.18);
-    border-color: rgba(225, 29, 72, 0.45);
-    color: #881337;
+    background: var(--surface-hover);
+    color: var(--ink);
 }
 
 /* Dark mode overrides for app shell components */

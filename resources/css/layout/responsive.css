@@ -248,8 +248,8 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .drawer-close:hover,
     .drawer-close:focus-visible {
-        background: var(--lavender) !important;
-        color: var(--maroon-dark) !important;
+        background: var(--surface-hover, #efedea) !important;
+        color: var(--ink) !important;
     }
 
     .drawer-backdrop {
@@ -305,10 +305,14 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         white-space: normal !important;
     }
 
-    .sidebar nav a:hover,
+    .sidebar nav a:hover {
+        background: var(--surface-hover, #efedea) !important;
+        color: var(--ink) !important;
+    }
+
     .sidebar nav a.active {
-        background: var(--lavender) !important;
-        color: var(--maroon-dark) !important;
+        background: var(--primary-subtle, #e6f3fe) !important;
+        color: var(--primary-hover, #005bab) !important;
         font-weight: 600 !important;
     }
 
@@ -1273,9 +1277,9 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .table-controls .filter-toggle:hover,
     .filter-toggle:hover {
-        background: var(--lavender) !important;
-        border-color: #cfc6ff !important;
-        color: var(--maroon-dark) !important;
+        background: var(--surface-hover, #efedea) !important;
+        border-color: var(--color-gray-400, #a39e98) !important;
+        color: var(--ink) !important;
     }
 
     .filter-toggle-icon {

@@ -123,11 +123,11 @@
 }
 
 .nav-section-title {
-    color: #64748b;
+    color: var(--muted);
     display: block;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     line-height: 1.2;
     padding: 6px 12px 4px;
     text-transform: uppercase;
@@ -138,49 +138,49 @@
 
 .sidebar nav a {
     align-items: center;
-    border-radius: 8px;
-    color: #475569;
+    border-radius: var(--radius-sm, 6px);
+    color: var(--ink);
     display: flex;
-    min-height: 40px;
-    padding: 8px 12px;
+    min-height: 38px;
+    padding: 7px 10px;
     position: relative;
     text-decoration: none;
     font-size: 13.5px;
     font-weight: 500;
-    gap: 12px;
+    gap: 10px;
     border: 1px solid transparent;
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    transition: background-color 120ms ease, color 120ms ease;
 }
 
 .sidebar nav a svg {
     flex-shrink: 0;
-    height: 18px;
-    width: 18px;
+    height: 17px;
+    width: 17px;
     margin: 0;
-    color: #64748b;
-    transition: color 150ms ease;
+    color: var(--muted);
+    transition: color 120ms ease;
 }
 
 .sidebar nav a:hover {
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    color: #0f172a;
+    background: var(--surface-hover);
+    border-color: transparent;
+    color: var(--ink);
 }
 
 .sidebar nav a:hover svg {
-    color: #0f172a;
+    color: var(--ink);
 }
 
-/* Active Link: Modern Blue/Indigo BSN Tone with Crisp Edge Bar */
+/* Active Link: Notion Soft Accent Tint */
 .sidebar nav a.active {
-    background: #eff6ff;
-    border-color: #dbeafe;
-    color: #1d4ed8;
+    background: var(--primary-subtle);
+    border-color: transparent;
+    color: var(--primary);
     font-weight: 600;
 }
 
 .sidebar nav a.active svg {
-    color: #2563eb;
+    color: var(--primary);
 }
 
 .sidebar nav a.active::before {
@@ -189,9 +189,9 @@
     left: 0;
     top: 6px;
     bottom: 6px;
-    width: 3.5px;
-    background: #2563eb;
-    border-radius: 0 4px 4px 0;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 0 3px 3px 0;
 }
 
 .sidebar nav a:active {
@@ -582,43 +582,43 @@ html[data-theme="dark"] .brand-text small {
 }
 
 html[data-theme="dark"] .nav-section-title {
-    color: #64748b;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .sidebar nav a {
-    color: #cbd5e1;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .sidebar nav a svg {
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .sidebar nav a:hover {
-    background: #222222;
-    border-color: #2e2e2e;
-    color: #f8fafc;
+    background: var(--surface-hover);
+    border-color: transparent;
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .sidebar nav a:hover svg {
-    color: #f8fafc;
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .sidebar nav {
-    scrollbar-color: #2e2e2e transparent;
+    scrollbar-color: var(--line) transparent;
 }
 
 html[data-theme="dark"] .sidebar nav::-webkit-scrollbar-thumb {
-    background: #2e2e2e;
+    background: var(--line);
 }
 
 html[data-theme="dark"] .sidebar nav a.active {
-    background: #222222;
-    border-color: #2e2e2e;
-    color: #ffffff;
+    background: var(--primary-subtle);
+    border-color: transparent;
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .sidebar nav a.active svg {
-    color: #ffffff;
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .drawer-account {
