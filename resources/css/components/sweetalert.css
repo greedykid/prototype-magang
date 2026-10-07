@@ -1,5 +1,5 @@
-/* SweetAlert2 Custom Theme */
-/*    ========================================================================== */
+/* SweetAlert2 Notion Design System Theme */
+/* ========================================================================== */
 .swal2-container {
     box-sizing: border-box !important;
     padding: 16px !important;
@@ -7,11 +7,11 @@
 
 .swal2-popup.simasadi-swal-popup,
 .swal2-container .swal2-popup {
-    background: #ffffff !important;
-    border: 1px solid var(--line) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 24px 48px -12px rgba(26, 26, 26, 0.22) !important;
-    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background: var(--surface, #ffffff) !important;
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
+    border-radius: var(--radius-lg, 12px) !important;
+    box-shadow: var(--shadow-lg) !important;
+    font-family: var(--font-sans) !important;
     padding: 24px 24px 22px !important;
     width: min(440px, calc(100vw - 32px)) !important;
     max-width: calc(100vw - 32px) !important;
@@ -20,14 +20,14 @@
 }
 
 .simasadi-swal-popup .swal2-timer-progress-bar-container {
-    border-bottom-right-radius: 14px !important;
-    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: var(--radius-lg, 12px) !important;
+    border-bottom-left-radius: var(--radius-lg, 12px) !important;
     overflow: hidden !important;
 }
 
 .simasadi-swal-title {
     color: var(--ink) !important;
-    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: var(--font-sans) !important;
     font-size: 1.25rem !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
@@ -36,7 +36,7 @@
 }
 
 .simasadi-swal-text {
-    color: var(--muted) !important;
+    color: var(--muted, #615d59) !important;
     font-size: 14px !important;
     line-height: 1.55 !important;
     margin: 8px 0 16px !important;
@@ -45,10 +45,10 @@
 
 .simasadi-swal-btn {
     align-items: center !important;
-    background: var(--maroon) !important;
-    border: 1px solid var(--maroon) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(86, 69, 212, 0.24) !important;
+    background: var(--primary, #0075de) !important;
+    border: 1px solid var(--primary, #0075de) !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
     color: #ffffff !important;
     cursor: pointer !important;
     display: inline-flex !important;
@@ -62,9 +62,9 @@
 }
 
 .simasadi-swal-btn:hover {
-    background: var(--maroon-dark) !important;
-    border-color: var(--maroon-dark) !important;
-    box-shadow: 0 4px 14px rgba(86, 69, 212, 0.35) !important;
+    background: var(--primary-hover, #005bab) !important;
+    border-color: var(--primary-hover, #005bab) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -72,9 +72,10 @@
 .swal2-confirm.button.danger,
 .swal2-confirm.simasadi-swal-danger-btn,
 .simasadi-swal-danger-btn {
-    background: #dc2626 !important;
-    border-color: #dc2626 !important;
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.24) !important;
+    background: #e32d14 !important;
+    border-color: #e32d14 !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.16) !important;
     color: #ffffff !important;
 }
 
@@ -82,24 +83,24 @@
 .swal2-confirm.button.danger:hover,
 .swal2-confirm.simasadi-swal-danger-btn:hover,
 .simasadi-swal-danger-btn:hover {
-    background: #b91c1c !important;
-    border-color: #b91c1c !important;
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+    background: #b01601 !important;
+    border-color: #b01601 !important;
+    box-shadow: 0 2px 6px rgba(176, 22, 1, 0.22) !important;
     color: #ffffff !important;
     transform: translateY(-1px) !important;
 }
 
 .simasadi-swal-cancel-btn {
     align-items: center !important;
-    background: #ffffff !important;
-    border: 1px solid #c8c4be !important;
-    border-radius: 8px !important;
-    color: var(--ink) !important;
+    background: var(--surface, #ffffff) !important;
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
+    border-radius: var(--radius-sm, 6px) !important;
+    color: var(--ink, #191918) !important;
     cursor: pointer !important;
     display: inline-flex !important;
     font-family: inherit !important;
     font-size: 13.5px !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     justify-content: center !important;
     min-height: 40px !important;
     padding: 9px 20px !important;
@@ -107,13 +108,13 @@
 }
 
 .simasadi-swal-cancel-btn:hover {
-    background: #f7fafc !important;
-    border-color: #a8a29e !important;
-    color: var(--ink) !important;
+    background: var(--surface-hover, #efedea) !important;
+    border-color: var(--color-gray-400, #a39e98) !important;
+    color: var(--ink, #000000) !important;
 }
 
 .swal2-timer-progress-bar {
-    background: var(--maroon) !important;
+    background: var(--primary) !important;
 }
 
 /* SweetAlert2 Dark Theme Overrides */
@@ -121,7 +122,7 @@ html[data-theme="dark"] .swal2-popup.simasadi-swal-popup,
 html[data-theme="dark"] .swal2-container .swal2-popup {
     background: var(--surface) !important;
     border: 1px solid var(--line) !important;
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
 html[data-theme="dark"] .simasadi-swal-title {
@@ -129,17 +130,17 @@ html[data-theme="dark"] .simasadi-swal-title {
 }
 
 html[data-theme="dark"] .simasadi-swal-text {
-    color: #cbd5e1 !important;
+    color: var(--muted) !important;
 }
 
 html[data-theme="dark"] .simasadi-swal-cancel-btn {
-    background: #1e293b !important;
-    border-color: #334155 !important;
+    background: var(--surface-subtle) !important;
+    border-color: var(--line) !important;
     color: var(--ink) !important;
 }
 
 html[data-theme="dark"] .simasadi-swal-cancel-btn:hover {
-    background: #334155 !important;
-    border-color: #475569 !important;
+    background: var(--surface-hover) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
     color: #ffffff !important;
 }

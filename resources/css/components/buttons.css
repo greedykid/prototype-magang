@@ -17,18 +17,18 @@
 }
 .button svg { flex-shrink: 0; }
 
-/* 1. Primary Action: Solid filled container, high visual weight */
+/* 1. Primary Action: Notion Solid Blue, high contrast, clean elevation */
 .button.primary {
-    background: var(--maroon);
-    border-color: var(--maroon);
+    background: var(--primary);
+    border-color: var(--primary);
     color: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .button.primary:hover {
-    background: var(--maroon-dark);
-    border-color: var(--maroon-dark);
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(86, 69, 212, 0.28);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
     transform: translateY(-1px);
 }
 .button.primary:active {
@@ -36,69 +36,69 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
-/* 2. Secondary Action: Subtle tonal container */
+/* 2. Secondary Action: Notion crisp bordered container */
 .button.secondary {
     background: var(--surface, #ffffff);
-    border-color: var(--line, #e2e8f0);
-    color: var(--ink, #1e293b);
+    border-color: var(--line, rgba(0, 0, 0, 0.08));
+    color: var(--ink, #191918);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 .button.secondary:hover {
-    background: var(--surface-hover, #f8fafc);
-    border-color: #cbd5e1;
-    color: var(--ink, #0f172a);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    background: var(--surface-hover, #efedea);
+    border-color: var(--color-gray-400, #a39e98);
+    color: var(--ink, #000000);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .button.secondary:active {
-    background: var(--surface-subtle, #f1f5f9);
+    background: var(--surface-subtle, #f6f5f4);
 }
 
-/* 3. Ghost / Tertiary Action: Truly borderless text action, hover surface only */
+/* 3. Ghost / Tertiary Action: Notion borderless action */
 .button.ghost {
     background: transparent;
     border-color: transparent;
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     box-shadow: none;
 }
 .button.ghost:hover {
-    background: var(--surface-hover, rgba(0, 0, 0, 0.04));
+    background: var(--surface-hover, #efedea);
     border-color: transparent;
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     box-shadow: none;
 }
 .button.ghost:active {
-    background: var(--surface-subtle, rgba(0, 0, 0, 0.08));
+    background: var(--surface-subtle, #f6f5f4);
 }
 
-/* 4. Danger Action: Destructive actions like deletion */
+/* 4. Danger Action: Notion semantic red action */
 .button.danger {
-    background: #dc2626;
-    border-color: #dc2626;
+    background: #e32d14;
+    border-color: #e32d14;
     color: #ffffff;
-    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.12);
+    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.16);
 }
 .button.danger:hover {
-    background: #b91c1c;
-    border-color: #b91c1c;
+    background: #b01601;
+    border-color: #b01601;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28);
+    box-shadow: 0 2px 6px rgba(176, 22, 1, 0.22);
     transform: translateY(-1px);
 }
 .button.danger:active {
-    background: #991b1b;
-    border-color: #991b1b;
+    background: #6f0d00;
+    border-color: #6f0d00;
     transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.16);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
 }
 
-/* 4. Link Action: Clean inline text link with zero box container */
+/* 4. Link Action: Clean inline text link */
 .button.link,
 .table-action-link,
 .action-link {
     background: transparent;
     border-color: transparent;
     box-shadow: none;
-    color: var(--maroon, #6366f1);
+    color: var(--primary, #0075de);
     font-weight: 500;
     min-height: auto;
     padding: 2px 4px;
@@ -111,18 +111,18 @@
     border-color: transparent;
     box-shadow: none;
     text-decoration: underline;
-    color: var(--maroon-dark, #4f46e5);
+    color: var(--primary-hover, #005bab);
 }
 
 .button.button-drive {
-    background: var(--drive-btn-bg, #eff6ff);
-    border-color: var(--drive-btn-border, #bfdbfe);
-    color: var(--drive-btn-text, #1e40af);
+    background: var(--drive-btn-bg, #f2f9ff);
+    border-color: var(--drive-btn-border, #93cdfe);
+    color: var(--drive-btn-text, #005bab);
 }
 .button.button-drive:hover {
-    background: #dbeafe;
-    border-color: #93c5fd;
-    color: #1e3a8a;
+    background: #e6f3fe;
+    border-color: #62aef0;
+    color: #00396b;
 }
 
 /* Compact button modifiers with mobile tap target (44px) adaptation */
@@ -380,6 +380,20 @@ button.is-loading > svg:not(.btn-spinner svg),
 }
 
 /* Dark Mode Overrides for All Button Tiers */
+html[data-theme="dark"] .button.primary {
+    background: #0075de;
+    border-color: #0075de;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .button.primary:hover {
+    background: #097fe8;
+    border-color: #097fe8;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
 html[data-theme="dark"] .button.secondary {
     background: var(--surface-subtle);
     border-color: var(--line);
@@ -389,7 +403,7 @@ html[data-theme="dark"] .button.secondary {
 
 html[data-theme="dark"] .button.secondary:hover {
     background: var(--surface-hover);
-    border-color: #475569;
+    border-color: rgba(255, 255, 255, 0.16);
     color: #ffffff;
 }
 
@@ -405,16 +419,27 @@ html[data-theme="dark"] .button.ghost:hover {
     color: var(--ink);
 }
 
+html[data-theme="dark"] .button.danger {
+    background: #e32d14;
+    border-color: #e32d14;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .button.danger:hover {
+    background: #f64932;
+    border-color: #f64932;
+}
+
 html[data-theme="dark"] .button.btn-action-delete {
     background: transparent;
-    border-color: rgba(239, 68, 68, 0.35);
-    color: #f87171;
+    border-color: rgba(247, 116, 99, 0.35);
+    color: #f77463;
 }
 
 html[data-theme="dark"] .button.btn-action-delete:hover {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.5);
-    color: #fca5a5;
+    background: rgba(247, 116, 99, 0.15);
+    border-color: rgba(247, 116, 99, 0.5);
+    color: #fdd3cd;
 }
 
 html[data-theme="dark"] .table-action-btn {
@@ -430,11 +455,11 @@ html[data-theme="dark"] .table-action-btn:hover {
 }
 
 html[data-theme="dark"] .table-action-btn-danger {
-    color: #f87171;
+    color: #f77463;
 }
 
 html[data-theme="dark"] .table-action-btn-danger:hover {
-    background: rgba(239, 68, 68, 0.18);
+    background: rgba(247, 116, 99, 0.18);
     border-color: transparent;
-    color: #fca5a5;
+    color: #fdd3cd;
 }

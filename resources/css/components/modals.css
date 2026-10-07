@@ -50,8 +50,8 @@ body.modal-open .sidebar {
     margin: auto;
     background: var(--modal-bg, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-lg);
     max-width: 520px;
     width: 100%;
     padding: 24px 28px;
@@ -102,7 +102,7 @@ body.modal-open .sidebar {
     align-items: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: var(--radius-sm, 6px);
     color: var(--muted);
     cursor: pointer;
     display: inline-flex;
@@ -116,8 +116,8 @@ body.modal-open .sidebar {
 }
 
 .simasadi-modal-close:hover {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
+    background: var(--surface-hover, #efedea);
+    border-color: transparent;
     color: var(--ink);
 }
 
@@ -126,7 +126,7 @@ body.modal-open .sidebar {
 }
 
 .simasadi-modal-close:focus-visible {
-    outline: 2px solid var(--terracotta, #7b3ff2);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -357,15 +357,15 @@ body.modal-open .sidebar {
 
 .import-file-input:hover,
 .import-file-input:focus {
-    border-color: var(--maroon, #5645d4);
-    background: var(--surface-hover, #fbfbfe);
+    border-color: var(--primary);
+    background: var(--surface-hover);
 }
 
 .import-url-input {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--input-border, var(--line));
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     font-size: 12.5px;
     min-height: 44px;
     box-sizing: border-box;
@@ -436,11 +436,11 @@ body.modal-open .sidebar {
 
 .modal-tp-info-callout {
     padding: 12px 14px;
-    background: var(--lavender, #f5f3ff);
-    border: 1px solid #ddd6fe;
-    border-radius: 8px;
+    background: var(--color-blue-100, #f2f9ff);
+    border: 1px solid rgba(0, 117, 222, 0.16);
+    border-radius: var(--radius-sm, 6px);
     font-size: 12.5px;
-    color: #5b21b6;
+    color: var(--color-blue-700, #005bab);
     line-height: 1.5;
 }
 
@@ -574,7 +574,7 @@ html[data-theme="dark"] .import-file-input {
 html[data-theme="dark"] .import-file-input:hover,
 html[data-theme="dark"] .import-file-input:focus {
     background: var(--surface-hover);
-    border-color: var(--maroon);
+    border-color: var(--primary);
 }
 
 html[data-theme="dark"] .import-url-input {
@@ -585,7 +585,7 @@ html[data-theme="dark"] .import-url-input {
 
 html[data-theme="dark"] .import-url-input:focus {
     background: var(--input-bg);
-    border-color: var(--maroon);
+    border-color: var(--primary);
 }
 
 html[data-theme="dark"] .import-or-divider::before {
