@@ -631,9 +631,10 @@
 /* 1. Horizontal Stepper Timeline Bar */
 .lpk-cycle-timeline-bar {
     align-items: center;
-    background: #f8fafc;
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 12px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-xs);
     box-sizing: border-box;
     display: flex;
     gap: 12px;
@@ -652,27 +653,31 @@
 
 .lpk-step-bullet {
     align-items: center;
-    background: #e2e8f0;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
     border-radius: 50%;
-    color: #64748b;
+    color: var(--muted, #78736f);
     display: inline-flex;
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 700;
     height: 28px;
     justify-content: center;
-    transition: all 160ms ease;
+    transition: all 160ms var(--ease-out-expo);
     width: 28px;
+    min-width: 28px;
 }
 
 .lpk-cycle-step-item.is-current .lpk-step-bullet {
-    background: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+    background: var(--ink, #191918);
+    border-color: var(--ink, #191918);
+    box-shadow: 0 0 0 3px rgba(25, 25, 24, 0.12);
     color: #ffffff;
 }
 
 .lpk-cycle-step-item.is-completed .lpk-step-bullet {
     background: #10b981;
+    border-color: #10b981;
     color: #ffffff;
 }
 
@@ -684,7 +689,7 @@
 }
 
 .lpk-step-num {
-    color: #94a3b8;
+    color: var(--muted, #78736f);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -693,11 +698,15 @@
 }
 
 .lpk-cycle-step-item.is-current .lpk-step-num {
-    color: #0f172a;
+    color: var(--primary, #0075de);
+}
+
+.lpk-cycle-step-item.is-completed .lpk-step-num {
+    color: var(--success-text, #0f6220);
 }
 
 .lpk-step-name {
-    color: #1e293b;
+    color: var(--ink, #191918);
     font-size: 13px;
     font-weight: 700;
     line-height: 1.2;
@@ -705,18 +714,18 @@
 }
 
 .lpk-cycle-step-item.is-current .lpk-step-name {
-    color: #0f172a;
+    color: var(--ink, #191918);
 }
 
 .lpk-step-timing {
-    color: #64748b;
+    color: var(--muted, #78736f);
     font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
 }
 
 .lpk-cycle-step-line {
-    background: #e2e8f0;
+    background: var(--line, #e2e8f0);
     flex: 1;
     height: 2px;
     min-width: 24px;
@@ -724,7 +733,7 @@
 }
 
 .lpk-cycle-step-line.is-passed {
-    background: #94a3b8;
+    background: var(--color-green-500, #10b981);
 }
 
 /* 2. Milestone Cards Grid */
@@ -1820,92 +1829,114 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
 
     /* Vertical Connected Timeline Bar for Mobile & Tablet */
     .lpk-cycle-timeline-bar {
+        align-items: stretch;
+        background: var(--surface, #ffffff);
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+        border-radius: var(--radius-lg, 12px);
+        box-shadow: var(--shadow-xs);
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        align-items: stretch;
         gap: 0;
-        padding: 14px 16px;
         margin-bottom: 16px;
-        box-sizing: border-box;
         overflow: hidden;
+        padding: 16px;
     }
 
     .lpk-cycle-step-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 4px 0;
-        width: 100%;
+        align-items: flex-start;
         box-sizing: border-box;
+        display: flex;
         flex-shrink: 0;
+        gap: 12px;
+        padding: 3px 0;
+        width: 100%;
     }
 
     .lpk-step-bullet {
-        width: 28px;
+        font-size: 12px;
         height: 28px;
         min-width: 28px;
-        font-size: 12px;
+        width: 28px;
         flex-shrink: 0;
     }
 
     .lpk-cycle-step-line {
-        flex: none;
-        width: 2px;
-        height: 14px;
-        margin-left: 13px; /* (28px - 2px) / 2 = 13px */
-        background: #cbd5e1;
-        border-radius: 1px;
+        background: var(--line, #e2e8f0) !important;
+        border-radius: 1px !important;
+        box-sizing: content-box !important;
+        flex: none !important;
+        height: 18px !important;
+        margin: 2px 0 2px 13px !important; /* (28px bullet - 2px line) / 2 = 13px */
+        max-width: 2px !important;
+        min-width: 0 !important;
+        width: 2px !important;
     }
 
     .lpk-cycle-step-line.is-passed {
-        background: #818cf8;
+        background: var(--color-green-500, #10b981) !important;
     }
 
     .lpk-step-label-group {
-        display: flex;
-        flex-direction: row;
         align-items: baseline;
-        gap: 6px;
-        flex-wrap: wrap;
+        column-gap: 8px;
+        display: grid;
         flex: 1;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
         min-width: 0;
+        padding-top: 2px;
+        row-gap: 2px;
     }
 
     .lpk-step-num {
-        color: #94a3b8;
+        color: var(--muted, #78736f);
         font-size: 10.5px;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        grid-column: 1;
+        grid-row: 1;
+        letter-spacing: 0.05em;
+        line-height: 1.2;
         text-transform: uppercase;
         white-space: nowrap;
     }
 
     .lpk-cycle-step-item.is-current .lpk-step-num {
-        color: #0f172a;
+        color: var(--primary, #0075de);
+    }
+
+    .lpk-cycle-step-item.is-completed .lpk-step-num {
+        color: var(--success-text, #0f6220);
     }
 
     .lpk-step-name {
-        color: #1e293b;
-        font-size: 13px;
-        font-weight: 700;
+        color: var(--ink, #191918);
+        font-size: 13.5px;
+        font-weight: 600;
+        grid-column: 2;
+        grid-row: 1;
         line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .lpk-cycle-step-item.is-current .lpk-step-name {
-        color: #0f172a;
+        color: var(--ink, #191918);
+        font-weight: 700;
     }
 
     .lpk-step-timing {
+        color: var(--muted, #78736f);
         font-size: 11.5px;
-        color: #64748b;
-        white-space: nowrap;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        line-height: 1.35;
+        white-space: normal;
     }
 
     .lpk-step-timing::before {
-        content: "•";
-        margin-right: 4px;
-        color: #cbd5e1;
+        display: none !important;
     }
 
     .lpk-milestone-card {
@@ -2242,27 +2273,34 @@ html[data-theme="dark"] .lpk-cycle-timeline-bar {
 }
 
 html[data-theme="dark"] .lpk-step-bullet {
-    background: #1e293b;
-    color: #94a3b8;
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-bullet {
-    background: #f8fafc;
-    color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #191918;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-completed .lpk-step-bullet {
     background: #10b981;
+    border-color: #10b981;
     color: #ffffff;
 }
 
 html[data-theme="dark"] .lpk-step-num {
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-num {
-    color: #cbd5e1;
+    color: #93cdfe;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-completed .lpk-step-num {
+    color: #68ce7e;
 }
 
 html[data-theme="dark"] .lpk-step-name {
@@ -2274,15 +2312,15 @@ html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-name {
 }
 
 html[data-theme="dark"] .lpk-step-timing {
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-line {
-    background: #334155;
+    background: var(--line);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-line.is-passed {
-    background: #64748b;
+    background: var(--color-green-500, #10b981);
 }
 
 /* LPK Detail Milestone Cards */
