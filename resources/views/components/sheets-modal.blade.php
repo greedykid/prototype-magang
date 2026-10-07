@@ -120,9 +120,12 @@
             btn.style.background = '#2e7d32';
 
             if (typeof Swal !== 'undefined') {
+                const isMobile = window.innerWidth <= 640;
+
                 Swal.fire({
+                    target: document.body,
                     toast: true,
-                    position: 'top-end',
+                    position: isMobile ? 'top' : 'top-end',
                     icon: 'success',
                     title: 'Rumus Google Sheets berhasil disalin!',
                     text: 'Tempelkan di sel A1 Google Sheets Anda.',
