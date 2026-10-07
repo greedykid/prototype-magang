@@ -35,7 +35,7 @@ class StoreCalendarEventRequest extends FormRequest
             'event_type' => [
                 'nullable',
                 'string',
-                'max:30',
+                'max:60',
                 \Illuminate\Validation\Rule::in(array_merge(
                     array_keys(\App\Models\Assessment::TYPES),
                     ['PRL', 'STT', 'AGENDA_INTERNAL']
@@ -51,6 +51,19 @@ class StoreCalendarEventRequest extends FormRequest
             'location' => ['nullable', 'string', 'max:150'],
             'status' => ['required', 'in:PLANNED,IN_PROGRESS,COMPLETED,CANCELLED'],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'lpk_id.required' => 'LPK wajib dipilih.',
+            'lpk_id.exists' => 'Data LPK yang dipilih tidak ditemukan dalam sistem.',
+            'title.required' => 'Judul kegiatan agenda wajib diisi.',
+            'start_at.required' => 'Waktu mulai agenda wajib diisi.',
+            'end_at.required' => 'Waktu selesai agenda wajib diisi.',
+            'end_at.after' => 'Waktu selesai kegiatan harus setelah waktu mulai kegiatan.',
+            'status.required' => 'Status kegiatan wajib dipilih.',
         ];
     }
 }

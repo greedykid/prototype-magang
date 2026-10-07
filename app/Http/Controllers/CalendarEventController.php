@@ -391,8 +391,10 @@ class CalendarEventController extends Controller
         }
 
         // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
+        // Optimasi performa: Proyeksikan kolom esensial untuk memangkas footprint RAM dan beban database
         $lpksWithMilestones = Lpk::accessibleBy($request->user())
-            ->with('assessments')
+            ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
+            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status'])])
             ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
             ->where(function ($q) {
                 $q->whereNotNull('certificate_date')
@@ -569,7 +571,15 @@ class CalendarEventController extends Controller
 
     public function store(StoreCalendarEventRequest $request): RedirectResponse
     {
-        $event = CalendarEvent::create($request->validated() + ['created_by' => $request->user()->id]);
+        $user = $request->user();
+        if ($request->filled('lpk_id')) {
+            $lpk = Lpk::find($request->input('lpk_id'));
+            if ($user && $lpk && ! $lpk->canManage($user)) {
+                abort(403, 'Anda tidak memiliki hak untuk menambah agenda pada LPK ini.');
+            }
+        }
+
+        $event = CalendarEvent::create($request->validated() + ['created_by' => $user->id]);
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil ditambahkan.');
     }
@@ -587,7 +597,7 @@ class CalendarEventController extends Controller
     public function edit(CalendarEvent $event, Request $request): View
     {
         $user = $request->user();
-        if ($user && $event->lpk && ! $event->lpk->canManage($user)) {
+        if (! $this->canUserManageEvent($user, $event)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
@@ -597,12 +607,37 @@ class CalendarEventController extends Controller
     public function update(UpdateCalendarEventRequest $request, CalendarEvent $event): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $event->lpk && ! $event->lpk->canManage($user)) {
+        if (! $this->canUserManageEvent($user, $event)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
-        $event->update($request->validated());
+        $validated = $request->validated();
+        if (! empty($validated['lpk_id']) && (int) $validated['lpk_id'] !== (int) $event->lpk_id) {
+            $newLpk = Lpk::find($validated['lpk_id']);
+            if ($user && $newLpk && ! $newLpk->canManage($user)) {
+                abort(403, 'Anda tidak memiliki hak untuk memindahkan agenda ke LPK ini.');
+            }
+        }
+
+        $event->update($validated);
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');
+    }
+
+    protected function canUserManageEvent(?\App\Models\User $user, CalendarEvent $event): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($event->lpk_id && $event->lpk) {
+            return $event->lpk->canManage($user);
+        }
+
+        return (int) $event->created_by === (int) $user->id;
     }
 }

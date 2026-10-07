@@ -297,6 +297,11 @@ function quickAddAt(dateStr, timeStr = '09:00') {
         }
     }
 
+    const modalHeading = document.getElementById('quick-add-title');
+    if (modalHeading) {
+        modalHeading.textContent = 'Buat Agenda Kegiatan Baru';
+    }
+
     openModal('modal-quick-add-event');
 }
 window.quickAddAt = quickAddAt;
@@ -356,64 +361,134 @@ window.toggleCreateDropdown = toggleCreateDropdown;
 
 function updateQuickAddType(type) {
     const titleInput = document.getElementById('quick-input-title');
+    const modalHeading = document.getElementById('quick-add-title');
     if (!titleInput) return;
 
     const prefixes = [
         'PRL - ', 'STT - ', 'Surveilen 1 - ', 'Surveilen 1 + PRL - ',
-        'Surveilen 2 - ', 'Surveilen 2 + PRL - ', 'Re-Akreditasi - ', 'Akreditasi Awal - ', 'Rapat '
+        'Surveilen 2 - ', 'Surveilen 2 + PRL - ', 'Re-Akreditasi - ', 'Akreditasi Awal - ', 'Rapat ',
+        'Agenda Internal', 'Penambahan Ruang Lingkup', 'Surveilen Tidak Terjadwal'
     ];
     const isPrefixedOrEmpty = !titleInput.value || prefixes.some(p => titleInput.value.startsWith(p));
 
     const t = (type || '').toLowerCase();
     if (t.includes('prl') && !t.includes('surveilen 1') && !t.includes('surveilen 2')) {
         titleInput.placeholder = 'Contoh: PRL - Penambahan Ruang Lingkup Laboratorium';
-        if (isPrefixedOrEmpty) titleInput.value = 'PRL - ';
+        if (isPrefixedOrEmpty) titleInput.value = 'Penambahan Ruang Lingkup';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Penambahan Ruang Lingkup';
     } else if (t.includes('stt') || t.includes('tidak terjadwal')) {
         titleInput.placeholder = 'Contoh: STT - Surveilen Tidak Terjadwal Lapangan';
-        if (isPrefixedOrEmpty) titleInput.value = 'STT - ';
+        if (isPrefixedOrEmpty) titleInput.value = 'Surveilen Tidak Terjadwal';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Surveilen Tidak Terjadwal';
     } else if (t.includes('surveilen 1 + prl')) {
         titleInput.placeholder = 'Contoh: Surveilen 1 + PRL - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 1 + PRL - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Surveilen 1 + PRL';
     } else if (t.includes('surveilen 2 + prl')) {
         titleInput.placeholder = 'Contoh: Surveilen 2 + PRL - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 2 + PRL - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Surveilen 2 + PRL';
     } else if (t.includes('surveilen 1')) {
         titleInput.placeholder = 'Contoh: Surveilen 1 (S1) - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 1 - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Surveilen 1 (S1)';
     } else if (t.includes('surveilen 2')) {
         titleInput.placeholder = 'Contoh: Surveilen 2 (S2) - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Surveilen 2 - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Surveilen 2 (S2)';
     } else if (t.includes('re-akreditasi') || t.includes('reakreditasi')) {
         titleInput.placeholder = 'Contoh: Re-Akreditasi (RA) - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Re-Akreditasi - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Re-Akreditasi';
     } else if (t.includes('akreditasi awal')) {
         titleInput.placeholder = 'Contoh: Akreditasi Awal - Nama Laboratorium';
         if (isPrefixedOrEmpty) titleInput.value = 'Akreditasi Awal - ';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Akreditasi Awal';
+    } else if (t.includes('internal') || t.includes('agenda')) {
+        titleInput.placeholder = 'Contoh: Rapat Internal Koordinasi Tim';
+        if (isPrefixedOrEmpty) titleInput.value = 'Agenda Internal';
+        if (modalHeading) modalHeading.textContent = 'Tambah Agenda: Kegiatan Internal';
     } else {
         titleInput.placeholder = 'Contoh: Rapat Internal Koordinasi Tim';
         if (prefixes.some(p => titleInput.value.startsWith(p))) {
             titleInput.value = '';
         }
+        if (modalHeading) modalHeading.textContent = 'Buat Agenda Kegiatan Baru';
     }
 }
 window.updateQuickAddType = updateQuickAddType;
 
-function openQuickAddWithType(type = 'Perluasan Ruang Lingkup (PRL)') {
+function openQuickAddWithType(type = 'PRL') {
     closeCreateDropdown();
     const typeSelect = document.getElementById('quick-input-type');
-    if (typeSelect) {
-        if (type === 'PRL') {
-            typeSelect.value = 'Perluasan Ruang Lingkup (PRL)';
-            if (!typeSelect.value) typeSelect.value = 'PRL';
-        } else if (type === 'STT') {
-            typeSelect.value = 'Surveilen Tidak Terjadwal (STT)';
-            if (!typeSelect.value) typeSelect.value = 'STT';
-        } else if (type) {
-            typeSelect.value = type;
-        }
-        updateQuickAddType(typeSelect.value || type);
+    const titleInput = document.getElementById('quick-input-title');
+    const modalHeading = document.getElementById('quick-add-title');
+
+    let targetValue = '';
+    let defaultTitle = '';
+    let headingText = '';
+
+    if (type === 'PRL') {
+        targetValue = 'Perluasan Ruang Lingkup (PRL)';
+        defaultTitle = 'Penambahan Ruang Lingkup';
+        headingText = 'Tambah Agenda: Penambahan Ruang Lingkup';
+    } else if (type === 'STT') {
+        targetValue = 'Surveilen Tidak Terjadwal (STT)';
+        defaultTitle = 'Surveilen Tidak Terjadwal';
+        headingText = 'Tambah Agenda: Surveilen Tidak Terjadwal';
+    } else if (type === 'AGENDA_INTERNAL') {
+        targetValue = 'AGENDA_INTERNAL';
+        defaultTitle = 'Agenda Internal';
+        headingText = 'Tambah Agenda: Kegiatan Internal';
+    } else {
+        targetValue = type;
+        defaultTitle = type;
+        headingText = 'Buat Agenda Kegiatan Baru';
     }
+
+    if (modalHeading && headingText) {
+        modalHeading.textContent = headingText;
+    }
+
+    if (typeSelect) {
+        let matched = false;
+        for (const opt of typeSelect.options) {
+            if (opt.value === targetValue) {
+                typeSelect.value = opt.value;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            for (const opt of typeSelect.options) {
+                if (opt.value.toLowerCase().includes(type.toLowerCase())) {
+                    typeSelect.value = opt.value;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        if (!matched) {
+            typeSelect.value = targetValue;
+        }
+
+        // Dispatch change event to immediately sync custom-select UI
+        typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    if (titleInput) {
+        titleInput.value = defaultTitle;
+    }
+
     openModal('modal-quick-add-event');
+
+    setTimeout(() => {
+        if (titleInput) {
+            titleInput.focus();
+            titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+        }
+    }, 150);
 }
 window.openQuickAddWithType = openQuickAddWithType;
 

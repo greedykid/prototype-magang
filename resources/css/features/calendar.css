@@ -3,7 +3,7 @@
    ========================================================================== */
 .gcal-shell {
     display: grid;
-    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-columns: 260px minmax(0, 1fr);
     gap: 20px;
     align-items: start;
     margin-bottom: 30px;
@@ -49,18 +49,21 @@
     align-items: center;
     background: var(--surface, #ffffff);
     border: 1px solid var(--line, #cbd5e1);
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    border-radius: 9px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     color: var(--ink, #0f172a);
     cursor: pointer;
     display: flex;
     font-family: inherit;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
     gap: 8px;
+    height: 40px;
+    min-height: 40px;
     justify-content: space-between;
-    padding: 9px 12px;
+    padding: 0 12px;
     transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    white-space: nowrap;
     width: 100%;
 }
 
@@ -85,21 +88,29 @@
 }
 
 .gcal-btn-create-left {
-    display: flex;
     align-items: center;
-    gap: 9px;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.gcal-btn-create-left span:not(.gcal-btn-create-icon) {
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .gcal-btn-create-icon {
-    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
     background: #f1f5f9;
+    border-radius: 5px;
     color: var(--ink, #0f172a);
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 20px;
+    justify-content: center;
     transition: background-color 160ms ease, color 160ms ease;
+    width: 20px;
 }
 
 .gcal-btn-create:hover .gcal-btn-create-icon,
@@ -1427,7 +1438,7 @@
 }
 
 .gcal-badge-pill {
-    border-radius: 999px;
+    border-radius: 5px;
     font-size: 10.5px;
     font-weight: 600;
     padding: 2px 8px;
@@ -1795,20 +1806,24 @@ html[data-theme="dark"] .gcal-btn-create:hover {
 }
 
 html[data-theme="dark"] .gcal-view-switcher {
-    background: #1e293b;
+    background: var(--surface-subtle, #202020) !important;
+    border: 1px solid var(--line, #262626) !important;
 }
 
 html[data-theme="dark"] .gcal-view-tab {
-    color: var(--muted);
+    color: var(--muted, #888884) !important;
 }
 
 html[data-theme="dark"] .gcal-view-tab:hover {
-    color: var(--ink);
+    color: var(--ink, #f0ede8) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
 }
 
 html[data-theme="dark"] .gcal-view-tab.is-active {
-    background: #0f172a;
-    color: #f8fafc;
+    background: #242424 !important;
+    border: 1px solid var(--line, #262626) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
 html[data-theme="dark"] .gcal-popover-card {
@@ -1819,7 +1834,7 @@ html[data-theme="dark"] .gcal-popover-card {
 }
 
 html[data-theme="dark"] .gcal-popover-head {
-    background: #0d131f;
+    background: var(--surface-subtle);
     border-bottom-color: var(--line);
 }
 
@@ -1842,7 +1857,7 @@ html[data-theme="dark"] .gcal-popover-notes {
 }
 
 html[data-theme="dark"] .gcal-popover-footer {
-    background: #0d131f;
+    background: var(--surface-subtle);
     border-top-color: var(--line);
 }
 
@@ -1907,24 +1922,24 @@ html[data-theme="dark"] .gcal-week-col-head {
 
 /* Calendar Selects Dark Overrides */
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger {
-    background: #0f172a !important;
-    border-color: #334155 !important;
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
     color: var(--ink) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger:hover {
-    background: #1e293b !important;
-    border-color: #475569 !important;
+    background: var(--surface-hover) !important;
+    border-color: var(--line) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-menu {
-    background: #0f172a !important;
-    border-color: #334155 !important;
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-option:hover {
-    background: #1e293b !important;
+    background: var(--surface-hover) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-arrow {
