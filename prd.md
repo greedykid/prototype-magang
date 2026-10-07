@@ -84,10 +84,17 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **2 peran (*rol
   * Asesmen Re-Akreditasi distandarisasi ke format: `Asesmen Re-Akreditasi (RA) - [Nama LPK]`.
   * Surveilen 1 distandarisasi ke format: `Asesmen Surveilen 1 (S1) - [Nama LPK]`.
   * Surveilen 2 distandarisasi ke format: `Asesmen Surveilen 2 (S2) - [Nama LPK]`.
-* **Aturan Tonggak Siklus Pengawasan Berkala**:
-  * **Surveilen 1 (S1)**: Jendela notifikasi bulan ke-14; target pelaksanaan bulan ke-15; validasi asesmen pada rentang bulan 10 sampai dengan 24 dari tanggal sertifikat.
-  * **Surveilen 2 (S2)**: Jendela notifikasi bulan ke-35; target pelaksanaan bulan ke-36; validasi asesmen pada rentang bulan 25 sampai dengan 44 dari tanggal sertifikat.
-  * **Re-Akreditasi (RA)**: Jendela notifikasi 1 bulan sebelum habis; target pelaksanaan sebelum sertifikat kedaluwarsa (tahun ke-5).
+* **Klasifikasi Proses Akreditasi Berdasarkan Siklus & Baseline**:
+  * **1. Proses Periodik 5 Tahunan (Siklus Pengawasan Rutin)**:
+    - Meliputi: Surveilen 1 (S1), Surveilen 2 (S2), dan Re-Akreditasi (RA).
+    - Baseline Perhitungan: Menggunakan masa berlaku akreditasi (tanggal terbit sertifikat `certificate_date` dan tanggal kedaluwarsa `expired_at`).
+    - *Survailen 1 (S1)*: Jendela notifikasi aktif pada bulan ke-13 sampai 14; target kunjungan asesmen lapangan bulan ke-15 sampai 18; rentang validasi dan batas toleransi maksimal hingga bulan ke-24.
+    - *Survailen 2 (S2)*: Jendela notifikasi aktif pada bulan ke-34 sampai 35; target kunjungan asesmen lapangan bulan ke-36 sampai 39; rentang validasi dan batas toleransi maksimal hingga bulan ke-48.
+    - *Re-Akreditasi (RA)*: Jendela notifikasi aktif pada bulan ke-48 sampai 51 (pengajuan dokumen permohonan akreditasi ulang); pelaksanaan asesmen lapangan harus tuntas sebelum tanggal kedaluwarsa sertifikat pada bulan ke-60 (`expired_at`).
+  * **2. Proses Non-Periodik / Ad-Hoc (Berdasarkan Permohonan atau Insidental)**:
+    - Meliputi: Akreditasi Awal (AA), Perluasan Ruang Lingkup (PRL Mandiri), dan Survailen Tidak Terjadwal (STT).
+    - Karakteristik: Tidak terikat otomatis pada siklus periodik tahunan sertifikat berjalan. Akreditasi Awal merupakan pendaftaran baru sebelum adanya sertifikat; PRL diajukan kapan saja saat lab mengajukan penambahan parameter atau metode baru; STT dipicu oleh aduan masyarakat, perubahan personel kunci, relokasi, atau verifikasi pemulihan status pembekuan.
+    - Batas Waktu Tindakan Perbaikan: Meskipun waktu awal asesmen bersifat ad-hoc/permohonan, penegakan batas waktu tindakan perbaikan temuan asesmen (TP & VTP) tetap berjalan otomatis dan terikat ketat dengan baseline tanggal selesai realisasi asesmen (`end_at`).
 
 ---
 
@@ -112,28 +119,40 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 ---
 
 ### 3.4 Modul 4: Pelacakan Tindakan Perbaikan (TP & VTP) Berbasis Batas Waktu KAN
-* **Batas Waktu Awal Batas Waktu KAN**:
-  * **3 Bulan Kalender**: Khusus proses Akreditasi Awal (AA).
-  * **2 Bulan Kalender**: Untuk seluruh proses asesmen lainnya (Surveilen 1, Surveilen 2, STT, PRL, dan Re-Akreditasi).
+* **Baseline Perhitungan Batas Waktu Tindakan Perbaikan**:
+  * Sistem menggunakan tanggal selesai realisasi pelaksanaan asesmen (`end_at`) sebagai baseline tunggal penentuan batas waktu tindakan perbaikan.
+* **Matriks Batas Waktu & Skema Notifikasi**:
+  * **Akreditasi Awal (AA)**:
+    - SLA Dasar: 3 bulan kalender sejak tanggal realisasi asesmen (`end_at`).
+    - Notifikasi Pengingat 1: Terbit pada bulan ke-2 (H-1 bulan sebelum batas jatuh tempo awal).
+    - Notifikasi Final: Terbit tepat pada batas waktu bulan ke-3.
+  * **Proses Asesmen Lainnya (S1, S2, PRL, RA, STT)**:
+    - SLA Dasar: 2 bulan kalender sejak tanggal realisasi asesmen (`end_at`).
+    - Notifikasi Pengingat 1: Terbit pada bulan ke-1 (H-1 bulan sebelum batas jatuh tempo awal).
+    - Notifikasi Final: Terbit tepat pada batas waktu bulan ke-2.
 * **Ketentuan Perpanjangan Waktu (Extension)**:
-  * Durasi perpanjangan maksimal adalah **1 bulan kalender** (`tp_extension_months = 1`).
+  * Durasi perpanjangan maksimal adalah **1 bulan kalender** (`tp_extension_months = 1`), menghasilkan `effective_tp_due_date = tp_due_date + 1 bulan`.
   * Ketentuan persetujuan perpanjangan:
-    1. Laboratorium harus sudah menunjukkan perbaikan nyata terhadap temuan ketidaksesuaian asesmen (telah dilakukan perbaikan meskipun belum seluruhnya atau belum sempurna).
-    2. Wajib menyertakan Nomor Surat Permohonan Perpanjangan Resmi dari LPK (`tp_extension_letter_no`). Pengisian nomor surat ini pada formulir secara otomatis memperpanjang tanggal jatuh tempo perbaikan sebesar +1 bulan.
-  * **Larangan Perpanjangan**: Jika selama masa 2 atau 3 bulan awal laboratorium belum melakukan perbaikan sama sekali, perpanjangan TIDAK DIBERIKAN dan proses dapat dihentikan oleh PIC.
+    1. Laboratorium harus sudah menunjukkan bukti perbaikan nyata terhadap temuan ketidaksesuaian asesmen (telah dilakukan perbaikan sebagian meskipun belum sempurna).
+    2. Wajib menyertakan Nomor Surat Permohonan Perpanjangan Resmi dari LPK (`tp_extension_letter_no`).
+  * Otomasi Antarmuka: Penginputan nomor surat resmi pada form secara otomatis memperpanjang tanggal jatuh tempo perbaikan sebesar +1 bulan dan memunculkan badge visual `(+1 Bulan Surat Resmi)`.
+  * **Larangan Perpanjangan**: Jika selama masa awal (2 bulan atau 3 bulan) laboratorium belum melakukan perbaikan sama sekali (progres kosong), perpanjangan TIDAK DIBERIKAN dan proses dapat dihentikan oleh PIC.
   * **Total Waktu Maksimal Setelah Perpanjangan**:
     * Akreditasi Awal (AA): 3 bulan + 1 bulan = **4 bulan**.
-    * S1, S2, PRL, RA: 2 bulan + 1 bulan = **3 bulan**.
+    * S1, S2, PRL, RA, STT: 2 bulan + 1 bulan = **3 bulan**.
+* **Implementasi Khusus Peran PIC (Role Scoping)**:
+  * Dasbor operasional, Kalender Kerja, dan tabel asesmen menerapkan filter ketat berbasis kepemilikan LPK.
+  * Personel PIC (Lead PIC dan Viewer PIC via scope `accessibleBy`) hanya menerima notifikasi, peringatan LPK mendesak, dan event agenda untuk LPK binaan yang ditugaskan kepadanya.
 * **Otomasi Status Tindakan Perbaikan Tanpa Input Manual**:
   * Status TP tidak diinput secara manual pada form, melainkan dihitung otomatis oleh sistem (*read-only dynamic status*):
     * Selama tanggal dinyatakan memenuhi (`tp_satisfied_at`) belum diisi:
       - Jika belum melewati batas waktu: status berbunyi **Sedang Berlangsung** (`IN_PROGRESS`).
       - Jika telah melewati batas waktu (baik batas awal maupun perpanjangan): status otomatis berubah menjadi **Dibekukan** (`SUSPENDED`, badge ungu).
     * Jika tanggal dinyatakan memenuhi (`tp_satisfied_at`) telah terisi: status berubah menjadi **Memenuhi / Selesai** (`COMPLETED` / `SATISFIED`).
-* **Pengingat Kalender Otomatis (Reminder Engine)**:
-  * Pengingat H-1 bulan sebelum batas waktu tindakan perbaikan.
-  * Notifikasi final berdasarkan tanggal realisasi/pelaksanaan asesmen sebagai baseline perhitungan.
-  * Pengingat Penerbitan SK: 10 hari kalender setelah tanggal TP dinyatakan memenuhi (khusus S1, S2, dan STT).
+* **Kanal Notifikasi & Status Implementasi**:
+  * **In-App UI (Dasbor Operasional & Kalender SPA)**: Sudah diimplementasikan dan aktif penuh. Menampilkan banner pengawasan persisten wajib, kartu ringkasan tindakan perbaikan mendesak, badge hitung mundur relatif, serta event kalender pengingat TP dan overdue TP.
+  * **Notifikasi Email**: Pengiriman email otomatis saat ini aktif untuk pengingat siklus surveilen LPK; otomasi pengiriman email untuk pengingat tenggat tindakan perbaikan (TP & VTP) asesmen disiapkan pada rencana rilis berikutnya.
+  * **Pengingat Penerbitan SK**: 10 hari kalender setelah tanggal TP dinyatakan memenuhi (khusus S1, S2, dan STT).
 
 ---
 

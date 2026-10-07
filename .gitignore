@@ -39,6 +39,7 @@ Homestead.yaml
 Thumbs.db
 /docs/references/*
 !/docs/references/.gitkeep
+/scratch
 ~$*
 *.bak
 

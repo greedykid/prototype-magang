@@ -36,12 +36,27 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
    * **Tahap 2 (Dibekukan / Jendela Penyelesaian 1 Tahun)**: Jika melewati batas toleransi pengisian tanpa penyelesaian, status asesmen dan LPK otomatis berubah menjadi **DIBEKUKAN** (`SUSPENDED`, badge warna ungu kontras `#f3e8ff` dengan teks `#6b21a8`). LPK diberikan hak dan kesempatan menyelesaikan asesmennya selama 1 tahun penuh dengan indikator hitung mundur (*countdown*).
    * **Tahap 3 (Dicabut)**: Jika setelah 1 tahun masa pembekuan terlampaui asesmen belum selesai, status akreditasi LPK otomatis beralih menjadi **DICABUT** (`REVOKED`, badge merah).
    * **Aturan Auto-Realisasi LPK Aktif**: Seluruh data surveilen dan tindakan perbaikan masa lalu (`end_at < now()->startOfYear()`) dari LPK yang saat ini berstatus AKTIF otomatis dianggap terealisasi (`COMPLETED` dan `SATISFIED`).
+   * **Deadline Proses Akreditasi Sesuai Siklus (Baseline Masa Akreditasi)**:
+     - **Proses Periodik 5 Tahunan (Survailen 1, Survailen 2, Re-Akreditasi)**: Menggunakan baseline tanggal terbit sertifikat (`certificate_date`) dan masa berlaku (`expired_at`).
+       - S1 (Survailen 1): Notifikasi aktif bulan ke-13/14, target pelaksanaan asesmen bulan ke-15 sampai 18, toleransi maksimal bulan ke-24.
+       - S2 (Survailen 2): Notifikasi aktif bulan ke-34/35, target pelaksanaan asesmen bulan ke-36 sampai 39, toleransi maksimal bulan ke-48.
+       - RA (Re-Akreditasi): Notifikasi aktif bulan ke-48 sampai 51 (pengajuan dokumen re-akreditasi), pelaksanaan asesmen tuntas sebelum bulan ke-60 (jatuh tempo sertifikat).
+     - **Proses Non-Periodik / Ad-Hoc (Akreditasi Awal, PRL, STT)**: Berjalan berdasarkan permohonan baru atau kebutuhan insidental (bukan siklus tahunan sertifikat berjalan). Namun setelah asesmen lapangan dilaksanakan, tenggat waktu penyelesaian tindakan perbaikannya (TP & VTP) ditegakkan menggunakan baseline tanggal realisasi asesmen.
 
 3. **Mesin Penegakan Batas Waktu Tindakan Perbaikan (TP & VTP):**
-   * **Batas Waktu Dasar**: 3 bulan untuk Akreditasi Awal (AA) dan 2 bulan untuk proses asesmen lainnya.
-   * **Perpanjangan Waktu**: Maksimal 1 bulan dengan syarat ketat: LPK telah melakukan perbaikan sebagian dari temuan ketidaksesuaian asesmen dan menyertakan Nomor Surat Permohonan Resmi (otomatis memperpanjang +1 bulan saat nomor surat resmi diinput). Jika tidak ada perbaikan sama sekali (kosong), proses dapat dihentikan oleh PIC dan tidak diperpanjang.
+   * **Baseline Perhitungan**: Menggunakan tanggal selesai realisasi pelaksanaan asesmen (`end_at`).
+   * **Matriks Batas Waktu & Notifikasi Pengingat**:
+     - **Akreditasi Awal (AA)**: Batas waktu dasar 3 bulan kalender sejak `end_at`. Pengingat ke-1 (Notifikasi 1) dijadwalkan pada 2 bulan setelah realisasi asesmen, dan Notifikasi Final jatuh tepat pada batas waktu 3 bulan.
+     - **Proses Lainnya (S1, S2, PRL, RA, STT)**: Batas waktu dasar 2 bulan kalender sejak `end_at`. Pengingat ke-1 (Notifikasi 1) dijadwalkan pada 1 bulan setelah realisasi asesmen, dan Notifikasi Final jatuh tepat pada batas waktu 2 bulan.
+   * **Perpanjangan Waktu Resmi (+1 Bulan)**:
+     - Maksimal perpanjangan adalah 1 bulan kalender (`effective_tp_due_date = tp_due_date + 1 bulan`).
+     - Syarat ketat perpanjangan: LPK telah melakukan perbaikan sebagian temuan ketidaksesuaian asesmen (ada progres riil) dan menyertakan Nomor Surat Permohonan Resmi (`tp_extension_letter_no`). Pengisian nomor surat resmi secara otomatis menambahkan perpanjangan +1 bulan dan memunculkan badge penanda `(+1 Bulan Surat Resmi)`. Jika perbaikan nihil (kosong), permohonan ditolak dan proses dapat dihentikan oleh PIC.
+   * **Implementasi Khusus PIC (Role Scoping)**:
+     - Dasbor operasional, Kalender Kerja, dan tabel asesmen menyaring data secara otomatis berdasarkan LPK binaan yang ditugaskan kepada PIC bersangkutan (mencakup peran Lead PIC dan Viewer PIC via pembatasan `accessibleBy`). PIC hanya menerima peringatan dan agenda untuk LPK di bawah tanggung jawabnya.
    * **Status Otomatis**: Tanpa input manual status TP. Status otomatis "Sedang Berlangsung" sebelum jatuh tempo, "Dibekukan" bila melewati batas waktu tanpa pemenuhan, dan "Selesai/Memenuhi" saat tanggal pemenuhan (`tp_satisfied_at`) dicatat.
-   * **Pengingat Kalender**: Pengingat H-1 bulan sebelum batas waktu, notifikasi final berdasarkan tanggal realisasi asesmen, dan pengingat SK 10 hari kalender setelah pemenuhan TP.
+   * **Kanal & Ketersediaan Notifikasi**:
+     - **In-App UI (Dasbor & Kalender)**: Sudah aktif penuh. Menampilkan banner pengawasan persisten, kartu peringatan TP mendesak, badge hitung mundur jatuh tempo, serta event kalender pengingat TP dan overdue TP.
+     - **Notifikasi Email**: Pengiriman email otomatis saat ini telah beroperasi untuk pengingat siklus pengawasan surveilen LPK, sedangkan otomasi pengiriman email untuk pengingat tindakan perbaikan (TP) asesmen disiapkan pada rencana rilis berikutnya.
 
 4. **Alur Evaluasi Hasil Asesmen (EHA) & Penerbitan SK:**
    * Pencatatan tanggal rencana sidang EHA, tanggal realisasi EHA, dan rekomendasi tim panitia teknis.

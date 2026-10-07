@@ -197,6 +197,23 @@ stateDiagram-v2
     LewatBatasExtended --> OtomatisDibekukan
 ```
 
+##### Ketentuan Spesifikasi Penegakan SLA Tindakan Perbaikan (TP & VTP):
+
+1. **Baseline Tanggal Realisasi Asesmen (`end_at`)**:
+   - Seluruh perhitungan SLA tindakan perbaikan dihitung secara deterministik dari tanggal selesai pelaksanaan asesmen lapangan (`end_at`).
+2. **Matriks Batas Waktu & Skema Notifikasi Pengingat**:
+   - **Akreditasi Awal (AA)**: Batas waktu dasar 3 bulan kalender sejak `end_at`. Notifikasi Pengingat 1 muncul di bulan ke-2 (H-1 bulan), dan Notifikasi Final jatuh tepat pada bulan ke-3.
+   - **Proses Asesmen Lainnya (S1, S2, PRL, RA, STT)**: Batas waktu dasar 2 bulan kalender sejak `end_at`. Notifikasi Pengingat 1 muncul di bulan ke-1 (H-1 bulan), dan Notifikasi Final jatuh tepat pada bulan ke-2.
+3. **Mekanisme Perpanjangan Waktu Resmi (+1 Bulan)**:
+   - Durasi perpanjangan maksimal 1 bulan kalender (`effective_tp_due_date = tp_due_date + 1 bulan`).
+   - Prasyarat: Harus ada perbaikan sebagian temuan ketidaksesuaian (progres riil) dan pengisian Nomor Surat Permohonan Resmi (`tp_extension_letter_no`).
+   - Penanda UI: Sistem menyematkan badge status `(+1 Bulan Surat Resmi)`. Jika progres perbaikan nihil, permohonan ditolak dan proses dapat dihentikan oleh PIC.
+4. **Implementasi Khusus PIC (Role Scoping)**:
+   - Dasbor, widget TP mendesak, dan Kalender Kerja secara otomatis difilter untuk hanya menampilkan LPK binaan PIC yang sedang aktif (termasuk akses Lead PIC dan Viewer PIC melalui cakupan `accessibleBy`).
+5. **Status Ketersediaan Saluran Notifikasi**:
+   - **In-App UI (Aktif Penuh)**: Banner pengawasan persisten, kartu ringkasan tindakan perbaikan mendesak, badge countdown, serta event kalender pengingat TP dan overdue TP.
+   - **Email Otomatis**: Telah aktif untuk pengingat siklus surveilen LPK; otomasi pengiriman email untuk pengingat batas waktu tindakan perbaikan (TP) asesmen direncanakan pada tahapan berikutnya.
+
 ---
 
 #### 4.3.3 Activity Diagram: Alur Kerja Lengkap PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)
@@ -242,16 +259,16 @@ flowchart TD
 
 ##### Ringkasan Matriks Tanggung Jawab PIC per Tahap:
 
-| No | Tahap Siklus | Waktu Acuan KAN | Aktivitas Utama PIC | Otomasi SIMASADI | Output Akhir |
-|---|---|---|---|---|---|
-| 1 | **Akreditasi Awal** | Bulan ke-0 | Verifikasi dokumen legalitas, manual mutu, jadwal asesmen, pendampingan perbaikan (batas waktu 3 bulan), koordinasi VTP | Generate no_reg unik, set batas waktu TP = 3 bulan, catat certificate_date | Sertifikat & SK Akreditasi 5 Tahun (ACTIVE) |
-| 2 | **Survailen 1 (S1)** | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), koordinasi pelaksanaan asesmen | Reminder berkala kalender, toleransi pengisian maks 4 bln dr bln 15, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
-| 3 | **Survailen 1 + PRL** | Bulan 13 - 24 | Verifikasi portofolio metode baru, susun tim gabungan asesmen sistem + teknis, kawal audit simultan dan TP 2 bulan | Jadwal gabungan, pemetaan lingkup baru ke master data, pelacakan terpadu | SK S1 + Adendum Lampiran Lingkup Baru |
-| 4 | **Survailen 2 (S2)** | Bulan 34 - 48 | Pantau reminder S2 (maks 2 tahun pasca S1), evaluasi kaji ulang manajemen, kawal pemenuhan perbaikan 2 bulan | Reminder kalender multi-event, countdown pembekuan dinamis jika wanprestasi | SK Konfirmasi Survailen 2 |
-| 5 | **Survailen 2 + PRL** | Bulan 34 - 48 | Verifikasi kesiapan alat & uji profisiensi lingkup baru, koordinasi asesmen gabungan, kawal TP 2 bulan | Sinkronisasi multi-skema, kontrol batas waktu terpadu, hitung lead time SK | SK S2 + Adendum Pembaruan Ruang Lingkup |
-| 6 | **Survailen Tidak Terjadwal (STT)** | Insidental | Terima aduan publik, relokasi lab, pergantian personel kunci, koordinasi asesmen khusus, kawal TP maks 2 bulan | Penandaan event insidental di kalender, alert persisten prioritas tinggi | Rekomendasi EHA: Pemulihan / Pencabutan |
-| 7 | **Perluasan Ruang Lingkup (PRL)** | Mandiri | Reviu permohonan mandiri di luar jadwal rutin, cek bukti validasi metode, input asesmen teknis, kawal TP 2 bulan | Registrasi asesmen PRL, validasi kelengkapan berkas penambahan lingkup | Adendum Lampiran Ruang Lingkup Resmi |
-| 8 | **Re-Akreditasi** | Bulan 54 - 60 | Kirim notifikasi Bulan ke-54, reviu berkas lengkap, kawal full re-assessment, kawal Quality Gate kelengkapan EHA & perbaikan | Persistent alert banner kritis, Quality Gate lock rilis SK, reset siklus baru | Sertifikat & SK Baru 5 Tahun (Siklus 2) |
+| No | Tahap Siklus | Kategori & Baseline Acuan | Waktu Acuan KAN | Aktivitas Utama PIC | Otomasi SIMASADI | Output Akhir |
+|---|---|---|---|---|---|---|
+| 1 | **Akreditasi Awal** | Non-Periodik (Permohonan Baru)<br/>• Baseline TP: Realisasi `end_at` | Bulan ke-0 | Verifikasi dokumen legalitas, manual mutu, jadwal asesmen, pendampingan perbaikan (batas waktu 3 bulan), koordinasi VTP | Generate no_reg unik, set batas waktu dasar TP = 3 bulan sejak `end_at`, catat certificate_date | Sertifikat & SK Akreditasi 5 Tahun (ACTIVE) |
+| 2 | **Survailen 1 (S1)** | Periodik Siklus 5 Tahun<br/>• Baseline Siklus: `certificate_date`<br/>• Baseline TP: Realisasi `end_at` | Bulan 13 - 24 | Pantau reminder dasbor, jadwalkan kunjungan S1, kawal TP 2 bulan (+1 bln jika progres nyata), koordinasi pelaksanaan asesmen | Reminder dasbor bulan 13/14, toleransi pengisian maks 4 bln dr bln 15, batas TP 2 bulan dari `end_at`, trigger SK 10 hari | SK Konfirmasi Survailen 1 |
+| 3 | **Survailen 1 + PRL** | Periodik Siklus + Tambah Lingkup<br/>• Baseline Siklus: `certificate_date`<br/>• Baseline TP: Realisasi `end_at` | Bulan 13 - 24 | Verifikasi portofolio metode baru, susun tim gabungan asesmen sistem + teknis, kawal audit simultan dan TP 2 bulan | Jadwal gabungan, pemetaan lingkup baru ke master data, batas TP 2 bulan dari `end_at`, pelacakan terpadu | SK S1 + Adendum Lampiran Lingkup Baru |
+| 4 | **Survailen 2 (S2)** | Periodik Siklus 5 Tahun<br/>• Baseline Siklus: `certificate_date`<br/>• Baseline TP: Realisasi `end_at` | Bulan 34 - 48 | Pantau reminder S2 (maks 2 tahun pasca S1), evaluasi kaji ulang manajemen, kawal pemenuhan perbaikan 2 bulan | Reminder dasbor bulan 34/35, batas TP 2 bulan dari `end_at`, countdown pembekuan dinamis jika wanprestasi | SK Konfirmasi Survailen 2 |
+| 5 | **Survailen 2 + PRL** | Periodik Siklus + Tambah Lingkup<br/>• Baseline Siklus: `certificate_date`<br/>• Baseline TP: Realisasi `end_at` | Bulan 34 - 48 | Verifikasi kesiapan alat & uji profisiensi lingkup baru, koordinasi asesmen gabungan, kawal TP 2 bulan | Sinkronisasi multi-skema, kontrol batas waktu TP 2 bulan dari `end_at`, hitung lead time SK | SK S2 + Adendum Pembaruan Ruang Lingkup |
+| 6 | **Survailen Tidak Terjadwal (STT)** | Insidental (Ad-Hoc / Aduan / Audit Khusus)<br/>• Baseline Pemicu: Kasus Lapangan<br/>• Baseline TP: Realisasi `end_at` | Insidental | Terima aduan publik, relokasi lab, pergantian personel kunci, koordinasi asesmen khusus, kawal TP maks 2 bulan | Penandaan event insidental di kalender, batas TP 2 bulan dari `end_at`, alert persisten prioritas tinggi | Rekomendasi EHA: Pemulihan / Pencabutan |
+| 7 | **Perluasan Ruang Lingkup (PRL)** | Non-Periodik (Permohonan Mandiri)<br/>• Baseline Pemicu: Tanggal Pengajuan<br/>• Baseline TP: Realisasi `end_at` | Mandiri | Reviu permohonan mandiri di luar jadwal rutin, cek bukti validasi metode, input asesmen teknis, kawal TP 2 bulan | Registrasi asesmen PRL, validasi kelengkapan berkas penambahan lingkup, batas TP 2 bulan dari `end_at` | Adendum Lampiran Ruang Lingkup Resmi |
+| 8 | **Re-Akreditasi** | Periodik Siklus 5 Tahun<br/>• Baseline Siklus: `expired_at`<br/>• Baseline TP: Realisasi `end_at` | Bulan 48 - 60 | Kirim notifikasi pengajuan bulan 48-51, reviu berkas lengkap, kawal full re-assessment sebelum bulan 60, kawal Quality Gate TP 2 bulan | Persistent alert banner kritis, batas TP 2 bulan dari `end_at`, Quality Gate lock rilis SK, reset siklus baru | Sertifikat & SK Baru 5 Tahun (Siklus 2) |
 
 ---
 
