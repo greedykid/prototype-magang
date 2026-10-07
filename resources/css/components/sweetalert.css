@@ -3,10 +3,11 @@
 .swal2-container {
     box-sizing: border-box !important;
     padding: 16px !important;
+    z-index: 100050 !important;
 }
 
 .swal2-popup.simasadi-swal-popup,
-.swal2-container .swal2-popup {
+.swal2-container .swal2-popup:not(.swal2-toast) {
     background: var(--surface, #ffffff) !important;
     border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
     border-radius: var(--radius-lg, 12px) !important;
@@ -119,7 +120,7 @@
 
 /* SweetAlert2 Dark Theme Overrides */
 html[data-theme="dark"] .swal2-popup.simasadi-swal-popup,
-html[data-theme="dark"] .swal2-container .swal2-popup {
+html[data-theme="dark"] .swal2-container .swal2-popup:not(.swal2-toast) {
     background: var(--surface) !important;
     border: 1px solid var(--line) !important;
     box-shadow: var(--shadow-lg) !important;
@@ -143,4 +144,136 @@ html[data-theme="dark"] .simasadi-swal-cancel-btn:hover {
     background: var(--surface-hover) !important;
     border-color: rgba(255, 255, 255, 0.16) !important;
     color: #ffffff !important;
+}
+
+/* ==========================================================================
+   SweetAlert2 Notion Toast Theme (Aligned with DESIGN.md)
+   ========================================================================== */
+body.swal2-toast-shown .swal2-container {
+    background-color: transparent !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    pointer-events: none !important;
+    z-index: 100050 !important;
+}
+
+body.swal2-toast-shown .swal2-container.swal2-top-end,
+body.swal2-toast-shown .swal2-container.swal2-top-right {
+    bottom: auto !important;
+    left: auto !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: auto !important;
+    max-width: min(420px, 100vw) !important;
+}
+
+body.swal2-toast-shown .swal2-container.swal2-bottom-end,
+body.swal2-toast-shown .swal2-container.swal2-bottom-right {
+    bottom: 0 !important;
+    left: auto !important;
+    right: 0 !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: min(420px, 100vw) !important;
+}
+
+.swal2-popup.swal2-toast {
+    align-items: center !important;
+    background: var(--surface, #ffffff) !important;
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
+    border-radius: var(--radius-md, 8px) !important;
+    box-shadow: var(--shadow-md) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    font-family: var(--font-sans) !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    max-width: min(380px, calc(100vw - 32px)) !important;
+    padding: 12px 16px !important;
+    pointer-events: auto !important;
+    width: auto !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon {
+    align-self: center !important;
+    flex-shrink: 0 !important;
+    height: 24px !important;
+    margin: 0 !important;
+    min-width: 24px !important;
+    transform: scale(0.9) !important;
+    width: 24px !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success {
+    border-color: var(--success-text, #0f6220) !important;
+    color: var(--success-text, #0f6220) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success [class^='swal2-success-line'] {
+    background-color: var(--success-text, #0f6220) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success .swal2-success-ring {
+    border-color: rgba(20, 131, 43, 0.3) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    color: var(--ink, #111111) !important;
+    font-family: var(--font-sans) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+.swal2-popup.swal2-toast .swal2-html-container {
+    color: var(--muted, #78736f) !important;
+    font-family: var(--font-sans) !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    margin: 3px 0 0 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+.swal2-popup.swal2-toast .swal2-close {
+    color: var(--muted, #78736f) !important;
+    height: 24px !important;
+    margin: 0 !important;
+    min-height: 24px !important;
+    min-width: 24px !important;
+    padding: 0 !important;
+    width: 24px !important;
+}
+
+.swal2-popup.swal2-toast .swal2-close:hover {
+    color: var(--ink, #111111) !important;
+}
+
+/* Toast Dark Theme Overrides */
+html[data-theme="dark"] .swal2-popup.swal2-toast {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-title {
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-html-container {
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-icon-success {
+    border-color: #68ce7e !important;
+    color: #68ce7e !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-icon-success [class^='swal2-success-line'] {
+    background-color: #68ce7e !important;
 }

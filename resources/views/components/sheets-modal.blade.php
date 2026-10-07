@@ -127,7 +127,8 @@
                     title: 'Rumus Google Sheets berhasil disalin!',
                     text: 'Tempelkan di sel A1 Google Sheets Anda.',
                     showConfirmButton: false,
-                    timer: 2500
+                    timer: 2500,
+                    timerProgressBar: true
                 });
             }
 
