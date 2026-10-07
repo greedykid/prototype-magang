@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -36,6 +37,11 @@ class GoogleSheetsReportController extends Controller
             ]);
         }
 
+        Log::info('Google Sheets live feed accessed: LPKs', [
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return $this->generateLpksCsv(true);
     }
 
@@ -59,16 +65,55 @@ class GoogleSheetsReportController extends Controller
             ]);
         }
 
+        Log::info('Google Sheets live feed accessed: Assessments', [
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return $this->generateAssessmentsCsv(true);
     }
 
     /**
-     * Validasi key feed Google Sheets.
+     * Validasi key feed Google Sheets dengan perbandingan konstan waktu (timing-safe).
      */
     protected function isValidFeedKey(Request $request): bool
     {
-        $expected = env('SHEETS_FEED_KEY', self::DEFAULT_FEED_KEY);
-        return $request->query('key') === $expected;
+        $configured = (string) (config('services.sheets.feed_key') ?: env('SHEETS_FEED_KEY') ?: '');
+
+        // Pada environment non-lokal (misal production atau staging), wajib kunci rahasia khusus non-default
+        if (! app()->environment('local', 'testing')) {
+            if ($configured === '' || $configured === self::DEFAULT_FEED_KEY) {
+                return false;
+            }
+        } else {
+            if ($configured === '') {
+                $configured = self::DEFAULT_FEED_KEY;
+            }
+        }
+
+        $provided = (string) $request->query('key', '');
+
+        if ($provided === '') {
+            return false;
+        }
+
+        return hash_equals($configured, $provided);
+    }
+
+    /**
+     * Sanitasi sel CSV untuk mencegah Formula / CSV Injection (CWE-1236).
+     */
+    protected function sanitizeCsvCell(mixed $value): string
+    {
+        $str = (string) ($value ?? '');
+        if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            if ($str[0] === '-' && is_numeric($str)) {
+                return $str;
+            }
+            return "'" . $str;
+        }
+
+        return $str;
     }
 
     /**
@@ -148,7 +193,7 @@ class GoogleSheetsReportController extends Controller
                     $lpk->created_at ? $lpk->created_at->format('d/m/Y') : '-',
                 ];
 
-                fputcsv($handle, $row);
+                fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
             }
 
             fclose($handle);
@@ -208,7 +253,7 @@ class GoogleSheetsReportController extends Controller
                     $asm->tp_due_date ? $asm->tp_due_date->format('d/m/Y') : '-',
                 ];
 
-                fputcsv($handle, $row);
+                fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
             }
 
             fclose($handle);

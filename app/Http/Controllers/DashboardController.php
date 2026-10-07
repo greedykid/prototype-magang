@@ -38,7 +38,7 @@ class DashboardController extends Controller
         $urgentTpTotalCount = $urgentTpAssessmentsAll->count();
         $urgentTpAssessments = $urgentTpAssessmentsAll->take(5);
 
-        $lpkCount = $isPic ? Lpk::accessibleBy($user)->count() : Lpk::count();
+        $lpkCount = $isPic ? Lpk::primaryFor($user)->count() : Lpk::count();
 
         $assessmentCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->whereBetween('start_at', [now()->startOfMonth(), now()->endOfMonth()])
@@ -52,7 +52,7 @@ class DashboardController extends Controller
             ->get();
 
         $managedLpks = Lpk::with(['pic', 'assessments'])
-            ->when($isPic, fn ($q) => $q->accessibleBy($user))
+            ->when($isPic, fn ($q) => $q->primaryFor($user))
             ->orderByRaw('CASE WHEN expired_at IS NOT NULL AND expired_at <= ? THEN 0 ELSE 1 END', [now()->addMonths(6)])
             ->orderBy('name')
             ->take(5)

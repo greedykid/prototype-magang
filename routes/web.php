@@ -18,13 +18,17 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/login');
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'create'])->name('login');
-    Route::post('/login', [AuthController::class, 'store'])->name('login.store');
+    Route::post('/login', [AuthController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('login.store');
 });
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
-// Public live CSV feeds for Google Sheets =IMPORTDATA formula (protected by ?key= query)
-Route::get('/feeds/lpks.csv', [GoogleSheetsReportController::class, 'feedLpks'])->name('feeds.lpks');
-Route::get('/feeds/assessments.csv', [GoogleSheetsReportController::class, 'feedAssessments'])->name('feeds.assessments');
+// Public live CSV feeds for Google Sheets =IMPORTDATA formula (protected by ?key= query and throttled)
+Route::middleware('throttle:60,1')->group(function (): void {
+    Route::get('/feeds/lpks.csv', [GoogleSheetsReportController::class, 'feedLpks'])->name('feeds.lpks');
+    Route::get('/feeds/assessments.csv', [GoogleSheetsReportController::class, 'feedAssessments'])->name('feeds.assessments');
+});
 
 Route::middleware('auth')->group(function (): void {
     // 1. Fitur bersama & operasional unit internal (Admin & PIC)
@@ -75,6 +79,9 @@ Route::middleware('auth')->group(function (): void {
 
     // Tautan Akun Kolaborasi (Viewer Lintas Akun)
     Route::get('/account-links', [AccountLinkController::class, 'index'])->name('account-links.index');
+    Route::get('/account-links/{user}', [AccountLinkController::class, 'show'])->name('account-links.show')->whereNumber('user');
+    Route::get('/account-links/{user}/lpks/{lpk}', [AccountLinkController::class, 'showLpk'])->name('account-links.lpks.show')->whereNumber('user')->whereNumber('lpk');
+    Route::get('/account-links/{user}/assessments/{assessment}', [AccountLinkController::class, 'showAssessment'])->name('account-links.assessments.show')->whereNumber('user')->whereNumber('assessment');
     Route::post('/account-links', [AccountLinkController::class, 'store'])->name('account-links.store');
     Route::delete('/account-links/{user}', [AccountLinkController::class, 'destroy'])->name('account-links.destroy')->whereNumber('user');
 

@@ -128,6 +128,21 @@ Schedule::command('lpk:check-surveillance')
     ->withoutOverlapping()
     ->runInBackground();
 
+Artisan::command('assessments:sync-overdue-status', function () {
+    $count = \App\Models\Assessment::query()
+        ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
+        ->tpOverdue()
+        ->update(['status' => 'SUSPENDED']);
+
+    $this->info("Sinkronisasi status selesai: {$count} asesmen yang melewati batas waktu KAN diperbarui menjadi SUSPENDED.");
+})->purpose('Menyinkronkan status asesmen yang melewati batas waktu tindakan perbaikan menjadi SUSPENDED.');
+
+Schedule::command('assessments:sync-overdue-status')
+    ->dailyAt('07:15')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+
 
 
 

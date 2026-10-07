@@ -18,7 +18,7 @@
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('{{ $modalId }}')" aria-label="Tutup modal">&times;</button>
         </div>
 
-        <div style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 18px;">
             <p style="margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5;">
                 {{ $subtitle }}
             </p>
@@ -100,7 +100,7 @@
             @endif
         </div>
 
-        <div class="modal-form-actions" style="border-top: 1px solid var(--line); padding: 12px 20px; background: var(--modal-bg, var(--surface)); border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+        <div class="modal-form-actions">
             <button type="button" class="button ghost" data-modal-close onclick="window.closeModal('{{ $modalId }}')">Tutup</button>
         </div>
     </div>

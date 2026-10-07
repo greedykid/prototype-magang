@@ -41,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        if (! app()->runningUnitTests()) {
+        if (app()->environment('local') && ! app()->runningUnitTests()) {
             try {
                 if (! Schema::hasTable('users')) {
                     Artisan::call('migrate', ['--force' => true]);
@@ -60,27 +60,58 @@ class AppServiceProvider extends ServiceProvider
                 if (Schema::hasTable('lpks')) {
                     try {
                         $user = $req ? $req->user() : null;
-                        $activeLpks = \App\Models\Lpk::accessibleBy($user)
-                            ->with('assessments')
-                            ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
-                            ->where(function ($q) {
-                                $q->whereNotNull('certificate_date')
-                                  ->orWhereNotNull('expired_at');
-                            })
-                            ->get();
+                        $userId = $user ? $user->id : 'guest';
 
-                        foreach ($activeLpks as $lpk) {
-                            foreach ($lpk->assessments as $assessment) {
-                                $assessment->setRelation('lpk', $lpk);
-                            }
-                        }
+                        $computeAlerts = function () use ($user) {
+                            $activeLpks = \App\Models\Lpk::accessibleBy($user)
+                                ->with('assessments')
+                                ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
+                                ->where(function ($q) {
+                                    $q->whereNotNull('certificate_date')
+                                      ->orWhereNotNull('expired_at');
+                                })
+                                ->get();
 
-                        $alerts = [];
-                        foreach ($activeLpks as $lpk) {
-                            foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
-                                $alerts[] = $alert;
+                            foreach ($activeLpks as $lpk) {
+                                foreach ($lpk->assessments as $assessment) {
+                                    $assessment->setRelation('lpk', $lpk);
+                                }
                             }
-                        }
+
+                            $list = [];
+                            foreach ($activeLpks as $lpk) {
+                                foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
+                                    $list[] = $alert;
+                                }
+                            }
+
+                            // Convert Carbon instances to primitive ISO strings for safe serialization
+                            return array_map(function ($item) {
+                                foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
+                                    if (!empty($item[$dateKey]) && $item[$dateKey] instanceof \Carbon\CarbonInterface) {
+                                        $item[$dateKey] = $item[$dateKey]->toIso8601String();
+                                    }
+                                }
+                                return $item;
+                            }, $list);
+                        };
+
+                        $version = \Illuminate\Support\Facades\Cache::get('simasadi_surveillance_version', 1);
+                        $cacheKey = "simasadi_alerts_{$userId}_v{$version}";
+
+                        $rawAlerts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($computeAlerts) {
+                            return $computeAlerts();
+                        });
+
+                        // Rehydrate primitive ISO strings back to real Carbon instances
+                        $alerts = array_map(function ($item) {
+                            foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
+                                if (!empty($item[$dateKey]) && is_string($item[$dateKey])) {
+                                    $item[$dateKey] = \Illuminate\Support\Carbon::parse($item[$dateKey]);
+                                }
+                            }
+                            return $item;
+                        }, (array) $rawAlerts);
                     } catch (\Throwable $e) {
                         $alerts = [];
                     }

@@ -92,4 +92,43 @@ class SimasadiFeaturesTest extends TestCase
         $responseRA->assertOk();
         $responseRA->assertSee('Re-asesmen Siklus KAN - Laboratorium Uji Mutu Unggul');
     }
+
+    public function test_can_create_and_update_assessment_with_longer_kan_type_names(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $lpk = Lpk::factory()->create();
+
+        // 1. Test store assessment with Re-Akreditasi (Akreditasi Ulang) - 32 chars
+        $response = $this->actingAs($admin)->post(route('assessments.store'), [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Re-Akreditasi Siklus Baru',
+            'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
+            'start_at' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'end_at' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            'status' => 'SCHEDULED',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('assessments', [
+            'lpk_id' => $lpk->id,
+            'assessment_type' => 'Re-Akreditasi (Akreditasi Ulang)',
+        ]);
+
+        // 2. Test update assessment with Surveilen Tidak Terjadwal (STT) - 32 chars
+        $assessment = Assessment::where('lpk_id', $lpk->id)->first();
+        $updateResponse = $this->actingAs($admin)->put(route('assessments.update', $assessment), [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen STT Kasus Khusus',
+            'assessment_type' => Assessment::TYPE_STT,
+            'start_at' => now()->addDays(10)->format('Y-m-d H:i:s'),
+            'end_at' => now()->addDays(12)->format('Y-m-d H:i:s'),
+            'status' => 'IN_PROGRESS',
+        ]);
+
+        $updateResponse->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('assessments', [
+            'id' => $assessment->id,
+            'assessment_type' => 'Surveilen Tidak Terjadwal (STT)',
+        ]);
+    }
 }

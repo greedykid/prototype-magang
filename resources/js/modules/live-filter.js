@@ -225,6 +225,10 @@ export const initLiveFilters = () => {
 
         // Instantly remove active filters bar for immediate UI responsiveness
         document.querySelectorAll('.active-filters-bar').forEach((bar) => bar.remove());
+        if (form._activeFiltersBar) {
+            form._activeFiltersBar.remove();
+            form._activeFiltersBar = null;
+        }
 
         // Cancel any pending search debounce
         const formId = form.id || 'default-form';

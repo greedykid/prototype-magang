@@ -129,8 +129,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-SURV-01',
             'name' => 'Lab Uji S1 Due',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
             'email' => 'pic.s1@labuji.id',
         ]);
 
@@ -147,8 +147,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-SURV-02',
             'name' => 'Lab Uji S2 Due',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(35)->toDateString(),
-            'expired_at' => now()->subMonths(35)->toDateString(),
+            'certificate_date' => now()->subMonths(35)->toDateString(),
+            'expired_at' => now()->subMonths(35)->addYears(5)->toDateString(),
             'email' => 'pic.s2@labuji.id',
         ]);
 
@@ -157,13 +157,13 @@ class PrototypeFlowTest extends TestCase
         $this->assertEquals('DUE', $milestonesS2['s2']['status']);
         $this->assertEquals('UPCOMING', $milestonesS2['ra']['status']);
 
-        // LPK kurang dari 1 bulan sebelum habis (memasuki masa notif Re-Akreditasi, < 1 bulan)
+        // LPK terbit 50 bulan yang lalu (memasuki masa notif Re-Akreditasi, bulan 48-51)
         $lpkRA = Lpk::create([
             'registration_number' => 'LP-SURV-03',
             'name' => 'Lab Uji RA Due',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(50)->toDateString(),
-            'expired_at' => now()->subMonths(50)->toDateString(),
+            'certificate_date' => now()->subMonths(50)->toDateString(),
+            'expired_at' => now()->subMonths(50)->addYears(5)->toDateString(),
             'email' => 'pic.ra@labuji.id',
         ]);
 
@@ -180,8 +180,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-AUTO-REALIZED-01',
             'name' => 'Lab Akreditasi Valid Siklus Lanjut',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(50)->toDateString(),
-            'expired_at' => now()->subMonths(50)->toDateString(),
+            'certificate_date' => now()->subMonths(50)->toDateString(),
+            'expired_at' => now()->subMonths(50)->addYears(5)->toDateString(),
             'email' => 'pic.valid@labuji.id',
         ]);
 
@@ -200,8 +200,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-AUTO-REALIZED-02',
             'name' => 'Lab Inactive Tidak Terealisasi',
             'status' => 'INACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(50)->toDateString(),
-            'expired_at' => now()->subMonths(50)->toDateString(),
+            'certificate_date' => now()->subMonths(50)->toDateString(),
+            'expired_at' => now()->subMonths(50)->addYears(5)->toDateString(),
         ]);
 
         $inactiveMilestones = $inactiveLpk->surveillance_milestones;
@@ -220,8 +220,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-MAIL-01',
             'name' => 'Lab Uji Mailtrap',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
             'email' => 'lab.external@mailtrap-test.id',
         ]);
 
@@ -493,8 +493,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-S1-01',
             'name' => 'Lab Jatuh Tempo S1',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
         ]);
 
         // Fresh cert: cert date 1 month ago (no alerts)
@@ -529,8 +529,8 @@ class PrototypeFlowTest extends TestCase
                 'registration_number' => "LP-ALERT-0{$i}",
                 'name' => "Lab Jatuh Tempo {$i}",
                 'status' => 'ACTIVE',
-                'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-                'expired_at' => now()->subMonths(14)->toDateString(),
+                'certificate_date' => now()->subMonths(14)->toDateString(),
+                'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
             ]);
         }
 
@@ -584,8 +584,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-TEST-OVERDUE',
             'name' => 'Lab Overdue S1',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(19)->toDateString(),
-            'expired_at' => now()->subMonths(19)->toDateString(),
+            'certificate_date' => now()->subMonths(19)->toDateString(),
+            'expired_at' => now()->subMonths(19)->addYears(5)->toDateString(),
         ]);
         $this->assertSame('SURVEILLANCE_OVERDUE', $overdueLpk->dynamic_status);
         $this->assertSame('Lewat Jadwal Surveilen', $overdueLpk->dynamic_status_label);
@@ -602,7 +602,7 @@ class PrototypeFlowTest extends TestCase
         $overdueLpk->unsetRelation('assessments');
         $this->assertSame('ACTIVE', $overdueLpk->dynamic_status);
 
-        // 3. LPK whose certificate is expired -> EXPIRED
+        // 3. LPK whose certificate is expired without RA -> REVOKED
         $expiredLpk = Lpk::create([
             'registration_number' => 'LP-TEST-EXP',
             'name' => 'Lab Expired',
@@ -610,8 +610,8 @@ class PrototypeFlowTest extends TestCase
             'certificate_date' => now()->subYears(11)->toDateString(),
             'expired_at' => now()->subMonths(61)->toDateString(),
         ]);
-        $this->assertSame('EXPIRED', $expiredLpk->dynamic_status);
-        $this->assertSame('Kedaluwarsa', $expiredLpk->dynamic_status_label);
+        $this->assertSame('REVOKED', $expiredLpk->dynamic_status);
+        $this->assertSame('Dicabut', $expiredLpk->dynamic_status_label);
 
         // 4. LPK with status INACTIVE -> INACTIVE
         $inactiveLpk = Lpk::create([
@@ -633,7 +633,7 @@ class PrototypeFlowTest extends TestCase
             'start_at' => now()->startOfMonth()->addDays(2),
             'end_at' => now()->startOfMonth()->addDays(4),
         ]);
-        $expectedDue = ($inactiveLpk->expired_at ?: $inactiveLpk->certificate_date)->copy()->addMonths(18)->endOfDay();
+        $expectedDue = $inactiveLpk->cycle_base_date->copy()->addMonths(18)->endOfDay();
         $this->assertFalse($recentAssessment->is_submission_overdue);
         $this->assertEquals($expectedDue->toDateString(), $recentAssessment->submission_due_date->toDateString());
         $this->assertEquals($expectedDue->year, $recentAssessment->submission_due_date->year);
@@ -657,8 +657,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-TEST-DUE',
             'name' => 'Lab Due S1',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
         ]);
         $this->assertSame('SURVEILLANCE_DUE', $dueLpk->dynamic_status);
         $this->assertSame('Jatuh Tempo Surveilen', $dueLpk->dynamic_status_label);
@@ -673,8 +673,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-BADGE-OVERDUE',
             'name' => 'Lab Badge Overdue',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(19)->toDateString(),
-            'expired_at' => now()->subMonths(19)->toDateString(),
+            'certificate_date' => now()->subMonths(19)->toDateString(),
+            'expired_at' => now()->subMonths(19)->addYears(5)->toDateString(),
         ]);
 
         // Create LPK with recent certificate (compliant ACTIVE)
@@ -727,21 +727,21 @@ class PrototypeFlowTest extends TestCase
         $this->assertStringContainsString('Surveilen 1', $s1->title);
         $this->assertEquals(Assessment::TYPE_SURVEILEN_1, $s1->assessment_type);
         $this->assertEquals('PLANNED', $s1->status);
-        $this->assertEquals($lpk->expired_at->copy()->addMonths(15)->format('Y-m'), $s1->start_at->format('Y-m'));
+        $this->assertEquals($lpk->certificate_date->copy()->addMonths(15)->format('Y-m'), $s1->start_at->format('Y-m'));
 
         // 2. Asesmen Surveilen 2 (S2) - Bulan 36
         $s2 = $assessments[1];
         $this->assertStringContainsString('Surveilen 2', $s2->title);
         $this->assertEquals(Assessment::TYPE_SURVEILEN_2, $s2->assessment_type);
         $this->assertEquals('PLANNED', $s2->status);
-        $this->assertEquals($lpk->expired_at->copy()->addMonths(36)->format('Y-m'), $s2->start_at->format('Y-m'));
+        $this->assertEquals($lpk->certificate_date->copy()->addMonths(36)->format('Y-m'), $s2->start_at->format('Y-m'));
 
         // 3. Asesmen Re-Akreditasi (RA) - Bulan 54
         $ra = $assessments[2];
         $this->assertStringContainsString('Re-Akreditasi', $ra->title);
         $this->assertEquals(Assessment::TYPE_RE_AKREDITASI, $ra->assessment_type);
         $this->assertEquals('PLANNED', $ra->status);
-        $this->assertEquals($lpk->expired_at->copy()->addMonths(54)->format('Y-m'), $ra->start_at->format('Y-m'));
+        $this->assertEquals($lpk->certificate_date->copy()->addMonths(54)->format('Y-m'), $ra->start_at->format('Y-m'));
 
         // Pastikan muncul pada halaman daftar asesmen
         $this->actingAs($admin)->get(route('assessments.index', ['lpk_id' => $lpk->id]))

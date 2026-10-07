@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -125,11 +126,19 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        User::create([
+        $newUser = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'password' => Hash::make($validated['password']),
+        ]);
+
+        Log::info('User account created', [
+            'new_user_id' => $newUser->id,
+            'new_user_email' => $newUser->email,
+            'role' => $newUser->role,
+            'created_by' => $request->user()?->id,
+            'ip_address' => $request->ip(),
         ]);
 
         return redirect()->route('users.index')
@@ -173,6 +182,14 @@ class UserController extends Controller
 
         $user->update($payload);
 
+        Log::info('User account updated', [
+            'target_user_id' => $user->id,
+            'target_user_email' => $user->email,
+            'role' => $user->role,
+            'updated_by' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+        ]);
+
         return redirect()->route('users.index')
             ->with('success', 'Data akun ' . $user->name . ' berhasil diperbarui.');
     }
@@ -187,8 +204,18 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif login.');
         }
 
+        $userId = $user->id;
+        $userEmail = $user->email;
         $userName = $user->name;
         $user->delete();
+
+        Log::info('User account deleted', [
+            'deleted_user_id' => $userId,
+            'deleted_user_email' => $userEmail,
+            'deleted_user_name' => $userName,
+            'deleted_by' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         return redirect()->route('users.index')
             ->with('success', 'Akun pengguna ' . $userName . ' berhasil dihapus.');

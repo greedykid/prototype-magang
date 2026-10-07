@@ -23,6 +23,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon-16x16.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-bsn.png') }}">
+    <link rel="preload" href="/fonts/instrument-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/instrument-sans-600.woff2" as="font" type="font/woff2" crossorigin>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -36,7 +38,7 @@
 
         <div class="page-wrap" id="page-content-wrapper">
             @if(!empty($globalSurveillanceAlerts))
-                <aside id="persistent-surveillance-banner" class="persistent-surveillance-banner" role="alert" aria-label="Peringatan Siklus Pengawasan Akreditasi">
+                <aside id="persistent-surveillance-banner" class="persistent-surveillance-banner" aria-label="Peringatan Siklus Pengawasan Akreditasi">
                     <div class="persistent-surveillance-banner-inner">
                         <div class="persistent-surveillance-banner-main">
                             <div class="persistent-surveillance-banner-badge">
