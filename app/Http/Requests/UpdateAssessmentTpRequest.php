@@ -16,8 +16,9 @@ class UpdateAssessmentTpRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'unified_status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS_TP,UNDER_VERIFICATION,SUSPENDED,COMPLETED,CANCELLED'],
             'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
-            'tp_status' => ['required', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
+            'tp_status' => ['required_without:unified_status', 'nullable', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
             'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
@@ -39,7 +40,10 @@ class UpdateAssessmentTpRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $hasExt = $this->boolean('tp_has_extension') || ! empty($this->input('tp_extension_letter_no'));
-            if ($hasExt && $this->input('tp_status') === Assessment::TP_STATUS_NONE) {
+            $isTpNone = $this->input('tp_status') === Assessment::TP_STATUS_NONE
+                || in_array($this->input('unified_status'), ['SCHEDULED', 'PLANNED', 'CANCELLED'], true);
+
+            if ($hasExt && $isTpNone) {
                 $validator->errors()->add(
                     'tp_has_extension',
                     'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.'
@@ -56,7 +60,43 @@ class UpdateAssessmentTpRequest extends FormRequest
             $validated['tp_extension_months'] = 1;
         }
 
-        if (empty($validated['status'])) {
+        if (! empty($validated['unified_status'])) {
+            $uStatus = $validated['unified_status'];
+            switch ($uStatus) {
+                case 'COMPLETED':
+                    $validated['status'] = 'COMPLETED';
+                    $validated['tp_status'] = Assessment::TP_STATUS_SATISFIED;
+                    if (empty($validated['tp_satisfied_at']) && empty($assessment->tp_satisfied_at)) {
+                        $validated['tp_satisfied_at'] = now()->toDateString();
+                    }
+                    break;
+                case 'SUSPENDED':
+                    $validated['status'] = 'SUSPENDED';
+                    $validated['tp_status'] = Assessment::TP_STATUS_IN_PROGRESS;
+                    break;
+                case 'UNDER_VERIFICATION':
+                    $validated['status'] = 'IN_PROGRESS';
+                    $validated['tp_status'] = Assessment::TP_STATUS_UNDER_VERIFICATION;
+                    break;
+                case 'IN_PROGRESS_TP':
+                    $validated['status'] = 'IN_PROGRESS';
+                    $validated['tp_status'] = Assessment::TP_STATUS_IN_PROGRESS;
+                    break;
+                case 'CANCELLED':
+                    $validated['status'] = 'CANCELLED';
+                    $validated['tp_status'] = Assessment::TP_STATUS_NONE;
+                    break;
+                case 'PLANNED':
+                    $validated['status'] = 'PLANNED';
+                    $validated['tp_status'] = Assessment::TP_STATUS_NONE;
+                    break;
+                default:
+                    $validated['status'] = 'SCHEDULED';
+                    $validated['tp_status'] = Assessment::TP_STATUS_NONE;
+                    break;
+            }
+            unset($validated['unified_status']);
+        } elseif (empty($validated['status'])) {
             $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
             $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
             $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);

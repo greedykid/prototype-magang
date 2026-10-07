@@ -196,9 +196,10 @@ class AssessmentStatusService
     public function calculateDefaultSubmissionDueDate(Assessment $assessment): ?Carbon
     {
         $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : $assessment->lpk()->first();
-        $baseDate = $lpk?->expired_at ?: ($lpk?->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
+        $cycleEnd = $lpk?->expired_at ?: ($lpk?->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
+        $cycleStart = $lpk?->certificate_date ?: ($cycleEnd ? $cycleEnd->copy()->subYears(5) : null);
 
-        if ($baseDate) {
+        if ($cycleStart && $cycleEnd) {
             $type = strtolower((string) ($assessment->assessment_type ?: ''));
             $title = strtolower((string) ($assessment->title ?: ''));
 
@@ -207,7 +208,7 @@ class AssessmentStatusService
                 || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
 
             if ($isRa) {
-                return $baseDate->copy()->addYears(5)->endOfDay();
+                return $cycleEnd->copy()->endOfDay();
             }
 
             $isS2 = in_array($assessment->assessment_type, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2'], true)
@@ -215,10 +216,10 @@ class AssessmentStatusService
                 || preg_match('/\b(Surveilen\s*2|S2)\b/i', $type);
 
             if ($isS2) {
-                return $baseDate->copy()->addMonths(39)->endOfDay();
+                return $cycleStart->copy()->addMonths(39)->endOfDay();
             }
 
-            return $baseDate->copy()->addMonths(18)->endOfDay();
+            return $cycleStart->copy()->addMonths(18)->endOfDay();
         }
 
         if ($assessment->end_at) {

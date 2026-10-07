@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -25,25 +27,17 @@ class AssessmentController extends Controller
         $tpFilter = $request->string('tp_status')->toString();
         $startFrom = $request->date('start_from')?->format('Y-m-d');
         $startTo = $request->date('start_to')?->format('Y-m-d');
-        $picFilter = $request->input('pic_id') ?: $request->input('pic');
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
-
-        // Sinkronisasi otomatis status asesmen yang melewati batas waktu KAN menjadi SUSPENDED
-        Assessment::query()
-            ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
-            ->tpOverdue()
-            ->update(['status' => 'SUSPENDED']);
 
         $user = $request->user();
         $isPic = $user && $user->isPic();
 
         $assessments = Assessment::query()
             ->with(['lpk'])
-            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
-            ->when($picFilter, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
+            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('sk_number', 'like', "%{$search}%")
@@ -142,19 +136,19 @@ class AssessmentController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $pics = $user ? $user->getAccessiblePics() : collect();
+        $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'picFilter', 'perPage'));
+            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage'));
         }
 
         return view('assessments.index', array_merge([
             'assessments' => $assessments,
-            'lpks' => Lpk::accessibleBy($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']),
+            'lpks' => Lpk::primaryFor($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']),
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
-            'pics' => $pics,
-        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'picFilter', 'perPage')));
+            'linkedOwnersCount' => $linkedOwnersCount,
+        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));
     }
 
     public function create(Request $request): View
@@ -291,7 +285,7 @@ class AssessmentController extends Controller
 
         $assessment = Assessment::create($data + ['created_by' => $user->id]);
 
-        return redirect()->route('assessments.show', $assessment)->with('success', 'Program asesmen berhasil dicatat.');
+        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil dicatat.');
     }
 
     public function show(Assessment $assessment, Request $request): View
@@ -351,7 +345,7 @@ class AssessmentController extends Controller
 
         $assessment->update($data);
 
-        return back()->with('success', 'Program asesmen berhasil diperbarui.');
+        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil diperbarui.');
     }
 
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
@@ -374,8 +368,16 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
         }
 
+        $assessmentId = $assessment->id;
         $title = $assessment->title;
         $assessment->delete();
+
+        Log::info('Assessment deleted', [
+            'assessment_id' => $assessmentId,
+            'title' => $title,
+            'user_id' => $user?->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         return redirect()->route('assessments.index')->with('success', "Program asesmen {$title} berhasil dihapus.");
     }
@@ -420,9 +422,18 @@ class AssessmentController extends Controller
             return back()->with('error', 'Tidak ada program asesmen yang dapat dihapus.');
         }
 
-        foreach ($records as $record) {
-            $record->delete();
-        }
+        DB::transaction(function () use ($records) {
+            foreach ($records as $record) {
+                $record->delete();
+            }
+        });
+
+        Log::info('Assessments bulk deleted', [
+            'deleted_count' => $count,
+            'deleted_ids' => $records->pluck('id')->all(),
+            'user_id' => $user?->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         $message = "{$count} program asesmen berhasil dihapus.";
 

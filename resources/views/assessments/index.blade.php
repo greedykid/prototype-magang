@@ -21,15 +21,32 @@
     </a>
 </x-page-header>
 
+@if(($linkedOwnersCount ?? 0) > 0)
+    <div class="panel" style="margin-bottom: 16px; padding: 12px 16px; background: var(--info-bg, #f0f9ff); border: 1px solid var(--info-border, #bae6fd); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="color: var(--info-text, #0284c7); display: flex; align-items: center;">
+                <x-icon name="assessments" size="18" />
+            </div>
+            <div style="font-size: 13px; color: var(--ink);">
+                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data agenda asesmen. Program asesmen tersebut tersimpan terpisah di detail akun masing-masing.
+            </div>
+        </div>
+        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
+            <span>Buka Akun Tertaut</span>
+            <x-icon name="chevron-right" size="13" />
+        </a>
+    </div>
+@endif
+
 <section class="panel table-panel-borderless">
     <form id="assessment-filter-form" class="table-filters" method="GET" action="{{ route('assessments.index') }}" data-partial-filter="true" data-target="#assessment-table-container">
         <div class="table-filter-grid">
-            <label>Cari agenda<input type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off"></label>
-            <label>LPK<select name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
-            <label>Jenis<select name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
-            <label>Status Pelaksanaan<select name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
-            <label>Status TP (Batas Waktu)
-                <select name="tp_status">
+            <label for="filter-asm-search">Cari agenda<input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off"></label>
+            <label for="filter-asm-lpk">LPK<select id="filter-asm-lpk" name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
+            <label for="filter-asm-type">Jenis<select id="filter-asm-type" name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
+            <label for="filter-asm-status">Status Pelaksanaan<select id="filter-asm-status" name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
+            <label for="filter-asm-tp-status">Status TP (Batas Waktu)
+                <select id="filter-asm-tp-status" name="tp_status">
                     <option value="">Semua status TP</option>
                     <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
                     <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
@@ -38,21 +55,8 @@
                     <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
                 </select>
             </label>
-            <label>Mulai dari<input type="date" name="start_from" value="{{ $startFrom }}"></label>
-            <label>Mulai sampai<input type="date" name="start_to" value="{{ $startTo }}"></label>
-            @if($pics->count() > 1 || (auth()->user() && auth()->user()->isAdmin()))
-                <label>
-                    Akun PIC
-                    <select name="pic_id">
-                        <option value="">Semua Akun PIC</option>
-                        @foreach($pics as $p)
-                            <option value="{{ $p->id }}" @selected((string)($picFilter ?? '') === (string)$p->id)>
-                                {{ $p->id === auth()->id() ? 'Akun Saya (' . $p->name . ')' : $p->name . (auth()->user()?->isAdmin() ? '' : ' (Akun Tertaut)') }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-            @endif
+            <label for="filter-asm-start-from">Mulai dari<input id="filter-asm-start-from" type="date" name="start_from" value="{{ $startFrom }}"></label>
+            <label for="filter-asm-start-to">Mulai sampai<input id="filter-asm-start-to" type="date" name="start_to" value="{{ $startTo }}"></label>
         </div>
         <div class="table-filter-actions" id="assessment-filter-actions" style="margin-top: 8px;">
             <span id="assessment-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
@@ -71,7 +75,6 @@
         if (!empty($tpFilter)) $activeFiltersCount++;
         if ($startFrom) $activeFiltersCount++;
         if ($startTo) $activeFiltersCount++;
-        if (!empty($picFilter)) $activeFiltersCount++;
     @endphp
 
     @if($activeFiltersCount > 0)
@@ -99,52 +102,43 @@
                 @if($search)
                     <span class="filter-chip" data-field="search" title="Cari: {{ $search }}">
                         <span class="filter-chip-text">Cari: {{ $search }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Cari">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter pencarian: {{ $search }}">&times;</button>
                     </span>
                 @endif
                 @if($selectedLpk)
                     <span class="filter-chip" data-field="lpk_id" title="LPK: {{ $selectedLpk->registration_number }} - {{ $selectedLpk->name }}">
                         <span class="filter-chip-text">LPK: {{ $selectedLpk->registration_number }} - {{ $selectedLpk->name }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter LPK">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter LPK: {{ $selectedLpk->registration_number }}">&times;</button>
                     </span>
                 @endif
                 @if($assessmentType)
                     <span class="filter-chip" data-field="assessment_type" title="Jenis: {{ $assessmentTypes[$assessmentType] ?? $assessmentType }}">
                         <span class="filter-chip-text">Jenis: {{ $assessmentTypes[$assessmentType] ?? $assessmentType }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Jenis">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter jenis asesmen: {{ $assessmentTypes[$assessmentType] ?? $assessmentType }}">&times;</button>
                     </span>
                 @endif
                 @if($status)
                     <span class="filter-chip" data-field="status" title="Status: {{ $statusLabels[$status] ?? $status }}">
                         <span class="filter-chip-text">Status: {{ $statusLabels[$status] ?? $status }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Status">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter status pelaksanaan: {{ $statusLabels[$status] ?? $status }}">&times;</button>
                     </span>
                 @endif
                 @if(!empty($tpFilter))
                     <span class="filter-chip" data-field="tp_status" title="Status TP: {{ $tpLabels[$tpFilter] ?? $tpFilter }}">
                         <span class="filter-chip-text">Status TP: {{ $tpLabels[$tpFilter] ?? $tpFilter }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Status TP">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter status tindakan perbaikan: {{ $tpLabels[$tpFilter] ?? $tpFilter }}">&times;</button>
                     </span>
                 @endif
                 @if($startFrom)
                     <span class="filter-chip" data-field="start_from" title="Mulai Dari: {{ \Illuminate\Support\Carbon::parse($startFrom)->translatedFormat('d M Y') }}">
                         <span class="filter-chip-text">Mulai Dari: {{ \Illuminate\Support\Carbon::parse($startFrom)->translatedFormat('d M Y') }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Mulai Dari">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter tanggal mulai dari">&times;</button>
                     </span>
                 @endif
                 @if($startTo)
                     <span class="filter-chip" data-field="start_to" title="Mulai Sampai: {{ \Illuminate\Support\Carbon::parse($startTo)->translatedFormat('d M Y') }}">
                         <span class="filter-chip-text">Mulai Sampai: {{ \Illuminate\Support\Carbon::parse($startTo)->translatedFormat('d M Y') }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Mulai Sampai">&times;</button>
-                    </span>
-                @endif
-                @if(!empty($picFilter))
-                    @php
-                        $selectedPicItem = $pics->firstWhere('id', $picFilter);
-                    @endphp
-                    <span class="filter-chip" data-field="pic_id" title="Akun PIC: {{ $selectedPicItem?->name ?? $picFilter }}">
-                        <span class="filter-chip-text">PIC: {{ $selectedPicItem?->name ?? $picFilter }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Akun PIC">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter tanggal mulai sampai">&times;</button>
                     </span>
                 @endif
                 <a href="{{ route('assessments.index') }}" class="filter-reset-link" data-role="reset-filter">Reset Filter</a>

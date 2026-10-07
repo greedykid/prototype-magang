@@ -228,14 +228,55 @@
                         <select id="assessment-lpk-id" name="lpk_id" required>
                             <option value="">Pilih LPK</option>
                             @foreach($lpks as $lpk)
+                                @php
+                                    $lpkAccreditationNo = $lpk->accreditation_number ?: $lpk->registration_number;
+                                    $lpkCertStart = $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : ($lpk->expired_at ? $lpk->expired_at->copy()->subYears(5)->format('d/m/Y') : '-');
+                                    $lpkCertEnd = $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5)->format('d/m/Y') : '-');
+                                    $lpkDynamicStatus = $lpk->dynamic_status;
+                                    $lpkDynamicStatusLabel = $lpk->dynamic_status_label;
+                                @endphp
                                 <option value="{{ $lpk->id }}"
+                                    data-accreditation-no="{{ $lpkAccreditationNo }}"
+                                    data-name="{{ $lpk->name }}"
+                                    data-cert-start="{{ $lpkCertStart }}"
+                                    data-cert-end="{{ $lpkCertEnd }}"
+                                    data-status="{{ strtolower($lpkDynamicStatus) }}"
+                                    data-status-label="{{ $lpkDynamicStatusLabel }}"
                                     data-cert-date="{{ $lpk->certificate_date?->format('Y-m-d') ?: ($lpk->expired_at ? $lpk->expired_at->copy()->subYears(5)->format('Y-m-d') : '') }}"
+                                    data-expired-date="{{ $lpk->expired_at?->format('Y-m-d') ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5)->format('Y-m-d') : '') }}"
                                     @selected(old('lpk_id', $assessment->lpk_id ?: request('lpk_id')) == $lpk->id)>
                                     {{ $lpk->registration_number }} - {{ $lpk->name }}
                                 </option>
                             @endforeach
                         </select>
                         <span class="lpk-field-hint">Lembaga Penilaian Kesesuaian yang terdaftar di Komite Akreditasi Nasional.</span>
+
+                        {{-- Info Kecil Detail LPK Terpilih --}}
+                        @php
+                            $selectedLpkId = old('lpk_id', $assessment->lpk_id ?: request('lpk_id'));
+                            $selectedLpk = $selectedLpkId ? $lpks->firstWhere('id', $selectedLpkId) : null;
+                            $selAccreditationNo = $selectedLpk ? ($selectedLpk->accreditation_number ?: $selectedLpk->registration_number) : '-';
+                            $selCertStart = $selectedLpk ? ($selectedLpk->certificate_date ? $selectedLpk->certificate_date->format('d/m/Y') : ($selectedLpk->expired_at ? $selectedLpk->expired_at->copy()->subYears(5)->format('d/m/Y') : '-')) : '-';
+                            $selCertEnd = $selectedLpk ? ($selectedLpk->expired_at ? $selectedLpk->expired_at->format('d/m/Y') : ($selectedLpk->certificate_date ? $selectedLpk->certificate_date->copy()->addYears(5)->format('d/m/Y') : '-')) : '-';
+                            $selStatus = $selectedLpk ? strtolower($selectedLpk->dynamic_status) : 'active';
+                            $selStatusLabel = $selectedLpk ? $selectedLpk->dynamic_status_label : 'Aktif';
+                        @endphp
+                        <div id="selected-lpk-info" class="lpk-selected-info-card" style="{{ $selectedLpk ? '' : 'display: none;' }}">
+                            <div class="lpk-selected-info-main">
+                                <div class="lpk-selected-info-identity">
+                                    <span class="lpk-selected-reg" id="lpk-info-reg" title="Nomor Akreditasi">{{ $selAccreditationNo }}</span>
+                                    <span class="lpk-selected-sep" aria-hidden="true">&bull;</span>
+                                    <strong class="lpk-selected-name" id="lpk-info-name">{{ $selectedLpk?->name ?? '-' }}</strong>
+                                </div>
+                                <div class="lpk-selected-info-meta">
+                                    <div class="lpk-selected-cert">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        <span>Masa Berlaku: <strong id="lpk-info-cert-dates">{{ $selCertStart }} - {{ $selCertEnd }}</strong></span>
+                                    </div>
+                                    <span id="lpk-info-status" class="status status-{{ $selStatus }}">{{ $selStatusLabel }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="lpk-field">
@@ -259,9 +300,9 @@
                                     <option value="{{ $typeKey }}" @selected(
                                         old('assessment_type', $assessment->assessment_type ?: request('assessment_type')) === $typeKey ||
                                         (old('assessment_type') === null && request('assessment_type') === null && (
-                                            ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
-                                            ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
-                                            ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
+                                             ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
+                                             ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
+                                             ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
                                         ))
                                     )>
                                         {{ $typeLabel }}
@@ -276,17 +317,13 @@
                                 <span>Status Asesmen</span>
                             </label>
                             <div class="lpk-status-preview-box">
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
-                                        {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
-                                    </span>
-                                    <span id="status-desc-preview" style="font-size: 11.5px; color: var(--muted); line-height: 1.4;">
-                                        {{ $initialComputedDesc }}
-                                    </span>
-                                </div>
+                                <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
+                                    {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
+                                </span>
+                                <span class="status-auto-tag">Otomatis</span>
                                 <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
                             </div>
-                            <span class="lpk-field-hint">* Otomatis dihitung berdasarkan tanggal pelaksanaan &amp; milestone perbaikan.</span>
+                            <span id="status-desc-preview" class="lpk-field-hint">{{ $initialComputedDesc }}</span>
                         </div>
                     </div>
                 </div>
@@ -679,16 +716,28 @@
 
         function calculateDefaultSubmissionDate() {
             let certDateStr = '';
+            let expDateStr = '';
             if (lpkSelect && lpkSelect.selectedIndex >= 0) {
                 const opt = lpkSelect.options[lpkSelect.selectedIndex];
                 if (opt && opt.dataset.certDate) {
                     certDateStr = opt.dataset.certDate;
                 }
+                if (opt && opt.dataset.expiredDate) {
+                    expDateStr = opt.dataset.expiredDate;
+                }
             }
 
             const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
-            const isS2 = typeVal.toLowerCase().includes('s2') || (typeVal === 'Surveilen 2');
-            const monthsToAdd = isS2 ? 39 : 18;
+            const lowerType = typeVal.toLowerCase();
+            const isRa = lowerType.includes('ra') || lowerType.includes('re-akreditasi') || lowerType.includes('akreditasi ulang') || lowerType.includes('reassessment') || lowerType.includes('re-asesmen');
+            const isS2 = lowerType.includes('s2') || (typeVal === 'Surveilen 2');
+
+            // Untuk Re-Akreditasi (RA), batas toleransi adalah tanggal kedaluwarsa sertifikat (bulan ke-60)
+            if (isRa && expDateStr) {
+                return expDateStr;
+            }
+
+            const monthsToAdd = isRa ? 60 : (isS2 ? 39 : 18);
 
             if (certDateStr) {
                 const parts = certDateStr.split('-');
@@ -734,6 +783,19 @@
                 submissionDueDateInput.value = defDate;
                 submissionDueDateInput.dataset.defaultDate = defDate;
                 updatePickerDisplay(submissionDueDateInput);
+            }
+
+            const hintEl = document.getElementById('assessment-submission-due-date-hint');
+            if (hintEl) {
+                const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
+                const lowerType = typeVal.toLowerCase();
+                if (lowerType.includes('ra') || lowerType.includes('re-akreditasi') || lowerType.includes('akreditasi ulang')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi bulan ke-60 / tanggal kedaluwarsa sertifikat akreditasi KAN).';
+                } else if (lowerType.includes('s2') || typeVal === 'Surveilen 2') {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 36-39 siklus akreditasi KAN).';
+                } else {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).';
+                }
             }
         }
 
@@ -798,6 +860,44 @@
             }
 
             updateStatus();
+        }
+
+        function updateSelectedLpkInfo() {
+            const card = document.getElementById('selected-lpk-info');
+            if (!card || !lpkSelect) return;
+
+            if (!lpkSelect.value || lpkSelect.selectedIndex <= 0) {
+                card.style.display = 'none';
+                return;
+            }
+
+            const opt = lpkSelect.options[lpkSelect.selectedIndex];
+            if (!opt) {
+                card.style.display = 'none';
+                return;
+            }
+
+            const regEl = document.getElementById('lpk-info-reg');
+            const nameEl = document.getElementById('lpk-info-name');
+            const certEl = document.getElementById('lpk-info-cert-dates');
+            const statusEl = document.getElementById('lpk-info-status');
+
+            const reg = opt.dataset.accreditationNo || '-';
+            const name = opt.dataset.name || '-';
+            const certStart = opt.dataset.certStart || '-';
+            const certEnd = opt.dataset.certEnd || '-';
+            const statusCode = opt.dataset.status || 'active';
+            const statusLabel = opt.dataset.statusLabel || 'Aktif';
+
+            if (regEl) regEl.textContent = reg;
+            if (nameEl) nameEl.textContent = name;
+            if (certEl) certEl.textContent = certStart + ' - ' + certEnd;
+            if (statusEl) {
+                statusEl.className = 'status status-' + statusCode;
+                statusEl.textContent = statusLabel;
+            }
+
+            card.style.display = 'block';
         }
 
         function updateStatus() {
@@ -1012,7 +1112,15 @@
 
         if (lpkSelect) {
             lpkSelect.addEventListener('change', function() {
-                syncSubmissionDueDate(false);
+                updateSelectedLpkInfo();
+                syncSubmissionDueDate(true);
+                updateStatus();
+            });
+        }
+
+        if (assessmentTypeSelect) {
+            assessmentTypeSelect.addEventListener('change', function() {
+                syncSubmissionDueDate(true);
                 updateStatus();
             });
         }
@@ -1058,7 +1166,8 @@
             syncSubmissionDueDate(false);
         }
 
-        // Jalankan penentuan status otomatis saat form dimuat
+        // Jalankan penentuan info LPK dan status otomatis saat form dimuat
+        updateSelectedLpkInfo();
         updateStatus();
     }
 

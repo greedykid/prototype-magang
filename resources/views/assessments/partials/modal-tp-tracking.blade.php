@@ -17,27 +17,38 @@
                     </ul>
                 </div>
 
-                <div class="modal-form-grid-2col">
-                    <label style="display: block;">
-                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Status Pelaksanaan Asesmen</span>
-                        <select name="status" style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
-                            <option value="PLANNED" @selected(old('status', $assessment->status) === 'PLANNED')>Direncanakan</option>
-                            <option value="SCHEDULED" @selected(old('status', $assessment->status) === 'SCHEDULED')>Terjadwal</option>
-                            <option value="IN_PROGRESS" @selected(old('status', $assessment->status) === 'IN_PROGRESS')>Sedang Berlangsung</option>
-                            <option value="SUSPENDED" @selected(old('status', $assessment->status) === 'SUSPENDED')>Dibekukan</option>
-                            <option value="COMPLETED" @selected(old('status', $assessment->status) === 'COMPLETED' || $assessment->tp_status === 'SATISFIED' || !empty($assessment->sk_number))>Selesai</option>
-                            <option value="CANCELLED" @selected(old('status', $assessment->status) === 'CANCELLED')>Dibatalkan</option>
-                        </select>
-                    </label>
+                @php
+                    $currentUnifiedStatus = 'SCHEDULED';
+                    if ($assessment->status === 'CANCELLED') {
+                        $currentUnifiedStatus = 'CANCELLED';
+                    } elseif ($assessment->status === 'COMPLETED' || $assessment->tp_status === 'SATISFIED' || !empty($assessment->sk_number)) {
+                        $currentUnifiedStatus = 'COMPLETED';
+                    } elseif ($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue) {
+                        $currentUnifiedStatus = 'SUSPENDED';
+                    } elseif ($assessment->tp_status === 'UNDER_VERIFICATION') {
+                        $currentUnifiedStatus = 'UNDER_VERIFICATION';
+                    } elseif ($assessment->tp_status === 'IN_PROGRESS' || $assessment->status === 'IN_PROGRESS') {
+                        $currentUnifiedStatus = 'IN_PROGRESS_TP';
+                    } elseif ($assessment->status === 'PLANNED') {
+                        $currentUnifiedStatus = 'PLANNED';
+                    }
+                    $selectedUnified = old('unified_status', $currentUnifiedStatus);
+                @endphp
 
+                <div>
                     <label style="display: block;">
-                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Status Tindakan Perbaikan</span>
-                        <select name="tp_status" id="modal_tp_status_select" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
-                            <option value="NONE" @selected(old('tp_status', $assessment->tp_status) === 'NONE')>Nihil / Tidak Ada Temuan</option>
-                            <option value="IN_PROGRESS" @selected(old('tp_status', $assessment->tp_status) === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
-                            <option value="UNDER_VERIFICATION" @selected(old('tp_status', $assessment->tp_status) === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
-                            <option value="SATISFIED" @selected(old('tp_status', $assessment->tp_status) === 'SATISFIED')>Dinyatakan Memenuhi (Selesai)</option>
+                        <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Status Asesmen</span>
+                        <select name="unified_status" id="modal_unified_status_select" required onchange="const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}'); if(this.value === 'COMPLETED' && satInput && !satInput.value){ satInput.value = new Date().toISOString().split('T')[0]; }" style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink); font-size: 13px;">
+                            <option value="SCHEDULED" @selected($selectedUnified === 'SCHEDULED')>Terjadwal (Nihil / Belum Ada Temuan)</option>
+                            <option value="IN_PROGRESS_TP" @selected($selectedUnified === 'IN_PROGRESS_TP')>Sedang Berlangsung: Penyusunan Perbaikan oleh LPK</option>
+                            <option value="UNDER_VERIFICATION" @selected($selectedUnified === 'UNDER_VERIFICATION')>Sedang Berlangsung: Dalam Verifikasi Tim Asesor</option>
+                            <option value="SUSPENDED" @selected($selectedUnified === 'SUSPENDED')>Dibekukan (Melewati Batas Waktu TP)</option>
+                            <option value="COMPLETED" @selected($selectedUnified === 'COMPLETED')>Selesai (Dinyatakan Memenuhi)</option>
+                            <option value="CANCELLED" @selected($selectedUnified === 'CANCELLED')>Dibatalkan</option>
                         </select>
+                        <small style="color: var(--muted); font-size: 11px; display: block; margin-top: 3px;">
+                            Status pelaksanaan agenda dan tindakan perbaikan otomatis tersinkronisasi.
+                        </small>
                     </label>
                 </div>
 
@@ -80,8 +91,8 @@
 
                     <label>
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Tanggal Dinyatakan Memenuhi</span>
-                        <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at_{{ $assessment->id }}" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
-                        <small style="color: var(--muted); font-size: 11px;">Status otomatis beralih ke Memenuhi saat tanggal diisi.</small>
+                        <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at_{{ $assessment->id }}" onchange="if(this.value){ const s = document.getElementById('modal_unified_status_select'); if(s) s.value = 'COMPLETED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: 6px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                        <small style="color: var(--muted); font-size: 11px;">Status otomatis beralih ke Selesai saat tanggal diisi.</small>
                     </label>
                 </div>
 

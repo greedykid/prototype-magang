@@ -34,7 +34,7 @@ class StoreAssessmentRequest extends FormRequest
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:150'],
-            'assessment_type' => ['required', 'string', 'max:30'],
+            'assessment_type' => ['required', 'string', 'max:60'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
             'start_time' => ['nullable', 'string', 'max:10'],
             'end_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
@@ -68,6 +68,13 @@ class StoreAssessmentRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'lpk_id.required' => 'LPK wajib dipilih.',
+            'lpk_id.exists' => 'Data LPK yang dipilih tidak ditemukan dalam sistem.',
+            'title.required' => 'Judul kegiatan asesmen wajib diisi.',
+            'assessment_type.required' => 'Jenis asesmen wajib dipilih.',
+            'assessment_type.max' => 'Jenis asesmen tidak boleh lebih dari :max karakter.',
+            'start_at.required' => 'Waktu mulai pelaksanaan wajib diisi.',
+            'end_at.required' => 'Waktu selesai pelaksanaan wajib diisi.',
             'end_at.after' => 'Waktu selesai pelaksanaan harus setelah waktu mulai pelaksanaan.',
             'start_date.required' => 'Tanggal mulai pelaksanaan wajib diisi.',
             'end_date.required' => 'Tanggal selesai pelaksanaan wajib diisi.',

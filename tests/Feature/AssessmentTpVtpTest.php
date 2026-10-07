@@ -385,4 +385,43 @@ class AssessmentTpVtpTest extends TestCase
         $response->assertSee('Direkomendasikan (Memenuhi)');
         $response->assertSee('Seluruh temuan minor telah diverifikasi dan disetujui komite.');
     }
+
+    public function test_admin_can_update_assessment_using_unified_status(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Uji Status Terpadu',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subDays(5),
+            'end_at' => now()->subDays(3),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+        ]);
+
+        // 1. Modal renders the unified select and no longer has dual selects
+        $viewResp = $this->actingAs($this->admin)->get(route('assessments.show', $assessment));
+        $viewResp->assertOk();
+        $viewResp->assertSee('name="unified_status"', false);
+        $viewResp->assertSee('id="modal_unified_status_select"', false);
+
+        // 2. Submit unified status: UNDER_VERIFICATION
+        $respUnderVerif = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'unified_status' => 'UNDER_VERIFICATION',
+        ]);
+        $respUnderVerif->assertRedirect();
+        $assessment->refresh();
+        $this->assertEquals('IN_PROGRESS', $assessment->status);
+        $this->assertEquals(Assessment::TP_STATUS_UNDER_VERIFICATION, $assessment->tp_status);
+
+        // 3. Submit unified status: COMPLETED
+        $respCompleted = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'unified_status' => 'COMPLETED',
+        ]);
+        $respCompleted->assertRedirect();
+        $assessment->refresh();
+        $this->assertEquals('COMPLETED', $assessment->status);
+        $this->assertEquals(Assessment::TP_STATUS_SATISFIED, $assessment->tp_status);
+        $this->assertNotNull($assessment->tp_satisfied_at);
+    }
 }

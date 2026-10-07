@@ -7,7 +7,9 @@ use App\Models\Lpk;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -103,7 +105,13 @@ class AssessmentImportController extends Controller
             fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
             fputcsv($handle, $columns);
             foreach ($samples as $sample) {
-                fputcsv($handle, $sample);
+                fputcsv($handle, array_map(function ($val) {
+                    $str = (string) ($val ?? '');
+                    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true) && ! is_numeric($str)) {
+                        return "'" . $str;
+                    }
+                    return $str;
+                }, $sample));
             }
             fclose($handle);
         }, 200, $headers);
@@ -117,6 +125,10 @@ class AssessmentImportController extends Controller
         $request->validate([
             'csv_file' => ['nullable', 'file', 'extensions:csv,txt,xlsx', 'max:10240'],
             'sheets_url' => ['nullable', 'url', 'max:1000'],
+        ], [
+            'csv_file.extensions' => 'Berkas harus berformat .csv, .txt, atau .xlsx.',
+            'csv_file.max' => 'Ukuran berkas maksimal 10 MB.',
+            'sheets_url.url' => 'Format tautan Google Sheets tidak valid.',
         ]);
 
         $headers = [];
@@ -145,8 +157,12 @@ class AssessmentImportController extends Controller
                 $rows = $parsed['rows'];
             }
         } elseif ($request->filled('sheets_url')) {
-            $inputUrl = $request->input('sheets_url');
+            $inputUrl = (string) $request->input('sheets_url');
             $url = $this->normalizeGoogleSheetsUrl($inputUrl);
+
+            if (! $url) {
+                return back()->with('error', 'Tautan Google Sheets tidak valid. Pastikan tautan diawali dengan https://docs.google.com/spreadsheets/d/... dan dapat diakses publik.');
+            }
 
             try {
                 $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
@@ -156,10 +172,10 @@ class AssessmentImportController extends Controller
                 ])->withOptions([
                     'cookies' => $cookieJar,
                     'allow_redirects' => [
-                        'max' => 10,
+                        'max' => 5,
                         'strict' => false,
                         'referer' => true,
-                        'protocols' => ['http', 'https'],
+                        'protocols' => ['https'],
                         'track_redirects' => true,
                     ],
                 ])->timeout(20)->get($url);
@@ -199,111 +215,136 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs untuk performa (disesuaikan dengan hak akses PIC / Admin)
+        // Cache LPKs dan Asesmen untuk performa (disesuaikan dengan hak akses PIC / Admin)
         $user = auth()->user();
         $accessibleLpks = Lpk::accessibleBy($user)->get();
         $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        foreach ($rows as $rowItem) {
-            $row = $rowItem['values'];
+        // Pre-load existing assessments untuk mengeliminasi query N+1
+        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))->get();
 
-            $data = [];
-            foreach ($headers as $colIdx => $colName) {
-                if (isset($row[$colIdx])) {
-                    $data[$colName] = trim((string) $row[$colIdx]);
+        DB::transaction(function () use (
+            $rows,
+            $headers,
+            $lpksByReg,
+            $lpksByName,
+            $existingAssessments,
+            $userId,
+            &$createdCount,
+            &$updatedCount,
+            &$skippedCount,
+            &$unmatchedLpks
+        ) {
+            foreach ($rows as $rowItem) {
+                $row = $rowItem['values'];
+
+                $data = [];
+                foreach ($headers as $colIdx => $colName) {
+                    if (isset($row[$colIdx])) {
+                        $data[$colName] = trim((string) $row[$colIdx]);
+                    }
+                }
+
+                $regInput = strtoupper(trim((string) ($data['registration_number'] ?? '')));
+                $titleInput = trim((string) ($data['title'] ?? ''));
+
+                if (empty($regInput) && empty($titleInput)) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Cari LPK
+                $matchedLpk = null;
+                if (! empty($regInput) && isset($lpksByReg[$regInput])) {
+                    $matchedLpk = $lpksByReg[$regInput];
+                } elseif (! empty($data['lpk_name'])) {
+                    $lpkNameKey = strtolower(trim((string) $data['lpk_name']));
+                    $matchedLpk = $lpksByName[$lpkNameKey] ?? null;
+                }
+
+                if (! $matchedLpk) {
+                    // Coba substring match jika ada format LP-XXX
+                    if (preg_match('/(L[PKI]-\d+-IDN)/i', $regInput, $m)) {
+                        $normReg = strtoupper($m[1]);
+                        $matchedLpk = $lpksByReg[$normReg] ?? null;
+                    }
+                }
+
+                if (! $matchedLpk) {
+                    $skippedCount++;
+                    if (! empty($regInput) && ! in_array($regInput, $unmatchedLpks, true)) {
+                        $unmatchedLpks[] = $regInput;
+                    }
+                    continue;
+                }
+
+                // Format tanggal mulai dan selesai
+                $startAt = $this->parseDateTime($data['start_at'] ?? null);
+                $endAt = $this->parseDateTime($data['end_at'] ?? null);
+
+                if (! $startAt) {
+                    $startAt = now()->addDays(7)->setTime(9, 0);
+                }
+                if (! $endAt) {
+                    $endAt = (clone $startAt)->addDays(2)->setTime(17, 0);
+                }
+
+                // Judul agenda default bila kosong
+                $typeInput = $this->normalizeAssessmentType($data['assessment_type'] ?? 'Surveilen');
+                if (empty($titleInput)) {
+                    $titleInput = "Asesmen {$typeInput} - {$matchedLpk->name}";
+                }
+
+                $status = $this->normalizeStatus($data['status'] ?? 'SCHEDULED');
+                $tpStatus = $this->normalizeTpStatus($data['tp_status'] ?? 'NONE');
+                $tpDueDate = ! empty($data['tp_due_date']) ? $this->parseDate($data['tp_due_date']) : null;
+                $skDate = ! empty($data['sk_date']) ? $this->parseDate($data['sk_date']) : null;
+                $skNumber = ! empty($data['sk_number']) ? trim((string) $data['sk_number']) : null;
+
+                // Cari existing assessment dari in-memory collection
+                $existing = $existingAssessments->first(function ($a) use ($matchedLpk, $titleInput, $startAt) {
+                    return (int) $a->lpk_id === (int) $matchedLpk->id
+                        && ($a->title === $titleInput || ($a->start_at && $a->start_at->toDateString() === $startAt->toDateString()));
+                });
+
+                $payload = [
+                    'lpk_id' => $matchedLpk->id,
+                    'title' => $titleInput,
+                    'assessment_type' => $typeInput,
+                    'start_at' => $startAt,
+                    'end_at' => $endAt,
+                    'location' => ! empty($data['location']) ? $data['location'] : ($existing->location ?? $matchedLpk->address),
+                    'status' => $status,
+                    'lead_assessor' => ! empty($data['lead_assessor']) ? $data['lead_assessor'] : ($existing->lead_assessor ?? null),
+                    'notes' => ! empty($data['notes']) ? $data['notes'] : ($existing->notes ?? null),
+                    'tp_status' => $tpStatus,
+                    'tp_due_date' => $tpDueDate ?: ($existing->tp_due_date ?? null),
+                    'sk_number' => $skNumber ?: ($existing->sk_number ?? null),
+                    'sk_date' => $skDate ?: ($existing->sk_date ?? null),
+                ];
+
+                if ($existing) {
+                    $existing->update($payload);
+                    $updatedCount++;
+                } else {
+                    $payload['created_by'] = $userId;
+                    $createdAssessment = Assessment::create($payload);
+                    $existingAssessments->push($createdAssessment);
+                    $createdCount++;
                 }
             }
+        });
 
-            $regInput = strtoupper(trim((string) ($data['registration_number'] ?? '')));
-            $titleInput = trim((string) ($data['title'] ?? ''));
-
-            if (empty($regInput) && empty($titleInput)) {
-                $skippedCount++;
-                continue;
-            }
-
-            // Cari LPK
-            $matchedLpk = null;
-            if (! empty($regInput) && isset($lpksByReg[$regInput])) {
-                $matchedLpk = $lpksByReg[$regInput];
-            } elseif (! empty($data['lpk_name'])) {
-                $lpkNameKey = strtolower(trim((string) $data['lpk_name']));
-                $matchedLpk = $lpksByName[$lpkNameKey] ?? null;
-            }
-
-            if (! $matchedLpk) {
-                // Coba substring match jika ada format LP-XXX
-                if (preg_match('/(L[PKI]-\d+-IDN)/i', $regInput, $m)) {
-                    $normReg = strtoupper($m[1]);
-                    $matchedLpk = $lpksByReg[$normReg] ?? null;
-                }
-            }
-
-            if (! $matchedLpk) {
-                $skippedCount++;
-                if (! empty($regInput) && ! in_array($regInput, $unmatchedLpks, true)) {
-                    $unmatchedLpks[] = $regInput;
-                }
-                continue;
-            }
-
-            // Format tanggal mulai dan selesai
-            $startAt = $this->parseDateTime($data['start_at'] ?? null);
-            $endAt = $this->parseDateTime($data['end_at'] ?? null);
-
-            if (! $startAt) {
-                $startAt = now()->addDays(7)->setTime(9, 0);
-            }
-            if (! $endAt) {
-                $endAt = (clone $startAt)->addDays(2)->setTime(17, 0);
-            }
-
-            // Judul agenda default bila kosong
-            $typeInput = $this->normalizeAssessmentType($data['assessment_type'] ?? 'Surveilen');
-            if (empty($titleInput)) {
-                $titleInput = "Asesmen {$typeInput} - {$matchedLpk->name}";
-            }
-
-            $status = $this->normalizeStatus($data['status'] ?? 'SCHEDULED');
-            $tpStatus = $this->normalizeTpStatus($data['tp_status'] ?? 'NONE');
-            $tpDueDate = ! empty($data['tp_due_date']) ? $this->parseDate($data['tp_due_date']) : null;
-            $skDate = ! empty($data['sk_date']) ? $this->parseDate($data['sk_date']) : null;
-            $skNumber = ! empty($data['sk_number']) ? trim((string) $data['sk_number']) : null;
-
-            // Cari existing assessment untuk di-update (berdasarkan lpk_id dan title / tanggal mulai)
-            $existing = Assessment::where('lpk_id', $matchedLpk->id)
-                ->where(function ($q) use ($titleInput, $startAt) {
-                    $q->where('title', $titleInput)
-                        ->orWhereDate('start_at', $startAt->toDateString());
-                })
-                ->first();
-
-            $payload = [
-                'lpk_id' => $matchedLpk->id,
-                'title' => $titleInput,
-                'assessment_type' => $typeInput,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
-                'location' => ! empty($data['location']) ? $data['location'] : ($existing->location ?? $matchedLpk->address),
-                'status' => $status,
-                'lead_assessor' => ! empty($data['lead_assessor']) ? $data['lead_assessor'] : ($existing->lead_assessor ?? null),
-                'notes' => ! empty($data['notes']) ? $data['notes'] : ($existing->notes ?? null),
-                'tp_status' => $tpStatus,
-                'tp_due_date' => $tpDueDate ?: ($existing->tp_due_date ?? null),
-                'sk_number' => $skNumber ?: ($existing->sk_number ?? null),
-                'sk_date' => $skDate ?: ($existing->sk_date ?? null),
-            ];
-
-            if ($existing) {
-                $existing->update($payload);
-                $updatedCount++;
-            } else {
-                $payload['created_by'] = $userId;
-                Assessment::create($payload);
-                $createdCount++;
-            }
-        }
+        // Audit log terstruktur
+        Log::info('Assessment import batch completed', [
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'created_count' => $createdCount,
+            'updated_count' => $updatedCount,
+            'skipped_count' => $skippedCount,
+            'ip_address' => $request->ip(),
+        ]);
 
         $msg = "Impor data Asesmen selesai: {$createdCount} agenda baru ditambahkan, {$updatedCount} diperbarui";
         if ($skippedCount > 0) {
@@ -525,8 +566,17 @@ class AssessmentImportController extends Controller
         }
     }
 
-    protected function normalizeGoogleSheetsUrl(string $url): string
+    protected function normalizeGoogleSheetsUrl(string $url): ?string
     {
+        $parsed = parse_url($url);
+        if (! isset($parsed['scheme'], $parsed['host'])) {
+            return null;
+        }
+
+        if (strtolower($parsed['scheme']) !== 'https' || strtolower($parsed['host']) !== 'docs.google.com') {
+            return null;
+        }
+
         if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
             $sheetId = $matches[1];
             $gid = '0';
@@ -537,6 +587,6 @@ class AssessmentImportController extends Controller
             return "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
         }
 
-        return $url;
+        return null;
     }
 }
