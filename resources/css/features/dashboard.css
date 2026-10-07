@@ -121,7 +121,7 @@
     margin: 0;
 }
 .metric.warn strong {
-    color: var(--terracotta);
+    color: var(--warning, #ab4a00);
 }
 .metric small {
     color: var(--muted);
@@ -311,7 +311,7 @@
 }
 
 .tp-extension-note {
-    color: var(--terracotta);
+    color: var(--warning, #ab4a00);
     margin-left: 4px;
     font-weight: 600;
     font-size: 11.5px;
@@ -446,9 +446,9 @@
     justify-content: center;
     min-width: 48px;
     padding: 6px 8px;
-    background: #ffffff;
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
     text-align: center;
     flex-shrink: 0;
 }
@@ -456,14 +456,14 @@
 .agenda-card-date .day {
     font-size: 15px;
     font-weight: 700;
-    color: var(--maroon, #800000);
+    color: var(--primary, #0075de);
     line-height: 1;
 }
 
 .agenda-card-date .month {
     font-size: 10.5px;
     font-weight: 600;
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     text-transform: uppercase;
     margin-top: 2px;
 }
@@ -476,7 +476,7 @@
 .agenda-card-title {
     font-size: 13.5px;
     font-weight: 600;
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     margin-bottom: 3px;
     white-space: nowrap;
     overflow: hidden;
@@ -488,7 +488,7 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     flex-wrap: wrap;
 }
 
@@ -496,9 +496,9 @@
    Dashboard Operational Health Card & Managed LPKs
    ========================================================================== */
 .dashboard-health-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 8px);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -854,7 +854,7 @@ html[data-theme="dark"] .agenda-card-date {
 }
 
 html[data-theme="dark"] .agenda-card-date .day {
-    color: var(--maroon);
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .agenda-card-date .month {

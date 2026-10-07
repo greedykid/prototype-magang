@@ -52,7 +52,7 @@
 }
 
 .simasadi-subcard-header h3 svg {
-    color: var(--maroon);
+    color: var(--primary, #0075de);
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -97,25 +97,25 @@
 }
 
 .cost-item {
-    background: #faf9f6;
-    border: 1px solid #edebe6;
-    border-radius: 8px;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
     padding: 12px 16px;
     transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .cost-item:hover {
-    background: #f5f3ee;
-    border-color: #dfdcd5;
+    background: var(--surface-hover, #efedea);
+    border-color: var(--color-gray-400, #a39e98);
 }
 
 .cost-item.total-cost-item {
-    background: var(--lavender);
-    border-color: #d8d0ff;
+    background: var(--primary-subtle, #e6f3fe);
+    border-color: rgba(0, 117, 222, 0.2);
 }
 
 .cost-item small {
-    color: var(--muted);
+    color: var(--muted, #615d59);
     display: block;
     font-size: 11.5px;
     font-weight: 600;
@@ -133,16 +133,16 @@
 }
 
 .cost-item.total-cost-item strong {
-    color: var(--maroon-dark);
+    color: var(--primary-hover, #005bab);
     font-size: 20px;
 }
 
 /* SBM Callout Box */
 .sbm-callout {
     align-items: flex-start;
-    background: #fdfaf3;
-    border: 1px solid #f6e6be;
-    border-radius: 8px;
+    background: var(--color-yellow-100, #fff5e0);
+    border: 1px solid rgba(232, 157, 1, 0.25);
+    border-radius: var(--radius-sm, 6px);
     color: #795200;
     display: flex;
     font-size: 13px;
