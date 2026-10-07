@@ -159,12 +159,27 @@
 .panel-head { align-items: start; display: flex; justify-content: space-between; margin-bottom: 17px; }.panel-head a { font-size: 13px; }
 
 /* ==========================================================================
-   Balanced 2-Column Dashboard Layout & Modular Widgets
+   Balanced Dashboard Layout: Urgent Stack & 2-Column Overview Grid
    ========================================================================== */
+.dashboard-urgent-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 28px;
+    width: 100%;
+}
+
+.dashboard-health-panel {
+    margin-bottom: 28px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-overview-grid,
 .dashboard-main-grid {
     display: grid;
     gap: 24px;
-    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
     margin-bottom: 32px;
     width: 100%;
@@ -172,21 +187,16 @@
 }
 
 @media (max-width: 1024px) {
+    .dashboard-overview-grid,
     .dashboard-main-grid {
         grid-template-columns: minmax(0, 1fr);
         gap: 20px;
     }
 }
 
+.dashboard-overview-grid > .panel,
+.dashboard-main-grid > .panel,
 .dashboard-column {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    min-width: 0;
-    width: 100%;
-}
-
-.dashboard-column > .panel {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -194,6 +204,8 @@
     box-sizing: border-box;
 }
 
+.dashboard-overview-grid > .panel > .panel-head,
+.dashboard-main-grid > .panel > .panel-head,
 .dashboard-column > .panel > .panel-head {
     align-items: center;
     min-height: 38px;
@@ -255,6 +267,61 @@
     flex-wrap: wrap;
 }
 
+.surveillance-alert-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.surveillance-alert-main-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.surveillance-alert-lpk-name {
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+.surveillance-alert-lpk-name:hover {
+    text-decoration: underline;
+}
+
+.surveillance-alert-reg {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 6px;
+}
+
+.badge-countdown {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    margin-left: 4px;
+    border-radius: 4px;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tp-extension-note {
+    color: var(--terracotta);
+    margin-left: 4px;
+    font-weight: 600;
+    font-size: 11.5px;
+}
+
+.dashboard-more-wrap {
+    text-align: center;
+    margin-top: 8px;
+}
+
 .surveillance-alert-actions {
     display: flex;
     align-items: center;
@@ -272,6 +339,14 @@
         flex: 1 1 auto;
         justify-content: center;
     }
+}
+
+.dashboard-panel-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 /* Simple Compact Green All-Clear Banner */
@@ -322,7 +397,7 @@
     font-size: 11.5px;
     font-weight: 700;
     padding: 3px 10px;
-    border-radius: 999px;
+    border-radius: 5px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -770,12 +845,12 @@ html[data-theme="dark"] .agenda-card {
 
 html[data-theme="dark"] .agenda-card:hover {
     background: var(--surface-hover);
-    border-color: #334155;
+    border-color: #383838;
 }
 
 html[data-theme="dark"] .agenda-card-date {
-    background: #0f172a;
-    border-color: #1e293b;
+    background: var(--surface-subtle);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .agenda-card-date .day {
@@ -787,8 +862,8 @@ html[data-theme="dark"] .agenda-card-date .month {
 }
 
 html[data-theme="dark"] .dashboard-health-stat {
-    background: #0f172a;
-    border-color: #1e293b;
+    background: var(--surface-subtle);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .dashboard-health-stat .stat-val {
@@ -851,8 +926,8 @@ html[data-theme="dark"] .dashboard-lpk-item:hover {
 }
 
 html[data-theme="dark"] .dashboard-lpk-reg {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-subtle);
+    border-color: var(--line);
     color: #94a3b8;
 }
 
@@ -909,3 +984,15 @@ html[data-theme="dark"] .surveillance-alert-actions .button.ghost:hover {
 .dashboard-alert-desc.is-warning { color: #b45309; }
 html[data-theme="dark"] .dashboard-alert-desc.is-urgent { color: #f87171; }
 html[data-theme="dark"] .dashboard-alert-desc.is-warning { color: #facc15; }
+
+html[data-theme="dark"] .surveillance-alert-lpk-name {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .surveillance-alert-reg {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .tp-extension-note {
+    color: #fb923c;
+}

@@ -76,9 +76,20 @@ body.modal-open .sidebar {
 
 .simasadi-modal-head {
     align-items: center;
+    background: var(--modal-bg, #ffffff);
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
     display: flex;
     justify-content: space-between;
     margin-bottom: 18px;
+    margin-left: -28px;
+    margin-right: -28px;
+    margin-top: -24px;
+    padding: 18px 28px 14px 28px;
+    position: sticky;
+    top: -24px;
+    z-index: 20;
 }
 
 .simasadi-modal-head h4 {
@@ -153,12 +164,17 @@ body.modal-open .sidebar {
 }
 
 .simasadi-modal-box.modal-lg .simasadi-modal-head {
-    padding: 18px 24px;
-    margin-bottom: 0;
+    background: var(--modal-bg, #ffffff);
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
-    background: var(--modal-bg, #ffffff);
-    z-index: 2;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    padding: 18px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
 }
 
 .modal-head-title {
@@ -457,7 +473,12 @@ body.modal-open .sidebar {
     }
 
     .simasadi-modal-box.modal-lg .simasadi-modal-head {
+        margin-bottom: 0;
+        margin-left: 0;
+        margin-right: 0;
+        margin-top: 0;
         padding: 14px 20px;
+        top: 0;
     }
 
     .modal-import-body {
@@ -470,7 +491,12 @@ body.modal-open .sidebar {
     }
 
     .simasadi-modal-head {
-        margin-bottom: 12px;
+        margin-bottom: 14px;
+        margin-left: -22px;
+        margin-right: -22px;
+        margin-top: -18px;
+        padding: 14px 22px 12px 22px;
+        top: -18px;
     }
 
     .modal-form-actions {
@@ -514,7 +540,7 @@ html[data-theme="dark"] .simasadi-modal-close:hover {
 }
 
 html[data-theme="dark"] .import-step-card {
-    background: #0f172a;
+    background: var(--surface-subtle);
     border-color: var(--line);
 }
 
@@ -535,30 +561,30 @@ html[data-theme="dark"] .import-form-help {
 }
 
 html[data-theme="dark"] .import-drag-area {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--input-bg);
+    border-color: var(--input-border);
 }
 
 html[data-theme="dark"] .import-file-input {
-    background: #0f172a;
+    background: var(--input-bg);
     border-color: var(--line);
     color: var(--ink);
 }
 
 html[data-theme="dark"] .import-file-input:hover,
 html[data-theme="dark"] .import-file-input:focus {
-    background: #1e293b;
+    background: var(--surface-hover);
     border-color: var(--maroon);
 }
 
 html[data-theme="dark"] .import-url-input {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--input-bg);
+    border-color: var(--input-border);
     color: var(--ink);
 }
 
 html[data-theme="dark"] .import-url-input:focus {
-    background: #0f172a;
+    background: var(--input-bg);
     border-color: var(--maroon);
 }
 

@@ -123,7 +123,7 @@
 }
 
 .nav-section-title {
-    color: #94a3b8;
+    color: #64748b;
     display: block;
     font-size: 10.5px;
     font-weight: 700;
@@ -251,7 +251,7 @@
     align-items: center;
     background: linear-gradient(135deg, #1e293b, #0f172a);
     border: 1px solid #0f172a;
-    border-radius: 8px;
+    border-radius: 50%;
     color: #ffffff;
     display: inline-flex;
     flex: 0 0 34px;
@@ -336,25 +336,30 @@
    ========================================================================== */
 .navbar-sidebar-toggle {
     align-items: center;
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--line);
-    border-radius: 9px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
     color: var(--muted);
     cursor: pointer;
     display: inline-flex;
-    height: 38px;
+    height: 36px;
     justify-content: center;
     padding: 0;
-    transition: all 180ms var(--ease-out-expo);
-    width: 38px;
+    transition: background-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out-expo);
+    width: 36px;
     flex-shrink: 0;
 }
 
 .navbar-sidebar-toggle:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--surface-hover, rgba(0, 0, 0, 0.05));
+    border: none;
     color: #0f172a;
     transform: scale(1.04);
+}
+
+.navbar-sidebar-toggle:focus-visible {
+    outline: 2px solid var(--maroon, #6366f1);
+    outline-offset: 2px;
 }
 
 .navbar-sidebar-toggle svg {
@@ -395,15 +400,15 @@
 
     html.sidebar-is-collapsed .navbar-sidebar-toggle,
     .app-shell.sidebar-collapsed .navbar-sidebar-toggle {
-        background: var(--surface-subtle, #f8fafc);
-        border-color: var(--line, #cbd5e1);
+        background: transparent;
+        border: none;
         color: var(--ink, #0f172a);
     }
 
     html.sidebar-is-collapsed .navbar-sidebar-toggle:hover,
     .app-shell.sidebar-collapsed .navbar-sidebar-toggle:hover {
-        background: var(--surface-hover, #f1f5f9);
-        border-color: var(--line, #94a3b8);
+        background: var(--surface-hover, rgba(0, 0, 0, 0.05));
+        border: none;
         color: var(--ink, #0f172a);
     }
 
@@ -589,8 +594,8 @@ html[data-theme="dark"] .sidebar nav a svg {
 }
 
 html[data-theme="dark"] .sidebar nav a:hover {
-    background: #1e293b;
-    border-color: #334155;
+    background: #222222;
+    border-color: #2e2e2e;
     color: #f8fafc;
 }
 
@@ -599,31 +604,31 @@ html[data-theme="dark"] .sidebar nav a:hover svg {
 }
 
 html[data-theme="dark"] .sidebar nav {
-    scrollbar-color: #334155 transparent;
+    scrollbar-color: #2e2e2e transparent;
 }
 
 html[data-theme="dark"] .sidebar nav::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #2e2e2e;
 }
 
 html[data-theme="dark"] .sidebar nav a.active {
-    background: rgba(99, 102, 241, 0.16);
-    border-color: rgba(99, 102, 241, 0.35);
-    color: #818cf8;
+    background: #222222;
+    border-color: #2e2e2e;
+    color: #ffffff;
 }
 
 html[data-theme="dark"] .sidebar nav a.active svg {
-    color: #818cf8;
+    color: #ffffff;
 }
 
 html[data-theme="dark"] .drawer-account {
-    background: #111827;
-    border-color: #1e293b;
+    background: var(--surface);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .drawer-account:hover {
-    background: #1f2937;
-    border-color: #334155;
+    background: var(--surface-hover);
+    border-color: #2e2e2e;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
@@ -655,14 +660,14 @@ html[data-theme="dark"] .logout-icon:hover {
 }
 
 html[data-theme="dark"] .navbar-sidebar-toggle {
-    background: #111827;
-    border-color: #2d3748;
+    background: transparent;
+    border: none;
     color: #94a3b8;
 }
 
 html[data-theme="dark"] .navbar-sidebar-toggle:hover {
-    background: #1f2937;
-    border-color: #334155;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
     color: #f8fafc;
 }
 
@@ -679,8 +684,8 @@ html[data-theme="dark"] .navbar-sidebar-toggle:hover {
     html[data-theme="dark"] .app-shell.sidebar-collapsed .navbar-sidebar-toggle,
     html[data-theme="dark"] .navbar-sidebar-toggle[aria-label*="Buka"],
     html[data-theme="dark"] .navbar-sidebar-toggle[title*="Buka"] {
-        background: #111827 !important;
-        border-color: #2d3748 !important;
+        background: transparent !important;
+        border: none !important;
         color: #94a3b8 !important;
     }
 
@@ -688,8 +693,8 @@ html[data-theme="dark"] .navbar-sidebar-toggle:hover {
     html[data-theme="dark"] .app-shell.sidebar-collapsed .navbar-sidebar-toggle:hover,
     html[data-theme="dark"] .navbar-sidebar-toggle[aria-label*="Buka"]:hover,
     html[data-theme="dark"] .navbar-sidebar-toggle[title*="Buka"]:hover {
-        background: #1f2937 !important;
-        border-color: #334155 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: none !important;
         color: #f8fafc !important;
     }
 }

@@ -88,7 +88,7 @@
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
     }
 }
 
@@ -166,6 +166,8 @@
     align-items: center;
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
@@ -174,6 +176,7 @@
     border-color: #e11d48;
     box-shadow: 0 1px 2px rgba(225, 29, 72, 0.2);
     display: inline-flex;
+    flex-shrink: 0;
     font-size: 12px;
     font-weight: 600;
     gap: 6px;
@@ -189,45 +192,25 @@
 
 .persistent-surveillance-banner-jump-btn {
     align-items: center;
-    background: rgba(225, 29, 72, 0.12);
+    background: rgba(225, 29, 72, 0.1);
     border: 1px solid rgba(225, 29, 72, 0.3);
     border-radius: 6px;
     color: #9f1239;
     display: inline-flex;
+    flex-shrink: 0;
     font-size: 12px;
     font-weight: 600;
     gap: 6px;
     min-height: 36px;
     padding: 6px 14px;
     text-decoration: none;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-jump-btn:hover {
-    background: rgba(225, 29, 72, 0.2);
-    color: #881337;
-}
-
-.persistent-surveillance-dismiss-btn {
-    align-items: center;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    color: #9f1239;
-    cursor: pointer;
-    display: inline-flex;
-    justify-content: center;
-    margin-left: 6px;
-    min-height: 36px;
-    min-width: 36px;
-    padding: 6px;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.persistent-surveillance-dismiss-btn:hover {
-    background: rgba(225, 29, 72, 0.12);
-    border-color: rgba(225, 29, 72, 0.2);
+    background: rgba(225, 29, 72, 0.18);
+    border-color: rgba(225, 29, 72, 0.45);
     color: #881337;
 }
 
@@ -238,6 +221,64 @@ html[data-theme="dark"] .back-link {
     border-color: transparent;
     color: #94a3b8;
     box-shadow: none;
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .persistent-surveillance-banner {
+        padding: 10px 14px;
+        margin-bottom: 16px;
+    }
+
+    .persistent-surveillance-banner-inner {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .persistent-surveillance-banner-main {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .persistent-surveillance-banner-badge {
+        margin-bottom: 3px;
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
+    .persistent-surveillance-banner-title {
+        font-size: 12.5px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .persistent-surveillance-banner-desc {
+        font-size: 11.5px;
+        line-height: 1.35;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .persistent-surveillance-banner-action {
+        flex-shrink: 0;
+        gap: 8px;
+    }
+
+    .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 11.5px;
+    }
+
+    .persistent-surveillance-banner-jump-btn {
+        min-height: 34px;
+        padding: 0 10px;
+        font-size: 11px;
+    }
 }
 
 html[data-theme="dark"] .page-heading .back-link::before,
@@ -280,15 +321,5 @@ html[data-theme="dark"] .persistent-surveillance-banner-jump-btn {
 
 html[data-theme="dark"] .persistent-surveillance-banner-jump-btn:hover {
     background: rgba(244, 63, 94, 0.28);
-    color: #ffffff;
-}
-
-html[data-theme="dark"] .persistent-surveillance-dismiss-btn {
-    color: #fda4af;
-}
-
-html[data-theme="dark"] .persistent-surveillance-dismiss-btn:hover {
-    background: rgba(244, 63, 94, 0.2);
-    border-color: rgba(244, 63, 94, 0.35);
     color: #ffffff;
 }

@@ -395,6 +395,6 @@ html[data-theme="dark"] .custom-select-option.is-selected.is-focused {
 }
 
 html[data-theme="dark"] .custom-select-search-input:focus {
-    background: #0f172a !important;
+    background: var(--input-bg, #141414) !important;
 }
 

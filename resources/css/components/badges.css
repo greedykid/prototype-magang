@@ -5,7 +5,7 @@
 .badge, .status, .priority, .badge-role, .badge-tp {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     display: inline-flex;
     font-size: var(--text-2xs);
@@ -40,7 +40,7 @@
 
 /* Dark Mode Status Badges */
 html[data-theme="dark"] .status-planned,
-html[data-theme="dark"] .status-closed { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .status-closed { background: var(--surface-subtle); border-color: var(--line); color: #94a3b8; }
 html[data-theme="dark"] .status-scheduled,
 html[data-theme="dark"] .status-submitted { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
 html[data-theme="dark"] .status-in_progress,
@@ -60,7 +60,7 @@ html[data-theme="dark"] .status-inactive,
 html[data-theme="dark"] .status-belum_dilaporkan,
 html[data-theme="dark"] .status-unreported,
 html[data-theme="dark"] .status-unpaid,
-html[data-theme="dark"] .status-unsigned { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .status-unsigned { background: var(--surface-subtle); border-color: var(--line); color: #94a3b8; }
 html[data-theme="dark"] .status-menunggu_verifikasi,
 html[data-theme="dark"] .status-pending_verification,
 html[data-theme="dark"] .status-waiting_output,
@@ -100,9 +100,9 @@ html[data-theme="dark"] .priority-low { color: #4ade80; }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
 .badge-viewer { background: var(--neutral-chip-bg, #f1f5f9); border-color: var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 10px; font-weight: 600; padding: 1px 6px; }
 .badge-viewer-linked { background: var(--info-bg, #e0f2fe); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0369a1); font-size: 10.5px; font-weight: 600; padding: 2px 8px; }
-.badge-pic-lead { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #065f46); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; }
-.badge-pic-viewer { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; }
-.badge-counter { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.badge-pic-lead { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #a7f3d0); color: var(--success-text, #065f46); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
+.badge-pic-viewer { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
+.badge-counter { background: var(--neutral-chip-bg, #f1f5f9); border: 1px solid var(--neutral-chip-border, #cbd5e1); color: var(--neutral-chip-text, #475569); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
 
 /* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
 .badge-tp-neutral { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
@@ -116,7 +116,7 @@ html[data-theme="dark"] .priority-low { color: #4ade80; }
 .lpk-alert-badge {
     align-items: center;
     border: 1px solid;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     display: inline-flex;
     font-size: 11px;
@@ -143,7 +143,7 @@ html[data-theme="dark"] .priority-low { color: #4ade80; }
     align-items: center;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     color: #475569;
     display: inline-flex;
@@ -163,7 +163,7 @@ html[data-theme="dark"] .badge-role-pic,
 html[data-theme="dark"] .badge-role-assessor { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
 html[data-theme="dark"] .badge-role-staff { background: rgba(99, 102, 241, 0.16); border-color: rgba(99, 102, 241, 0.4); color: #818cf8; }
 
-html[data-theme="dark"] .badge-tp-neutral { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .badge-tp-neutral { background: var(--surface-subtle); border-color: var(--line); color: #94a3b8; }
 html[data-theme="dark"] .badge-tp-success { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
 html[data-theme="dark"] .badge-tp-info { background: rgba(59, 130, 246, 0.16); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; }
 html[data-theme="dark"] .badge-tp-warning { background: rgba(234, 179, 8, 0.16); border-color: rgba(234, 179, 8, 0.4); color: #facc15; }
@@ -173,7 +173,7 @@ html[data-theme="dark"] .badge-tp-suspended { background: rgba(59, 130, 246, 0.1
 
 html[data-theme="dark"] .lpk-alert-badge.is-urgent { background-color: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
 html[data-theme="dark"] .lpk-alert-badge.is-warning { background-color: rgba(234, 179, 8, 0.16); border-color: rgba(234, 179, 8, 0.4); color: #facc15; }
-html[data-theme="dark"] .lpk-pic-badge { background: #1e293b; border-color: #334155; color: #94a3b8; }
+html[data-theme="dark"] .lpk-pic-badge { background: var(--surface-subtle); border-color: var(--line); color: #94a3b8; }
 
 @media (max-width: 640px) {
     .badge, .status, .priority, .badge-role, .badge-tp, .lpk-alert-badge, .lpk-pic-badge {

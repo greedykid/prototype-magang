@@ -8,6 +8,43 @@
     margin-bottom: 14px;
 }
 
+.table-toolbar-left {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.table-grid-select-all {
+    align-items: center;
+    display: none;
+}
+
+.table-grid-select-all-label {
+    align-items: center;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 6px;
+    color: var(--ink);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 8px;
+    padding: 6px 12px;
+    transition: background-color 140ms ease, border-color 140ms ease;
+    user-select: none;
+}
+
+.table-grid-select-all-label:hover {
+    background: var(--surface-hover, #f1f5f9);
+    border-color: #cbd5e1;
+}
+
+.table-grid-select-all-label input[type="checkbox"] {
+    cursor: pointer;
+}
+
 .table-length-control {
     align-items: center;
     color: var(--muted, #5d5b54);
@@ -145,7 +182,7 @@
 .filter-count-badge {
     align-items: center;
     background: var(--maroon);
-    border-radius: 999px;
+    border-radius: 5px;
     color: #ffffff;
     display: inline-flex;
     font-size: 11px;
@@ -195,7 +232,7 @@
     align-items: center;
     background: #ebfbee;
     border: 1px solid #b7ebc6;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     color: #1b6b38;
     display: inline-flex;
@@ -896,7 +933,7 @@ table.table-lpks-custom thead th.col-th-validity .th-title-main {
 }
 
 table.table-lpks-custom thead th.col-th-validity .th-title-sub {
-    color: #64748b;
+    color: #475569;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -943,7 +980,7 @@ table.table-lpks-custom .lpk-card-alerts {
 table.table-lpks-custom .lpk-alert-badge {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     display: inline-flex;
     font-size: 11px;
@@ -997,7 +1034,7 @@ table.table-lpks-custom .lpk-pic-badge {
     align-items: center;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    border-radius: 999px;
+    border-radius: 5px;
     box-sizing: border-box;
     color: #475569;
     display: inline-flex;
@@ -1085,7 +1122,7 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 .table-lpks-custom .lpk-note-badge {
     align-items: center;
-    border-radius: 999px;
+    border-radius: 5px;
     display: inline-flex;
     font-size: 11px;
     font-weight: 700;
@@ -1397,7 +1434,7 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 /* Process Badge e.g. "Surveilen 1", "Surveilen 2", "Re-Akreditasi" */
 .lpk-keterangan-process-badge {
-    border-radius: 999px;
+    border-radius: 5px;
     display: inline-flex;
     font-size: 11px;
     font-weight: 700;
@@ -1651,6 +1688,11 @@ table.table-lpks-custom tbody td.col-lpk-notes,
     width: 16px !important;
 }
 
+/* Ensure the first content cell in grid cards does not collide with the selection checkbox */
+.table-mode-grid td.col-td-checkbox + td {
+    padding-left: 44px !important;
+}
+
 .table-mode-grid .table-lpks-custom td.col-lpk-no {
     align-items: center !important;
     background: #f8fafc !important;
@@ -1705,7 +1747,7 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 .table-mode-grid .table-lpks-custom .lpk-alert-badge {
     border: 1px solid transparent !important;
-    border-radius: 999px !important;
+    border-radius: 5px !important;
     font-size: 10.5px !important;
     font-weight: 600 !important;
     line-height: 1.3 !important;
@@ -2406,24 +2448,24 @@ html[data-theme="dark"] .table-wrap {
 }
 
 html[data-theme="dark"] thead tr {
-    background: #1e293b;
+    background: var(--surface-subtle);
 }
 
 html[data-theme="dark"] th {
-    background: #1e293b;
+    background: var(--surface-subtle);
     border-bottom: 2px solid var(--line);
     border-right: 1px solid var(--line);
     color: var(--ink);
 }
 
 html[data-theme="dark"] th.is-sortable:hover {
-    background: #253349;
+    background: var(--surface-hover);
     color: #ffffff;
 }
 
 html[data-theme="dark"] th[aria-sort="ascending"],
 html[data-theme="dark"] th[aria-sort="descending"] {
-    background: #1e293b;
+    background: var(--surface-subtle);
     color: #818cf8;
 }
 
@@ -2442,7 +2484,7 @@ html[data-theme="dark"] table tr[data-href]:hover > td {
 
 html[data-theme="dark"] .table-lpks-custom tbody tr.clickable-row:hover > td,
 html[data-theme="dark"] .table-lpks-custom tr[data-href]:hover > td {
-    background-color: #1a2333;
+    background-color: var(--surface-hover);
 }
 
 html[data-theme="dark"] td {
@@ -2457,7 +2499,7 @@ html[data-theme="dark"] td strong {
 
 html[data-theme="dark"] th:first-child,
 html[data-theme="dark"] th:last-child {
-    background: #1e293b !important;
+    background: var(--surface-subtle) !important;
     box-shadow: none !important;
     border-color: var(--line) !important;
 }
@@ -2475,8 +2517,8 @@ html[data-theme="dark"] tbody tr:hover td:last-child {
 }
 
 html[data-theme="dark"] .table-length-select {
-    background-color: #0f172a;
-    border-color: #334155;
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
     color: var(--ink);
 }
 
@@ -2495,7 +2537,7 @@ html[data-theme="dark"] .table-wrap:not(.table-mode-grid) table:not(.table-lpks-
 }
 
 html[data-theme="dark"] table.table-member-workload thead th {
-    background-color: #1e293b;
+    background-color: var(--surface-subtle);
     border-bottom-color: var(--line);
     color: var(--ink);
 }
@@ -2511,7 +2553,7 @@ html[data-theme="dark"] table.table-member-workload tbody tr:hover td {
 
 /* LPK Custom Table Dark Overrides */
 html[data-theme="dark"] table.table-lpks-custom thead th {
-    background-color: #1e293b;
+    background-color: var(--surface-subtle);
     border-bottom: 2px solid var(--line);
     color: var(--ink);
 }
@@ -2549,19 +2591,146 @@ html[data-theme="dark"] table.table-lpks-custom .lpk-date-label {
 }
 
 html[data-theme="dark"] table.table-lpks-custom .lpk-pic-badge {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-subtle);
+    border-color: var(--line);
     color: #94a3b8;
+}
+
+/* LPK Auto Status Dark Overrides */
+html[data-theme="dark"] .lpk-auto-status,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-emerald,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-emerald {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-emerald .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-emerald .lpk-note-badge {
+    background: rgba(16, 185, 129, 0.22);
+    border-color: rgba(16, 185, 129, 0.38);
+    color: #6ee7b7;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-emerald .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-emerald .lpk-cat-tag {
+    color: #34d399;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-emerald .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-emerald .lpk-note-body {
+    color: #d1fae5;
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-cyan,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-cyan {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-cyan .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-cyan .lpk-note-badge {
+    background: rgba(6, 182, 212, 0.22);
+    border-color: rgba(6, 182, 212, 0.38);
+    color: #67e8f9;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-cyan .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-cyan .lpk-cat-tag {
+    color: #38bdf8;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-cyan .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-cyan .lpk-note-body {
+    color: #cffafe;
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-amber,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-amber {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-amber .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-amber .lpk-note-badge {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.38);
+    color: #fde047;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-amber .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-amber .lpk-cat-tag {
+    color: #fbbf24;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-amber .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-amber .lpk-note-body {
+    color: #fef08a;
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-rose,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-rose {
+    background: rgba(244, 63, 94, 0.12);
+    border-color: rgba(244, 63, 94, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-rose .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-rose .lpk-note-badge {
+    background: rgba(244, 63, 94, 0.22);
+    border-color: rgba(244, 63, 94, 0.38);
+    color: #fda4af;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-rose .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-rose .lpk-cat-tag {
+    color: #f87171;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-rose .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-rose .lpk-note-body {
+    color: #fecdd3;
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-blue,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-blue {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-blue .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-blue .lpk-note-badge {
+    background: rgba(59, 130, 246, 0.22);
+    border-color: rgba(59, 130, 246, 0.38);
+    color: #93c5fd;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-blue .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-blue .lpk-cat-tag {
+    color: #60a5fa;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-blue .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-blue .lpk-note-body {
+    color: #bfdbfe;
+}
+
+html[data-theme="dark"] .lpk-auto-status.theme-purple,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-purple {
+    background: rgba(168, 85, 247, 0.12);
+    border-color: rgba(168, 85, 247, 0.28);
+}
+html[data-theme="dark"] .lpk-auto-status.theme-purple .lpk-note-badge,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-purple .lpk-note-badge {
+    background: rgba(168, 85, 247, 0.22);
+    border-color: rgba(168, 85, 247, 0.38);
+    color: #d8b4fe;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-purple .lpk-cat-tag,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-purple .lpk-cat-tag {
+    color: #c084fc;
+}
+html[data-theme="dark"] .lpk-auto-status.theme-purple .lpk-note-body,
+html[data-theme="dark"] .table-lpks-custom .lpk-auto-status.theme-purple .lpk-note-body {
+    color: #e9d5ff;
 }
 
 /* Keterangan Cards Dark Overrides */
 html[data-theme="dark"] .lpk-keterangan-card {
-    background: #0f172a;
+    background: var(--surface-subtle);
     border-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-keterangan-auto {
-    background: #0f172a;
+    background: var(--surface-subtle);
 }
 
 html[data-theme="dark"] .lpk-keterangan-auto.theme-rose {
@@ -2603,7 +2772,7 @@ html[data-theme="dark"] .lpk-keterangan-body.is-empty {
 }
 
 html[data-theme="dark"] .lpk-keterangan-pic {
-    background: #0f172a;
+    background: var(--surface-subtle);
     border-color: var(--line);
 }
 
@@ -2625,28 +2794,28 @@ html[data-theme="dark"] .lpk-keterangan-pic.has-notes .lpk-keterangan-body {
 
 html[data-theme="dark"] .lpk-keterangan-cal-btn,
 html[data-theme="dark"] .lpk-keterangan-edit-btn {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-hover);
+    border-color: var(--line);
     color: var(--ink);
 }
 
 html[data-theme="dark"] .lpk-keterangan-cal-btn:hover,
 html[data-theme="dark"] .lpk-keterangan-edit-btn:hover {
-    background: #283548;
-    border-color: #475569;
+    background: var(--surface);
+    border-color: var(--line);
     color: #ffffff;
 }
 
 /* Table Controls Dark Overrides */
 html[data-theme="dark"] .table-length-control .custom-select-trigger {
-    background: #0f172a !important;
-    border-color: #334155 !important;
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
     color: var(--ink) !important;
 }
 
 html[data-theme="dark"] .table-length-control .custom-select-trigger:hover {
-    background: #1e293b !important;
-    border-color: #475569 !important;
+    background: var(--surface-hover) !important;
+    border-color: var(--line) !important;
 }
 
 html[data-theme="dark"] .view-toggle button {
@@ -2658,9 +2827,21 @@ html[data-theme="dark"] .view-toggle button:hover {
 }
 
 html[data-theme="dark"] .view-toggle button[aria-pressed="true"] {
-    background: #1e293b;
+    background: var(--surface-hover);
+    border: 1px solid var(--line);
     color: #f8fafc;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .table-grid-select-all-label {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .table-grid-select-all-label:hover {
+    background: var(--surface-hover);
+    border-color: #3b4252;
 }
 
 /* Table Mode Grid Generic Dark Overrides */
@@ -2677,7 +2858,7 @@ html[data-theme="dark"] .table-mode-grid tr:hover {
 }
 
 html[data-theme="dark"] .table-mode-grid td:first-child {
-    background: #0d131f !important;
+    background: var(--surface-subtle) !important;
     border-bottom: 1px solid var(--line) !important;
     color: var(--ink) !important;
 }
@@ -2685,7 +2866,7 @@ html[data-theme="dark"] .table-mode-grid td:first-child {
 html[data-theme="dark"] .table-mode-grid td:not(:first-child):not(:last-child),
 html[data-theme="dark"] .table-mode-grid td:last-child:not(:has(a)) {
     background: transparent !important;
-    border-bottom: 1px solid var(--line-subtle, #1f2937) !important;
+    border-bottom: 1px solid var(--line-subtle) !important;
     color: var(--ink) !important;
 }
 
@@ -2695,7 +2876,7 @@ html[data-theme="dark"] .table-mode-grid td:last-child:not(:has(a))::before {
 }
 
 html[data-theme="dark"] .table-mode-grid td:last-child:has(a) {
-    background: #0d131f !important;
+    background: var(--surface-subtle) !important;
     border-top: 1px solid var(--line) !important;
 }
 
@@ -2745,8 +2926,8 @@ html[data-theme="dark"] .user-stat-icon-blue {
 
 /* Table Mode Grid LPK Specific Dark Overrides */
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom tr {
-    background: #111827 !important;
-    border-color: #2d3748 !important;
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -2756,18 +2937,18 @@ html[data-theme="dark"] .table-mode-grid .table-lpks-custom tr:hover {
 }
 
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom td.col-lpk-no {
-    background: #0d131f !important;
-    border-bottom-color: #1e293b !important;
+    background: var(--surface-subtle) !important;
+    border-bottom-color: var(--line) !important;
 }
 
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom .lpk-reg-link {
-    background: #1e293b !important;
+    background: var(--surface-hover) !important;
     color: #f8fafc !important;
 }
 
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom td.col-lpk-name {
-    background: #111827 !important;
-    border-bottom-color: #1e293b !important;
+    background: var(--surface) !important;
+    border-bottom-color: var(--line) !important;
 }
 
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom .lpk-name-link {
