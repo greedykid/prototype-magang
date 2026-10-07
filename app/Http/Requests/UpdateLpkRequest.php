@@ -43,6 +43,20 @@ class UpdateLpkRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'no_reg.unique' => 'Nomor registrasi sudah terdaftar atau sudah digunakan.',
+            'registration_number.unique' => 'Nomor registrasi sudah terdaftar atau sudah digunakan.',
+            'name.required' => 'Nama LPK wajib diisi.',
+            'status.required' => 'Status operasional LPK wajib dipilih.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'drive_url.url' => 'Format tautan Google Drive tidak valid.',
+            'certificate_date.date' => 'Format tanggal sertifikat tidak valid.',
+            'expired_at.date' => 'Format tanggal masa berlaku tidak valid.',
+        ];
+    }
+
     public function normalizedData(): array
     {
         $data = $this->validated();

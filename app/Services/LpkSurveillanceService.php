@@ -17,52 +17,52 @@ class LpkSurveillanceService
      */
     public function calculateMilestones(Lpk $lpk): array
     {
-        /** @var Carbon|null $baseDate */
-        $baseDate = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
-        /** @var Carbon|null $nextExpDate */
-        $nextExpDate = $baseDate ? $baseDate->copy()->addYears(5) : null;
+        /** @var Carbon|null $cycleEnd */
+        $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
+        /** @var Carbon|null $cycleStart */
+        $cycleStart = $lpk->certificate_date ?: ($cycleEnd ? $cycleEnd->copy()->subYears(5) : null);
 
         $milestones = [
             's1' => [
                 'code' => 'S1',
                 'name' => Assessment::TYPE_SURVEILEN_1,
-                'notice_date' => $baseDate ? $baseDate->copy()->addMonths(13) : null,
-                'visit_target_date' => $baseDate ? $baseDate->copy()->addMonths(15) : null,
-                'target_date' => $baseDate ? $baseDate->copy()->addMonths(18) : null,
-                'tolerance_date' => $baseDate ? $baseDate->copy()->addMonths(24) : null,
+                'notice_date' => $cycleStart ? $cycleStart->copy()->addMonths(13) : null,
+                'visit_target_date' => $cycleStart ? $cycleStart->copy()->addMonths(15) : null,
+                'target_date' => $cycleStart ? $cycleStart->copy()->addMonths(18) : null,
+                'tolerance_date' => $cycleStart ? $cycleStart->copy()->addMonths(24) : null,
                 'description' => 'Reminder S1 bulan ke-13, Jatuh Tempo (JT) S1 bulan ke-18 (toleransi kunjungan maks 2 tahun/bulan 24)',
                 'status' => 'PENDING',
             ],
             's2' => [
                 'code' => 'S2',
                 'name' => Assessment::TYPE_SURVEILEN_2,
-                'notice_date' => $baseDate ? $baseDate->copy()->addMonths(34) : null,
-                'visit_target_date' => $baseDate ? $baseDate->copy()->addMonths(36) : null,
-                'target_date' => $baseDate ? $baseDate->copy()->addMonths(39) : null,
-                'tolerance_date' => $baseDate ? $baseDate->copy()->addMonths(48) : null,
+                'notice_date' => $cycleStart ? $cycleStart->copy()->addMonths(34) : null,
+                'visit_target_date' => $cycleStart ? $cycleStart->copy()->addMonths(36) : null,
+                'target_date' => $cycleStart ? $cycleStart->copy()->addMonths(39) : null,
+                'tolerance_date' => $cycleStart ? $cycleStart->copy()->addMonths(48) : null,
                 'description' => 'Reminder S2 bulan ke-34, Jatuh Tempo (JT) S2 bulan ke-39 (toleransi kunjungan maks 2 tahun)',
                 'status' => 'PENDING',
             ],
             'ra' => [
                 'code' => 'RA',
                 'name' => Assessment::TYPE_RE_AKREDITASI,
-                'notice_date' => $baseDate ? $baseDate->copy()->addMonths(48) : null,
-                'visit_target_date' => $baseDate ? $baseDate->copy()->addMonths(54) : null,
-                'target_date' => $baseDate ? $baseDate->copy()->addMonths(51) : null,
-                'tolerance_date' => $nextExpDate,
+                'notice_date' => $cycleStart ? $cycleStart->copy()->addMonths(48) : null,
+                'visit_target_date' => $cycleStart ? $cycleStart->copy()->addMonths(54) : null,
+                'target_date' => $cycleStart ? $cycleStart->copy()->addMonths(51) : null,
+                'tolerance_date' => $cycleEnd,
                 'description' => 'Pengajuan RA bulan ke-48 s/d 51, asesmen lapangan sebelum bulan ke-60',
                 'status' => 'PENDING',
             ],
         ];
 
-        if (! $baseDate) {
+        if (! $cycleStart || ! $cycleEnd) {
             return $milestones;
         }
 
         $now = now();
         $rawLpkStatus = $lpk->getAttributes()['status'] ?? $lpk->getRawOriginal('status');
         $isLpkActive = in_array(strtoupper((string) $rawLpkStatus), ['ACTIVE', 'AKTIF'], true);
-        $isCertValid = $nextExpDate ? $now->lt($nextExpDate) : true;
+        $isCertValid = $now->lt($cycleEnd);
 
         // Cek asesmen yang sudah pernah dibuat untuk LPK ini
         $assessments = $lpk->relationLoaded('assessments') ? $lpk->assessments : $lpk->assessments()->get();
@@ -74,13 +74,13 @@ class LpkSurveillanceService
 
         // Cek S1
         if ($milestones['s1']['notice_date']) {
-            $hasS1 = $assessments->contains(function ($item) use ($baseDate, $now) {
+            $hasS1 = $assessments->contains(function ($item) use ($cycleStart, $now) {
                 if ($item->status === 'PLANNED') {
                     return false;
                 }
 
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->subMonths(2)) && $item->start_at->lte($baseDate->copy()->addMonths(26));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->subMonths(2)) && $item->start_at->lte($cycleStart->copy()->addMonths(26));
 
                 // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
                 if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
@@ -90,9 +90,9 @@ class LpkSurveillanceService
                 return $isSurv && $isWithinRange;
             });
 
-            $suspendedS1 = $assessments->first(function ($item) use ($baseDate) {
+            $suspendedS1 = $assessments->first(function ($item) use ($cycleStart) {
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->subMonths(2)) && $item->start_at->lte($baseDate->copy()->addMonths(26));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->subMonths(2)) && $item->start_at->lte($cycleStart->copy()->addMonths(26));
 
                 return $isSurv && $isWithinRange && $item->status === 'SUSPENDED';
             });
@@ -115,13 +115,13 @@ class LpkSurveillanceService
 
         // Cek S2
         if ($milestones['s2']['notice_date']) {
-            $hasS2 = $assessments->contains(function ($item) use ($baseDate, $now) {
+            $hasS2 = $assessments->contains(function ($item) use ($cycleStart, $now) {
                 if ($item->status === 'PLANNED') {
                     return false;
                 }
 
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->addMonths(24)) && $item->start_at->lte($baseDate->copy()->addMonths(46));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(24)) && $item->start_at->lte($cycleStart->copy()->addMonths(46));
 
                 // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
                 if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
@@ -131,9 +131,9 @@ class LpkSurveillanceService
                 return $isSurv && $isWithinRange;
             });
 
-            $suspendedS2 = $assessments->first(function ($item) use ($baseDate) {
+            $suspendedS2 = $assessments->first(function ($item) use ($cycleStart) {
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->addMonths(24)) && $item->start_at->lte($baseDate->copy()->addMonths(46));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(24)) && $item->start_at->lte($cycleStart->copy()->addMonths(46));
 
                 return $isSurv && $isWithinRange && $item->status === 'SUSPENDED';
             });
@@ -156,7 +156,7 @@ class LpkSurveillanceService
 
         // Cek RA
         if ($milestones['ra']['notice_date']) {
-            $hasRA = $assessments->contains(function ($item) use ($baseDate, $nextExpDate, $now) {
+            $hasRA = $assessments->contains(function ($item) use ($cycleStart, $cycleEnd, $now) {
                 if ($item->status === 'PLANNED') {
                     return false;
                 }
@@ -172,28 +172,28 @@ class LpkSurveillanceService
                     || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
                     || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
 
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->addMonths(42)) && (! $nextExpDate || $item->start_at->lte($nextExpDate->copy()->addMonths(6)));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(42)) && (! $cycleEnd || $item->start_at->lte($cycleEnd->copy()->addMonths(6)));
 
                 return $isRa && $isWithinRange;
             });
 
-            $suspendedRA = $assessments->first(function ($item) use ($baseDate, $nextExpDate) {
+            $suspendedRA = $assessments->first(function ($item) use ($cycleStart, $cycleEnd) {
                 $type = strtolower((string) ($item->assessment_type ?: ''));
                 $title = strtolower((string) ($item->title ?: ''));
                 $isRa = in_array($item->assessment_type, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang'], true)
                     || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
                     || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type);
 
-                $isWithinRange = $item->start_at && $item->start_at->gte($baseDate->copy()->addMonths(42)) && (! $nextExpDate || $item->start_at->lte($nextExpDate->copy()->addMonths(6)));
+                $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(42)) && (! $cycleEnd || $item->start_at->lte($cycleEnd->copy()->addMonths(6)));
 
                 return $isRa && $isWithinRange && $item->status === 'SUSPENDED';
             });
 
             if ($suspendedRA) {
                 $milestones['ra']['status'] = 'SUSPENDED';
-            } elseif ($nextExpDate && $now->gt($nextExpDate->copy()->addMonths(6))) {
+            } elseif ($cycleEnd && $now->gt($cycleEnd->copy()->addMonths(6))) {
                 $milestones['ra']['status'] = 'REVOKED';
-            } elseif ($nextExpDate && $now->gte($nextExpDate)) {
+            } elseif ($cycleEnd && $now->gte($cycleEnd)) {
                 $milestones['ra']['status'] = 'EXPIRED';
             } elseif ($hasRA) {
                 $milestones['ra']['status'] = 'COMPLETED_OR_SCHEDULED';
@@ -349,13 +349,13 @@ class LpkSurveillanceService
      */
     public function generateAssessments(Lpk $lpk, ?int $creatorId = null): int
     {
-        /** @var Carbon|null $baseDate */
-        $baseDate = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
-        if (! $baseDate) {
+        /** @var Carbon|null $cycleEnd */
+        $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
+        if (! $cycleEnd) {
             return 0;
         }
-        /** @var Carbon $nextExpDate */
-        $nextExpDate = $baseDate->copy()->addYears(5);
+        /** @var Carbon $cycleStart */
+        $cycleStart = $lpk->certificate_date ?: $cycleEnd->copy()->subYears(5);
 
         $creatorId = $creatorId
             ?: auth()->id()
@@ -371,13 +371,14 @@ class LpkSurveillanceService
         $rawLpkStatus = $lpk->getAttributes()['status'] ?? $lpk->getRawOriginal('status');
         $isLpkActive = in_array(strtoupper((string) $rawLpkStatus), ['ACTIVE', 'AKTIF'], true);
 
-        // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
-        $cycleStart = $baseDate->copy()->subMonths(3);
-        $cycleEnd = $nextExpDate->copy()->addMonths(3);
+        // Rentang pencarian asesmen yang relevan dengan siklus ini
+        $queryStart = $cycleStart->copy()->subMonths(3);
+        $queryEnd = $cycleEnd->copy()->addMonths(6);
 
-        $s1Target = $baseDate->copy()->addMonths(15)->startOfDay()->setHour(9);
+        // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
+        $s1Target = $cycleStart->copy()->addMonths(15)->startOfDay()->setHour(9);
         $s1End = $s1Target->copy()->addDays(2)->setHour(17);
-        $s1Tolerance = $baseDate->copy()->addMonths(24)->endOfDay();
+        $s1Tolerance = $cycleStart->copy()->addMonths(24)->endOfDay();
         $s1IsPast = $isLpkActive && $now->gte($s1Tolerance);
 
         $s1Assessment = $lpk->assessments()
@@ -387,8 +388,8 @@ class LpkSurveillanceService
                     ->orWhere('title', 'like', '% S1 %')
                     ->orWhere('assessment_type', Assessment::TYPE_SURVEILEN_1);
             })
-            ->where('start_at', '>=', $cycleStart)
-            ->where('start_at', '<=', $cycleEnd)
+            ->where('start_at', '>=', $queryStart)
+            ->where('start_at', '<=', $queryEnd)
             ->first();
 
         if (! $s1Assessment) {
@@ -424,9 +425,9 @@ class LpkSurveillanceService
         }
 
         // 2. Asesmen Surveilen 2 (S2): Bulan 36 (Target Kunjungan Bulan 36-39)
-        $s2Target = $baseDate->copy()->addMonths(36)->startOfDay()->setHour(9);
+        $s2Target = $cycleStart->copy()->addMonths(36)->startOfDay()->setHour(9);
         $s2End = $s2Target->copy()->addDays(2)->setHour(17);
-        $s2Tolerance = $baseDate->copy()->addMonths(48)->endOfDay();
+        $s2Tolerance = $cycleStart->copy()->addMonths(48)->endOfDay();
         $s2IsPast = $isLpkActive && $now->gte($s2Tolerance);
 
         $s2Assessment = $lpk->assessments()
@@ -436,8 +437,8 @@ class LpkSurveillanceService
                     ->orWhere('title', 'like', '% S2 %')
                     ->orWhere('assessment_type', Assessment::TYPE_SURVEILEN_2);
             })
-            ->where('start_at', '>=', $cycleStart)
-            ->where('start_at', '<=', $cycleEnd)
+            ->where('start_at', '>=', $queryStart)
+            ->where('start_at', '<=', $queryEnd)
             ->first();
 
         if (! $s2Assessment) {
@@ -473,9 +474,9 @@ class LpkSurveillanceService
         }
 
         // 3. Re-Akreditasi (RA): Bulan 54 (H-6 bulan sebelum masa berlaku berakhir)
-        $raTarget = $baseDate->copy()->addMonths(54)->startOfDay()->setHour(9);
+        $raTarget = $cycleStart->copy()->addMonths(54)->startOfDay()->setHour(9);
         $raEnd = $raTarget->copy()->addDays(3)->setHour(17);
-        $raIsPast = $isLpkActive && ($raEnd->lt($now) || $now->gte($nextExpDate));
+        $raIsPast = $isLpkActive && ($raEnd->lt($now) || $now->gte($cycleEnd));
 
         $raAssessment = $lpk->assessments()
             ->where(function ($q) {
@@ -485,8 +486,8 @@ class LpkSurveillanceService
                     ->orWhere('title', 'like', '% RA %')
                     ->orWhereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT']);
             })
-            ->where('start_at', '>=', $cycleStart)
-            ->where('start_at', '<=', $cycleEnd)
+            ->where('start_at', '>=', $queryStart)
+            ->where('start_at', '<=', $queryEnd)
             ->first();
 
         if (! $raAssessment) {
@@ -541,15 +542,23 @@ class LpkSurveillanceService
             return 'SUSPENDED';
         }
 
+        // Cek toleransi masa tenggang 6 bulan setelah kedaluwarsa & auto-revocation siklus
+        if ($lpk->isRevocationOverdue()) {
+            return 'REVOKED';
+        }
+
+        if ($lpk->isInGracePeriod()) {
+            return 'GRACE_PERIOD';
+        }
+
         $milestones = $this->calculateMilestones($lpk);
 
-        // Cek toleransi masa tenggang 6 bulan setelah kedaluwarsa & auto-revocation siklus
         if (($milestones['ra']['status'] ?? '') === 'REVOKED') {
             return 'REVOKED';
         }
 
         if (($milestones['ra']['status'] ?? '') === 'EXPIRED') {
-            return $lpk->isInGracePeriod() ? 'GRACE_PERIOD' : 'EXPIRED';
+            return 'EXPIRED';
         }
 
         $assessmentsList = $lpk->relationLoaded('assessments') ? $lpk->assessments : $lpk->assessments()->get();

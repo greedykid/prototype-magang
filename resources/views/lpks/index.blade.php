@@ -21,16 +21,33 @@
     </a>
 </x-page-header>
 
+@if(!empty($linkedOwnersCount) && $linkedOwnersCount > 0)
+    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border, #bae6fd); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="color: var(--info-text, #0284c7); display: inline-flex;">
+                <x-icon name="link" size="18" />
+            </div>
+            <div style="font-size: 13px; color: var(--ink);">
+                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data laboratorium. LPK tersebut tersimpan terpisah di detail akun masing-masing.
+            </div>
+        </div>
+        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
+            <span>Buka Akun Tertaut</span>
+            <x-icon name="chevron-right" size="13" />
+        </a>
+    </div>
+@endif
+
 <section class="panel table-panel-borderless">
     <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
         <div class="table-filter-grid">
-            <label>
+            <label for="filter-lpk-search">
                 Cari LPK
-                <input type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
             </label>
-            <label>
+            <label for="filter-lpk-status">
                 Status LPK
-                <select name="status">
+                <select id="filter-lpk-status" name="status">
                     <option value="">Semua status</option>
                     <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
                     <option value="GRACE_PERIOD" @selected($status === 'GRACE_PERIOD')>Masa Tenggang (6 Bln)</option>
@@ -42,9 +59,9 @@
                     <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
                 </select>
             </label>
-            <label>
+            <label for="filter-lpk-surveillance">
                 Status Pengawasan
-                <select name="surveillance">
+                <select id="filter-lpk-surveillance" name="surveillance">
                     <option value="">Semua pengawasan</option>
                     <option value="NEEDS_ACTION" @selected($surveillance === 'NEEDS_ACTION')>Perlu Tindak Lanjut</option>
                     <option value="DUE_S1" @selected($surveillance === 'DUE_S1')>Jatuh Tempo S1 (Bulan 14)</option>
@@ -53,28 +70,15 @@
                     <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Melewati Jadwal</option>
                 </select>
             </label>
-            <label>
+            <label for="filter-lpk-expiry">
                 Masa Berlaku
-                <select name="expiry">
+                <select id="filter-lpk-expiry" name="expiry">
                     <option value="">Semua masa berlaku</option>
                     <option value="VALID" @selected($expiry === 'VALID')>Masih berlaku</option>
                     <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati kedaluwarsa (&le; 90 hari)</option>
                     <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
                 </select>
             </label>
-            @if($pics->count() > 1 || (auth()->user() && auth()->user()->isAdmin()))
-                <label>
-                    Akun PIC
-                    <select name="pic_id">
-                        <option value="">Semua Akun PIC</option>
-                        @foreach($pics as $p)
-                            <option value="{{ $p->id }}" @selected((string)$picFilter === (string)$p->id)>
-                                {{ $p->id === auth()->id() ? 'Akun Saya (' . $p->name . ')' : $p->name . (auth()->user()?->isAdmin() ? '' : ' (Akun Tertaut)') }}
-                            </option>
-                        @endforeach
-                    </select>
-                </label>
-            @endif
         </div>
         <div class="table-filter-actions" id="lpk-filter-actions" style="margin-top: 8px;">
             <span id="lpk-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
@@ -90,7 +94,6 @@
         if ($status) $activeFiltersCount++;
         if ($surveillance) $activeFiltersCount++;
         if ($expiry) $activeFiltersCount++;
-        if ($picFilter) $activeFiltersCount++;
     @endphp
 
     @if($activeFiltersCount > 0)
@@ -122,34 +125,25 @@
                 @if($search)
                     <span class="filter-chip" data-field="search" title="Cari: {{ $search }}">
                         <span class="filter-chip-text">Cari: {{ $search }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Cari">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter pencarian: {{ $search }}">&times;</button>
                     </span>
                 @endif
                 @if($status)
                     <span class="filter-chip" data-field="status" title="Status: {{ $statusLabels[$status] ?? $status }}">
                         <span class="filter-chip-text">Status: {{ $statusLabels[$status] ?? $status }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Status">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter status LPK: {{ $statusLabels[$status] ?? $status }}">&times;</button>
                     </span>
                 @endif
                 @if($surveillance)
                     <span class="filter-chip" data-field="surveillance" title="Pengawasan: {{ $survLabels[$surveillance] ?? $surveillance }}">
                         <span class="filter-chip-text">Pengawasan: {{ $survLabels[$surveillance] ?? $surveillance }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Pengawasan">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter pengawasan: {{ $survLabels[$surveillance] ?? $surveillance }}">&times;</button>
                     </span>
                 @endif
                 @if($expiry)
                     <span class="filter-chip" data-field="expiry" title="Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}">
                         <span class="filter-chip-text">Masa Berlaku: {{ $expLabels[$expiry] ?? $expiry }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Masa Berlaku">&times;</button>
-                    </span>
-                @endif
-                @if($picFilter)
-                    @php
-                        $selectedPicItem = $pics->firstWhere('id', $picFilter);
-                    @endphp
-                    <span class="filter-chip" data-field="pic_id" title="Akun PIC: {{ $selectedPicItem?->name ?? $picFilter }}">
-                        <span class="filter-chip-text">PIC: {{ $selectedPicItem?->name ?? $picFilter }}</span>
-                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter Akun PIC">&times;</button>
+                        <button type="button" class="filter-chip-remove" aria-label="Hapus filter masa berlaku: {{ $expLabels[$expiry] ?? $expiry }}">&times;</button>
                     </span>
                 @endif
                 <a href="{{ route('lpks.index') }}" class="filter-reset-link" data-role="reset-filter">Reset Filter</a>

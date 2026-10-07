@@ -15,7 +15,8 @@ class LpkSurveillanceCycleLogicTest extends TestCase
 
     /**
      * Skenario 1: Acuan arah terbalik (Backward Reference)
-     * Ketika hanya ada expired_at (misal 2031-07-24) dan certificate_date null.
+     * Ketika hanya ada expired_at (misal 2030-01-18) dan certificate_date null.
+     * Titik awal siklus (Bulan 0) dihitung mundur 5 tahun (2025-01-18).
      */
     public function test_backward_reference_milestones_calculation(): void
     {
@@ -31,23 +32,76 @@ class LpkSurveillanceCycleLogicTest extends TestCase
 
         $milestones = $lpk->surveillance_milestones;
 
-        // Masa Akhir: 2030-01-18
-        // S1 Target Kunjungan (Bulan 15 kedepan): 2031-04-18
-        // S1 Target Jatuh Tempo (Bulan 18 kedepan): 2031-07-18
-        $this->assertEquals('2031-04-18', $milestones['s1']['visit_target_date']->toDateString());
-        $this->assertEquals('2031-07-18', $milestones['s1']['target_date']->toDateString());
+        // Masa Akhir: 2030-01-18 (Bulan 60) -> Awal Siklus: 2025-01-18 (Bulan 0)
+        // S1 Target Kunjungan (Bulan 15 dari awal): 2026-04-18
+        // S1 Target Jatuh Tempo (Bulan 18 dari awal): 2026-07-18
+        $this->assertEquals('2026-04-18', $milestones['s1']['visit_target_date']->toDateString());
+        $this->assertEquals('2026-07-18', $milestones['s1']['target_date']->toDateString());
 
-        // S2 Target Kunjungan (Bulan 36 kedepan): 2033-01-18
-        // S2 Target Jatuh Tempo (Bulan 39 kedepan): 2033-04-18
-        $this->assertEquals('2033-01-18', $milestones['s2']['visit_target_date']->toDateString());
-        $this->assertEquals('2033-04-18', $milestones['s2']['target_date']->toDateString());
+        // S2 Target Kunjungan (Bulan 36 dari awal): 2028-01-18
+        // S2 Target Jatuh Tempo (Bulan 39 dari awal): 2028-04-18
+        $this->assertEquals('2028-01-18', $milestones['s2']['visit_target_date']->toDateString());
+        $this->assertEquals('2028-04-18', $milestones['s2']['target_date']->toDateString());
 
-        // RA Target Dokumen Lengkap (Bulan 51 kedepan): 2034-04-18
-        // RA Target Kunjungan Lapangan (Bulan 54 kedepan): 2034-07-18
-        // RA Masa Berlaku Habis (Bulan 60 kedepan): 2035-01-18
-        $this->assertEquals('2034-04-18', $milestones['ra']['target_date']->toDateString());
-        $this->assertEquals('2034-07-18', $milestones['ra']['visit_target_date']->toDateString());
-        $this->assertEquals('2035-01-18', $milestones['ra']['tolerance_date']->toDateString());
+        // RA Target Dokumen Lengkap (Bulan 51 dari awal): 2029-04-18
+        // RA Target Kunjungan Lapangan (Bulan 54 dari awal): 2029-07-18
+        // RA Masa Berlaku Habis (Bulan 60 / Expired): 2030-01-18
+        $this->assertEquals('2029-04-18', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2029-07-18', $milestones['ra']['visit_target_date']->toDateString());
+        $this->assertEquals('2030-01-18', $milestones['ra']['tolerance_date']->toDateString());
+    }
+
+    /**
+     * Skenario Kasus Riil User:
+     * LPK terbit 1 Juli 2026 s/d 1 Juli 2031 (Bulan 0 s/d Bulan 60).
+     * S1 kunjungan: 1 Oktober 2027 (Bulan 15)
+     * S2 kunjungan: 1 Juli 2029 (Bulan 36), jatuh tempo: 1 Oktober 2029 (Bulan 39)
+     * RA asesmen: 1 Januari 2031 (Bulan 54), masa berlaku habis: 1 Juli 2031 (Bulan 60).
+     */
+    public function test_cycle_milestones_for_certificate_issued_july_2026_to_july_2031(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $lpk = Lpk::create([
+            'registration_number' => 'LP-CYCLE-2026-2031',
+            'name' => 'Lab Siklus 2026-2031',
+            'status' => 'ACTIVE',
+            'certificate_date' => '2026-07-01',
+            'expired_at' => '2031-07-01',
+        ]);
+
+        $milestones = $lpk->surveillance_milestones;
+
+        // S1 (Bulan 15) -> 1 Oktober 2027
+        $this->assertEquals('2027-10-01', $milestones['s1']['visit_target_date']->toDateString());
+        // S1 JT (Bulan 18) -> 1 Januari 2028
+        $this->assertEquals('2028-01-01', $milestones['s1']['target_date']->toDateString());
+
+        // S2 Kunjungan (Bulan 36) -> 1 Juli 2029
+        $this->assertEquals('2029-07-01', $milestones['s2']['visit_target_date']->toDateString());
+        // S2 JT (Bulan 39) -> 1 Oktober 2029
+        $this->assertEquals('2029-10-01', $milestones['s2']['target_date']->toDateString());
+
+        // RA Kunjungan Lapangan (Bulan 54) -> 1 Januari 2031
+        $this->assertEquals('2031-01-01', $milestones['ra']['visit_target_date']->toDateString());
+        // RA Masa Berlaku Habis (Bulan 60) -> 1 Juli 2031
+        $this->assertEquals('2031-07-01', $milestones['ra']['tolerance_date']->toDateString());
+
+        // Pastikan agenda asesmen otomatis yang dibuat juga berada di rentang 2026 - 2031:
+        $assessments = $lpk->assessments()->orderBy('start_at')->get();
+        $this->assertCount(3, $assessments);
+
+        $s1 = $assessments[0];
+        $this->assertEquals('Asesmen Surveilen 1 (S1)', $s1->title);
+        $this->assertEquals('2027-10-01', $s1->start_at->toDateString());
+
+        $s2 = $assessments[1];
+        $this->assertEquals('Asesmen Surveilen 2 (S2)', $s2->title);
+        $this->assertEquals('2029-07-01', $s2->start_at->toDateString());
+
+        $ra = $assessments[2];
+        $this->assertEquals('Asesmen Re-Akreditasi (RA)', $ra->title);
+        $this->assertEquals('2031-01-01', $ra->start_at->toDateString());
     }
 
     /**
@@ -205,9 +259,9 @@ class LpkSurveillanceCycleLogicTest extends TestCase
         $this->assertEquals('2036-07-24', $lpk->expired_at->toDateString());
         $this->assertEquals('ACTIVE', $lpk->status);
 
-        // 2. Jadwal target S1 siklus berikutnya (Bulan ke-15 dari masa akhir Juli 2036: 2037-10-24)
+        // 2. Jadwal target S1 siklus berikutnya (Bulan ke-15 dari awal siklus Juli 2031: 2032-10-24)
         $milestones = $lpk->surveillance_milestones;
-        $this->assertEquals('2037-10-24', $milestones['s1']['visit_target_date']->toDateString());
+        $this->assertEquals('2032-10-24', $milestones['s1']['visit_target_date']->toDateString());
 
         // 3. Jarak persiapan bagi lab menyempit menjadi 13 bulan (Sept 2031 ke Okt 2032)
         $this->assertEquals(2, $lpk->s1_delay_penalty_months);

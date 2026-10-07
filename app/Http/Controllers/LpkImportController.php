@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Lpk;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -108,7 +110,13 @@ class LpkImportController extends Controller
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
             foreach ($samples as $row) {
-                fputcsv($handle, $row);
+                fputcsv($handle, array_map(function ($val) {
+                    $str = (string) ($val ?? '');
+                    if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true) && ! is_numeric($str)) {
+                        return "'" . $str;
+                    }
+                    return $str;
+                }, $row));
             }
             fclose($handle);
         }, 200, $headers);
@@ -122,6 +130,10 @@ class LpkImportController extends Controller
         $request->validate([
             'csv_file' => ['nullable', 'file', 'extensions:csv,txt,xlsx', 'max:10240'],
             'sheets_url' => ['nullable', 'url', 'max:1000'],
+        ], [
+            'csv_file.extensions' => 'Berkas harus berformat .csv, .txt, atau .xlsx.',
+            'csv_file.max' => 'Ukuran berkas maksimal 10 MB.',
+            'sheets_url.url' => 'Format tautan Google Sheets tidak valid.',
         ]);
 
         $headers = [];
@@ -152,8 +164,12 @@ class LpkImportController extends Controller
                 $rows = $parsed['rows'];
             }
         } elseif ($request->filled('sheets_url')) {
-            $inputUrl = $request->input('sheets_url');
+            $inputUrl = (string) $request->input('sheets_url');
             $url = $this->normalizeGoogleSheetsUrl($inputUrl);
+
+            if (! $url) {
+                return back()->with('error', 'Tautan Google Sheets tidak valid. Pastikan tautan diawali dengan https://docs.google.com/spreadsheets/d/... dan dapat diakses publik.');
+            }
 
             try {
                 $cookieJar = new \GuzzleHttp\Cookie\CookieJar();
@@ -163,10 +179,10 @@ class LpkImportController extends Controller
                 ])->withOptions([
                     'cookies' => $cookieJar,
                     'allow_redirects' => [
-                        'max' => 10,
+                        'max' => 5,
                         'strict' => false,
                         'referer' => true,
-                        'protocols' => ['http', 'https'],
+                        'protocols' => ['https'],
                         'track_redirects' => true,
                     ],
                 ])->timeout(20)->get($url);
@@ -194,7 +210,7 @@ class LpkImportController extends Controller
                             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         ])->withOptions([
                             'cookies' => $cookieJar,
-                            'allow_redirects' => ['max' => 10, 'strict' => false, 'referer' => true, 'protocols' => ['http', 'https']],
+                            'allow_redirects' => ['max' => 10, 'strict' => false, 'referer' => true, 'protocols' => ['https']],
                         ])->timeout(15)->get($xlsxUrl);
 
                         if ($xlsxResponse->successful() && strlen($xlsxResponse->body()) > 500) {
@@ -230,135 +246,182 @@ class LpkImportController extends Controller
         $updatedCount = 0;
         $skippedCount = 0;
 
-        foreach ($rows as $item) {
-            $excelRowNumber = $item['row_number'];
-            $row = $item['values'];
+        $currentUser = auth()->user();
+        $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
 
-            if (count($row) < 2) {
-                $skippedCount++;
-                continue;
-            }
+        // Pre-load LPKs ke dalam memory collection untuk mengeliminasi query N+1
+        $allLpks = Lpk::all();
+        $lpksByNoReg = $allLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
+        $lpksByAccreditation = $allLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
+        $lpksByRegNo = $allLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
 
-            $data = [];
-            foreach ($headers as $index => $key) {
-                $data[$key] = isset($row[$index]) ? trim((string) $row[$index]) : null;
-            }
+        DB::transaction(function () use (
+            $rows,
+            $headers,
+            $sheetHyperlinks,
+            $currentUser,
+            $picId,
+            $lpksByNoReg,
+            $lpksByAccreditation,
+            $lpksByRegNo,
+            &$createdCount,
+            &$updatedCount,
+            &$skippedCount
+        ) {
+            foreach ($rows as $item) {
+                $excelRowNumber = $item['row_number'];
+                $row = $item['values'];
 
-            $noReg = $data['no_reg'] ?? null;
-            $accreditationNumber = $data['accreditation_number'] ?? null;
-            $regNo = $data['registration_number'] ?? null;
-            $accreditationType = $data['accreditation_type'] ?? null;
-            $name = $data['name'] ?? null;
-
-            if ((! $noReg && ! $accreditationNumber && ! $regNo) || ! $name) {
-                $skippedCount++;
-                continue;
-            }
-
-            if (! $regNo && $accreditationNumber) {
-                $regNo = $accreditationNumber;
-            } elseif (! $accreditationNumber && $regNo) {
-                $accreditationNumber = $regNo;
-            }
-
-            // Normalisasi otomatis nomor akreditasi numerik murni (misal: 077 -> LP-077-IDN)
-            if ($regNo && preg_match('/^\d+$/', $regNo)) {
-                if (! $noReg) {
-                    $noReg = $regNo;
+                if (count($row) < 2) {
+                    $skippedCount++;
+                    continue;
                 }
-                $regNo = 'LP-' . str_pad($regNo, 3, '0', STR_PAD_LEFT) . '-IDN';
-                $accreditationNumber = $regNo;
-            }
 
-            $status = strtoupper($data['status'] ?? 'ACTIVE');
-            if (! in_array($status, ['ACTIVE', 'INACTIVE'], true)) {
-                $status = 'ACTIVE';
-            }
+                $data = [];
+                foreach ($headers as $index => $key) {
+                    $data[$key] = isset($row[$index]) ? trim((string) $row[$index]) : null;
+                }
 
-            $certificateDate = $this->parseDateString($data['certificate_date'] ?? null);
-            $expiredAt = $this->parseDateString($data['expired_at'] ?? null);
-            if (! $expiredAt && $certificateDate) {
-                $expiredAt = date('Y-m-d', strtotime('+5 years', strtotime($certificateDate)));
-            } elseif (! $certificateDate && $expiredAt) {
-                $certificateDate = date('Y-m-d', strtotime('-5 years', strtotime($expiredAt)));
-            }
+                $noReg = $data['no_reg'] ?? null;
+                $accreditationNumber = $data['accreditation_number'] ?? null;
+                $regNo = $data['registration_number'] ?? null;
+                $accreditationType = $data['accreditation_type'] ?? null;
+                $name = $data['name'] ?? null;
 
-            $rawDriveUrl = ! empty($data['drive_url']) ? trim((string) $data['drive_url']) : null;
-            $driveUrl = null;
+                if ((! $noReg && ! $accreditationNumber && ! $regNo) || ! $name) {
+                    $skippedCount++;
+                    continue;
+                }
 
-            if (! empty($rawDriveUrl) && filter_var($rawDriveUrl, FILTER_VALIDATE_URL) && str_starts_with($rawDriveUrl, 'http')) {
-                $driveUrl = $rawDriveUrl;
-            } elseif (! empty($sheetHyperlinks[$excelRowNumber])) {
-                $driveColIndex = array_search('drive_url', $headers, true);
-                $driveColLetter = $driveColIndex !== false ? Coordinate::stringFromColumnIndex($driveColIndex + 1) : null;
+                if (! $regNo && $accreditationNumber) {
+                    $regNo = $accreditationNumber;
+                } elseif (! $accreditationNumber && $regNo) {
+                    $accreditationNumber = $regNo;
+                }
 
-                if ($driveColLetter && ! empty($sheetHyperlinks[$excelRowNumber][$driveColLetter])) {
-                    $driveUrl = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
+                // Normalisasi otomatis nomor akreditasi numerik murni (misal: 077 -> LP-077-IDN)
+                if ($regNo && preg_match('/^\d+$/', $regNo)) {
+                    if (! $noReg) {
+                        $noReg = $regNo;
+                    }
+                    $regNo = 'LP-' . str_pad($regNo, 3, '0', STR_PAD_LEFT) . '-IDN';
+                    $accreditationNumber = $regNo;
+                }
+
+                $status = strtoupper($data['status'] ?? 'ACTIVE');
+                if (! in_array($status, ['ACTIVE', 'INACTIVE'], true)) {
+                    $status = 'ACTIVE';
+                }
+
+                $certificateDate = $this->parseDateString($data['certificate_date'] ?? null);
+                $expiredAt = $this->parseDateString($data['expired_at'] ?? null);
+                if (! $expiredAt && $certificateDate) {
+                    $expiredAt = date('Y-m-d', strtotime('+5 years', strtotime($certificateDate)));
+                } elseif (! $certificateDate && $expiredAt) {
+                    $certificateDate = date('Y-m-d', strtotime('-5 years', strtotime($expiredAt)));
+                }
+
+                $rawDriveUrl = ! empty($data['drive_url']) ? trim((string) $data['drive_url']) : null;
+                $driveUrl = null;
+
+                if (! empty($rawDriveUrl) && filter_var($rawDriveUrl, FILTER_VALIDATE_URL) && str_starts_with($rawDriveUrl, 'http')) {
+                    $driveUrl = $rawDriveUrl;
+                } elseif (! empty($sheetHyperlinks[$excelRowNumber])) {
+                    $driveColIndex = array_search('drive_url', $headers, true);
+                    $driveColLetter = $driveColIndex !== false ? Coordinate::stringFromColumnIndex($driveColIndex + 1) : null;
+
+                    if ($driveColLetter && ! empty($sheetHyperlinks[$excelRowNumber][$driveColLetter])) {
+                        $driveUrl = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
+                    } else {
+                        $driveUrl = reset($sheetHyperlinks[$excelRowNumber]);
+                    }
+                }
+
+                // Pencarian existing LPK menggunakan in-memory cache collection
+                $existing = null;
+                if (! empty($noReg)) {
+                    $existing = $lpksByNoReg->get(strtoupper($noReg));
+                }
+                if (! $existing && ! empty($accreditationNumber)) {
+                    $existing = $lpksByAccreditation->get(strtoupper($accreditationNumber))
+                        ?: $lpksByRegNo->get(strtoupper($accreditationNumber));
+                }
+                if (! $existing && ! empty($regNo)) {
+                    $existing = $lpksByRegNo->get(strtoupper($regNo))
+                        ?: $lpksByAccreditation->get(strtoupper($regNo))
+                        ?: $lpksByNoReg->get(strtoupper($regNo));
+                }
+
+                if ($existing) {
+                    // Otorisasi keamanan: pastikan pengguna berhak memperbarui LPK ini (Admin atau PIC pengelola)
+                    if ($currentUser && ! $currentUser->isAdmin() && ! $existing->canManage($currentUser)) {
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    $existing->update([
+                        'pic_id' => $existing->pic_id ?: $picId,
+                        'no_reg' => $noReg ?: $existing->no_reg,
+                        'accreditation_number' => $accreditationNumber ?: ($existing->accreditation_number ?: $existing->registration_number),
+                        'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
+                        'registration_number' => $accreditationNumber ?: ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
+                        'name' => $name,
+                        'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
+                        'certificate_date' => $certificateDate ?: $existing->certificate_date,
+                        'address' => ! empty($data['address']) ? $data['address'] : $existing->address,
+                        'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
+                        'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
+                        'status' => $status,
+                        'expired_at' => $expiredAt ?: $existing->expired_at,
+                        'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
+                        'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
+                    ]);
+                    $existing->generateSurveillanceAssessments();
+                    $updatedCount++;
                 } else {
-                    $driveUrl = reset($sheetHyperlinks[$excelRowNumber]);
+                    $createdLpk = Lpk::create([
+                        'pic_id' => $picId,
+                        'no_reg' => $noReg,
+                        'accreditation_number' => $accreditationNumber ?: $regNo,
+                        'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',
+                        'registration_number' => $regNo ?: ($accreditationNumber ?: $noReg),
+                        'name' => $name,
+                        'scope' => $data['scope'] ?? null,
+                        'certificate_date' => $certificateDate,
+                        'address' => $data['address'] ?? null,
+                        'email' => $data['email'] ?? null,
+                        'phone' => $data['phone'] ?? null,
+                        'status' => $status,
+                        'expired_at' => $expiredAt,
+                        'drive_url' => $driveUrl,
+                        'notes' => $data['notes'] ?? null,
+                    ]);
+
+                    // Perbarui in-memory lookup cache untuk baris berikutnya
+                    if ($createdLpk->no_reg) {
+                        $lpksByNoReg->put(strtoupper($createdLpk->no_reg), $createdLpk);
+                    }
+                    if ($createdLpk->accreditation_number) {
+                        $lpksByAccreditation->put(strtoupper($createdLpk->accreditation_number), $createdLpk);
+                    }
+                    if ($createdLpk->registration_number) {
+                        $lpksByRegNo->put(strtoupper($createdLpk->registration_number), $createdLpk);
+                    }
+
+                    $createdCount++;
                 }
             }
+        });
 
-            $existing = null;
-            if (! empty($noReg)) {
-                $existing = Lpk::where('no_reg', $noReg)->first();
-            }
-            if (! $existing && ! empty($accreditationNumber)) {
-                $existing = Lpk::where('accreditation_number', $accreditationNumber)
-                    ->orWhere('registration_number', $accreditationNumber)
-                    ->first();
-            }
-            if (! $existing && ! empty($regNo)) {
-                $existing = Lpk::where('registration_number', $regNo)
-                    ->orWhere('accreditation_number', $regNo)
-                    ->orWhere('no_reg', $regNo)
-                    ->first();
-            }
-
-            $currentUser = auth()->user();
-            $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
-
-            if ($existing) {
-                $existing->update([
-                    'pic_id' => $existing->pic_id ?: $picId,
-                    'no_reg' => $noReg ?: $existing->no_reg,
-                    'accreditation_number' => $accreditationNumber ?: ($existing->accreditation_number ?: $existing->registration_number),
-                    'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
-                    'registration_number' => $accreditationNumber ?: ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
-                    'name' => $name,
-                    'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
-                    'certificate_date' => $certificateDate ?: $existing->certificate_date,
-                    'address' => ! empty($data['address']) ? $data['address'] : $existing->address,
-                    'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
-                    'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
-                    'status' => $status,
-                    'expired_at' => $expiredAt ?: $existing->expired_at,
-                    'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
-                    'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
-                ]);
-                $existing->generateSurveillanceAssessments();
-                $updatedCount++;
-            } else {
-                Lpk::create([
-                    'pic_id' => $picId,
-                    'no_reg' => $noReg,
-                    'accreditation_number' => $accreditationNumber ?: $regNo,
-                    'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',
-                    'registration_number' => $regNo ?: ($accreditationNumber ?: $noReg),
-                    'name' => $name,
-                    'scope' => $data['scope'] ?? null,
-                    'certificate_date' => $certificateDate,
-                    'address' => $data['address'] ?? null,
-                    'email' => $data['email'] ?? null,
-                    'phone' => $data['phone'] ?? null,
-                    'status' => $status,
-                    'expired_at' => $expiredAt,
-                    'drive_url' => $driveUrl,
-                    'notes' => $data['notes'] ?? null,
-                ]);
-                $createdCount++;
-            }
-        }
+        // Audit log terstruktur
+        Log::info('LPK import batch completed', [
+            'user_id' => $currentUser?->id,
+            'user_email' => $currentUser?->email,
+            'created_count' => $createdCount,
+            'updated_count' => $updatedCount,
+            'skipped_count' => $skippedCount,
+            'ip_address' => $request->ip(),
+        ]);
 
         $msg = "Impor data LPK selesai: {$createdCount} LPK baru ditambahkan, {$updatedCount} diperbarui";
         if ($skippedCount > 0) {
@@ -557,20 +620,30 @@ class LpkImportController extends Controller
 
     /**
      * Mengubah tautan Google Sheets publik menjadi tautan ekspor CSV.
+     * Membatasi skema wajib HTTPS dan host docs.google.com untuk mitigasi SSRF.
      */
-    protected function normalizeGoogleSheetsUrl(string $url): string
+    protected function normalizeGoogleSheetsUrl(string $url): ?string
     {
+        $parsed = parse_url($url);
+        if (! isset($parsed['scheme'], $parsed['host'])) {
+            return null;
+        }
+
+        if (strtolower($parsed['scheme']) !== 'https' || strtolower($parsed['host']) !== 'docs.google.com') {
+            return null;
+        }
+
         if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
             $sheetId = $matches[1];
             $gid = '0';
-            if (preg_match('/gid=([0-9]+)/', $url, $gidMatches)) {
+            if (preg_match('/[#&?]gid=([0-9]+)/', $url, $gidMatches)) {
                 $gid = $gidMatches[1];
             }
 
             return "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
         }
 
-        return $url;
+        return null;
     }
 
     /**

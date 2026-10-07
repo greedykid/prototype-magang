@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class LpkController extends Controller
@@ -21,15 +23,13 @@ class LpkController extends Controller
         $status = $request->string('status')->toString();
         $surveillance = $request->string('surveillance')->toString();
         $expiry = $request->string('expiry')->toString();
-        $picFilter = $request->string('pic_id')->toString();
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
         }
 
         $query = Lpk::query()
-            ->accessibleBy($user)
-            ->when($picFilter, fn ($query) => $query->where('pic_id', $picFilter))
+            ->primaryFor($user)
             ->when($search, fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
@@ -41,31 +41,6 @@ class LpkController extends Controller
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%")
             ));
-        if ($status === 'INACTIVE') {
-            $query->where('status', 'INACTIVE');
-        } elseif ($status === 'GRACE_PERIOD') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'GRACE_PERIOD')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'REVOKED') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'REVOKED')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'SUSPENDED') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SUSPENDED')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'SURVEILLANCE_OVERDUE') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_OVERDUE')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'SURVEILLANCE_DUE') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'SURVEILLANCE_DUE')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'EXPIRED') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'EXPIRED')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        } elseif ($status === 'ACTIVE') {
-            $matchingIds = Lpk::with('assessments')->get()->filter(fn (Lpk $lpk) => $lpk->dynamic_status === 'ACTIVE')->pluck('id');
-            $query->whereIn('id', $matchingIds);
-        }
-
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
             $query->whereNotNull('expired_at')->where('expired_at', '<', now()->startOfDay());
@@ -77,23 +52,44 @@ class LpkController extends Controller
             $query->whereNotNull('expired_at')->where('expired_at', '>', now()->addDays(90)->endOfDay());
         }
 
-        // Filter Status Siklus Pengawasan KAN (S1, S2, RA, Peringatan)
-        if ($surveillance) {
-            $matchingIds = Lpk::with('assessments')->get()->filter(function (Lpk $lpk) use ($surveillance) {
-                $alerts = $lpk->getActiveSurveillanceAlerts();
-                $milestones = $lpk->surveillance_milestones;
+        if ($status === 'INACTIVE') {
+            $query->where('status', 'INACTIVE');
+        }
 
-                return match ($surveillance) {
-                    'NEEDS_ACTION' => count($alerts) > 0,
-                    'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                    'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                    'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
-                    'OVERDUE' => collect($alerts)->contains('is_urgent', true),
-                    default => true,
-                };
-            })->pluck('id');
+        $needsDynamicStatusFilter = in_array($status, [
+            'GRACE_PERIOD', 'REVOKED', 'SUSPENDED', 'SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE', 'EXPIRED', 'ACTIVE',
+        ], true);
+        $needsSurveillanceFilter = ! empty($surveillance);
 
-            $query->whereIn('id', $matchingIds);
+        if ($needsDynamicStatusFilter || $needsSurveillanceFilter) {
+            $candidateLpks = (clone $query)->with('assessments')->get();
+            foreach ($candidateLpks as $candidate) {
+                foreach ($candidate->assessments as $asm) {
+                    $asm->setRelation('lpk', $candidate);
+                }
+            }
+
+            if ($needsDynamicStatusFilter) {
+                $candidateLpks = $candidateLpks->filter(fn (Lpk $lpk) => $lpk->dynamic_status === $status);
+            }
+
+            if ($needsSurveillanceFilter) {
+                $candidateLpks = $candidateLpks->filter(function (Lpk $lpk) use ($surveillance) {
+                    $alerts = $lpk->getActiveSurveillanceAlerts();
+                    $milestones = $lpk->surveillance_milestones;
+
+                    return match ($surveillance) {
+                        'NEEDS_ACTION' => count($alerts) > 0,
+                        'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                        'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                        'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
+                        'OVERDUE' => collect($alerts)->contains('is_urgent', true),
+                        default => true,
+                    };
+                });
+            }
+
+            $query->whereIn('id', $candidateLpks->pluck('id'));
         }
 
         $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
@@ -104,12 +100,12 @@ class LpkController extends Controller
         }
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'perPage'));
+            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage'));
         }
 
-        $pics = $user ? $user->getAccessiblePics() : collect();
+        $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
-        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'picFilter', 'pics', 'perPage'));
+        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'linkedOwnersCount'));
     }
 
     public function create(Request $request): View
@@ -130,7 +126,7 @@ class LpkController extends Controller
 
         $lpk = Lpk::create($data);
 
-        return redirect()->route('lpks.show', $lpk)->with('success', 'LPK berhasil ditambahkan.');
+        return redirect()->route('lpks.index')->with('success', 'LPK berhasil ditambahkan.');
     }
 
     public function show(Lpk $lpk, Request $request): View
@@ -169,7 +165,7 @@ class LpkController extends Controller
 
         $lpk->update($data);
 
-        return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
+        return redirect()->route('lpks.index')->with('success', 'Data LPK berhasil diperbarui.');
     }
 
     public function updateNotes(UpdateLpkNotesRequest $request, Lpk $lpk): RedirectResponse
@@ -196,9 +192,18 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini.');
         }
 
+        $lpkId = $lpk->id;
         $name = $lpk->name;
         $reg = $lpk->registration_number;
         $lpk->delete();
+
+        Log::info('LPK deleted', [
+            'lpk_id' => $lpkId,
+            'registration_number' => $reg,
+            'lpk_name' => $name,
+            'user_id' => $user?->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         return redirect()->route('lpks.index')->with('success', "Data LPK {$name} ({$reg}) berhasil dihapus.");
     }
@@ -243,9 +248,18 @@ class LpkController extends Controller
             return back()->with('error', 'Tidak ada data LPK yang dapat dihapus.');
         }
 
-        foreach ($records as $record) {
-            $record->delete();
-        }
+        DB::transaction(function () use ($records) {
+            foreach ($records as $record) {
+                $record->delete();
+            }
+        });
+
+        Log::info('LPKs bulk deleted', [
+            'deleted_count' => $count,
+            'deleted_ids' => $records->pluck('id')->all(),
+            'user_id' => $user?->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         $message = "{$count} data LPK berhasil dihapus.";
 
@@ -337,8 +351,8 @@ class LpkController extends Controller
                 $port = 587;
             }
 
-            $username = env('MAIL_USERNAME') ?: config('mail.mailers.smtp.username') ?: 'dccf097e9f5ffe';
-            $password = env('MAIL_PASSWORD') ?: config('mail.mailers.smtp.password') ?: 'ee0c1f3cad62a3';
+            $username = env('MAIL_USERNAME') ?: config('mail.mailers.smtp.username');
+            $password = env('MAIL_PASSWORD') ?: config('mail.mailers.smtp.password');
             $encryption = env('MAIL_ENCRYPTION') ?: config('mail.mailers.smtp.encryption') ?: 'tls';
 
             // Selalu bersihkan cache mailer agar instance lama di php artisan serve tidak digunakan

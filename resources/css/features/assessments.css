@@ -159,20 +159,16 @@
 
 /* Assessment List Item on LPK Detail Panel */
 .assessment-list-row {
-    border-top: 1px solid var(--line, #e2e8f0);
+    box-sizing: border-box;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
     padding: 14px 10px;
-    margin: 0 -10px;
+    margin: 0;
     border-radius: 8px;
     text-decoration: none;
     transition: background-color 160ms ease;
-}
-
-.assessment-list-row:first-of-type {
-    border-top: 1px solid var(--line, #e2e8f0);
 }
 
 .assessment-list-row.clickable-row {
@@ -282,8 +278,8 @@
     .assessment-list-row {
         flex-direction: column;
         gap: 10px;
-        padding: 12px 6px;
-        margin: 0 -6px;
+        padding: 12px 10px;
+        margin: 0;
     }
     .assessment-list-actions {
         width: 100%;

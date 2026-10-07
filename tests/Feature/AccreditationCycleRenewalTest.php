@@ -57,14 +57,14 @@ class AccreditationCycleRenewalTest extends TestCase
         $this->assertEquals('UPCOMING', $milestones['s2']['status']);
         $this->assertEquals('UPCOMING', $milestones['ra']['status']);
 
-        // 3. Tanggal target dihitung dari tanggal acuan siklus baru (expired_at)
-        $this->assertEquals('2032-11-01', $milestones['s1']['notice_date']->toDateString());
-        $this->assertEquals('2033-04-01', $milestones['s1']['target_date']->toDateString());
-        $this->assertEquals('2034-08-01', $milestones['s2']['notice_date']->toDateString());
-        $this->assertEquals('2035-01-01', $milestones['s2']['target_date']->toDateString());
-        $this->assertEquals('2035-10-01', $milestones['ra']['notice_date']->toDateString());
-        $this->assertEquals('2036-01-01', $milestones['ra']['target_date']->toDateString());
-        $this->assertEquals('2036-04-01', $milestones['ra']['visit_target_date']->toDateString());
+        // 3. Tanggal target dihitung dari tanggal acuan siklus baru (2026 - 2031)
+        $this->assertEquals('2027-11-01', $milestones['s1']['notice_date']->toDateString());
+        $this->assertEquals('2028-04-01', $milestones['s1']['target_date']->toDateString());
+        $this->assertEquals('2029-08-01', $milestones['s2']['notice_date']->toDateString());
+        $this->assertEquals('2030-01-01', $milestones['s2']['target_date']->toDateString());
+        $this->assertEquals('2030-10-01', $milestones['ra']['notice_date']->toDateString());
+        $this->assertEquals('2031-01-01', $milestones['ra']['target_date']->toDateString());
+        $this->assertEquals('2031-04-01', $milestones['ra']['visit_target_date']->toDateString());
 
         // 4. Asesmen Re-Akreditasi lama tetap tersimpan sebagai riwayat
         $this->assertDatabaseHas('assessments', [
@@ -77,7 +77,7 @@ class AccreditationCycleRenewalTest extends TestCase
         // 5. Tampilan detail LPK menampilkan siklus periode baru dan status Akan Datang
         $response = $this->actingAs($admin)->get(route('lpks.show', $lpk));
         $response->assertOk();
-        $response->assertSee('Periode 2031 - 2036');
+        $response->assertSee('Periode 2026 - 2031');
         $response->assertSee('Akan Datang');
     }
 }
