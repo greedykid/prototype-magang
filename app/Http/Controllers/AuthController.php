@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\RecaptchaRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,24 @@ class AuthController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
+        $rules = [
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ];
+
+        if (config('services.recaptcha.enabled')) {
+            $rules['g-recaptcha-response'] = ['required', new RecaptchaRule()];
+        }
+
+        $validated = $request->validate($rules, [
+            'g-recaptcha-response.required' => 'Silakan centang verifikasi "Saya bukan robot".',
+        ]);
+
+        $credentials = [
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ];
+
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'Email atau password belum sesuai.'])->onlyInput('email');
         }

@@ -9,6 +9,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon-16x16.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-bsn.png') }}">
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('simasadi_theme');
+            var theme = savedTheme || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    @if(config('services.recaptcha.enabled'))
+        <script src="https://www.google.com/recaptcha/api.js?hl=id" async defer></script>
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="auth-page">
@@ -57,9 +67,21 @@
             Password
             <input type="password" name="password" id="login-password-input" value="password" required>
         </label>
-        <label class="check">
-            <input type="checkbox" name="remember"> Ingat sesi ini
+        <label class="check" for="remember">
+            <input type="checkbox" id="remember" name="remember"> Ingat sesi ini
         </label>
+
+        @if(config('services.recaptcha.enabled'))
+            <div class="login-recaptcha-box" style="margin: 14px 0 8px 0; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <div class="g-recaptcha" id="g-recaptcha-widget" data-sitekey="{{ config('services.recaptcha.site_key') }}" data-theme="light"></div>
+                @error('g-recaptcha-response')
+                    <span class="field-error" style="color: #e11d48; font-size: 12.5px; font-weight: 500; margin-top: 6px; text-align: center; display: block;" role="alert">
+                        {{ $message }}
+                    </span>
+                @enderror
+            </div>
+        @endif
+
         <button class="button primary login-submit-btn" type="submit" id="login-submit-btn">
             <span class="btn-text">Masuk ke Sistem</span>
             <span class="btn-spinner" aria-hidden="true">
@@ -90,6 +112,13 @@
                 }
             });
         });
+
+        // Set dynamic theme (light / dark) for reCAPTCHA before widget render
+        const recaptchaWidget = document.getElementById('g-recaptcha-widget');
+        if (recaptchaWidget) {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            recaptchaWidget.setAttribute('data-theme', currentTheme === 'dark' ? 'dark' : 'light');
+        }
     });
 </script>
 </body>
