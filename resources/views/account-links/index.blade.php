@@ -30,7 +30,7 @@
                     <small style="color: var(--muted); font-size: 12px;">Beri izin pantau seluruh data akun Anda ke PIC lain</small>
                 </div>
             </div>
-            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
                 {{ $linkedViewers->count() }} Akun
             </span>
         </div>
@@ -79,7 +79,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
+                        <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
                             Viewer Akun
                         </span>
 
@@ -123,32 +123,51 @@
                     <small style="color: var(--muted); font-size: 12px;">Akun PIC lain yang memberikan izin pantau kepada Anda</small>
                 </div>
             </div>
-            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 9999px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
                 {{ $linkedOwners->count() }} Akun
             </span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
             @forelse($linkedOwners as $owner)
-                <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
-                            {{ $owner->initials }}
+                <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+                    {{-- Baris Atas: Info PIC (Lebar Penuh tanpa Terpotong) --}}
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                            <div style="width: 40px; height: 40px; border-radius: 9999px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                {{ $owner->initials }}
+                            </div>
+                            <div style="min-width: 0;">
+                                <a href="{{ route('account-links.show', $owner) }}" class="hover-underline" style="font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; word-break: break-word;" title="Buka daftar LPK milik {{ $owner->name }}">
+                                    {{ $owner->name }}
+                                </a>
+                                <div style="font-size: 12px; color: var(--muted); margin-top: 2px; word-break: break-all;">
+                                    {{ $owner->email }}
+                                </div>
+                            </div>
                         </div>
-                        <div style="min-width: 0;">
-                            <div style="font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                {{ $owner->name }}
-                            </div>
-                            <div style="font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                {{ $owner->email }} &bull; {{ $owner->lpks_count }} LPK dibagikan
-                            </div>
+
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0;">
+                            <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                                {{ $owner->lpks_count }} LPK
+                            </span>
+                            <span class="badge" style="background: var(--surface-subtle, #f8fafc); color: var(--muted, #64748b); border: 1px solid var(--line, #cbd5e1); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                                {{ $owner->assessments_count ?? 0 }} Asesmen
+                            </span>
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">
-                            Akses Aktif
-                        </span>
+                    {{-- Baris Bawah: Tombol Aksi --}}
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line, #e2e8f0); padding-top: 10px; margin-top: 2px; flex-wrap: wrap;">
+                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="button primary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka daftar LPK milik {{ $owner->name }}">
+                            <x-icon name="building" size="14" />
+                            <span>Lihat LPK ({{ $owner->lpks_count }})</span>
+                        </a>
+
+                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="button secondary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka program asesmen milik {{ $owner->name }}">
+                            <x-icon name="assessments" size="14" />
+                            <span>Lihat Asesmen ({{ $owner->assessments_count ?? 0 }})</span>
+                        </a>
 
                         <form method="POST" action="{{ route('account-links.destroy', $owner) }}"
                               data-confirm-delete
@@ -158,7 +177,7 @@
                               style="margin: 0;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 12px; padding: 4px 10px; font-weight: 500;" title="Lepaskan akses pemantauan">
+                            <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 12px; padding: 6px 12px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                 Lepas Akses
                             </button>
                         </form>
