@@ -87,7 +87,13 @@
 
         <label class="full">
             Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
-            <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}">
+            <div class="password-input-wrap">
+                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}">
+                <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                    <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                    <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                </button>
+            </div>
             <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
                 {{ $user->exists ? 'Isi bidang ini hanya jika ingin mengatur ulang (reset) kata sandi pengguna.' : 'Kata sandi awal untuk masuk ke akun. Minimal 8 karakter.' }}
             </small>
@@ -95,7 +101,13 @@
 
         <label class="full">
             Konfirmasi Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
-            <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi">
+            <div class="password-input-wrap">
+                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi">
+                <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                    <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                    <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                </button>
+            </div>
         </label>
 
         <div class="form-actions full" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">

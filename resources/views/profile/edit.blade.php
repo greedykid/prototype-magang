@@ -160,7 +160,13 @@
                             <span>Kata Sandi Saat Ini</span>
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
-                        <input id="current-password" type="password" name="current_password" class="profile-input" required autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
+                        <div class="password-input-wrap">
+                            <input id="current-password" type="password" name="current_password" class="profile-input" required autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
+                            <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                                <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                                <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="profile-field">
@@ -168,7 +174,13 @@
                             <span>Kata Sandi Baru</span>
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
-                        <input id="new-password" type="password" name="password" class="profile-input" required autocomplete="new-password" placeholder="Minimal 8 karakter">
+                        <div class="password-input-wrap">
+                            <input id="new-password" type="password" name="password" class="profile-input" required autocomplete="new-password" placeholder="Minimal 8 karakter">
+                            <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                                <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                                <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                            </button>
+                        </div>
                         <small class="profile-field-hint">Gunakan kombinasi minimal 8 karakter huruf, angka, dan simbol.</small>
                     </div>
 
@@ -177,7 +189,13 @@
                             <span>Konfirmasi Kata Sandi Baru</span>
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
-                        <input id="confirm-password" type="password" name="password_confirmation" class="profile-input" required autocomplete="new-password" placeholder="Ulangi kata sandi baru">
+                        <div class="password-input-wrap">
+                            <input id="confirm-password" type="password" name="password_confirmation" class="profile-input" required autocomplete="new-password" placeholder="Ulangi kata sandi baru">
+                            <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                                <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                                <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

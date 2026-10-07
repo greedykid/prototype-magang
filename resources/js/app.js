@@ -28,6 +28,7 @@ import { initSpaRouter, navigateTo, clearPageCache, prefetchUrl } from './module
 import { initLiveFilters, executePartialFilter } from './modules/live-filter.js';
 import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
 import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
+import { initPasswordToggles } from './modules/password-toggle.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -59,6 +60,7 @@ window.syncTableState = syncTableState;
 window.clearTableSelection = clearTableSelection;
 window.toggleTheme = toggleTheme;
 window.applyTheme = applyTheme;
+window.initPasswordToggles = initPasswordToggles;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -236,6 +238,9 @@ export const initPageComponents = () => {
 
     // 7. Theme Switcher Sync
     initTheme();
+
+    // 8. Password Visibility Toggles
+    initPasswordToggles();
 };
 
 window.initPageComponents = initPageComponents;
@@ -307,6 +312,7 @@ initConfirmations();
 initClickableRows();
 initLiveFilters();
 initTheme();
+initPasswordToggles();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

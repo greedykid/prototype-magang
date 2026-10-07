@@ -65,7 +65,13 @@
         </label>
         <label>
             Password
-            <input type="password" name="password" id="login-password-input" value="password" required>
+            <div class="password-input-wrap">
+                <input type="password" name="password" id="login-password-input" value="password" required>
+                <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
+                    <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
+                    <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
+                </button>
+            </div>
         </label>
         <label class="check" for="remember">
             <input type="checkbox" id="remember" name="remember"> Ingat sesi ini

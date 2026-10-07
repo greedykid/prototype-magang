@@ -22,6 +22,7 @@
 @import './components/skeletons.css';
 @import './components/custom-select.css';
 @import './components/pickers.css';
+@import './components/password-toggle.css';
 @import './components/sweetalert.css';
 @import './components/modals.css';
 
