@@ -121,10 +121,43 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * Dapatkan daftar ID pemilik akun yang menautkan user ini sebagai viewer.
+     * Dicache per-request HTTP untuk mencegah N+1 query pada pemuatan koleksi LPK.
+     *
+     * @return array<int>
+     */
+    public function getLinkedOwnerIds(): array
+    {
+        if ($this->relationLoaded('linkedOwners')) {
+            return $this->linkedOwners->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+
+        $req = request();
+        if ($req) {
+            $key = 'req_user_' . $this->id . '_linked_owner_ids';
+            if ($req->attributes->has($key)) {
+                return (array) $req->attributes->get($key);
+            }
+
+            $ids = $this->linkedOwners()->pluck('users.id')->map(fn ($id) => (int) $id)->all();
+            $req->attributes->set($key, $ids);
+
+            return $ids;
+        }
+
+        return $this->linkedOwners()->pluck('users.id')->map(fn ($id) => (int) $id)->all();
+    }
+
     public function isViewerFor(User|int $owner): bool
     {
-        $ownerId = $owner instanceof User ? $owner->id : $owner;
-        return $this->linkedOwners()->where('users.id', $ownerId)->exists();
+        $ownerId = (int) ($owner instanceof User ? $owner->id : $owner);
+
+        if ($this->relationLoaded('linkedOwners')) {
+            return $this->linkedOwners->contains('id', $ownerId);
+        }
+
+        return in_array($ownerId, $this->getLinkedOwnerIds(), true);
     }
 
     public function hasLinkedViewer(User|int $viewer): bool

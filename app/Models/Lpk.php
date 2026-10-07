@@ -87,7 +87,15 @@ class Lpk extends Model
                 if (!empty($lpk->registration_number) && preg_match('/^\d+$/', (string) $lpk->registration_number)) {
                     $lpk->no_reg = (string) $lpk->registration_number;
                 } else {
-                    $maxNoReg = \Illuminate\Support\Facades\DB::table('lpks')->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
+                    $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                    $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
+                    if ($driver === 'sqlite') {
+                        $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
+                    } elseif ($driver === 'pgsql') {
+                        $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
+                    } else {
+                        $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
+                    }
                     $lpk->no_reg = (string) ($maxNoReg ? $maxNoReg + 1 : 3340);
                 }
             }
@@ -113,6 +121,14 @@ class Lpk extends Model
             if ($lpk->wasChanged(['certificate_date', 'expired_at'])) {
                 $lpk->generateSurveillanceAssessments();
             }
+        });
+
+        static::saved(function (): void {
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+        });
+
+        static::deleted(function (): void {
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
         });
     }
 
@@ -266,12 +282,12 @@ class Lpk extends Model
 
     public function getCycleBaseDateAttribute(): ?\Illuminate\Support\Carbon
     {
-        return $this->expired_at ?: ($this->certificate_date ? $this->certificate_date->copy()->addYears(5) : null);
+        return $this->certificate_date ?: ($this->expired_at ? $this->expired_at->copy()->subYears(5) : null);
     }
 
     public function getCycleExpiredAtAttribute(): ?\Illuminate\Support\Carbon
     {
-        return $this->cycle_base_date ? $this->cycle_base_date->copy()->addYears(5) : null;
+        return $this->expired_at ?: ($this->certificate_date ? $this->certificate_date->copy()->addYears(5) : null);
     }
 
     public function isExpired(): bool
@@ -504,15 +520,8 @@ class Lpk extends Model
             return false;
         }
 
-        if ($this->pic_id !== null) {
-            $isAccountViewer = \Illuminate\Support\Facades\DB::table('user_account_links')
-                ->where('user_id', $this->pic_id)
-                ->where('viewer_id', $user->id)
-                ->exists();
-
-            if ($isAccountViewer) {
-                return true;
-            }
+        if ($this->pic_id !== null && $user->isViewerFor((int) $this->pic_id)) {
+            return true;
         }
 
         if ($this->relationLoaded('members')) {
@@ -555,15 +564,8 @@ class Lpk extends Model
             return true;
         }
 
-        if ($this->pic_id !== null) {
-            $isAccountViewer = \Illuminate\Support\Facades\DB::table('user_account_links')
-                ->where('user_id', $this->pic_id)
-                ->where('viewer_id', $user->id)
-                ->exists();
-
-            if ($isAccountViewer) {
-                return true;
-            }
+        if ($this->pic_id !== null && $user->isViewerFor((int) $this->pic_id)) {
+            return true;
         }
 
         if ($this->relationLoaded('members')) {
@@ -571,6 +573,22 @@ class Lpk extends Model
         }
 
         return $this->members()->where('lpk_members.user_id', $user->id)->exists();
+    }
+
+    public function scopePrimaryFor(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('lpks.pic_id', $user->id)
+              ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id));
+        })->distinct();
     }
 
     public function scopeAccessibleBy(Builder $query, ?User $user): Builder

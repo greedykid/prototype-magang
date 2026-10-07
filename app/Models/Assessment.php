@@ -384,6 +384,12 @@ class Assessment extends Model
             if ($isRa && $assessment->status === 'COMPLETED' && ! empty($assessment->sk_number)) {
                 $assessment->lpk?->renewAccreditationCycleFromAssessment($assessment);
             }
+
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+        });
+
+        static::deleted(function (): void {
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
         });
     }
 
