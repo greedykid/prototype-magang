@@ -1,9 +1,9 @@
-/* Pagination Component */
-/*    ========================================================================== */
+/* Pagination Component - Notion Design System */
+/* ========================================================================== */
 .pagination-container {
     align-items: center;
-    animation: pagination-fade-up 300ms var(--ease-out-expo) both;
-    border-top: 1px solid var(--line);
+    animation: pagination-fade-up 240ms var(--ease-out-expo) both;
+    border-top: 1px solid var(--line, rgba(0, 0, 0, 0.08));
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
@@ -15,7 +15,7 @@
 @keyframes pagination-fade-up {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(4px);
     }
     to {
         opacity: 1;
@@ -24,7 +24,7 @@
 }
 
 .pagination-info p {
-    color: var(--muted);
+    color: var(--muted, #615d59);
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -32,7 +32,7 @@
 
 .pagination-info p span,
 .pagination-info p strong {
-    color: var(--ink);
+    color: var(--ink, #191918);
     font-weight: 600;
 }
 
@@ -40,64 +40,63 @@
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
 }
 
 .pagination-item {
     align-items: center;
     background: var(--surface, #ffffff);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    color: var(--ink);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-sm, 6px);
+    color: var(--ink, #191918);
     cursor: pointer;
     display: inline-flex;
     font-family: inherit;
     font-size: 13px;
     font-weight: 500;
-    height: 38px;
+    height: 34px;
     justify-content: center;
     line-height: 1;
-    min-width: 38px;
-    padding: 0 11px;
+    min-width: 34px;
+    padding: 0 10px;
     text-decoration: none;
-    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms var(--ease-out-expo);
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
     user-select: none;
 }
 
 .pagination-item.pagination-link:hover,
 .pagination-item.pagination-link:focus-visible {
-    background: var(--lavender);
-    border-color: #cfc6ff;
-    box-shadow: 0 2px 6px rgba(86, 69, 212, 0.14);
-    color: var(--maroon-dark);
-    transform: translateY(-1.5px);
+    background: var(--surface-hover, #efedea);
+    border-color: var(--color-gray-400, #a39e98);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    color: var(--ink, #000000);
 }
 
 .pagination-item:focus-visible {
-    outline: 2px solid var(--terracotta);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
 .pagination-item.pagination-active {
-    background: var(--maroon);
-    border-color: var(--maroon);
-    box-shadow: 0 2px 4px rgba(86, 69, 212, 0.22);
+    background: var(--primary, #0075de);
+    border-color: var(--primary, #0075de);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     color: #ffffff;
     cursor: default;
     font-weight: 600;
 }
 
 .pagination-item.pagination-disabled {
-    background: var(--surface);
-    border-color: var(--line);
-    color: #b5b3ad;
+    background: transparent;
+    border-color: var(--line, rgba(0, 0, 0, 0.08));
+    color: var(--color-gray-400, #a39e98);
     cursor: not-allowed;
-    opacity: 0.65;
+    opacity: 0.5;
     pointer-events: none;
 }
 
 .pagination-item.pagination-disabled svg {
-    color: #b5b3ad;
+    color: var(--color-gray-400, #a39e98);
 }
 
 .pagination-item.pagination-ellipsis {
@@ -112,8 +111,8 @@
 
 .pagination-icon {
     display: block;
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
 }
 
 @media (max-width: 600px), (pointer: coarse) {
@@ -127,32 +126,31 @@
     .pagination-links {
         justify-content: center;
         width: 100%;
-        gap: 8px;
+        gap: 6px;
     }
 
     .pagination-item {
-        height: 44px;
-        min-width: 44px;
-        font-size: 14px;
-        padding: 0 13px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 13.5px;
+        padding: 0 12px;
     }
 }
 
 /* Pagination Dark Mode Overrides */
 html[data-theme="dark"] .pagination-item.pagination-link:hover,
 html[data-theme="dark"] .pagination-item.pagination-link:focus-visible {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: #6366f1;
-    color: #c7d2fe;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    background: var(--surface-hover);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 html[data-theme="dark"] .pagination-item.pagination-disabled {
-    color: #475569;
+    color: var(--color-gray-500, #78736f);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .pagination-item.pagination-disabled svg {
-    color: #475569;
+    color: var(--color-gray-500, #78736f);
 }
-
-/* ==========================================================================
