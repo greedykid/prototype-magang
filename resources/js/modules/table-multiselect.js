@@ -25,7 +25,7 @@ export function syncTableState(tableId) {
 
     if (table) {
         const rowCheckboxes = Array.from(table.querySelectorAll('.table-row-select'));
-        const selectAllCheckbox = table.querySelector('.table-select-all');
+        const selectAllCheckboxes = Array.from(document.querySelectorAll(`.table-select-all[data-table-id="${tableId}"]`));
 
         let checkedCountOnPage = 0;
 
@@ -41,7 +41,7 @@ export function syncTableState(tableId) {
             }
         });
 
-        if (selectAllCheckbox) {
+        selectAllCheckboxes.forEach((selectAllCheckbox) => {
             if (rowCheckboxes.length === 0) {
                 selectAllCheckbox.checked = false;
                 selectAllCheckbox.indeterminate = false;
@@ -55,7 +55,7 @@ export function syncTableState(tableId) {
                 selectAllCheckbox.checked = false;
                 selectAllCheckbox.indeterminate = false;
             }
-        }
+        });
     }
 
     // Sync floating bulk action bar
@@ -126,16 +126,19 @@ async function handleBulkDelete(bulkBar) {
         text: `Data ${entityName.toLowerCase()} yang dipilih akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
         icon: 'warning',
         showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#71717a',
         confirmButtonText: 'Ya, Hapus Data',
         cancelButtonText: 'Batal',
-        customClass: {
-            popup: 'simasadi-swal-popup',
-            confirmButton: 'button danger',
-            cancelButton: 'button secondary',
-        },
-        buttonsStyling: false,
         reverseButtons: true,
         focusCancel: true,
+        customClass: {
+            popup: 'simasadi-swal-popup',
+            confirmButton: 'simasadi-swal-btn simasadi-swal-danger-btn',
+            cancelButton: 'simasadi-swal-cancel-btn',
+            title: 'simasadi-swal-title',
+            htmlContainer: 'simasadi-swal-text',
+        },
     });
 
     if (!result.isConfirmed) {

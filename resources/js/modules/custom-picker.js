@@ -19,6 +19,11 @@ const closeAllCustomPickers = (exceptWrapper = null) => {
     document.querySelectorAll('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open').forEach((w) => {
         if (w !== exceptWrapper) {
             w.classList.remove('is-open', 'dropup', 'align-right');
+            const popover = w.querySelector('.custom-picker-popover');
+            if (popover) {
+                popover.style.left = '';
+                popover.style.right = '';
+            }
             w.querySelector('.custom-picker-trigger')?.setAttribute('aria-expanded', 'false');
         }
     });
@@ -60,9 +65,16 @@ const setupGlobalPickerListeners = () => {
             return;
         }
         const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
-        if (openPicker && window.innerWidth > 640) {
+        if (openPicker) {
             const trigger = openPicker.querySelector('.custom-picker-trigger');
             if (trigger) {
+                const triggerRect = trigger.getBoundingClientRect();
+                const topbar = document.querySelector('.topbar');
+                const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+                if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
+                    closeAllCustomPickers();
+                    return;
+                }
                 adjustPickerPosition(openPicker, trigger);
             }
         }
@@ -76,10 +88,15 @@ const elevateParents = (wrapper, isOpen) => {
             el.classList.contains('modal-form-grid-2col') ||
             el.classList.contains('lpk-field-row') ||
             el.classList.contains('lpk-field') ||
+            el.classList.contains('lpk-form-card') ||
+            el.classList.contains('lpk-form-column') ||
             el.classList.contains('form-grid') ||
             el.classList.contains('inline-form') ||
+            el.classList.contains('table-filter-grid') ||
+            el.classList.contains('table-filters') ||
             el.classList.contains('panel') ||
             el.classList.contains('card') ||
+            el.classList.contains('page-wrap') ||
             el.classList.contains('gcal-board') ||
             el.classList.contains('gcal-toolbar') ||
             el.classList.contains('gcal-main') ||
@@ -98,11 +115,12 @@ const elevateParents = (wrapper, isOpen) => {
 const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitWidth = null) => {
     wrapper.classList.remove('dropup', 'align-right');
 
-    if (window.innerWidth <= 640) {
-        return;
+    const popover = wrapper.querySelector('.custom-picker-popover');
+    if (popover) {
+        popover.style.left = '';
+        popover.style.right = '';
     }
 
-    const popover = wrapper.querySelector('.custom-picker-popover');
     const measuredHeight = popover && popover.offsetHeight > 50 ? popover.offsetHeight : 0;
     const measuredWidth = popover && popover.offsetWidth > 50 ? popover.offsetWidth : 0;
 
@@ -115,13 +133,12 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
     const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
 
     let spaceBelow = window.innerHeight - triggerRect.bottom;
-    let spaceAbove = triggerRect.top;
     let boundaryRight = window.innerWidth - 14;
 
     if (modalBox) {
         const modalRect = modalBox.getBoundingClientRect();
         spaceBelow = modalRect.bottom - triggerRect.bottom;
-        spaceAbove = triggerRect.top - modalRect.top;
+        const spaceAbove = triggerRect.top - modalRect.top;
         boundaryRight = modalRect.right - 14;
 
         // Inside a modal container with scrollable content (overflow-y: auto):
@@ -129,30 +146,41 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
         // so that the popover top never extends above modalRect.top (which would be clipped because scrollTop cannot scroll negative).
         // Therefore, spaceAbove must strictly exceed popoverHeight + 24px safety buffer.
         // Otherwise, always drop down. Dropping down expands the modal scrollable area,
-        // which ensurePickerInModalView smoothly scrolls into view with zero clipping.
+        // which ensurePickerInView smoothly scrolls into view with zero clipping.
         const requiredAbove = popoverHeight + 24;
         if (spaceBelow < popoverHeight && spaceAbove >= requiredAbove) {
             wrapper.classList.add('dropup');
         }
     } else {
         // Outside of modal (viewport context)
-        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 8) {
-            wrapper.classList.add('dropup');
-        } else if (spaceBelow < 220 && spaceAbove > spaceBelow && spaceAbove >= popoverHeight * 0.8) {
+        // Measure real available space above the trigger strictly below the sticky topbar!
+        const topbar = document.querySelector('.topbar');
+        const topbarBottom = (topbar && !modalBox) ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+        const spaceAbove = triggerRect.top - topbarBottom;
+
+        // Only dropup if spaceBelow cannot fit the popover AND spaceAbove has full clearance below the topbar.
+        // Never dropup if it would overlap or enter behind the topbar!
+        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 14) {
             wrapper.classList.add('dropup');
         }
+        // Otherwise, always drop down (normal flow). Dropping down stays in the main body where scrolling is natural and clean.
     }
 
     if (triggerRect.left + popoverWidth > boundaryRight) {
-        wrapper.classList.add('align-right');
+        if (triggerRect.right - popoverWidth >= 12 || modalBox) {
+            wrapper.classList.add('align-right');
+        } else if (popover) {
+            const overflowAmount = (triggerRect.left + popoverWidth) - (window.innerWidth - 12);
+            if (overflowAmount > 0) {
+                popover.style.left = `-${overflowAmount}px`;
+            }
+        }
+    } else if (triggerRect.left < 12 && popover) {
+        popover.style.left = `${12 - triggerRect.left}px`;
     }
 };
 
-const ensurePickerInModalView = (wrapper) => {
-    if (window.innerWidth <= 640) return;
-    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
-    if (!modalBox) return;
-
+const ensurePickerInModalView = (wrapper, modalBox) => {
     requestAnimationFrame(() => {
         const popover = wrapper.querySelector('.custom-picker-popover');
         if (!popover || !wrapper.classList.contains('is-open')) return;
@@ -169,6 +197,34 @@ const ensurePickerInModalView = (wrapper) => {
         else if (popoverRect.top < modalRect.top + 12) {
             const scrollDistance = popoverRect.top - modalRect.top - 24;
             modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
+        }
+    });
+};
+
+const ensurePickerInView = (wrapper) => {
+    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
+    if (modalBox) {
+        ensurePickerInModalView(wrapper, modalBox);
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        const popover = wrapper.querySelector('.custom-picker-popover');
+        if (!popover || !wrapper.classList.contains('is-open')) return;
+
+        const popoverRect = popover.getBoundingClientRect();
+        const topbar = document.querySelector('.topbar');
+        const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+
+        // If bottom extends below viewport bottom, scroll window smoothly so the whole popover is visible
+        if (popoverRect.bottom > window.innerHeight - 12) {
+            const scrollDistance = popoverRect.bottom - window.innerHeight + 24;
+            window.scrollBy({ top: scrollDistance, behavior: 'smooth' });
+        }
+        // If top extends above topbar (or too close to topbar), scroll window up
+        else if (popoverRect.top < topbarBottom + 8) {
+            const scrollDistance = popoverRect.top - (topbarBottom + 14);
+            window.scrollBy({ top: scrollDistance, behavior: 'smooth' });
         }
     });
 };
@@ -742,7 +798,7 @@ const createCustomDatePicker = (input) => {
 
         if (wrapper.classList.contains('is-open')) {
             adjustPickerPosition(wrapper, trigger);
-            ensurePickerInModalView(wrapper);
+            ensurePickerInView(wrapper);
         }
     };
 
@@ -758,6 +814,8 @@ const createCustomDatePicker = (input) => {
 
     const closePopover = () => {
         wrapper.classList.remove('is-open', 'dropup', 'align-right');
+        popover.style.left = '';
+        popover.style.right = '';
         trigger.setAttribute('aria-expanded', 'false');
         elevateParents(wrapper, false);
     };
@@ -1178,7 +1236,7 @@ const createCustomClockPicker = (input) => {
 
         if (wrapper.classList.contains('is-open')) {
             adjustPickerPosition(wrapper, trigger);
-            ensurePickerInModalView(wrapper);
+            ensurePickerInView(wrapper);
         }
     };
 
@@ -1192,6 +1250,8 @@ const createCustomClockPicker = (input) => {
 
     const closePopover = () => {
         wrapper.classList.remove('is-open', 'dropup', 'align-right');
+        popover.style.left = '';
+        popover.style.right = '';
         trigger.setAttribute('aria-expanded', 'false');
         elevateParents(wrapper, false);
     };

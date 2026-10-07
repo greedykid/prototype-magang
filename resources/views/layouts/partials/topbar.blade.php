@@ -9,15 +9,20 @@
         </button>
         <div class="page-context">
             <span class="context-label" title="Unit Akreditasi Laboratorium &bull; Direktorat Akreditasi Laboratorium KAN">Unit Akreditasi Lab &bull; Dit. Akreditasi Laboratorium KAN</span>
-            <strong class="context-title">@php($moduleCategory = match (true) {
-                request()->routeIs('dashboard') => 'Ringkasan Eksekutif',
-                request()->routeIs('profile.*') => 'Pengaturan Profil Pengguna',
-                request()->routeIs('users.*') => 'Manajemen Pengguna & PIC',
-                request()->routeIs('lpks.*', 'accreditations.*') => 'Manajemen Akreditasi LPK',
-                request()->routeIs('assessments.*', 'calendar.*') => 'Jadwal & Penugasan Asesmen',
-                request()->routeIs('monitoring.*') => 'Monitoring Sistem & Infrastruktur',
-                default => 'Workspace',
-            }){{ $moduleCategory }}</strong>
+            <strong class="context-title">@php
+                $isPic = auth()->user()?->isPic();
+                $menuTitle = match (true) {
+                    request()->routeIs('dashboard') => 'Dasbor',
+                    request()->routeIs('lpks.*', 'accreditations.*') => $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)',
+                    request()->routeIs('assessments.*') => $isPic ? 'Jadwal Asesmen' : 'Program Asesmen',
+                    request()->routeIs('calendar.*') => $isPic ? 'Kalender Pengawasan' : 'Kalender',
+                    request()->routeIs('users.*') => 'Manajemen Anggota',
+                    request()->routeIs('account-links.*') => 'Tautan Akun',
+                    request()->routeIs('profile.*') => 'Profil & Kata Sandi',
+                    default => 'Dasbor',
+                };
+            @endphp
+            {{ $menuTitle }}</strong>
         </div>
     </div>
     @if(auth()->check())
@@ -32,7 +37,9 @@
                 </span>
             </button>
 
-            @php($alertCount = count($globalSurveillanceAlerts ?? []))
+            @php
+                $alertCount = count($globalSurveillanceAlerts ?? []);
+            @endphp
             <div class="topbar-notifications">
                 <button type="button" id="notif-dropdown-btn" class="topbar-notif-btn {{ $alertCount > 0 ? 'has-alerts' : '' }}" aria-expanded="false" aria-haspopup="true" aria-label="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}" title="{{ $alertCount > 0 ? $alertCount . ' Notifikasi Pengawasan Jatuh Tempo' : 'Tidak ada notifikasi aktif' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -53,15 +60,20 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                             </div>
                             <div class="notif-header-title-box">
-                                <strong class="notif-dropdown-title">Notifikasi Siklus Pengawasan</strong>
-                                <span class="notif-pill {{ $alertCount > 0 ? 'is-alert' : '' }}">
-                                    {{ $alertCount }}
-                                </span>
+                                <div class="notif-header-title-row">
+                                    <strong class="notif-dropdown-title">Notifikasi Siklus Pengawasan</strong>
+                                    <span class="notif-pill {{ $alertCount > 0 ? 'is-alert' : '' }}">
+                                        {{ $alertCount }}
+                                    </span>
+                                </div>
+                                @if($alertCount > 0)
+                                    <span class="notif-alert-badge notif-alert-badge-mobile">Perlu Tindakan</span>
+                                @endif
                             </div>
                         </div>
                         <div class="notif-header-actions">
                             @if($alertCount > 0)
-                                <span class="notif-alert-badge">Perlu Tindakan</span>
+                                <span class="notif-alert-badge notif-alert-badge-desktop">Perlu Tindakan</span>
                             @endif
                             <button type="button" id="notif-dropdown-close" class="notif-close-btn" aria-label="Tutup notifikasi" title="Tutup notifikasi">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -91,6 +103,11 @@
 
                             <div class="notif-card-list">
                                 @foreach(array_slice($globalSurveillanceAlerts, 0, 4) as $alert)
+                                    @php
+                                        $tDate = !empty($alert['target_date'])
+                                            ? ($alert['target_date'] instanceof \Carbon\CarbonInterface ? $alert['target_date'] : \Illuminate\Support\Carbon::parse($alert['target_date']))
+                                            : null;
+                                    @endphp
                                     <div class="notif-item-card {{ $alert['is_urgent'] ? 'is-urgent' : '' }}">
                                         <div class="notif-item-top">
                                             <div class="notif-item-badge-wrap">
@@ -101,7 +118,7 @@
                                             </div>
                                             <div class="notif-item-date {{ $alert['is_urgent'] ? 'is-urgent' : '' }}" title="Batas waktu siklus pengawasan">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                                <span>{{ $alert['target_date'] ? $alert['target_date']->format('d M Y') : '-' }}</span>
+                                                <span>{{ $tDate ? $tDate->format('d M Y') : '-' }}</span>
                                             </div>
                                         </div>
 
@@ -112,10 +129,10 @@
                                         </div>
 
                                         <div class="notif-item-actions">
-                                            @if(!empty($alert['target_date']))
+                                            @if($tDate)
                                                 <a href="{{ route('calendar.index', [
                                                     'view' => 'month',
-                                                    'date' => $alert['target_date']->format('Y-m-d'),
+                                                    'date' => $tDate->format('Y-m-d'),
                                                     'highlight' => 'lpk_jt_' . strtolower($alert['code']) . '_' . $alert['lpk_id'],
                                                     'selected' => 1,
                                                 ]) }}" class="notif-btn-ghost" title="Lihat di kalender">
@@ -168,9 +185,13 @@
 
             {{-- User Profile Avatar & Dropdown --}}
             <div class="topbar-user-dropdown">
-                <button type="button" id="user-dropdown-btn" class="topbar-user-btn" aria-expanded="false" aria-haspopup="true" title="Profil Pengguna &amp; Akun ({{ auth()->user()->name }})">
+                <button type="button" id="user-dropdown-btn" class="topbar-user-btn" aria-expanded="false" aria-haspopup="true" title="Profil Pengguna &amp; Akun ({{ auth()->user()->name }})" aria-label="Menu profil {{ auth()->user()->name }} ({{ auth()->user()->role_label }})">
                     <span class="user-avatar" aria-hidden="true">{{ auth()->user()->initials }}</span>
-                    <x-icon name="chevron-down" size="14" class="topbar-user-chevron" />
+                    <div class="topbar-user-meta">
+                        <strong class="topbar-user-name">{{ auth()->user()->name }}</strong>
+                        <span class="topbar-user-role">{{ auth()->user()->role_label }}</span>
+                    </div>
+                    <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 
                 <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">

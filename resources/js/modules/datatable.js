@@ -3,6 +3,7 @@
 // ==========================================================================
 
 import { initCustomSelects } from './custom-select.js';
+import { syncTableState } from './table-multiselect.js';
 
 export const createViewToggle = (className, label, views, activeView, onChange) => {
     const toggle = document.createElement('div');
@@ -185,6 +186,9 @@ export const initTableToolbar = (tableWrap) => {
     const toolbar = document.createElement('div');
     toolbar.className = 'table-toolbar';
 
+    const leftControls = document.createElement('div');
+    leftControls.className = 'table-toolbar-left';
+
     const lengthControl = document.createElement('div');
     lengthControl.className = 'table-length-control';
     lengthControl.innerHTML = `
@@ -225,7 +229,24 @@ export const initTableToolbar = (tableWrap) => {
         }
     });
 
-    toolbar.appendChild(lengthControl);
+    leftControls.appendChild(lengthControl);
+
+    const table = tableWrap.querySelector('table');
+    const tableId = table?.id;
+    if (tableId && table.querySelector('.table-row-select, .table-select-all')) {
+        const gridSelectAll = document.createElement('div');
+        gridSelectAll.className = 'table-grid-select-all';
+        gridSelectAll.setAttribute('data-table-id', tableId);
+        gridSelectAll.innerHTML = `
+            <label class="table-grid-select-all-label">
+                <input type="checkbox" class="table-select-all" data-table-id="${tableId}" aria-label="Pilih semua data pada tampilan grid">
+                <span>Pilih Semua</span>
+            </label>
+        `;
+        leftControls.appendChild(gridSelectAll);
+    }
+
+    toolbar.appendChild(leftControls);
     tableWrap.parentElement?.insertBefore(toolbar, tableWrap);
 
     initCustomSelects(lengthControl);
@@ -295,11 +316,26 @@ export const initDataTables = () => {
         });
 
         const setView = (view, toggle) => {
-            tableWrap.classList.toggle('table-mode-grid', view === 'grid');
-            tableWrap.classList.toggle('table-mode-table', view === 'table');
-            tableWrap.parentElement?.classList.toggle('showing-table', view === 'table');
+            const isGrid = view === 'grid';
+            tableWrap.classList.toggle('table-mode-grid', isGrid);
+            tableWrap.classList.toggle('table-mode-table', !isGrid);
+            tableWrap.parentElement?.classList.toggle('showing-table', !isGrid);
+            tableWrap.parentElement?.classList.toggle('showing-grid', isGrid);
             localStorage.setItem(storageKey, view);
             toggle.querySelectorAll('button').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+
+            const parentPanel = tableWrap.closest('.panel') || tableWrap.parentElement;
+            if (parentPanel) {
+                const gridSelectAllEls = parentPanel.querySelectorAll('.table-grid-select-all');
+                gridSelectAllEls.forEach((el) => {
+                    el.style.display = isGrid ? 'inline-flex' : 'none';
+                });
+            }
+
+            const tableId = table.id;
+            if (tableId) {
+                syncTableState(tableId);
+            }
         };
 
         const tableIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 9h18M3 15h18"/><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`;
@@ -469,19 +505,49 @@ export const initDataTables = () => {
             }
 
             // Render active filter chips bar
-            const parentPanel = placeholder.closest('.panel') || filter.closest('.panel');
+            const parentPanel = placeholder.closest('.panel') || filter.closest('.panel') || filter.parentElement;
             if (parentPanel) {
-                let bar = parentPanel.querySelector('.active-filters-bar');
+                // Bersihkan bar unclassed dari bug sebelumnya jika ada
+                parentPanel.querySelectorAll('div > .active-filters-heading').forEach((h) => {
+                    const parent = h.parentElement;
+                    if (parent && !parent.classList.contains('active-filters-bar')) {
+                        parent.remove();
+                    }
+                });
+
+                let bar = filter._activeFiltersBar;
+                if (!bar || !bar.isConnected) {
+                    bar = parentPanel.querySelector('.active-filters-bar');
+                    if (bar) {
+                        filter._activeFiltersBar = bar;
+                    }
+                }
+
+                // Jika terdapat lebih dari 1 bar aktif, hapus duplikatnya
+                const allBars = parentPanel.querySelectorAll('.active-filters-bar');
+                if (allBars.length > 1) {
+                    allBars.forEach((extraBar, idx) => {
+                        if (idx > 0) extraBar.remove();
+                    });
+                    bar = allBars[0];
+                    filter._activeFiltersBar = bar;
+                }
+
                 if (activeFilters.length > 0) {
                     if (!bar) {
                         bar = document.createElement('div');
                         bar.className = 'active-filters-bar';
-                        const tableTarget = parentPanel.querySelector('.lpk-table-container, .assessment-table-container, .user-table-container, .table-wrap, .empty');
-                        if (tableTarget && tableTarget.parentElement === parentPanel) {
-                            parentPanel.insertBefore(bar, tableTarget);
+                        filter._activeFiltersBar = bar;
+
+                        if (filter.parentElement === parentPanel) {
+                            filter.insertAdjacentElement('afterend', bar);
+                        } else if (placeholder.parentElement === parentPanel) {
+                            placeholder.insertAdjacentElement('afterend', bar);
                         } else {
-                            parentPanel.appendChild(bar);
+                            parentPanel.prepend(bar);
                         }
+                    } else if (!bar.classList.contains('active-filters-bar')) {
+                        bar.className = 'active-filters-bar';
                     }
 
                     const resetUrl = filter.getAttribute('action') || window.location.pathname;
@@ -532,7 +598,11 @@ export const initDataTables = () => {
                         });
                     });
                 } else {
-                    bar?.remove();
+                    if (bar) {
+                        bar.remove();
+                    }
+                    parentPanel.querySelectorAll('.active-filters-bar').forEach((b) => b.remove());
+                    filter._activeFiltersBar = null;
                 }
             }
         };
