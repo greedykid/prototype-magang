@@ -606,6 +606,9 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeCreateDropdown();
         closeEventPopover();
+        if (typeof window.clearCalendarRangeHighlight === 'function') {
+            window.clearCalendarRangeHighlight();
+        }
         if (typeof window.clearRangeAnchor === 'function') {
             window.clearRangeAnchor();
         }
@@ -856,7 +859,15 @@ function setRangeAnchor(dateStr) {
     updateAnchorCellHighlight();
 }
 
-function clearRangeAnchor() {
+function clearCalendarRangeHighlight() {
+    document.querySelectorAll('.gcal-cell-range-selected, .gcal-cell-range-start, .gcal-cell-range-end, .gcal-cell-anchor-start').forEach((el) => {
+        el.classList.remove('gcal-cell-range-selected', 'gcal-cell-range-start', 'gcal-cell-range-end', 'gcal-cell-anchor-start');
+    });
+    document.body.classList.remove('is-selecting-calendar-range');
+}
+window.clearCalendarRangeHighlight = clearCalendarRangeHighlight;
+
+function clearRangeAnchor(keepHighlight = false) {
     window._calendarRangeAnchor = null;
     window._calendarRangePendingStart = false;
     try {
@@ -865,10 +876,14 @@ function clearRangeAnchor() {
     } catch (_) {}
     renderRangeFloatingPill();
     updateAnchorCellHighlight();
+    if (!keepHighlight) {
+        clearCalendarRangeHighlight();
+    }
 }
 window.getRangeAnchor = getRangeAnchor;
 window.setRangeAnchor = setRangeAnchor;
 window.clearRangeAnchor = clearRangeAnchor;
+window.clearCalendarRangeHighlight = clearCalendarRangeHighlight;
 window.isRangePendingStart = isRangePendingStart;
 window.setRangePendingStart = setRangePendingStart;
 
@@ -1049,10 +1064,11 @@ function initCalendarRangeSelection() {
             if (activeAnchor) {
                 if (activeAnchor !== clickedDate) {
                     const [d1, d2] = [activeAnchor, clickedDate].sort();
-                    clearRangeAnchor();
+                    updateHighlight(d1, d2);
+                    clearRangeAnchor(true);
                     quickAddAtRange(d1, d2);
                 } else {
-                    clearRangeAnchor();
+                    clearRangeAnchor(false);
                     quickAddAt(clickedDate, '09:00');
                 }
                 return;
@@ -1138,13 +1154,15 @@ function initCalendarRangeSelection() {
         isDragging = false;
         dragStartDate = null;
         currentHoverDate = null;
-        clearDragHighlight();
 
         if (wasDragging && sDate && hDate && sDate !== hDate) {
             e.preventDefault();
             justDragged = true;
             const [d1, d2] = [sDate, hDate].sort();
+            updateHighlight(d1, d2);
             quickAddAtRange(d1, d2);
+        } else {
+            clearDragHighlight();
         }
     };
 
@@ -1160,6 +1178,36 @@ function initCalendarRangeSelection() {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+
+    // Automatically clear range highlights whenever modal-quick-add-event is closed or hidden
+    const quickAddModal = document.getElementById('modal-quick-add-event');
+    if (quickAddModal && !quickAddModal._rangeObserverAttached) {
+        quickAddModal._rangeObserverAttached = true;
+
+        const observer = new MutationObserver(() => {
+            if (!quickAddModal.classList.contains('is-active') && quickAddModal.style.display !== 'flex') {
+                clearCalendarRangeHighlight();
+            }
+        });
+        observer.observe(quickAddModal, { attributes: true, attributeFilter: ['class', 'style'] });
+
+        quickAddModal.querySelectorAll('[data-modal-close], .simasadi-modal-close, button[type="button"]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (btn.textContent.trim().toLowerCase().includes('batal') || btn.classList.contains('simasadi-modal-close') || btn.hasAttribute('data-modal-close')) {
+                    clearCalendarRangeHighlight();
+                }
+            });
+        });
+    }
+
+    if (!window._rangeModalCloseListenerAttached) {
+        window._rangeModalCloseListenerAttached = true;
+        window.addEventListener('modal:closed', (e) => {
+            if (!e.detail || !e.detail.modalId || e.detail.modalId === 'modal-quick-add-event') {
+                clearCalendarRangeHighlight();
+            }
+        });
+    }
 }
 
 function initGcalComponents() {
@@ -1183,6 +1231,7 @@ export {
     getRangeAnchor,
     setRangeAnchor,
     clearRangeAnchor,
+    clearCalendarRangeHighlight,
     toggleRangeSelectionMode,
     toggleCreateDropdown,
     openCreateDropdown,

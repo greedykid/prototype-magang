@@ -5,7 +5,7 @@
                 <h4 id="quick-add-title" style="margin: 0; font-size: 18px; font-weight: 700;">Buat Agenda Kegiatan Baru</h4>
                 <p id="quick-add-subtitle" style="margin: 4px 0 0 0; font-size: 13px; color: var(--muted);">Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.</p>
             </div>
-            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal(this)" aria-label="Tutup modal">&times;</button>
+            <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal(this); if (typeof window.clearCalendarRangeHighlight === 'function') window.clearCalendarRangeHighlight();" aria-label="Tutup modal">&times;</button>
         </div>
 
         <form method="POST" action="{{ route('calendar.events.store') }}" style="display: grid; gap: 14px; margin-top: 14px;">
@@ -68,7 +68,7 @@
             </div>
 
             <div class="modal-form-actions">
-                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal(this)">
+                <button type="button" class="button ghost" data-modal-close onclick="window.closeModal(this); if (typeof window.clearCalendarRangeHighlight === 'function') window.clearCalendarRangeHighlight();">
                     Batal
                 </button>
                 <button type="submit" class="button primary">

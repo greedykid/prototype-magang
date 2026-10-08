@@ -103,7 +103,13 @@ export function closeModal(modalIdOrEl) {
         document.querySelectorAll('.simasadi-modal').forEach((m) => {
             m.classList.remove('is-active');
             returnModalToPlaceholder(m);
+            try {
+                m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
+            } catch (_) {}
         });
+        try {
+            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
+        } catch (_) {}
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
         if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
@@ -124,11 +130,21 @@ export function closeModal(modalIdOrEl) {
     if (modal) {
         modal.classList.remove('is-active');
         returnModalToPlaceholder(modal);
+        try {
+            modal.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: modal.id } }));
+            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: modal.id, modal } }));
+        } catch (_) {}
     } else {
         document.querySelectorAll('.simasadi-modal').forEach((m) => {
             m.classList.remove('is-active');
             returnModalToPlaceholder(m);
+            try {
+                m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
+            } catch (_) {}
         });
+        try {
+            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
+        } catch (_) {}
     }
 
     // Remove modal-open only if no other modal is currently active
