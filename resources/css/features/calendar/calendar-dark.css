@@ -17,14 +17,14 @@ html[data-theme="dark"] .gcal-btn-create {
 
 html[data-theme="dark"] .gcal-btn-create:hover {
     background: var(--surface-hover);
-    border-color: #334155;
+    border-color: var(--line-strong, var(--line));
 }
 
 html[data-theme="dark"] .gcal-btn-today,
 html[data-theme="dark"] .gcal-arrow-btn,
 html[data-theme="dark"] .gcal-btn-range {
     background: var(--surface) !important;
-    border-color: var(--line) !important;
+    border-color: var(--line-subtle) !important;
     color: var(--ink) !important;
 }
 
@@ -44,7 +44,7 @@ html[data-theme="dark"] .gcal-btn-range.is-active {
 
 html[data-theme="dark"] .gcal-view-switcher {
     background: var(--surface-subtle) !important;
-    border: 1px solid var(--line) !important;
+    border: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-view-tab {
@@ -58,9 +58,9 @@ html[data-theme="dark"] .gcal-view-tab:hover {
 
 html[data-theme="dark"] .gcal-view-tab.is-active {
     background: var(--surface) !important;
-    border: 1px solid var(--line) !important;
+    border: 1px solid transparent !important;
     color: var(--ink) !important;
-    box-shadow: var(--shadow-xs) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
 html[data-theme="dark"] .gcal-popover-card {
@@ -159,14 +159,14 @@ html[data-theme="dark"] .gcal-week-col-head {
 
 /* Calendar Selects Dark Overrides */
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger {
-    background: var(--input-bg) !important;
-    border-color: var(--input-border) !important;
+    background: var(--surface) !important;
+    border-color: var(--line-subtle) !important;
     color: var(--ink) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger:hover {
     background: var(--surface-hover) !important;
-    border-color: var(--line) !important;
+    border-color: var(--line-strong, var(--line)) !important;
 }
 
 html[data-theme="dark"] .gcal-select-wrapper .custom-select-menu {
@@ -197,31 +197,31 @@ html[data-theme="dark"] .gcal-btn-create[aria-expanded="true"] .gcal-btn-create-
 
 /* Calendar Grid Lines & Cells Dark Overrides */
 html[data-theme="dark"] .gcal-month-cell {
-    border-bottom: 1px solid var(--line) !important;
-    border-right: 1px solid var(--line) !important;
+    border-bottom: 1px solid var(--line-subtle) !important;
+    border-right: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-month-headings {
-    border-bottom: 1px solid var(--line) !important;
+    border-bottom: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-time-corner,
 html[data-theme="dark"] .gcal-week-col-head,
 html[data-theme="dark"] .gcal-time-gutter,
 html[data-theme="dark"] .gcal-week-col {
-    border-right: 1px solid var(--line) !important;
+    border-right: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-hour-slot {
-    border-bottom: 1px solid var(--line-subtle, #1f2937) !important;
+    border-bottom: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-day-header {
-    border-bottom: 1px solid var(--line) !important;
+    border-bottom: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-day-body .gcal-time-gutter {
-    border-right: 1px solid var(--line) !important;
+    border-right: 1px solid var(--line-subtle) !important;
 }
 
 html[data-theme="dark"] .gcal-month-cell.is-selected {

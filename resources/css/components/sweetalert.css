@@ -144,7 +144,7 @@ html[data-theme="dark"] .simasadi-swal-cancel-btn {
 
 html[data-theme="dark"] .simasadi-swal-cancel-btn:hover {
     background: var(--surface-hover) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
+    border-color: var(--line-strong, var(--line)) !important;
     color: #ffffff !important;
 }
 

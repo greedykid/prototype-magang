@@ -2857,7 +2857,7 @@ html[data-theme="dark"] .table-grid-select-all-label {
 
 html[data-theme="dark"] .table-grid-select-all-label:hover {
     background: var(--surface-hover);
-    border-color: #3b4252;
+    border-color: var(--line-strong, var(--line));
 }
 
 /* Table Mode Grid Generic Dark Overrides */
@@ -2869,7 +2869,7 @@ html[data-theme="dark"] .table-mode-grid tr {
 
 html[data-theme="dark"] .table-mode-grid tr:hover {
     background: var(--surface-hover) !important;
-    border-color: #3b4252 !important;
+    border-color: var(--line-strong, var(--line)) !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -2948,7 +2948,7 @@ html[data-theme="dark"] .table-mode-grid .table-lpks-custom tr {
 }
 
 html[data-theme="dark"] .table-mode-grid .table-lpks-custom tr:hover {
-    border-color: #3b4252 !important;
+    border-color: var(--line-strong, var(--line)) !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -3034,7 +3034,7 @@ html[data-theme="dark"] .floating-bulk-bar .button.secondary {
 html[data-theme="dark"] .table-bulk-bar .button.secondary:hover,
 html[data-theme="dark"] .floating-bulk-bar .button.secondary:hover {
     background: var(--surface-hover, rgba(255, 255, 255, 0.08));
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 
@@ -3134,7 +3134,7 @@ html[data-theme="dark"] .empty .button.ghost {
 
 html[data-theme="dark"] .empty .button.ghost:hover {
     background: var(--surface-hover);
-    border-color: #3b4252;
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 

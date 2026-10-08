@@ -313,8 +313,8 @@
 /* 6. AKAN DATANG (BELUM ADA AGENDA & BELUM REMINDER) - NETRAL SLATE */
 .lpk-milestone-card.is-upcoming {
     background: var(--surface, #ffffff);
-    border: 1.5px solid var(--line, #cbd5e1);
-    border-top: 3.5px solid #94a3b8;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line-strong, #94a3b8);
 }
 .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
     color: #64748b;

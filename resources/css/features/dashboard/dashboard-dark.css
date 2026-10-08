@@ -132,7 +132,7 @@ html[data-theme="dark"] .dashboard-lpk-item {
 
 html[data-theme="dark"] .dashboard-lpk-item:hover {
     background: var(--surface-hover);
-    border-color: #334155;
+    border-color: var(--line-strong, var(--line));
 }
 
 html[data-theme="dark"] .dashboard-lpk-reg {

@@ -82,7 +82,8 @@ html[data-theme="light"] {
     --muted: #5d6b98;
     --muted-subtle: #828ea1;
     --line: #eaecf5;
-    --line-subtle: #dcdfea;
+    --line-subtle: #f0f2f8;
+    --line-strong: #dcdfea;
 
     /* Crisp Brand Colors */
     --primary: #1972f5;
@@ -163,8 +164,9 @@ html[data-theme="dark"] {
     --ink-secondary: #dcdfea;
     --muted: #7d89b0;
     --muted-subtle: #5d6b98;
-    --line: #1e2c4f;
-    --line-subtle: #15254c;
+    --line: #172445;
+    --line-subtle: #0f1c3a;
+    --line-strong: #23345d;
 
     /* Crisp Brand Colors (Dark) */
     --primary: #69abf8;
@@ -209,7 +211,7 @@ html[data-theme="dark"] {
 
     --neutral-chip-bg: #0b1a3d;
     --neutral-chip-text: #7d89b0;
-    --neutral-chip-border: #1e2c4f;
+    --neutral-chip-border: #172445;
 
     --drive-btn-bg: rgba(25, 114, 245, 0.18);
     --drive-btn-text: #91c2fa;
@@ -218,11 +220,11 @@ html[data-theme="dark"] {
     /* UI Surfaces */
     --topbar-bg: rgba(7, 19, 48, 0.98);
     --sidebar-bg: #050e24;
-    --sidebar-border: #1e2c4f;
+    --sidebar-border: #172445;
     --card-bg: #071330;
     --modal-bg: #071330;
     --input-bg: #050e24;
-    --input-border: #1e2c4f;
+    --input-border: #172445;
 
     /* Legacy mapping for backward compatibility */
     --maroon: #69abf8;

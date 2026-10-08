@@ -180,13 +180,13 @@ html[data-theme="dark"] .lpk-cycle-step-line.is-passed {
 html[data-theme="dark"] .lpk-milestone-card {
     background: var(--surface);
     border-color: var(--line);
-    border-top-color: #475569;
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming {
     background: var(--surface);
-    border-color: #334155;
-    border-top-color: #64748b;
+    border-color: var(--line);
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
@@ -416,7 +416,7 @@ html[data-theme="dark"] .lpk-agenda-chip {
 }
 
 html[data-theme="dark"] .lpk-agenda-chip:hover {
-    border-color: #64748b;
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 
@@ -498,7 +498,7 @@ html[data-theme="dark"] .lpk-assessment-card-item {
 }
 
 html[data-theme="dark"] .lpk-assessment-card-item:hover {
-    border-color: #475569;
+    border-color: var(--line-strong, var(--line));
 }
 
 /* Tambah LPK Visual Guidance Callout */

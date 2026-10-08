@@ -206,7 +206,7 @@
 
 .gcal-select-wrapper .custom-select-trigger:hover {
     background: var(--surface-hover, #f7f6f3) !important;
-    border-color: #b5b0a6 !important;
+    border-color: var(--line-strong, var(--line)) !important;
 }
 
 .gcal-select-wrapper .custom-select-wrapper.is-open .custom-select-trigger,
@@ -249,8 +249,8 @@
 }
 
 .gcal-select-wrapper .custom-select-menu {
-    background: #ffffff !important;
-    border: 1px solid #c8c4be !important;
+    background: var(--surface, #ffffff) !important;
+    border: 1px solid var(--line) !important;
     border-radius: 8px !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
     box-sizing: border-box !important;
@@ -355,7 +355,7 @@
 /* Fallback for native select before JS init */
 .gcal-nav-select:not(.custom-select-native) {
     background: var(--surface, #ffffff);
-    border: 1px solid var(--line, #e2ded8);
+    border: 1px solid var(--line);
     border-radius: 6px;
     box-sizing: border-box;
     color: var(--ink);

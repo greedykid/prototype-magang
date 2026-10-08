@@ -842,7 +842,7 @@ section.has-open-picker,
    ========================================================================== */
 html[data-theme="dark"] .custom-picker-trigger:hover {
     background: var(--surface-hover);
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: var(--line-strong, var(--line));
 }
 
 html[data-theme="dark"] .custom-picker-popover {

@@ -410,7 +410,7 @@ html[data-theme="dark"] .button.secondary {
 
 html[data-theme="dark"] .button.secondary:hover {
     background: var(--surface-hover);
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 
