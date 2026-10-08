@@ -124,8 +124,8 @@
 
 .lpk-milestone-card {
     background: var(--surface, #ffffff);
-    border: 1.5px solid var(--line);
-    border-top: 3.5px solid var(--line-subtle);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line-subtle);
     border-radius: var(--radius-xl, 18px);
     box-sizing: border-box;
     display: flex;
@@ -153,8 +153,8 @@
 .lpk-milestone-card.is-in-progress,
 .lpk-milestone-card.is-planned {
     background: #f4fbf6;
-    border: 1.5px solid #4ade80;
-    border-top: 4px solid #16a34a;
+    border: 1px solid #4ade80;
+    border-top: 3px solid #16a34a;
     box-shadow: 0 3px 12px rgba(22, 163, 74, 0.08);
 }
 .lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
@@ -196,8 +196,8 @@
 .lpk-milestone-card.is-reminder,
 .lpk-milestone-card.is-due {
     background: #fffdf0;
-    border: 1.5px solid #facc15;
-    border-top: 4px solid #ca8a04;
+    border: 1px solid #facc15;
+    border-top: 3px solid #ca8a04;
     box-shadow: 0 3px 12px rgba(202, 138, 4, 0.08);
 }
 .lpk-milestone-card.is-reminder .lpk-milestone-phase-tag,
@@ -226,8 +226,8 @@
 .lpk-milestone-card.is-expired,
 .lpk-milestone-card.is-revoked {
     background: #fff5f5;
-    border: 1.5px solid #f87171;
-    border-top: 4px solid #dc2626;
+    border: 1px solid #f87171;
+    border-top: 3px solid #dc2626;
     box-shadow: 0 3px 12px rgba(220, 38, 38, 0.08);
 }
 .lpk-milestone-card.is-jt .lpk-milestone-phase-tag,
@@ -263,8 +263,8 @@
 /* 4. BATAS TP DAN VTP - CYAN (BIRU MUDA) */
 .lpk-milestone-card.is-batas-tp {
     background: #f0fdff;
-    border: 1.5px solid #22d3ee;
-    border-top: 4px solid #0891b2;
+    border: 1px solid #22d3ee;
+    border-top: 3px solid #0891b2;
     box-shadow: 0 3px 12px rgba(8, 145, 178, 0.08);
 }
 .lpk-milestone-card.is-batas-tp .lpk-milestone-phase-tag {
@@ -286,8 +286,8 @@
 .lpk-milestone-card.is-dibekukan,
 .lpk-milestone-card.is-suspended {
     background: #eff6ff;
-    border: 1.5px solid #60a5fa;
-    border-top: 4px solid #2563eb;
+    border: 1px solid #60a5fa;
+    border-top: 3px solid #2563eb;
     box-shadow: 0 3px 12px rgba(37, 99, 235, 0.08);
 }
 .lpk-milestone-card.is-dibekukan .lpk-milestone-phase-tag,
@@ -456,7 +456,7 @@
 
 /* 4. Supporting Dates Rows */
 .lpk-milestone-subdates {
-    border-top: 1px dashed var(--line, #e2e8f0);
+    border-top: 1px dashed var(--line);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -607,7 +607,7 @@
 .lpk-team-member {
     align-items: center;
     background: var(--surface, #ffffff);
-    border-bottom: 1px solid var(--line, #e2e8f0);
+    border-bottom: 1px solid var(--line);
     display: flex;
     gap: 12px;
     justify-content: space-between;
@@ -689,7 +689,7 @@
 
 /* 7. Footer Actions */
 .lpk-milestone-footer-actions {
-    border-top: 1px solid var(--line, #e2e8f0);
+    border-top: 1px solid var(--line);
     display: grid;
     gap: 8px;
     grid-template-columns: 1fr;

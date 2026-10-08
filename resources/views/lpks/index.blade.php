@@ -22,7 +22,7 @@
 </x-page-header>
 
 @if(!empty($linkedOwnersCount) && $linkedOwnersCount > 0)
-    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border, #bae6fd); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="color: var(--info-text, #0284c7); display: inline-flex;">
                 <x-icon name="link" size="18" />
@@ -31,7 +31,7 @@
                 Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data laboratorium. LPK tersebut tersimpan terpisah di detail akun masing-masing.
             </div>
         </div>
-        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
+        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
             <span>Buka Akun Tertaut</span>
             <x-icon name="chevron-right" size="13" />
         </a>

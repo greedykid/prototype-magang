@@ -175,14 +175,14 @@
 }
 
 html[data-theme="dark"] .lpk-alert-callout .button.secondary {
-    background: var(--surface-subtle, #262625);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
-    color: var(--ink, #f6f5f4);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .lpk-alert-callout .button.secondary:hover {
-    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
-    border-color: rgba(255, 255, 255, 0.22);
+    background: var(--surface-hover);
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 

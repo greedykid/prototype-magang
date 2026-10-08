@@ -226,6 +226,15 @@ html[data-theme="dark"] {
     --input-bg: #050e24;
     --input-border: #172445;
 
+    /* Crisp Dark Elevation Tokens (Pure Dark Depth, Zero White Rings) */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.65), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+    --shadow-focus: 0 0 0 3px rgba(25, 114, 245, 0.35);
+    --shadow-inset: none;
+
     /* Legacy mapping for backward compatibility */
     --maroon: #69abf8;
     --maroon-dark: #91c2fa;

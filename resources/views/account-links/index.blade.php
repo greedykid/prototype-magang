@@ -20,9 +20,9 @@
 <div class="profile-layout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; align-items: start;">
     {{-- Panel 1: Akun Viewer yang Ditautkan oleh Pengguna Ini --}}
     <section class="panel">
-        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: inline-flex; align-items: center; justify-content: center;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); display: inline-flex; align-items: center; justify-content: center;">
                     <x-icon name="link" size="18" />
                 </div>
                 <div>
@@ -30,7 +30,7 @@
                     <small style="color: var(--muted); font-size: 12px;">Beri izin pantau seluruh data akun Anda ke PIC lain</small>
                 </div>
             </div>
-            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
                 {{ $linkedViewers->count() }} Akun
             </span>
         </div>
@@ -65,7 +65,7 @@
             @forelse($linkedViewers as $viewer)
                 <div style="background: var(--card-bg, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid var(--neutral-chip-border, #cbd5e1);">
+                        <div style="width: 36px; height: 36px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; border: 1px solid var(--neutral-chip-border);">
                             {{ $viewer->initials }}
                         </div>
                         <div style="min-width: 0;">
@@ -79,7 +79,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                        <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0369a1); border: 1px solid var(--info-border); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
                             Viewer Akun
                         </span>
 
@@ -113,7 +113,7 @@
 
     {{-- Panel 2: Akun yang Menautkan Anda (Akses Diterima) --}}
     <section class="panel">
-        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line, #e2e8f0);">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line);">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; justify-content: center;">
                     <x-icon name="eye" size="18" />
@@ -123,7 +123,7 @@
                     <small style="color: var(--muted); font-size: 12px;">Akun PIC lain yang memberikan izin pantau kepada Anda</small>
                 </div>
             </div>
-            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
+            <span class="badge" style="background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 5px;">
                 {{ $linkedOwners->count() }} Akun
             </span>
         </div>
@@ -148,17 +148,17 @@
                         </div>
 
                         <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0;">
-                            <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                            <span class="badge" style="background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
                                 {{ $owner->lpks_count }} LPK
                             </span>
-                            <span class="badge" style="background: var(--surface-subtle, #f8fafc); color: var(--muted, #64748b); border: 1px solid var(--line, #cbd5e1); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                            <span class="badge" style="background: var(--surface-subtle, #f8fafc); color: var(--muted, #64748b); border: 1px solid var(--line); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
                                 {{ $owner->assessments_count ?? 0 }} Asesmen
                             </span>
                         </div>
                     </div>
 
                     {{-- Baris Bawah: Tombol Aksi --}}
-                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line, #e2e8f0); padding-top: 10px; margin-top: 2px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; flex-wrap: wrap;">
                         <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="button primary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka daftar LPK milik {{ $owner->name }}">
                             <x-icon name="building" size="14" />
                             <span>Lihat LPK ({{ $owner->lpks_count }})</span>

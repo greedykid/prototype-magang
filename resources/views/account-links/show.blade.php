@@ -72,7 +72,7 @@
 
         {{-- Total LPK --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border, #bae6fd);">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
                 <x-icon name="building" size="20" />
             </div>
             <div>

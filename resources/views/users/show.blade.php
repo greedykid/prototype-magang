@@ -52,7 +52,7 @@
     {{-- Metrik Ringkas Beban Kerja PIC --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <x-icon name="lpks" size="22" />
             </div>
             <div>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
             <div>
