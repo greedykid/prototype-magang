@@ -206,22 +206,6 @@
 }
 
 @media (max-width: 640px) {
-    .gcal-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .gcal-toolbar-left {
-        justify-content: space-between;
-    }
-    .gcal-view-switcher {
-        width: 100%;
-        display: flex;
-    }
-    .gcal-view-tab {
-        flex: 1;
-        text-align: center;
-        padding: 5px 0;
-    }
     .gcal-agenda-row {
         grid-template-columns: 1fr;
         gap: 10px;

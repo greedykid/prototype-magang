@@ -20,6 +20,28 @@ html[data-theme="dark"] .gcal-btn-create:hover {
     border-color: #334155;
 }
 
+html[data-theme="dark"] .gcal-btn-today,
+html[data-theme="dark"] .gcal-arrow-btn,
+html[data-theme="dark"] .gcal-btn-range {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .gcal-btn-today:hover,
+html[data-theme="dark"] .gcal-arrow-btn:hover,
+html[data-theme="dark"] .gcal-btn-range:hover {
+    background: var(--surface-hover) !important;
+    border-color: var(--line-strong, var(--line)) !important;
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .gcal-btn-range.is-active {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+
 html[data-theme="dark"] .gcal-view-switcher {
     background: var(--surface-subtle) !important;
     border: 1px solid var(--line) !important;

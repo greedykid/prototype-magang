@@ -27,32 +27,36 @@
                 @endphp
 
                 <div class="gcal-nav-group">
-                    <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}" class="button secondary gcal-btn-today">
-                        Hari ini
-                    </a>
+                    <div class="gcal-nav-cluster">
+                        <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}" class="button secondary gcal-btn-today">
+                            Hari ini
+                        </a>
 
-                    <button type="button" class="button secondary gcal-btn-range" onclick="window.toggleRangeSelectionMode()" id="gcal-btn-range-mode" title="Pilih rentang tanggal agenda melintasi bulan atau tahun">
-                        <x-icon name="calendar" size="14" />
-                        <span class="gcal-btn-range-label">Pilih Rentang</span>
-                    </button>
-
-                    <div class="gcal-nav-arrows">
-                        @if($viewMode === 'month')
-                            <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $prevMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
-                                <x-icon name="chevron-left" size="16" />
-                            </a>
-                            <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $nextMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
-                                <x-icon name="chevron-right" size="16" />
-                            </a>
-                        @else
-                            <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $prevDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
-                                <x-icon name="chevron-left" size="16" />
-                            </a>
-                            <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $nextDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
-                                <x-icon name="chevron-right" size="16" />
-                            </a>
-                        @endif
+                        <div class="gcal-nav-arrows">
+                            @if($viewMode === 'month')
+                                <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $prevMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
+                                    <x-icon name="chevron-left" size="16" />
+                                </a>
+                                <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $nextMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
+                                    <x-icon name="chevron-right" size="16" />
+                                </a>
+                            @else
+                                <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $prevDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
+                                    <x-icon name="chevron-left" size="16" />
+                                </a>
+                                <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $nextDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
+                                    <x-icon name="chevron-right" size="16" />
+                                </a>
+                            @endif
+                        </div>
                     </div>
+
+                    @if($viewMode === 'month')
+                        <button type="button" class="button secondary gcal-btn-range" onclick="window.toggleRangeSelectionMode()" id="gcal-btn-range-mode" title="Pilih rentang tanggal agenda melintasi bulan atau tahun">
+                            <x-icon name="calendar" size="14" />
+                            <span class="gcal-btn-range-label">Pilih Rentang</span>
+                        </button>
+                    @endif
                 </div>
 
                 @php
