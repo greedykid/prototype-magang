@@ -50,8 +50,8 @@ body.modal-open .sidebar {
     margin: auto;
     background: var(--modal-bg, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg, 12px);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
     max-width: 520px;
     width: 100%;
     padding: 24px 28px;
@@ -61,7 +61,7 @@ body.modal-open .sidebar {
     overflow-x: hidden;
     box-sizing: border-box;
     position: relative;
-    animation: modal-content-enter 240ms var(--ease-out-expo) both;
+    animation: modal-content-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes modal-backdrop-enter {
@@ -70,23 +70,23 @@ body.modal-open .sidebar {
 }
 
 @keyframes modal-content-enter {
-    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.98); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .simasadi-modal-head {
     align-items: center;
     background: var(--modal-bg, #ffffff);
-    border-bottom: 1px solid var(--line, #e2e8f0);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-bottom: 1px solid var(--line);
+    border-top-left-radius: var(--radius-2xl, 24px);
+    border-top-right-radius: var(--radius-2xl, 24px);
     display: flex;
     justify-content: space-between;
     margin-bottom: 18px;
     margin-left: -28px;
     margin-right: -28px;
     margin-top: -24px;
-    padding: 18px 28px 14px 28px;
+    padding: 20px 28px 16px 28px;
     position: sticky;
     top: -24px;
     z-index: 20;

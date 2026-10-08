@@ -12,9 +12,10 @@
 
 .tp-sk-banner {
     align-items: center;
-    background: #f0fdf4;
-    border: 1.5px solid #86efac;
-    border-radius: 10px;
+    background: var(--success-bg, #ecfdf3);
+    border: 1px solid var(--success-border, #a6f4c5);
+    border-radius: var(--radius-xl, 18px);
+    box-shadow: 0 4px 16px rgba(18, 183, 106, 0.08);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
@@ -23,7 +24,7 @@
     margin-bottom: 20px;
     max-width: 100%;
     min-width: 0;
-    padding: 16px 20px;
+    padding: 18px 24px;
     width: 100%;
 }
 

@@ -14,32 +14,32 @@
 }
 
 .lpk-show-header {
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 12px;
     max-width: 100%;
     min-width: 0;
-    padding: 20px 24px;
+    padding: 22px 26px;
 }
 
 .lpk-alert-callout {
     align-items: stretch;
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(225, 29, 72, 0.05);
+    background: var(--danger-bg, #fef3f2);
+    border: 1px solid var(--danger-border, #fecdca);
+    border-radius: var(--radius-xl, 18px);
+    box-shadow: 0 4px 16px rgba(240, 68, 56, 0.08);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 14px;
     max-width: 100%;
     min-width: 0;
-    padding: 16px 22px;
+    padding: 18px 24px;
 }
 
 .lpk-alert-callout-content {
@@ -54,7 +54,7 @@
 
 .lpk-alert-callout-head {
     align-items: center;
-    color: #9f1239;
+    color: var(--danger-text, #b42318);
     display: flex;
     font-size: 14.5px;
     font-weight: 700;
@@ -64,7 +64,7 @@
 }
 
 .lpk-alert-callout-desc {
-    color: #881337;
+    color: var(--danger-text, #b42318);
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -74,23 +74,24 @@
 }
 
 .lpk-alert-tag {
-    background: rgba(225, 29, 72, 0.12);
-    border-radius: 4px;
-    color: #9f1239;
+    background: rgba(240, 68, 56, 0.12);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--danger-text, #b42318);
     display: inline-block;
     font-size: 12px;
     font-weight: 700;
     margin: 1px 2px;
-    padding: 1px 8px;
+    padding: 2px 8px;
 }
 
 .lpk-alert-callout-meta {
     align-items: center;
-    color: #9f1239;
+    color: var(--danger-text, #b42318);
     display: flex;
     font-size: 11.5px;
     gap: 6px;
     margin-top: 4px;
+    opacity: 0.9;
 }
 
 .lpk-alert-callout-actions {
@@ -105,16 +106,16 @@
 
 .lpk-alert-action-btn {
     align-items: center;
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-lg, 12px);
     display: inline-flex;
     font-size: 12.5px;
     font-weight: 600;
     gap: 6px;
-    height: 34px;
-    min-height: 34px;
-    padding: 6px 14px;
+    height: 36px;
+    min-height: 36px;
+    padding: 6px 16px;
     white-space: nowrap;
-    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+    transition: all 160ms ease;
 }
 
 .lpk-alert-action-btn:active {
@@ -122,29 +123,31 @@
 }
 
 .lpk-alert-action-btn-danger {
-    background-color: #e11d48 !important;
-    border-color: #be123c !important;
+    background-color: var(--danger-solid, #f04438) !important;
+    border-color: #d92d20 !important;
     color: #ffffff !important;
-    box-shadow: 0 1px 2px rgba(225, 29, 72, 0.2) !important;
+    box-shadow: 0 1px 2px rgba(240, 68, 56, 0.2) !important;
 }
 
 .lpk-alert-action-btn-danger:hover {
-    background-color: #be123c !important;
-    border-color: #9f1239 !important;
-    box-shadow: 0 2px 6px rgba(225, 29, 72, 0.35) !important;
+    background-color: #d92d20 !important;
+    border-color: #b42318 !important;
+    box-shadow: 0 4px 12px rgba(240, 68, 56, 0.3) !important;
+    transform: translateY(-1px);
 }
 
 .lpk-alert-action-btn-warning {
-    background-color: #d97706 !important;
-    border-color: #b45309 !important;
+    background-color: var(--warning-solid, #f79009) !important;
+    border-color: #dc6803 !important;
     color: #ffffff !important;
-    box-shadow: 0 1px 2px rgba(217, 119, 6, 0.2) !important;
+    box-shadow: 0 1px 2px rgba(247, 144, 9, 0.2) !important;
 }
 
 .lpk-alert-action-btn-warning:hover {
-    background-color: #b45309 !important;
-    border-color: #92400e !important;
-    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35) !important;
+    background-color: #dc6803 !important;
+    border-color: #b54708 !important;
+    box-shadow: 0 4px 12px rgba(247, 144, 9, 0.3) !important;
+    transform: translateY(-1px);
 }
 
 .lpk-alert-action-btn-suspended {
@@ -403,37 +406,38 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
 }
 
 .lpk-scope-box {
-    background: #f8fafc;
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     box-sizing: border-box;
-    color: #1e293b;
+    color: var(--ink);
     font-size: 13px;
     line-height: 1.6;
     max-height: 240px;
     overflow-y: auto;
-    padding: 12px 16px;
+    padding: 14px 18px;
     white-space: pre-wrap;
 }
 
 /* Assessment Card Items */
 .lpk-assessment-card-item {
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     text-decoration: none;
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease;
 }
 
 .lpk-assessment-card-item:hover {
-    border-color: #94a3b8;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border-color: var(--line-subtle);
+    box-shadow: 0 4px 16px rgba(16, 24, 40, 0.06);
+    transform: translateY(-1px);
 }
 
 .lpk-assessment-card-top {
@@ -476,21 +480,21 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
 
 .lpk-status-preview-box {
     align-items: center;
-    background: var(--surface-subtle, #f8fafc);
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
-    min-height: 42px;
-    padding: 6px 12px;
+    min-height: 44px;
+    padding: 8px 14px;
 }
 
 .status-auto-tag {
     background: var(--surface, #ffffff);
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 4px;
-    color: var(--muted, #64748b);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs, 4px);
+    color: var(--muted-strong);
     font-size: 11px;
     font-weight: 500;
     padding: 2px 7px;
@@ -499,10 +503,10 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
 
 /* Card Info Detail LPK Terpilih di Form Asesmen */
 .lpk-selected-info-card {
-    background: var(--surface-subtle, #f8fafc);
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 8px;
-    padding: 9px 12px;
+    background: var(--surface-subtle, #f8f8fc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    padding: 12px 14px;
     margin-top: 8px;
     font-size: 12px;
     transition: all 160ms ease;
@@ -526,20 +530,20 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 11.5px;
     font-weight: 600;
-    color: var(--primary, #0075de);
-    background: var(--primary-subtle, #e6f3fe);
-    padding: 1px 6px;
+    color: var(--primary);
+    background: var(--primary-subtle);
+    padding: 2px 8px;
     border-radius: var(--radius-xs, 4px);
     letter-spacing: 0.02em;
 }
 
 .lpk-selected-sep {
-    color: var(--muted, #94a3b8);
+    color: var(--line-subtle);
     font-size: 10px;
 }
 
 .lpk-selected-name {
-    color: var(--ink, #0f172a);
+    color: var(--ink);
     font-size: 12.5px;
     font-weight: 600;
 }
@@ -551,59 +555,59 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
     gap: 12px;
     flex-wrap: wrap;
     padding-top: 5px;
-    border-top: 1px dashed var(--line, #e2e8f0);
+    border-top: 1px dashed var(--line);
 }
 
 .lpk-selected-cert {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: var(--muted, #64748b);
+    color: var(--muted);
     font-size: 11.5px;
 }
 
 .lpk-selected-cert svg {
-    color: var(--muted, #64748b);
+    color: var(--muted);
     flex-shrink: 0;
 }
 
 .lpk-selected-cert strong {
-    color: var(--ink, #0f172a);
+    color: var(--ink);
     font-weight: 600;
 }
 
 .lpk-checkbox-card {
-    background: var(--surface-subtle, #ffffff);
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px;
+    padding: 14px 16px;
 }
 
-.icon-wrap-blue { background: #eff6ff; color: #1d4ed8; }
-.icon-wrap-green { background: #f0fdf4; color: #166534; }
-.icon-wrap-amber { background: #fffbeb; color: #b45309; }
-.icon-wrap-rose { background: #fdf2f8; color: #be185d; }
-.icon-wrap-emerald { background: #f0fdf4; color: #15803d; }
-.icon-wrap-slate { background: #f8fafc; color: #475569; }
+.icon-wrap-blue { background: #eef4ff; color: var(--primary, #1972f5); }
+.icon-wrap-green { background: #ecfdf3; color: var(--success-text, #027a48); }
+.icon-wrap-amber { background: #fffaeb; color: var(--warning-text, #b54708); }
+.icon-wrap-rose { background: #fef3f2; color: var(--danger-text, #b42318); }
+.icon-wrap-emerald { background: #ecfdf3; color: #027a48; }
+.icon-wrap-slate { background: var(--surface-subtle); color: var(--muted-strong); }
 
 .lpk-alert-callout.is-success {
-    background: #f0fdf4;
-    border-color: #86efac;
-    color: #166534;
-    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.05);
+    background: var(--success-bg, #ecfdf3);
+    border-color: var(--success-border, #a6f4c5);
+    color: var(--success-text, #027a48);
+    box-shadow: 0 4px 16px rgba(18, 183, 106, 0.08);
 }
 
 .lpk-sk-lead-time-box {
     font-size: 12px;
-    color: #15803d;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    padding: 8px 12px;
-    border-radius: 6px;
+    color: var(--success-text, #027a48);
+    background: var(--success-bg, #ecfdf3);
+    border: 1px solid var(--success-border, #a6f4c5);
+    padding: 8px 14px;
+    border-radius: var(--radius-md, 8px);
 }
 
 .form-extension-grid {

@@ -6,7 +6,7 @@
 .badge, .status, .priority, .badge-role, .badge-tp {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--radius-xs, 4px);
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     display: inline-flex;
     font-size: 11.5px;
@@ -17,35 +17,40 @@
     letter-spacing: normal;
     line-height: 1.35;
     max-width: max-content;
-    padding: 2px 7.5px;
-    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    padding: 2.5px 8px;
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
     white-space: nowrap;
     width: fit-content;
     flex-shrink: 0;
+}
+
+.badge-pill, .status.pill, .status-pill {
+    border-radius: var(--radius-pill, 9999px);
+    padding: 3px 10px;
 }
 
 .status:hover, .priority:hover, .badge:hover {
     filter: brightness(0.97);
 }
 
-/* Status Colors (Notion Multi-Select Tags) */
-.status-planned, .status-closed { background: var(--color-gray-200, #f6f5f4); border-color: rgba(0, 0, 0, 0.08); color: var(--color-gray-600, #615d59); }
-.status-scheduled, .status-submitted { background: var(--color-blue-200, #e6f3fe); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); }
-.status-in_progress, .status-open { background: var(--color-orange-200, #ffdec4); border-color: rgba(255, 109, 0, 0.18); color: var(--color-orange-700, #ab4a00); }
-.status-completed, .status-pelaksanaan, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--color-green-200, #d0f4d8); border-color: rgba(26, 174, 57, 0.18); color: var(--color-green-700, #0f6220); font-weight: 600; }
-.status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: var(--color-gray-200, #f6f5f4); border-color: rgba(0, 0, 0, 0.08); color: var(--color-gray-600, #615d59); }
-.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-grace_period, .status-reminder, .status-warn { background: var(--color-yellow-200, #ffe4af); border-color: rgba(232, 157, 1, 0.22); color: var(--color-yellow-900, #704b00); font-weight: 600; }
-.status-batas-tp { background: var(--color-teal-200, #bde6e4); border-color: rgba(42, 157, 153, 0.2); color: var(--color-teal-700, #126764); font-weight: 600; }
-.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: var(--color-red-200, #fdd3cd); border-color: rgba(227, 45, 20, 0.18); color: var(--color-red-700, #b01601); font-weight: 600; }
-.status-suspended, .status-dibekukan { background: var(--color-blue-200, #e6f3fe); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); font-weight: 600; }
+/* Status Colors (Crisp Design System Status Badges) */
+.status-planned, .status-closed { background: var(--neutral-chip-bg, #f8f8fc); border-color: var(--neutral-chip-border, #eaecf5); color: var(--neutral-chip-text, #5d6b98); }
+.status-scheduled, .status-submitted { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(25, 114, 245, 0.25)); color: var(--info-text, #1972f5); }
+.status-in_progress, .status-open { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); }
+.status-completed, .status-pelaksanaan, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--success-bg, #eefbf0); border-color: var(--success-border, rgba(21, 111, 8, 0.25)); color: var(--success-text, #156f08); font-weight: 600; }
+.status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: var(--neutral-chip-bg, #f8f8fc); border-color: var(--neutral-chip-border, #eaecf5); color: var(--neutral-chip-text, #5d6b98); }
+.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-grace_period, .status-reminder, .status-warn { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); font-weight: 600; }
+.status-batas-tp { background: var(--purple-bg, #f5edff); border-color: var(--purple-border, rgba(90, 40, 176, 0.25)); color: var(--purple-text, #5a28b0); font-weight: 600; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: var(--danger-bg, #fff0f2); border-color: var(--danger-border, rgba(188, 8, 31, 0.25)); color: var(--danger-text, #bc081f); font-weight: 600; }
+.status-suspended, .status-dibekukan { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(25, 114, 245, 0.25)); color: var(--info-text, #1972f5); font-weight: 600; }
 
 /* Dark Mode Status Badges */
 html[data-theme="dark"] .status-planned,
-html[data-theme="dark"] .status-closed { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.085); color: var(--color-gray-400, #a39e98); }
+html[data-theme="dark"] .status-closed { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); }
 html[data-theme="dark"] .status-scheduled,
-html[data-theme="dark"] .status-submitted { background: rgba(98, 174, 240, 0.18); border-color: rgba(98, 174, 240, 0.25); color: var(--color-blue-400, #62aef0); }
+html[data-theme="dark"] .status-submitted { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
 html[data-theme="dark"] .status-in_progress,
-html[data-theme="dark"] .status-open { background: rgba(255, 138, 51, 0.18); border-color: rgba(255, 138, 51, 0.25); color: var(--color-orange-400, #ff8a33); }
+html[data-theme="dark"] .status-open { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
 html[data-theme="dark"] .status-completed,
 html[data-theme="dark"] .status-pelaksanaan,
 html[data-theme="dark"] .status-resolved,
@@ -55,13 +60,13 @@ html[data-theme="dark"] .status-verified,
 html[data-theme="dark"] .status-paid,
 html[data-theme="dark"] .status-signed,
 html[data-theme="dark"] .status-output_released,
-html[data-theme="dark"] .status-approved { background: rgba(104, 206, 126, 0.18); border-color: rgba(104, 206, 126, 0.25); color: var(--color-green-400, #68ce7e); }
+html[data-theme="dark"] .status-approved { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
 html[data-theme="dark"] .status-not_started,
 html[data-theme="dark"] .status-inactive,
 html[data-theme="dark"] .status-belum_dilaporkan,
 html[data-theme="dark"] .status-unreported,
 html[data-theme="dark"] .status-unpaid,
-html[data-theme="dark"] .status-unsigned { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.085); color: var(--color-gray-400, #a39e98); }
+html[data-theme="dark"] .status-unsigned { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); }
 html[data-theme="dark"] .status-menunggu_verifikasi,
 html[data-theme="dark"] .status-pending_verification,
 html[data-theme="dark"] .status-waiting_output,
@@ -69,8 +74,8 @@ html[data-theme="dark"] .status-under_review,
 html[data-theme="dark"] .status-surveillance_due,
 html[data-theme="dark"] .status-grace_period,
 html[data-theme="dark"] .status-reminder,
-html[data-theme="dark"] .status-warn { background: rgba(255, 201, 94, 0.18); border-color: rgba(255, 201, 94, 0.25); color: var(--color-yellow-400, #ffc95e); }
-html[data-theme="dark"] .status-batas-tp { background: rgba(131, 203, 201, 0.18); border-color: rgba(131, 203, 201, 0.25); color: var(--color-teal-300, #83cbc9); }
+html[data-theme="dark"] .status-warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+html[data-theme="dark"] .status-batas-tp { background: var(--purple-bg); border-color: var(--purple-border); color: var(--purple-text); }
 html[data-theme="dark"] .status-perlu_revisi,
 html[data-theme="dark"] .status-rejected,
 html[data-theme="dark"] .status-expired,
@@ -79,16 +84,16 @@ html[data-theme="dark"] .status-surveillance_overdue,
 html[data-theme="dark"] .status-revoked,
 html[data-theme="dark"] .status-dicabut,
 html[data-theme="dark"] .status-jt,
-html[data-theme="dark"] .status-danger { background: rgba(247, 116, 99, 0.18); border-color: rgba(247, 116, 99, 0.25); color: var(--color-red-400, #f77463); }
+html[data-theme="dark"] .status-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
 html[data-theme="dark"] .status-suspended,
-html[data-theme="dark"] .status-dibekukan { background: rgba(98, 174, 240, 0.18); border-color: rgba(98, 174, 240, 0.25); color: var(--color-blue-400, #62aef0); }
+html[data-theme="dark"] .status-dibekukan { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
 
-.priority-high { color: var(--color-red-700, #b01601); }
-.priority-medium { color: var(--color-yellow-700, #c78600); }
-.priority-low { color: var(--color-green-700, #0f6220); }
-html[data-theme="dark"] .priority-high { color: var(--color-red-400, #f77463); }
-html[data-theme="dark"] .priority-medium { color: var(--color-yellow-400, #ffc95e); }
-html[data-theme="dark"] .priority-low { color: var(--color-green-400, #68ce7e); }
+.priority-high { color: var(--danger-text, #bc081f); }
+.priority-medium { color: var(--warning-text, #a14300); }
+.priority-low { color: var(--success-text, #156f08); }
+html[data-theme="dark"] .priority-high { color: var(--danger-text); }
+html[data-theme="dark"] .priority-medium { color: var(--warning-text); }
+html[data-theme="dark"] .priority-low { color: var(--success-text); }
 
 /* User Role Badges */
 .badge-role {
@@ -96,24 +101,24 @@ html[data-theme="dark"] .priority-low { color: var(--color-green-400, #68ce7e); 
     letter-spacing: .02em;
 }
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge-role-admin { background: var(--color-red-100, #fef3f1); border-color: rgba(227, 45, 20, 0.18); color: var(--color-red-700, #b01601); }
-.badge-role-pic { background: var(--color-blue-100, #f2f9ff); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); }
-.badge-role-staff { background: var(--color-purple-100, #f8f5fc); border-color: rgba(152, 73, 232, 0.18); color: var(--color-purple-700, #562983); }
-.badge-role-assessor { background: var(--color-blue-100, #f2f9ff); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); }
+.badge-role-admin { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.badge-role-pic { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
+.badge-role-staff { background: var(--purple-bg); border-color: var(--purple-border); color: var(--purple-text); }
+.badge-role-assessor { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
-.badge-viewer { background: var(--neutral-chip-bg, #f6f5f4); border-color: var(--neutral-chip-border, rgba(0, 0, 0, 0.08)); color: var(--neutral-chip-text, #615d59); font-size: 10px; font-weight: 500; padding: 1px 6px; }
-.badge-viewer-linked { background: var(--info-bg, #e6f3fe); border-color: var(--info-border, rgba(0, 117, 222, 0.16)); color: var(--info-text, #005bab); font-size: 10.5px; font-weight: 500; padding: 2px 8px; }
-.badge-pic-lead { background: var(--success-bg, #d0f4d8); border: 1px solid var(--success-border, rgba(26, 174, 57, 0.18)); color: var(--success-text, #0f6220); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-xs, 4px); }
-.badge-pic-viewer { background: var(--neutral-chip-bg, #f6f5f4); border: 1px solid var(--neutral-chip-border, rgba(0, 0, 0, 0.08)); color: var(--neutral-chip-text, #615d59); font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-xs, 4px); }
-.badge-counter { background: var(--neutral-chip-bg, #f6f5f4); border: 1px solid var(--neutral-chip-border, rgba(0, 0, 0, 0.08)); color: var(--neutral-chip-text, #615d59); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-xs, 4px); }
+.badge-viewer { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 10px; font-weight: 500; padding: 1px 6px; }
+.badge-viewer-linked { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); font-size: 10.5px; font-weight: 500; padding: 2px 8px; }
+.badge-pic-lead { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
+.badge-pic-viewer { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
+.badge-counter { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
 
 /* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
-.badge-tp-neutral { background: var(--color-gray-200, #f6f5f4); border-color: rgba(0, 0, 0, 0.08); color: var(--color-gray-600, #615d59); }
-.badge-tp-success { background: var(--color-green-200, #d0f4d8); border-color: rgba(26, 174, 57, 0.18); color: var(--color-green-700, #0f6220); }
-.badge-tp-info { background: var(--color-blue-200, #e6f3fe); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); }
-.badge-tp-warning { background: var(--color-yellow-200, #ffe4af); border-color: rgba(232, 157, 1, 0.22); color: var(--color-yellow-900, #704b00); }
-.badge-tp-danger, .badge-tp-revoked { background: var(--color-red-200, #fdd3cd); border-color: rgba(227, 45, 20, 0.18); color: var(--color-red-700, #b01601); }
-.badge-tp-suspended { background: var(--color-blue-200, #e6f3fe); border-color: rgba(0, 117, 222, 0.16); color: var(--color-blue-700, #005bab); font-weight: 600; }
+.badge-tp-neutral { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); }
+.badge-tp-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+.badge-tp-info { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
+.badge-tp-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+.badge-tp-danger, .badge-tp-revoked { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.badge-tp-suspended { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); font-weight: 600; }
 
 /* Alert & Surveillance Badges (LPK Tables & Dashboards) */
 .lpk-alert-badge {

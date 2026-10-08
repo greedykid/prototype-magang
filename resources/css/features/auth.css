@@ -1,12 +1,12 @@
 /* ==========================================================================
    SIMASADI Auth / Login Page
-   Notion Design System Aligned (Light & Dark Theme)
+   Crisp Design System Aligned (Light & Dark Theme)
    ========================================================================== */
 
 .auth-page {
     align-items: center;
-    background: #00396b;
-    background: linear-gradient(145deg, #002244 0%, #00396b 55%, #005bab 100%);
+    background: #f8f9fd;
+    background: radial-gradient(circle at 50% 0%, #edf2fe 0%, #f8f9fd 65%, #f2f5fb 100%);
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -26,24 +26,23 @@
 
 .auth-theme-btn {
     align-items: center;
-    background: rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: var(--radius-md, 8px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    color: #ffffff;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+    color: var(--ink);
     cursor: pointer;
     display: inline-flex;
-    height: 38px;
+    height: 40px;
     justify-content: center;
     padding: 0;
     transition: background-color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-expo);
-    width: 38px;
+    width: 40px;
 }
 
 .auth-theme-btn:hover {
-    background: rgba(255, 255, 255, 0.28);
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
     transform: scale(1.05);
 }
 
@@ -56,10 +55,10 @@
 }
 
 .login-card {
-    background: var(--card-bg, #ffffff);
-    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
-    border-radius: var(--radius-lg, 14px);
-    box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.12), 0 0 0 1px var(--line);
     box-sizing: border-box;
     margin: 0 auto;
     max-width: 460px;
@@ -72,7 +71,7 @@
 /* Brand Section */
 .login-card .brand {
     align-items: center;
-    border-bottom: 1px solid var(--line, #f1f5f9);
+    border-bottom: 1px solid var(--line);
     display: flex;
     gap: 14px;
     margin-bottom: 22px;
@@ -96,7 +95,7 @@
 }
 
 .login-brand-text strong {
-    color: var(--ink, #191918);
+    color: var(--ink);
     font-size: 16px;
     font-weight: 750;
     letter-spacing: 0.04em;
@@ -104,7 +103,7 @@
 }
 
 .login-brand-text small {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     font-size: 11.5px;
     font-weight: 500;
     line-height: 1.3;
@@ -113,7 +112,7 @@
 
 /* Header Text */
 .login-card h1 {
-    color: var(--ink, #191918);
+    color: var(--ink);
     font-size: clamp(1.35rem, 3.5vw, 1.55rem);
     font-weight: 700;
     letter-spacing: -0.025em;
@@ -122,7 +121,7 @@
 }
 
 .login-card .lede {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     font-size: 13px;
     line-height: 1.45;
     margin: 0 0 18px 0;
@@ -130,15 +129,15 @@
 
 /* Role Selector (1-Click) */
 .role-selector-wrap {
-    background: var(--surface-subtle, #f6f5f4);
-    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
-    border-radius: var(--radius-md, 10px);
+    background: var(--surface-subtle, #f8f8fc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl, 18px);
     margin: 18px 0 20px;
     padding: 12px;
 }
 
 .role-selector-title {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     display: block;
     font-size: 11px;
     font-weight: 700;
@@ -156,8 +155,8 @@
 .role-pill-btn {
     align-items: flex-start;
     background: var(--surface, #ffffff);
-    border: 1.5px solid var(--line, rgba(0, 0, 0, 0.08));
-    border-radius: var(--radius-md, 8px);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
     cursor: pointer;
     display: flex;
@@ -171,16 +170,16 @@
 }
 
 .role-pill-btn:hover {
-    background-color: var(--surface-hover, #efedea);
-    border-color: var(--primary, #0075de);
-    box-shadow: 0 2px 6px rgba(0, 117, 222, 0.12);
+    background-color: var(--surface-hover);
+    border-color: var(--primary);
+    box-shadow: 0 2px 6px rgba(25, 114, 245, 0.12);
     transform: translateY(-1px);
 }
 
 .role-pill-btn.is-active {
-    background: var(--primary-subtle, #f2f9ff);
-    border-color: var(--primary, #0075de);
-    box-shadow: 0 0 0 2px var(--primary, #0075de);
+    background: var(--primary-subtle);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary);
 }
 
 .role-pill-top {
@@ -192,7 +191,7 @@
 }
 
 .role-pill-name {
-    color: var(--ink, #191918);
+    color: var(--ink);
     font-size: 12px;
     font-weight: 650;
     line-height: 1.2;
@@ -207,7 +206,7 @@
 }
 
 .role-pill-desc {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     font-size: 10.5px;
     line-height: 1.3;
 }
@@ -221,7 +220,7 @@
 
 .form-stack label {
     box-sizing: border-box;
-    color: var(--ink, #191918);
+    color: var(--ink);
     display: grid;
     font-size: 13px;
     font-weight: 600;
@@ -233,25 +232,25 @@
 .form-stack input:not([type="checkbox"]) {
     background: var(--input-bg, #ffffff);
     border: 1px solid var(--input-border, var(--line));
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
-    color: var(--ink, #191918);
+    color: var(--ink);
     font-size: 13.5px;
-    min-height: 42px;
-    padding: 9px 12px;
+    min-height: 44px;
+    padding: 10px 14px;
     transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
     width: 100%;
 }
 
 .form-stack input:not([type="checkbox"]):focus {
-    border-color: var(--primary, #0075de);
-    box-shadow: 0 0 0 3px var(--primary-subtle, rgba(0, 117, 222, 0.15));
+    border-color: var(--primary, #1972f5);
+    box-shadow: 0 0 0 3px var(--focus-ring, rgba(25, 114, 245, 0.2));
     outline: none;
 }
 
 .form-stack label.check {
     align-items: center;
-    color: var(--muted, #615d59);
+    color: var(--muted);
     display: flex;
     font-size: 13px;
     font-weight: 400;
@@ -260,15 +259,15 @@
 }
 
 .form-stack label.check input[type="checkbox"] {
-    accent-color: var(--primary, #0075de);
+    accent-color: var(--primary, #1972f5);
 }
 
 .login-submit-btn {
     align-items: center;
-    background: var(--primary, #0075de);
-    border: 1px solid var(--primary, #0075de);
-    border-radius: var(--radius-sm, 6px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, #1972f5 0%, #0456ce 100%);
+    border: 1px solid #0456ce;
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 14px rgba(25, 114, 245, 0.28);
     color: #ffffff;
     cursor: pointer;
     display: flex;
@@ -279,14 +278,14 @@
     margin-top: 4px;
     min-height: 44px;
     padding: 10px 16px;
-    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out-expo);
+    transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out-expo);
     width: 100%;
 }
 
 .login-submit-btn:hover {
-    background: var(--primary-hover, #005bab);
-    border-color: var(--primary-hover, #005bab);
-    box-shadow: 0 4px 12px rgba(0, 117, 222, 0.28);
+    background: linear-gradient(180deg, #2b7ff7 0%, #0562e8 100%);
+    border-color: #0562e8;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 18px rgba(25, 114, 245, 0.35);
     transform: translateY(-1px);
 }
 
@@ -317,18 +316,19 @@
    Dark Theme Overrides for Auth / Login
    ========================================================================== */
 html[data-theme="dark"] .auth-page {
-    background: #111111;
-    background: radial-gradient(circle at 50% 20%, #1c1c1b 0%, #0d0d0c 100%);
+    background: #030d26;
+    background: radial-gradient(circle at 50% 0%, #071330 0%, #030d26 65%, #020818 100%);
 }
 
 html[data-theme="dark"] .auth-theme-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: var(--line, rgba(255, 255, 255, 0.12));
-    color: var(--ink, #f6f5f4);
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .auth-theme-btn:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
 }
 
 html[data-theme="dark"] .auth-theme-icon-sun {
@@ -340,82 +340,82 @@ html[data-theme="dark"] .auth-theme-icon-moon {
 }
 
 html[data-theme="dark"] .login-card {
-    background: var(--card-bg, #202020);
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
-    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line);
 }
 
 html[data-theme="dark"] .login-card .brand {
-    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+    border-bottom: 1px solid var(--line);
 }
 
 html[data-theme="dark"] .role-selector-wrap {
-    background: #181817;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
 }
 
 html[data-theme="dark"] .role-selector-title {
-    color: var(--muted, #a39e98);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .role-pill-btn {
-    background: #252525;
-    border: 1.5px solid var(--line, rgba(255, 255, 255, 0.085));
+    background: var(--surface);
+    border: 1.5px solid var(--line);
 }
 
 html[data-theme="dark"] .role-pill-btn:hover {
-    background: #2d2d2c;
-    border-color: var(--primary, #62aef0);
+    background: var(--surface-hover);
+    border-color: var(--primary);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 html[data-theme="dark"] .role-pill-btn.is-active {
-    background: rgba(98, 174, 240, 0.16);
-    border-color: var(--primary, #62aef0);
-    box-shadow: 0 0 0 2px var(--primary, #62aef0);
+    background: var(--primary-subtle);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary);
 }
 
 html[data-theme="dark"] .role-pill-name {
-    color: var(--ink, #f6f5f4);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .role-pill-desc {
-    color: var(--muted, #a39e98);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .form-stack input:not([type="checkbox"]) {
-    background: var(--input-bg, #141414);
-    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.14));
-    color: var(--ink, #f6f5f4);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .form-stack input:not([type="checkbox"]):focus {
-    border-color: var(--primary, #62aef0);
-    box-shadow: 0 0 0 3px var(--primary-subtle, rgba(98, 174, 240, 0.2));
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 html[data-theme="dark"] .form-stack label.check {
-    color: var(--muted, #a39e98);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .form-stack label.check input[type="checkbox"] {
-    accent-color: var(--primary, #62aef0);
+    accent-color: var(--primary);
 }
 
 html[data-theme="dark"] .login-submit-btn {
-    background: var(--primary, #62aef0);
-    border-color: var(--primary, #62aef0);
-    color: #121212;
+    background: linear-gradient(180deg, #1972f5 0%, #0456ce 100%);
+    border-color: #0456ce;
+    color: #ffffff;
 }
 
 html[data-theme="dark"] .login-submit-btn:hover {
-    background: var(--primary-hover, #93cdfe);
-    border-color: var(--primary-hover, #93cdfe);
-    box-shadow: 0 4px 14px rgba(98, 174, 240, 0.35);
+    background: linear-gradient(180deg, #2b7ff7 0%, #0562e8 100%);
+    border-color: #0562e8;
+    box-shadow: 0 4px 14px rgba(25, 114, 245, 0.4);
 }
 
 html[data-theme="dark"] .login-card .hint code {
-    background: #141414;
-    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
-    color: var(--ink, #f6f5f4);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    color: var(--ink);
 }

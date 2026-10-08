@@ -2,8 +2,8 @@
 .gcal-main {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     min-width: 0;
     overflow: visible;
     overflow-anchor: none;
@@ -14,13 +14,13 @@
     align-items: center;
     background: var(--surface, #ffffff);
     border-bottom: 1px solid var(--line);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: var(--radius-2xl, 24px);
+    border-top-right-radius: var(--radius-2xl, 24px);
     display: flex;
     flex-wrap: wrap;
     gap: 10px 14px;
     justify-content: space-between;
-    padding: 10px 16px;
+    padding: 12px 18px;
     position: relative;
     z-index: 50;
 }
@@ -42,14 +42,14 @@
 
 .gcal-btn-today {
     align-items: center !important;
-    border-radius: 6px !important;
+    border-radius: var(--radius-lg, 12px) !important;
     display: inline-flex !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
-    height: 34px !important;
+    font-weight: 600 !important;
+    height: 36px !important;
     justify-content: center !important;
-    min-height: 34px !important;
-    padding: 0 12px !important;
+    min-height: 36px !important;
+    padding: 0 14px !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
 }
@@ -63,14 +63,14 @@
 
 .gcal-arrow-btn {
     align-items: center !important;
-    border-radius: 6px !important;
+    border-radius: var(--radius-md, 8px) !important;
     display: inline-flex !important;
-    height: 34px !important;
+    height: 36px !important;
     justify-content: center !important;
-    min-height: 34px !important;
-    min-width: 32px !important;
+    min-height: 36px !important;
+    min-width: 34px !important;
     padding: 0 !important;
-    width: 32px !important;
+    width: 34px !important;
     flex-shrink: 0 !important;
 }
 

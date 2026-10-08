@@ -75,18 +75,18 @@
 .brand-text strong {
     display: block;
     font-size: 15px;
-    font-weight: 750;
-    letter-spacing: 0.05em;
-    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
     line-height: 1.2;
 }
 
 .brand-text small {
-    color: #64748b;
+    color: var(--muted);
     display: block;
     font-size: 11px;
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: normal;
     line-height: 1.25;
     margin-top: 2px;
     white-space: nowrap;
@@ -102,7 +102,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 2px 6px 2px 2px;
-    scrollbar-color: #e2e8f0 transparent;
+    scrollbar-color: var(--line) transparent;
     scrollbar-width: thin;
     flex: 1;
 }
@@ -112,7 +112,7 @@
 }
 
 .sidebar nav::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: var(--line);
     border-radius: 999px;
 }
 
@@ -138,27 +138,27 @@
 
 .sidebar nav a {
     align-items: center;
-    border-radius: var(--radius-sm, 6px);
-    color: var(--ink);
+    border-radius: var(--radius-lg, 12px);
+    color: var(--ink-secondary);
     display: flex;
     min-height: 38px;
-    padding: 7px 10px;
+    padding: 8px 12px;
     position: relative;
     text-decoration: none;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 500;
     gap: 10px;
     border: 1px solid transparent;
-    transition: background-color 120ms ease, color 120ms ease;
+    transition: background-color 150ms ease, color 150ms ease, transform 100ms ease;
 }
 
 .sidebar nav a svg {
     flex-shrink: 0;
-    height: 17px;
-    width: 17px;
+    height: 18px;
+    width: 18px;
     margin: 0;
     color: var(--muted);
-    transition: color 120ms ease;
+    transition: color 150ms ease;
 }
 
 .sidebar nav a:hover {
@@ -171,10 +171,10 @@
     color: var(--ink);
 }
 
-/* Active Link: Notion Soft Accent Tint */
+/* Active Link: Crisp Vibrant Tint & Pill Contour */
 .sidebar nav a.active {
     background: var(--primary-subtle);
-    border-color: transparent;
+    border-color: rgba(25, 114, 245, 0.12);
     color: var(--primary);
     font-weight: 600;
 }
@@ -184,14 +184,7 @@
 }
 
 .sidebar nav a.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 6px;
-    bottom: 6px;
-    width: 3px;
-    background: var(--primary);
-    border-radius: 0 3px 3px 0;
+    display: none;
 }
 
 .sidebar nav a:active {

@@ -132,10 +132,10 @@ html[data-theme="dark"] .lpk-step-bullet {
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-bullet {
-    background: #ffffff;
-    border-color: #ffffff;
-    color: #191918;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(25, 114, 245, 0.3);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-completed .lpk-step-bullet {

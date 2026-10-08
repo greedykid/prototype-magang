@@ -5,20 +5,20 @@
 .simasadi-subcard {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     margin-top: 20px;
-    padding: 22px 24px;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+    padding: 24px 26px;
+    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease;
 }
 
 .simasadi-subcard:hover {
-    border-color: #d6d2cb;
-    box-shadow: 0 4px 14px rgba(26, 26, 26, 0.05);
+    border-color: var(--line-subtle);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
 }
 
 .simasadi-subcard-header {
-    border-bottom: 1px solid #f0ede8;
+    border-bottom: 1px solid var(--line);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -52,7 +52,7 @@
 }
 
 .simasadi-subcard-header h3 svg {
-    color: var(--primary, #0075de);
+    color: var(--primary, #1972f5);
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -97,25 +97,25 @@
 }
 
 .cost-item {
-    background: var(--surface-subtle, #f6f5f4);
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 6px);
-    padding: 12px 16px;
+    border-radius: var(--radius-lg, 12px);
+    padding: 14px 18px;
     transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .cost-item:hover {
-    background: var(--surface-hover, #efedea);
-    border-color: var(--color-gray-400, #a39e98);
+    background: var(--surface-hover, #f0f2f8);
+    border-color: var(--line-subtle);
 }
 
 .cost-item.total-cost-item {
-    background: var(--primary-subtle, #e6f3fe);
-    border-color: rgba(0, 117, 222, 0.2);
+    background: var(--primary-subtle, #eff4ff);
+    border-color: rgba(25, 114, 245, 0.25);
 }
 
 .cost-item small {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     display: block;
     font-size: 11.5px;
     font-weight: 600;
@@ -133,7 +133,7 @@
 }
 
 .cost-item.total-cost-item strong {
-    color: var(--primary-hover, #005bab);
+    color: var(--primary, #1972f5);
     font-size: 20px;
 }
 
@@ -164,9 +164,9 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px 10px;
+    padding: 14px 12px;
     margin: 0;
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     text-decoration: none;
     transition: background-color 160ms ease;
 }
@@ -176,17 +176,17 @@
 }
 
 .assessment-list-row:hover {
-    background-color: var(--surface-subtle, #f8fafc);
+    background-color: var(--surface-subtle, #f8f8fc);
 }
 
 .assessment-list-row:hover .assessment-list-title {
-    color: var(--primary, #0284c7);
+    color: var(--primary, #1972f5);
 }
 
 .assessment-list-row:focus-visible {
-    outline: 2px solid var(--primary, #0284c7);
+    outline: 2px solid var(--primary, #1972f5);
     outline-offset: -2px;
-    background-color: var(--surface-subtle, #f8fafc);
+    background-color: var(--surface-subtle, #f8f8fc);
 }
 
 .assessment-list-content {
@@ -198,7 +198,7 @@
 }
 
 .assessment-list-title {
-    color: var(--ink, #0f172a);
+    color: var(--ink);
     display: inline-block;
     font-size: 13.5px;
     font-weight: 600;
@@ -210,11 +210,11 @@
 }
 
 .assessment-list-title:hover {
-    color: var(--primary, #0284c7);
+    color: var(--primary, #1972f5);
 }
 
 .assessment-list-meta {
-    color: var(--muted, #64748b);
+    color: var(--muted);
     display: flex;
     flex-direction: column;
     font-size: 12px;
@@ -223,7 +223,7 @@
 }
 
 .assessment-list-sk {
-    color: #15803d;
+    color: var(--success-text, #027a48);
     font-size: 11.5px;
     font-weight: 600;
 }
@@ -250,13 +250,13 @@
     align-items: center;
     gap: 4px;
     font-size: 11.5px;
-    font-weight: 500;
-    color: var(--primary, #0284c7);
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 6px;
-    padding: 3px 9px;
-    min-height: 24px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-subtle);
+    border: 1px solid rgba(25, 114, 245, 0.2);
+    border-radius: var(--radius-md, 8px);
+    padding: 4px 10px;
+    min-height: 26px;
     text-decoration: none;
     transition: all 150ms ease;
     white-space: nowrap;
@@ -264,13 +264,13 @@
 }
 
 .assessment-cal-shortcut:hover {
-    background: #0284c7;
+    background: var(--primary);
     color: #ffffff;
-    border-color: #0284c7;
+    border-color: var(--primary);
 }
 
 .assessment-cal-shortcut:focus-visible {
-    outline: 2px solid var(--primary, #0284c7);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -306,47 +306,47 @@ html[data-theme="dark"] .simasadi-subcard {
 }
 
 html[data-theme="dark"] .simasadi-subcard:hover {
-    border-color: #334155;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    border-color: var(--line-subtle);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 html[data-theme="dark"] .cost-item {
-    background: #1e293b;
+    background: var(--surface-subtle);
     border-color: var(--line);
 }
 
 html[data-theme="dark"] .cost-item:hover {
-    background: #273549;
-    border-color: #475569;
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
 }
 
 html[data-theme="dark"] .cost-item.total-cost-item {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: rgba(99, 102, 241, 0.4);
+    background: rgba(25, 114, 245, 0.15);
+    border-color: rgba(25, 114, 245, 0.35);
 }
 
 html[data-theme="dark"] .cost-item.total-cost-item strong {
-    color: #a5b4fc;
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .sbm-callout {
-    background: rgba(245, 158, 11, 0.14);
-    border-color: rgba(245, 158, 11, 0.35);
-    color: #fde68a;
+    background: rgba(247, 144, 9, 0.14);
+    border-color: rgba(247, 144, 9, 0.35);
+    color: #fedf89;
 }
 
 html[data-theme="dark"] .sbm-callout svg {
-    color: #f59e0b;
+    color: #f79009;
 }
 
 html[data-theme="dark"] .assessment-cal-shortcut {
-    background: rgba(2, 132, 199, 0.18);
-    border-color: rgba(56, 189, 248, 0.35);
-    color: #38bdf8;
+    background: rgba(25, 114, 245, 0.18);
+    border-color: rgba(25, 114, 245, 0.35);
+    color: #70b4ff;
 }
 
 html[data-theme="dark"] .assessment-cal-shortcut:hover {
-    background: #0284c7;
+    background: var(--primary);
     color: #ffffff;
 }
 

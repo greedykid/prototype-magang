@@ -9,19 +9,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
-    background: var(--surface-subtle, #f8fafc);
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 8px;
+    padding: 14px 16px;
+    background: var(--surface-subtle, #f8f8fc);
+    border: 1px solid var(--line, #eaecf5);
+    border-radius: var(--radius-lg, 12px);
     gap: 14px;
-    transition: all 180ms ease;
+    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease, background-color 160ms ease;
     text-decoration: none;
 }
 
 .agenda-card:hover {
-    border-color: #cbd5e1;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    border-color: var(--line-subtle, #dcdfea);
+    background: var(--surface, #ffffff);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06);
+    transform: translateY(-1px);
 }
 
 .agenda-card-date {
@@ -30,10 +31,10 @@
     align-items: center;
     justify-content: center;
     min-width: 48px;
-    padding: 6px 8px;
+    padding: 6px 10px;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-md, 8px);
     text-align: center;
     flex-shrink: 0;
 }
@@ -41,7 +42,7 @@
 .agenda-card-date .day {
     font-size: 15px;
     font-weight: 700;
-    color: var(--primary, #0075de);
+    color: var(--primary, #1972f5);
     line-height: 1;
 }
 
@@ -81,10 +82,10 @@
    Dashboard Operational Health Card & Managed LPKs
    ========================================================================== */
 .dashboard-health-card {
-    background: var(--surface-subtle, #f6f5f4);
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: var(--radius-md, 8px);
-    padding: 14px 16px;
+    border-radius: var(--radius-xl, 18px);
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -97,11 +98,11 @@
 }
 
 .dashboard-health-icon {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #ecfdf5;
-    color: #059669;
+    background: var(--success-bg, #ecfdf3);
+    color: var(--success-text, #027a48);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -111,14 +112,14 @@
 .dashboard-health-copy strong {
     font-size: 14px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--ink);
     display: block;
     margin-bottom: 2px;
 }
 
 .dashboard-health-copy p {
     font-size: 12.5px;
-    color: var(--muted, #64748b);
+    color: var(--muted);
     line-height: 1.45;
     margin: 0;
 }
@@ -128,7 +129,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     padding-top: 12px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--line);
 }
 
 .dashboard-health-stat {
@@ -139,7 +140,7 @@
 
 .dashboard-health-stat .stat-label {
     font-size: 11px;
-    color: var(--muted, #64748b);
+    color: var(--muted);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -148,7 +149,7 @@
 .dashboard-health-stat .stat-val {
     font-size: 12.5px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--ink);
 }
 
 .stat-dot {
@@ -159,10 +160,10 @@
     flex-shrink: 0;
 }
 
-.stat-dot.green { background: #10b981; }
-.stat-dot.blue { background: #0284c7; }
-.stat-dot.amber { background: #f59e0b; }
-.stat-dot.red { background: #ef4444; }
+.stat-dot.green { background: #12b76a; }
+.stat-dot.blue { background: #1972f5; }
+.stat-dot.amber { background: #f79009; }
+.stat-dot.red { background: #f04438; }
 
 /* Managed LPKs Widget */
 .dashboard-lpk-list {
@@ -175,22 +176,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
-    background: var(--surface-subtle, #f8fafc);
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 8px;
+    padding: 14px 16px;
+    background: var(--surface-subtle, #f8f8fc);
+    border: 1px solid var(--line, #eaecf5);
+    border-radius: var(--radius-lg, 12px);
     gap: 12px;
     text-decoration: none;
-    transition: all 180ms ease;
+    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease, background-color 160ms ease;
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
 }
 
 .dashboard-lpk-item:hover {
-    border-color: #cbd5e1;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    border-color: var(--line-subtle, #dcdfea);
+    background: var(--surface, #ffffff);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.06);
     transform: translateY(-1px);
 }
 
@@ -212,17 +213,17 @@
 .dashboard-lpk-reg {
     font-size: 11px;
     font-weight: 700;
-    color: #475569;
-    background: #f1f5f9;
-    padding: 1px 7px;
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
+    color: var(--muted-strong);
+    background: var(--surface-hover, #f0f2f8);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm, 6px);
+    border: 1px solid var(--line);
 }
 
 .dashboard-lpk-name {
     font-size: 13.5px;
     font-weight: 600;
-    color: var(--ink, #0f172a);
+    color: var(--ink);
     line-height: 1.4;
     word-break: break-word;
     white-space: normal;
@@ -233,7 +234,7 @@
     align-items: center;
     gap: 4px 6px;
     font-size: 12px;
-    color: var(--muted, #64748b);
+    color: var(--muted);
     flex-wrap: wrap;
     line-height: 1.35;
     word-break: break-word;
@@ -241,7 +242,7 @@
 }
 
 .dashboard-lpk-arrow {
-    color: var(--muted, #94a3b8);
+    color: var(--muted);
     display: flex;
     align-items: center;
     flex-shrink: 0;
@@ -249,58 +250,58 @@
 }
 
 .dashboard-lpk-item:hover .dashboard-lpk-arrow {
-    color: var(--ink, #0f172a);
+    color: var(--primary);
     transform: translateX(2px);
 }
 
 .dashboard-more-link {
     font-size: 12.5px;
     font-weight: 600;
-    color: #2563eb;
+    color: var(--primary);
     display: inline-flex;
     align-items: center;
     gap: 4px;
     text-decoration: none;
-    padding: 4px 6px;
-    border-radius: 4px;
+    padding: 6px 10px;
+    border-radius: var(--radius-md, 8px);
     min-height: 32px;
     transition: color 150ms ease, background-color 150ms ease;
 }
 
 .dashboard-more-link:hover {
-    color: #1d4ed8;
-    background: #eff6ff;
+    color: var(--primary-hover);
+    background: var(--primary-subtle);
 }
 
 /* Metric Color Themes */
 .metric-icon.theme-indigo {
-    background: #eef2ff !important;
-    border-color: #c7d2fe !important;
-    color: #4f46e5 !important;
+    background: #eef4ff !important;
+    border-color: #d1e0ff !important;
+    color: var(--primary, #1972f5) !important;
 }
 
 .metric-icon.theme-emerald {
-    background: #ecfdf5 !important;
-    border-color: #a7f3d0 !important;
-    color: #059669 !important;
+    background: #ecfdf3 !important;
+    border-color: #a6f4c5 !important;
+    color: #027a48 !important;
 }
 
 .metric-icon.theme-sky {
     background: #f0f9ff !important;
-    border-color: #bae6fd !important;
-    color: #0284c7 !important;
+    border-color: #b9e6fe !important;
+    color: #026aa2 !important;
 }
 
 .metric-icon.theme-amber {
-    background: #fffbeb !important;
-    border-color: #fde68a !important;
-    color: #d97706 !important;
+    background: #fffaeb !important;
+    border-color: #fedf89 !important;
+    color: #b54708 !important;
 }
 
 .metric-icon.theme-rose {
-    background: #fef2f2 !important;
-    border-color: #fecaca !important;
-    color: #dc2626 !important;
+    background: #fef3f2 !important;
+    border-color: #fecdca !important;
+    color: #b42318 !important;
 }
 
 .metric-status-pill {
@@ -347,22 +348,23 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 7px 10px;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
+        padding: 8px 12px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md, 8px);
         box-sizing: border-box;
         width: 100%;
     }
 
     .dashboard-health-stat .stat-label {
         font-size: 11.5px;
+        color: var(--muted);
     }
 
     .dashboard-health-stat .stat-val {
         font-size: 12px;
         font-weight: 700;
-        color: #0f172a;
+        color: var(--ink);
     }
 
     .dashboard-lpk-item {

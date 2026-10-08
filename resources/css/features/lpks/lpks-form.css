@@ -19,15 +19,15 @@
 .lpk-show-header {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 12px;
     max-width: 100%;
     min-width: 0;
-    padding: 20px 24px;
+    padding: 22px 26px;
 }
 
 .lpk-header-back-wrap {
@@ -40,9 +40,9 @@
     align-items: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-md, 8px);
     box-shadow: none;
-    color: var(--muted, #615d59);
+    color: var(--muted);
     display: inline-flex;
     font-family: inherit;
     font-size: var(--text-sm, 13px);
@@ -60,15 +60,15 @@
 }
 
 .lpk-back-btn:hover {
-    background: var(--surface-hover, rgba(0, 0, 0, 0.045));
+    background: var(--surface-hover);
     border-color: transparent;
     box-shadow: none;
-    color: var(--ink, #191918);
+    color: var(--ink);
     text-decoration: none !important;
 }
 
 .lpk-back-btn:focus-visible {
-    outline: 2px solid var(--primary, #0075de);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -146,54 +146,54 @@
 }
 
 .lpk-badge-reg {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 5px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
     box-sizing: border-box;
-    color: #0f172a;
+    color: var(--muted-strong);
     display: inline-block;
     font-size: 11px;
     font-weight: 600;
     line-height: 1.3;
     max-width: 100%;
     overflow: hidden;
-    padding: 2.5px 8.5px;
+    padding: 3px 9px;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
 }
 
 .lpk-badge-acc {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 5px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
     box-sizing: border-box;
-    color: #0f172a;
+    color: var(--ink);
     display: inline-block;
     font-size: 11px;
     font-weight: 600;
     line-height: 1.3;
     max-width: 100%;
     overflow: hidden;
-    padding: 2.5px 8.5px;
+    padding: 3px 9px;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
 }
 
 .lpk-badge-type {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 5px;
+    background: var(--primary-subtle);
+    border: 1px solid rgba(25, 114, 245, 0.2);
+    border-radius: var(--radius-sm, 6px);
     box-sizing: border-box;
-    color: #1d4ed8;
+    color: var(--primary);
     display: inline-block;
     font-size: 11px;
     font-weight: 600;
     line-height: 1.3;
     max-width: 100%;
     overflow: hidden;
-    padding: 2.5px 8.5px;
+    padding: 3px 9px;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
@@ -237,10 +237,10 @@
 .lpk-form-card {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     box-sizing: border-box;
-    padding: 22px 24px;
+    padding: 24px 26px;
     position: relative;
     scroll-margin-top: 85px;
     width: 100%;
@@ -257,10 +257,10 @@
 
 .lpk-card-icon-wrap {
     align-items: center;
-    background: var(--surface-subtle, #f6f5f4);
+    background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 6px);
-    color: var(--primary, #0075de);
+    border-radius: var(--radius-lg, 12px);
+    color: var(--primary, #1972f5);
     display: flex;
     flex-shrink: 0;
     height: 38px;
@@ -391,10 +391,10 @@
 
 .lpk-drive-preview-btn {
     align-items: center;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 8px;
-    color: #15803d;
+    background: var(--success-bg, #ecfdf3);
+    border: 1px solid var(--success-border, #a6f4c5);
+    border-radius: var(--radius-lg, 12px);
+    color: var(--success-text, #027a48);
     cursor: pointer;
     display: inline-flex;
     flex-shrink: 0;
@@ -402,32 +402,33 @@
     font-weight: 600;
     gap: 6px;
     min-height: 44px;
-    padding: 0 14px;
+    padding: 0 16px;
     text-decoration: none;
-    transition: background-color 140ms ease, border-color 140ms ease;
+    transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .lpk-drive-preview-btn:hover {
-    background: #dcfce7;
-    border-color: #86efac;
+    background: #d1fadf;
+    border-color: #6ce9a6;
+    transform: translateY(-1px);
 }
 
 /* Visual KAN Surveillance Milestones Box */
 .kan-cycle-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    background: var(--surface-subtle, #f8f8fc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl, 18px);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 14px;
-    padding: 16px;
+    padding: 16px 18px;
 }
 
 .kan-cycle-box-header {
     align-items: center;
-    color: #0f172a;
+    color: var(--ink);
     display: flex;
     gap: 8px;
     font-size: 13px;
@@ -444,22 +445,23 @@
     align-items: flex-start;
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     display: flex;
     gap: 10px;
-    padding: 10px 12px;
-    transition: border-color 140ms ease;
+    padding: 12px 14px;
+    transition: border-color 140ms ease, transform 140ms ease;
 }
 
 .kan-cycle-step-item:hover {
-    border-color: #cbd5e1;
+    border-color: var(--line-subtle);
+    transform: translateY(-1px);
 }
 
 .kan-step-badge {
-    background: var(--color-blue-100, #f2f9ff);
-    border: 1px solid rgba(0, 117, 222, 0.16);
-    border-radius: var(--radius-xs, 4px);
-    color: var(--color-blue-700, #005bab);
+    background: var(--primary-subtle);
+    border: 1px solid rgba(25, 114, 245, 0.2);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--primary);
     flex-shrink: 0;
     font-size: 11.5px;
     font-weight: 600;
@@ -476,22 +478,22 @@
 }
 
 .kan-step-title {
-    color: #1e293b;
+    color: var(--ink);
     font-size: 12.5px;
     font-weight: 600;
     line-height: 1.35;
 }
 
 .kan-step-timing {
-    color: #475569;
+    color: var(--muted);
     font-size: 11.5px;
     line-height: 1.4;
 }
 
 .kan-cycle-notice {
     align-items: center;
-    border-top: 1px solid #e2e8f0;
-    color: #64748b;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
     display: flex;
     font-size: 11.5px;
     gap: 6px;
@@ -505,30 +507,30 @@
     align-items: center;
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-2xl, 24px);
+    box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     justify-content: space-between;
-    padding: 16px 24px;
+    padding: 18px 26px;
     width: 100%;
 }
 
 /* Danger Zone */
 .lpk-danger-card {
     align-items: center;
-    background: #fff5f5;
-    border: 1px solid #fecaca;
-    border-radius: 12px;
+    background: var(--danger-bg, #fef3f2);
+    border: 1px solid var(--danger-border, #fecdca);
+    border-radius: var(--radius-2xl, 24px);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
     justify-content: space-between;
     margin-top: 8px;
-    padding: 20px 24px;
+    padding: 20px 26px;
     width: 100%;
 }
 
@@ -540,14 +542,15 @@
 }
 
 .lpk-danger-title {
-    color: #991b1b;
+    color: var(--danger-text, #b42318);
     font-size: 14.5px;
     font-weight: 700;
 }
 
 .lpk-danger-desc {
-    color: #7f1d1d;
+    color: var(--danger-text, #b42318);
     font-size: 12.5px;
     line-height: 1.45;
+    opacity: 0.9;
 }
 

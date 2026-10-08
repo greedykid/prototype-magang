@@ -19,14 +19,14 @@
 .gcal-sidebar {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 18px 16px;
+    border-radius: var(--radius-2xl, 24px);
+    padding: 20px 18px;
     display: flex;
     flex-direction: column;
     gap: 22px;
     position: sticky;
     top: 80px;
-    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
+    box-shadow: var(--shadow-card);
 }
 
 .gcal-sidebar-toggle-btn {
@@ -49,29 +49,29 @@
 .gcal-btn-create {
     align-items: center;
     background: var(--surface, #ffffff);
-    border: 1px solid var(--line, #cbd5e1);
-    border-radius: 9px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-    color: var(--ink, #0f172a);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+    color: var(--ink);
     cursor: pointer;
     display: flex;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
     gap: 8px;
-    height: 40px;
-    min-height: 40px;
+    height: 42px;
+    min-height: 42px;
     justify-content: space-between;
-    padding: 0 12px;
+    padding: 0 14px;
     transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
     white-space: nowrap;
     width: 100%;
 }
 
 .gcal-btn-create:hover {
-    background: #f8fafc;
-    border-color: #94a3b8;
-    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+    background: var(--surface-subtle);
+    border-color: var(--line-subtle);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
     transform: translateY(-1px);
 }
 
