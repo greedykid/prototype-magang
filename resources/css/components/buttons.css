@@ -388,17 +388,17 @@ button.is-loading > svg:not(.btn-spinner svg),
 
 /* Dark Mode Overrides for All Button Tiers */
 html[data-theme="dark"] .button.primary {
-    background: #0075de;
-    border-color: #0075de;
+    background: var(--primary-gradient);
+    border-color: var(--primary-border, #3d7fde);
     color: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 html[data-theme="dark"] .button.primary:hover {
-    background: #097fe8;
-    border-color: #097fe8;
+    background: var(--primary-hover);
+    border-color: var(--primary-border, #3d7fde);
     color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--shadow-sm);
 }
 
 html[data-theme="dark"] .button.secondary {

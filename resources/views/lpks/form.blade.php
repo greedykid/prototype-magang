@@ -340,7 +340,7 @@
             <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" class="form-delete-lpk" data-lpk-name="{{ $lpk->name }}" data-lpk-reg="{{ $lpk->registration_number }}" style="margin: 0;">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="button danger" style="background: #dc2626; border-color: #b91c1c; color: #ffffff;">
+                <button type="submit" class="button danger">
                     <x-icon name="trash" size="16" />
                     <span>Hapus LPK ini</span>
                 </button>

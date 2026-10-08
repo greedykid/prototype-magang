@@ -71,7 +71,7 @@ html[data-theme="dark"] .lpk-selected-name {
 }
 
 html[data-theme="dark"] .lpk-selected-info-meta {
-    border-top-color: #1e293b;
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-selected-cert strong {
@@ -194,8 +194,8 @@ html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-key-target {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--surface-subtle);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-key-target-header {
@@ -460,9 +460,9 @@ html[data-theme="dark"] .lpk-team-member.is-lead {
 }
 
 html[data-theme="dark"] .lpk-member-avatar {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .lpk-member-avatar.is-lead {

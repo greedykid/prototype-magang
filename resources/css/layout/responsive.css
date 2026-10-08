@@ -12,7 +12,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 }
 
 .list-row:hover, .list-row:focus-visible {
-    background: #fbf3ec;
+    background: var(--surface-hover);
     transform: translateX(4px);
 }
 
@@ -888,7 +888,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         padding: 7px 10px !important;
         background: var(--surface) !important;
         border: 1px solid var(--line) !important;
-        border-radius: 6px !important;
+        border-radius: var(--radius-md, 12px) !important;
         box-sizing: border-box !important;
         width: 100% !important;
     }
@@ -900,7 +900,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     .dashboard-health-stat .stat-val {
         font-size: 12px !important;
         font-weight: 700 !important;
-        color: #0f172a !important;
+        color: var(--ink) !important;
     }
 
     .dashboard-lpk-item {

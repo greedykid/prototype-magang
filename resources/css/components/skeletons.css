@@ -160,7 +160,7 @@
 
 /* Skeleton Loading Dark Mode Overrides */
 html[data-theme="dark"] .skeleton-box {
-    background: #1e293b;
+    background: var(--surface-subtle);
 }
 
 html[data-theme="dark"] .skeleton-box::after {

@@ -744,7 +744,7 @@ html[data-theme="dark"] .simasadi-modal-box {
 }
 
 html[data-theme="dark"] .simasadi-modal-close:hover {
-    background: #1e293b;
+    background: var(--surface-hover);
     color: var(--ink);
 }
 
@@ -796,36 +796,36 @@ html[data-theme="dark"] .file-dropzone.is-dragover {
 }
 
 html[data-theme="dark"] .file-dropzone.has-file {
-    background: var(--card-bg, #202020);
-    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    background: var(--card-bg);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .dropzone-icon-wrap {
-    background: #191918;
-    border-color: var(--line, rgba(255, 255, 255, 0.1));
-    color: var(--primary, #62aef0);
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .file-dropzone.is-dragover .dropzone-icon-wrap {
-    background: var(--primary, #62aef0);
-    color: #121212;
+    background: var(--primary);
+    color: #ffffff;
 }
 
 html[data-theme="dark"] .dropzone-prompt {
-    color: var(--ink, #f6f5f4);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .dropzone-prompt strong {
-    color: var(--primary, #62aef0);
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .dropzone-sub {
-    color: var(--muted, #a39e98);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .dropzone-active-content {
-    background: #202020;
-    border-color: var(--line, rgba(255, 255, 255, 0.1));
+    background: var(--surface-subtle);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .dropzone-file-name {

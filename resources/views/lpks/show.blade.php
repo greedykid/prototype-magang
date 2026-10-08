@@ -57,7 +57,7 @@
                     <form method="POST" action="{{ route('lpks.destroy', $lpk) }}" class="form-delete-lpk" data-lpk-name="{{ $lpk->name }}" data-lpk-reg="{{ $lpk->registration_number }}" style="margin: 0; display: inline-block;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="button danger" style="background: #dc2626; border-color: #b91c1c; color: #ffffff; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
+                        <button type="submit" class="button danger" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
                             <x-icon name="trash" size="14" />
                             <span>Hapus LPK</span>
                         </button>
@@ -664,7 +664,7 @@
                             <strong class="lpk-subdate-val">{{ ($ra['tolerance_date'] ?? null) ? $ra['tolerance_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         @if($lpk->isInGracePeriod() && $lpk->grace_period_deadline)
-                            <div class="lpk-subdate-row" style="color: #b45309;">
+                            <div class="lpk-subdate-row" style="color: var(--warning-text, #b45309);">
                                 <span class="lpk-subdate-label">Batas Masa Tenggang (6 Bulan):</span>
                                 <strong class="lpk-subdate-val">{{ $lpk->grace_period_deadline->format('d M Y') }}</strong>
                             </div>
@@ -1095,7 +1095,7 @@
                                           style="margin: 0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 4px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan tautan akun PIC ini">
+                                        <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--danger-text, #ef4444); display: inline-flex; align-items: center;" title="Putuskan tautan akun PIC ini">
                                             <x-icon name="trash" size="14" />
                                         </button>
                                     </form>
@@ -1227,7 +1227,7 @@
                                             <div class="assessment-list-sk" style="margin-top: 4px; font-size: 11.5px; color: var(--muted); overflow-wrap: break-word; word-break: break-word;">
                                                 SK KAN: {{ $item->sk_number }} @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif
                                                 @if($item->sk_lead_time_days !== null)
-                                                    &bull; <span style="font-weight: 600; color: #047857;">Durasi: {{ $item->sk_lead_time_days }} hari</span>
+                                                    &bull; <span style="font-weight: 600; color: var(--green, #10b981);">Durasi: {{ $item->sk_lead_time_days }} hari</span>
                                                 @endif
                                             </div>
                                         @endif

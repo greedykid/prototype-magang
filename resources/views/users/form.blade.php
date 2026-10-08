@@ -25,7 +25,7 @@
 
 <section class="panel" style="max-width: 680px;">
     @if($errors->any())
-        <div class="alert danger" style="margin-bottom: 20px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+        <div class="alert danger">
             <strong style="display: block; margin-bottom: 6px;">Terdapat kesalahan pada formulir:</strong>
             <ul style="margin: 0; padding-left: 18px;">
                 @foreach($errors->all() as $error)
@@ -75,7 +75,7 @@
                 </option>
             </select>
             @if($user->exists && auth()->id() === $user->id)
-                <small style="color: #b91c1c; font-size: 11.5px; display: block; margin-top: 4px;">
+                <small style="color: var(--danger-text, #ef4444); font-size: 11.5px; display: block; margin-top: 4px;">
                     Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses Ketua Tim.
                 </small>
             @else

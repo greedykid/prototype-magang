@@ -2,20 +2,20 @@
    Dashboard Dark Theme Overrides
    ========================================================================== */
 html[data-theme="dark"] .metric-icon {
-    background: #1e293b;
-    border-color: #334155;
-    color: #94a3b8;
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .metric:hover .metric-icon {
-    background: #253349;
-    border-color: #475569;
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
     color: var(--ink);
 }
 
 html[data-theme="dark"] .metric:hover {
-    border-color: #334155;
-    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
+    border-color: var(--line-subtle);
+    box-shadow: var(--shadow-sm);
 }
 
 html[data-theme="dark"] .metric-icon.theme-indigo {
@@ -167,27 +167,27 @@ html[data-theme="dark"] .surveillance-alert-item {
 }
 
 html[data-theme="dark"] .surveillance-alert-actions .button.secondary {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-subtle);
+    border-color: var(--line);
     color: var(--ink);
 }
 
 html[data-theme="dark"] .surveillance-alert-actions .button.secondary:hover {
-    background: #334155;
-    border-color: #475569;
-    color: #ffffff;
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .surveillance-alert-actions .button.ghost {
     background: transparent;
     border-color: transparent;
-    color: #cbd5e1;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .surveillance-alert-actions .button.ghost:hover {
-    background: #1e293b;
+    background: var(--surface-hover);
     border-color: transparent;
-    color: #ffffff;
+    color: var(--ink);
 }
 
 .dashboard-alert-desc.is-urgent { color: #b91c1c; }

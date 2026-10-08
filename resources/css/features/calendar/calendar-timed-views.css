@@ -18,8 +18,8 @@
 
 .gcal-time-corner {
     align-items: center;
-    border-right: 1px solid #eeece8;
-    color: #8c887f;
+    border-right: 1px solid var(--line);
+    color: var(--muted);
     display: flex;
     font-size: 10px;
     font-weight: 700;
@@ -28,7 +28,7 @@
 
 .gcal-week-col-head {
     align-items: center;
-    border-right: 1px solid #eeece8;
+    border-right: 1px solid var(--line);
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -40,7 +40,7 @@
 }
 
 .gcal-col-dayname {
-    color: #8c887f;
+    color: var(--muted);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -60,7 +60,7 @@
 }
 
 .gcal-col-daynum.is-today {
-    background: var(--primary, #0075de);
+    background: var(--primary);
     color: #ffffff;
 }
 
@@ -72,7 +72,7 @@
 }
 
 .gcal-time-gutter {
-    border-right: 1px solid #eeece8;
+    border-right: 1px solid var(--line);
     box-sizing: border-box;
 }
 
@@ -80,7 +80,7 @@
     align-items: flex-start;
     border-bottom: 1px solid transparent;
     box-sizing: border-box;
-    color: #8c887f;
+    color: var(--muted);
     display: flex;
     font-size: 11px;
     height: 56px;
@@ -100,7 +100,7 @@
 }
 
 .gcal-week-col {
-    border-right: 1px solid #eeece8;
+    border-right: 1px solid var(--line);
     box-sizing: border-box;
     position: relative;
 }
@@ -110,7 +110,7 @@
 }
 
 .gcal-hour-slot {
-    border-bottom: 1px solid #f0eeea;
+    border-bottom: 1px solid var(--line);
     box-sizing: border-box;
     cursor: pointer;
     height: 56px;
@@ -118,7 +118,7 @@
 }
 
 .gcal-hour-slot:hover {
-    background: #faf8f5;
+    background: var(--surface-hover);
 }
 
 /* Red Line Current Time Indicator */
@@ -297,7 +297,7 @@
 }
 
 .gcal-agenda-group {
-    border-bottom: 1px solid #f0eeea;
+    border-bottom: 1px solid var(--line);
     padding-bottom: 16px;
 }
 

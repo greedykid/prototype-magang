@@ -221,7 +221,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         {{-- Total Asesmen --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border, #bae6fd);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
                 <x-icon name="assessments" size="20" />
             </div>
             <div>
@@ -232,23 +232,23 @@
 
         {{-- Asesmen Terjadwal & Berjalan --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid #fde68a;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--warning-bg); color: var(--warning-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--warning-border);">
                 <x-icon name="calendar" size="20" />
             </div>
             <div>
                 <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);">Terjadwal & Berjalan</div>
-                <div style="font-size: 20px; font-weight: 800; color: #b45309;">{{ $activeAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Agenda</span></div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--warning-text);">{{ $activeAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Agenda</span></div>
             </div>
         </div>
 
         {{-- Asesmen Selesai --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--success-border);">
                 <x-icon name="check-circle" size="20" />
             </div>
             <div>
                 <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);">Asesmen Selesai</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--green, #047857);">{{ $completedAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Selesai</span></div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--success-text);">{{ $completedAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Selesai</span></div>
             </div>
         </div>
     </div>

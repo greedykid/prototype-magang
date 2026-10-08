@@ -58,7 +58,7 @@
             </div>
 
             @if($errors->hasBag('default') && ($errors->has('name') || $errors->has('email')))
-                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                <div class="alert danger" style="margin-bottom: 18px;">
                     <ul style="margin: 0; padding-left: 18px;">
                         @foreach($errors->get('name') as $error)
                             <li>{{ $error }}</li>
@@ -138,7 +138,7 @@
             </div>
 
             @if($errors->has('current_password') || $errors->has('password'))
-                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                <div class="alert danger" style="margin-bottom: 18px;">
                     <ul style="margin: 0; padding-left: 18px;">
                         @foreach($errors->get('current_password') as $error)
                             <li>{{ $error }}</li>
@@ -276,7 +276,7 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center; border-radius: 6px;" title="Putuskan tautan">
+                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: var(--danger-text); display: inline-flex; align-items: center; border-radius: var(--radius-xs, 6px);" title="Putuskan tautan">
                                     <x-icon name="trash" size="14" />
                                 </button>
                             </form>

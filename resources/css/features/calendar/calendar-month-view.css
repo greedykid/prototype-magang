@@ -26,8 +26,8 @@
 }
 
 .gcal-month-cell {
-    border-bottom: 1px solid #eeece8;
-    border-right: 1px solid #eeece8;
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -42,11 +42,11 @@
 }
 
 .gcal-month-cell:hover {
-    background: #fcfbfa;
+    background: var(--surface-hover);
 }
 
 .gcal-month-cell.outside {
-    background: #faf9f7;
+    background: var(--surface-subtle);
     opacity: 0.65;
 }
 
@@ -369,7 +369,7 @@ html[data-theme="dark"] .gcal-range-floating-pill {
 }
 
 .gcal-cell-add-btn:hover {
-    background: #eae7e1;
+    background: var(--surface-hover);
     color: var(--ink);
 }
 

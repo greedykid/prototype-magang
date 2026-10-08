@@ -312,8 +312,8 @@
 
 /* 6. AKAN DATANG (BELUM ADA AGENDA & BELUM REMINDER) - NETRAL SLATE */
 .lpk-milestone-card.is-upcoming {
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
+    background: var(--surface, #ffffff);
+    border: 1.5px solid var(--line, #cbd5e1);
     border-top: 3.5px solid #94a3b8;
 }
 .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
@@ -328,7 +328,7 @@
 }
 .lpk-milestone-card.is-upcoming .lpk-key-target-date,
 .lpk-milestone-card.is-upcoming .lpk-target-value {
-    color: #0f172a;
+    color: var(--ink);
 }
 
 /* Current Focus State Ring: Memberi penegasan fokus alur tanpa mengubah warna border status */
@@ -384,10 +384,10 @@
 
 .badge-focus {
     align-items: center;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 5px;
-    color: #ffffff;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs, 6px);
+    color: var(--surface);
     display: inline-flex;
     font-size: 10px;
     font-weight: 700;
@@ -606,7 +606,7 @@
 
 .lpk-team-member {
     align-items: center;
-    background: #ffffff;
+    background: var(--surface, #ffffff);
     border-bottom: 1px solid var(--line, #e2e8f0);
     display: flex;
     gap: 12px;

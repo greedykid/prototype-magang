@@ -459,7 +459,7 @@ html[data-theme="dark"] .custom-select-option.is-selected.is-focused {
 }
 
 html[data-theme="dark"] .custom-select-search-input:focus {
-    background: var(--input-bg, #202020) !important;
+    background: var(--input-bg) !important;
 }
 
 html[data-theme="dark"] .custom-select-badge,
@@ -470,9 +470,9 @@ html[data-theme="dark"] .custom-select-badge-trigger {
 }
 
 html[data-theme="dark"] .custom-select-option.is-selected .custom-select-badge {
-    background: rgba(0, 117, 222, 0.25);
-    border-color: rgba(0, 117, 222, 0.5);
-    color: #93c5fd;
+    background: var(--primary-subtle, rgba(25, 114, 245, 0.25));
+    border-color: var(--primary-border, rgba(61, 127, 222, 0.5));
+    color: var(--primary);
 }
 
 
