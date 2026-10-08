@@ -607,7 +607,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: transparent !important;
         border: none !important;
-        border-radius: 50% !important;
+        border-radius: var(--radius-md, 8px) !important;
         box-shadow: none !important;
         display: inline-flex !important;
         flex-shrink: 0 !important;
