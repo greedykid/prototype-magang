@@ -23,7 +23,7 @@
                         $currentUnifiedStatus = 'CANCELLED';
                     } elseif ($assessment->status === 'COMPLETED' || $assessment->tp_status === 'SATISFIED' || !empty($assessment->sk_number)) {
                         $currentUnifiedStatus = 'COMPLETED';
-                    } elseif ($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue) {
+                    } elseif ($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue || $assessment->is_submission_overdue) {
                         $currentUnifiedStatus = 'SUSPENDED';
                     } elseif ($assessment->tp_status === 'UNDER_VERIFICATION') {
                         $currentUnifiedStatus = 'UNDER_VERIFICATION';

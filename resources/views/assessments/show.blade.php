@@ -65,6 +65,18 @@
                     Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>) tanpa penyelesaian.
                 </p>
             </div>
+            @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
+                <div class="lpk-alert-callout-actions">
+                    <a href="{{ route('assessments.create', ['lpk_id' => $assessment->lpk_id, 'assessment_type' => 'INITIAL', 'title' => 'Akreditasi Awal - ' . ($assessment->lpk?->name ?? '')]) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Daftarkan permohonan asesmen akreditasi awal baru">
+                        <x-icon name="plus" size="14" />
+                        <span>Ajukan Akreditasi Awal</span>
+                    </a>
+                    <a href="{{ route('assessments.edit', $assessment) }}" class="button secondary button-sm lpk-alert-action-btn" title="Ubah atau perbarui data asesmen">
+                        <x-icon name="edit" size="14" />
+                        <span>Perbarui Data Asesmen</span>
+                    </a>
+                </div>
+            @endif
         </div>
     @elseif($assessment->status === 'SUSPENDED' || $assessment->is_tp_overdue || $assessment->is_submission_overdue)
         <div class="lpk-alert-callout is-suspended">
@@ -83,6 +95,22 @@
                     @endif
                 </p>
             </div>
+            @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
+                <div class="lpk-alert-callout-actions">
+                    <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking')" title="Buka modal untuk menandai status selesai, input tanggal laporan, atau input SK KAN">
+                        <x-icon name="check-circle" size="14" />
+                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Selesaikan Status TP' }}</span>
+                    </button>
+                    <a href="{{ route('assessments.edit', $assessment) }}#form-sk-block" class="button secondary button-sm lpk-alert-action-btn" title="Langsung menuju blok pengisian Surat Keputusan (SK) KAN di formulir ubah">
+                        <x-icon name="accreditations" size="14" />
+                        <span>Input SK KAN</span>
+                    </a>
+                    <a href="{{ route('assessments.edit', $assessment) }}" class="button secondary button-sm lpk-alert-action-btn" title="Ubah tanggal pelaksanaan atau rincian agenda asesmen">
+                        <x-icon name="edit" size="14" />
+                        <span>Perbarui Asesmen</span>
+                    </a>
+                </div>
+            @endif
         </div>
     @endif
 
