@@ -520,7 +520,42 @@ class CalendarEventController extends Controller
             }
         }
 
-        $eventsByDate = $unifiedEvents->sortBy('start_at')->groupBy(fn ($ev) => $ev['start_at']->toDateString());
+        $eventsByDate = collect();
+        foreach ($unifiedEvents->sortBy('start_at') as $ev) {
+            $startDate = $ev['start_at']->toDateString();
+            $endDate = ($ev['end_at'] ?? $ev['start_at'])->toDateString();
+
+            if ($startDate === $endDate) {
+                if (! $eventsByDate->has($startDate)) {
+                    $eventsByDate->put($startDate, collect());
+                }
+                $eventsByDate->get($startDate)->push($ev);
+            } else {
+                $startCarbon = CarbonImmutable::parse($startDate);
+                $endCarbon = CarbonImmutable::parse($endDate);
+                $totalDays = (int) $startCarbon->diffInDays($endCarbon) + 1;
+                $curr = $startCarbon;
+
+                while ($curr->lte($endCarbon)) {
+                    $currKey = $curr->toDateString();
+                    $dayIndex = (int) $startCarbon->diffInDays($curr) + 1;
+
+                    $evCopy = $ev;
+                    $evCopy['is_multi_day'] = true;
+                    $evCopy['is_range_start'] = ($currKey === $startDate);
+                    $evCopy['is_range_end'] = ($currKey === $endDate);
+                    $evCopy['range_day_index'] = $dayIndex;
+                    $evCopy['range_total_days'] = $totalDays;
+
+                    if (! $eventsByDate->has($currKey)) {
+                        $eventsByDate->put($currKey, collect());
+                    }
+                    $eventsByDate->get($currKey)->push($evCopy);
+
+                    $curr = $curr->addDay();
+                }
+            }
+        }
 
         // For backwards-compatibility with tests that check $events or $weeks
         $events = $calendarEvents->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());

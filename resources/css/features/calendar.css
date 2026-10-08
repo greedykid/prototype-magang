@@ -878,6 +878,62 @@
     background: #f0f9ff;
 }
 
+/* Date Range Drag-to-Select in Calendar Grid */
+body.is-selecting-calendar-range {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    cursor: cell !important;
+}
+
+body.is-selecting-calendar-range .gcal-month-cell {
+    cursor: cell !important;
+}
+
+.gcal-month-cell.gcal-cell-range-selected {
+    background: rgba(2, 132, 199, 0.08) !important;
+    outline: 2px dashed #0284c7;
+    outline-offset: -2px;
+}
+
+.gcal-month-cell.gcal-cell-range-start {
+    background: rgba(2, 132, 199, 0.14) !important;
+    border-left: 3px solid #0284c7 !important;
+}
+
+.gcal-month-cell.gcal-cell-range-end {
+    background: rgba(2, 132, 199, 0.14) !important;
+    border-right: 3px solid #0284c7 !important;
+}
+
+html[data-theme="dark"] .gcal-month-cell.gcal-cell-range-selected {
+    background: rgba(56, 189, 248, 0.12) !important;
+    outline-color: #38bdf8;
+}
+
+html[data-theme="dark"] .gcal-month-cell.gcal-cell-range-start,
+html[data-theme="dark"] .gcal-month-cell.gcal-cell-range-end {
+    background: rgba(56, 189, 248, 0.22) !important;
+}
+
+/* Multi-Day Event Chip Enhancements */
+.gcal-event-chip.gcal-chip-multiday {
+    border-left-width: 3px;
+    font-weight: 600;
+}
+
+.gcal-event-chip.gcal-chip-multiday .gcal-chip-arrow {
+    font-size: 11px;
+    margin-right: 3px;
+    opacity: 0.75;
+}
+
+.gcal-event-chip.gcal-chip-multiday .gcal-chip-day-count {
+    font-size: 10px;
+    opacity: 0.8;
+    margin-left: 3px;
+    font-weight: 500;
+}
+
 @keyframes gcal-highlight-pulse {
     0% {
         box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);

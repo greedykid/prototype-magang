@@ -3,7 +3,7 @@
         <div class="simasadi-modal-head">
             <div>
                 <h4 id="quick-add-title" style="margin: 0; font-size: 18px; font-weight: 700;">Buat Agenda Kegiatan Baru</h4>
-                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--muted);">Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.</p>
+                <p id="quick-add-subtitle" style="margin: 4px 0 0 0; font-size: 13px; color: var(--muted);">Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.</p>
             </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal(this)" aria-label="Tutup modal">&times;</button>
         </div>

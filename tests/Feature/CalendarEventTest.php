@@ -100,6 +100,32 @@ class CalendarEventTest extends TestCase
         $this->assertEquals('2026-09-25 17:00:00', $event->end_at->toDateTimeString());
     }
 
+    public function test_authenticated_user_can_create_and_view_multi_day_range_calendar_event(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create();
+
+        $response = $this->actingAs($user)->post('/calendar/events', [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Lapangan Terjadwal',
+            'start_date' => '2026-10-12',
+            'end_date' => '2026-10-15',
+            'status' => 'PLANNED',
+        ]);
+
+        $event = CalendarEvent::where('title', 'Asesmen Lapangan Terjadwal')->firstOrFail();
+        $response->assertRedirect('/calendar/events/'.$event->id);
+        $this->assertEquals('2026-10-12 09:00:00', $event->start_at->toDateTimeString());
+        $this->assertEquals('2026-10-15 17:00:00', $event->end_at->toDateTimeString());
+
+        // View month calendar at 2026-10
+        $calendarResponse = $this->actingAs($user)->get('/calendar?view=month&date=2026-10-12');
+        $calendarResponse->assertOk()
+            ->assertSee('gcal-chip-multiday', false)
+            ->assertSee('Asesmen Lapangan Terjadwal')
+            ->assertSee('(1/4)', false);
+    }
+
     public function test_calendar_month_navigation_does_not_carry_over_circle_highlight_unless_selected(): void
     {
         $user = User::factory()->create();

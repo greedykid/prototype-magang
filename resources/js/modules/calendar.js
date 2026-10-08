@@ -279,14 +279,14 @@ function closeEventPopover(triggerEl) {
 }
 window.closeEventPopover = closeEventPopover;
 
-function quickAddAt(dateStr, timeStr = '09:00') {
+function quickAddAtRange(startDateStr, endDateStr, timeStr = '09:00') {
     const startDateInput = document.getElementById('quick-input-start-date');
     const endDateInput = document.getElementById('quick-input-end-date');
     const startTimeInput = document.getElementById('quick-input-start-time');
     const endTimeInput = document.getElementById('quick-input-end-time');
 
-    if (startDateInput) startDateInput.value = dateStr;
-    if (endDateInput) endDateInput.value = dateStr;
+    if (startDateInput) startDateInput.value = startDateStr;
+    if (endDateInput) endDateInput.value = endDateStr;
 
     if (timeStr && startTimeInput) {
         startTimeInput.value = timeStr;
@@ -298,13 +298,73 @@ function quickAddAt(dateStr, timeStr = '09:00') {
     }
 
     const modalHeading = document.getElementById('quick-add-title');
-    if (modalHeading) {
-        modalHeading.textContent = 'Buat Agenda Kegiatan Baru';
+    const modalSubtitle = document.getElementById('quick-add-subtitle');
+
+    if (startDateStr === endDateStr) {
+        if (modalHeading) modalHeading.textContent = 'Buat Agenda Kegiatan Baru';
+        if (modalSubtitle) modalSubtitle.textContent = 'Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.';
+    } else {
+        const startD = new Date(startDateStr);
+        const endD = new Date(endDateStr);
+        const diffDays = Math.round(Math.abs(endD - startD) / (1000 * 60 * 60 * 24)) + 1;
+
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        const formattedStart = startD.toLocaleDateString('id-ID', options);
+        const formattedEnd = endD.toLocaleDateString('id-ID', options);
+
+        if (modalHeading) modalHeading.textContent = `Buat Agenda Rentang (${diffDays} Hari)`;
+        if (modalSubtitle) modalSubtitle.textContent = `Rentang kegiatan: ${formattedStart} s.d. ${formattedEnd}`;
     }
 
+    initQuickAddDateSync();
     openModal('modal-quick-add-event');
 }
+window.quickAddAtRange = quickAddAtRange;
+
+function quickAddAt(dateStr, timeStr = '09:00') {
+    quickAddAtRange(dateStr, dateStr, timeStr);
+}
 window.quickAddAt = quickAddAt;
+
+function initQuickAddDateSync() {
+    const startInput = document.getElementById('quick-input-start-date');
+    const endInput = document.getElementById('quick-input-end-date');
+    const subtitle = document.getElementById('quick-add-subtitle');
+    const heading = document.getElementById('quick-add-title');
+
+    if (!startInput || !endInput || startInput._syncBound) return;
+    startInput._syncBound = true;
+
+    const handleDateChange = () => {
+        if (!startInput.value) return;
+        if (!endInput.value || endInput.value < startInput.value) {
+            endInput.value = startInput.value;
+        }
+
+        if (startInput.value === endInput.value) {
+            if (heading && !heading.textContent.includes('Ubah')) {
+                heading.textContent = 'Buat Agenda Kegiatan Baru';
+            }
+            if (subtitle) {
+                subtitle.textContent = 'Jadwalkan kegiatan internal atau koordinasi monitoring akreditasi.';
+            }
+        } else {
+            const s = new Date(startInput.value);
+            const e = new Date(endInput.value);
+            const diffDays = Math.round(Math.abs(e - s) / (1000 * 60 * 60 * 24)) + 1;
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            if (heading && !heading.textContent.includes('Ubah')) {
+                heading.textContent = `Buat Agenda Rentang (${diffDays} Hari)`;
+            }
+            if (subtitle) {
+                subtitle.textContent = `Rentang kegiatan: ${s.toLocaleDateString('id-ID', options)} s.d. ${e.toLocaleDateString('id-ID', options)}`;
+            }
+        }
+    };
+
+    startInput.addEventListener('change', handleDateChange);
+    endInput.addEventListener('change', handleDateChange);
+}
 
 function openCreateDropdown(toggleBtn) {
     const menu = document.getElementById('gcal-create-menu');
@@ -742,11 +802,132 @@ function initCalendarHighlight() {
     }
 }
 
+function initCalendarRangeSelection() {
+    const monthGrid = document.querySelector('.gcal-month-grid');
+    if (!monthGrid) return;
+
+    let isMouseDown = false;
+    let isDragging = false;
+    let dragStartDate = null;
+    let currentHoverDate = null;
+    let startX = 0;
+    let startY = 0;
+
+    const updateHighlight = (d1, d2) => {
+        if (!d1 || !d2) return;
+        const [minD, maxD] = [d1, d2].sort();
+        const cells = monthGrid.querySelectorAll('.gcal-month-cell');
+        cells.forEach((cell) => {
+            const d = cell.dataset.date;
+            if (!d) return;
+            if (d >= minD && d <= maxD) {
+                cell.classList.add('gcal-cell-range-selected');
+                cell.classList.toggle('gcal-cell-range-start', d === minD);
+                cell.classList.toggle('gcal-cell-range-end', d === maxD);
+            } else {
+                cell.classList.remove('gcal-cell-range-selected', 'gcal-cell-range-start', 'gcal-cell-range-end');
+            }
+        });
+    };
+
+    const clearHighlight = () => {
+        monthGrid.querySelectorAll('.gcal-cell-range-selected, .gcal-cell-range-start, .gcal-cell-range-end').forEach((el) => {
+            el.classList.remove('gcal-cell-range-selected', 'gcal-cell-range-start', 'gcal-cell-range-end');
+        });
+        document.body.classList.remove('is-selecting-calendar-range');
+    };
+
+    monthGrid.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+
+        // Skip interactive buttons, chips, links
+        if (e.target.closest('button, a, input, select, .gcal-event-chip, .gcal-more-chip, .gcal-day-badge, .gcal-cell-add-btn')) {
+            return;
+        }
+
+        const cell = e.target.closest('.gcal-month-cell');
+        if (!cell || !cell.dataset.date) return;
+
+        // Shift + Click range selection
+        if (e.shiftKey && window._lastClickedCalendarDate) {
+            e.preventDefault();
+            const [d1, d2] = [window._lastClickedCalendarDate, cell.dataset.date].sort();
+            quickAddAtRange(d1, d2);
+            return;
+        }
+
+        isMouseDown = true;
+        isDragging = false;
+        dragStartDate = cell.dataset.date;
+        currentHoverDate = cell.dataset.date;
+        startX = e.clientX;
+        startY = e.clientY;
+        window._lastClickedCalendarDate = dragStartDate;
+    });
+
+    const handleMouseMove = (e) => {
+        if (!isMouseDown) return;
+
+        const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+        if (dist > 8 && !isDragging) {
+            isDragging = true;
+            document.body.classList.add('is-selecting-calendar-range');
+            updateHighlight(dragStartDate, dragStartDate);
+        }
+
+        if (!isDragging) return;
+
+        const elemUnder = document.elementFromPoint(e.clientX, e.clientY);
+        const cell = elemUnder ? elemUnder.closest('.gcal-month-cell') : null;
+        if (cell && cell.dataset.date && cell.dataset.date !== currentHoverDate) {
+            currentHoverDate = cell.dataset.date;
+            updateHighlight(dragStartDate, currentHoverDate);
+        }
+    };
+
+    const handleMouseUp = (e) => {
+        if (!isMouseDown) return;
+
+        const wasDragging = isDragging;
+        const sDate = dragStartDate;
+        const hDate = currentHoverDate;
+
+        isMouseDown = false;
+        isDragging = false;
+        dragStartDate = null;
+        currentHoverDate = null;
+        clearHighlight();
+
+        if (wasDragging && sDate && hDate && sDate !== hDate) {
+            e.preventDefault();
+            const [d1, d2] = [sDate, hDate].sort();
+            quickAddAtRange(d1, d2);
+        } else if (!wasDragging && sDate) {
+            quickAddAt(sDate, '09:00');
+        }
+    };
+
+    if (monthGrid._docRangeMoveHandler) {
+        document.removeEventListener('mousemove', monthGrid._docRangeMoveHandler);
+    }
+    if (monthGrid._docRangeUpHandler) {
+        document.removeEventListener('mouseup', monthGrid._docRangeUpHandler);
+    }
+
+    monthGrid._docRangeMoveHandler = handleMouseMove;
+    monthGrid._docRangeUpHandler = handleMouseUp;
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+}
+
 function initGcalComponents() {
     initGcalLiveTimeLine();
     initGcalFilters();
     initGcalMonthYearPicker();
     initCalendarHighlight();
+    initCalendarRangeSelection();
+    initQuickAddDateSync();
     if (typeof window.scheduleAdjacentCalendarPrefetch === 'function') {
         window.scheduleAdjacentCalendarPrefetch();
     }
@@ -757,6 +938,7 @@ export {
     returnPopoverToPlaceholder,
     closeEventPopover,
     quickAddAt,
+    quickAddAtRange,
     toggleCreateDropdown,
     openCreateDropdown,
     closeCreateDropdown,
@@ -766,5 +948,6 @@ export {
     initGcalFilters,
     initGcalMonthYearPicker,
     initCalendarHighlight,
+    initCalendarRangeSelection,
     initGcalComponents
 };

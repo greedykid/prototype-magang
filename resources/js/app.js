@@ -15,6 +15,7 @@ import {
     returnPopoverToPlaceholder,
     closeEventPopover,
     quickAddAt,
+    quickAddAtRange,
     toggleCreateDropdown,
     openCreateDropdown,
     closeCreateDropdown,
@@ -56,6 +57,7 @@ window.showEventPopover = showEventPopover;
 window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
 window.quickAddAt = quickAddAt;
+window.quickAddAtRange = quickAddAtRange;
 window.toggleCreateDropdown = toggleCreateDropdown;
 window.openCreateDropdown = openCreateDropdown;
 window.closeCreateDropdown = closeCreateDropdown;
