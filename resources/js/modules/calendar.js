@@ -748,6 +748,9 @@ function initGcalComponents() {
     initGcalFilters();
     initGcalMonthYearPicker();
     initCalendarHighlight();
+    if (typeof window.scheduleAdjacentCalendarPrefetch === 'function') {
+        window.scheduleAdjacentCalendarPrefetch();
+    }
 }
 
 export {

@@ -24,7 +24,15 @@ import {
     initGcalFilters,
     initGcalComponents
 } from './modules/calendar.js';
-import { initSpaRouter, navigateTo, clearPageCache, prefetchUrl } from './modules/spa-router.js';
+import {
+    initSpaRouter,
+    navigateTo,
+    clearPageCache,
+    prefetchUrl,
+    clearCalendarCache,
+    prefetchCalendarPartial,
+    scheduleAdjacentCalendarPrefetch
+} from './modules/spa-router.js';
 import { initLiveFilters, executePartialFilter } from './modules/live-filter.js';
 import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
 import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
@@ -55,6 +63,9 @@ window.updateQuickAddType = updateQuickAddType;
 window.navigateTo = navigateTo;
 window.clearPageCache = clearPageCache;
 window.prefetchUrl = prefetchUrl;
+window.clearCalendarCache = clearCalendarCache;
+window.prefetchCalendarPartial = prefetchCalendarPartial;
+window.scheduleAdjacentCalendarPrefetch = scheduleAdjacentCalendarPrefetch;
 window.toggleSidebarState = toggleSidebarState;
 window.initDataTables = initDataTables;
 window.executePartialFilter = executePartialFilter;

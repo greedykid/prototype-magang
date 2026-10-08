@@ -479,6 +479,102 @@ const clearPageCache = () => {
 };
 window.clearPageCache = clearPageCache;
 
+// ==========================================================================
+// In-Memory Calendar Shell Cache & Adjacent Month Prefetch Engine
+// Menghilangkan delay sama sekali (0ms / Zero-Delay) saat pindah-pindah bulan
+// ==========================================================================
+const calendarCache = new Map();
+const CALENDAR_CACHE_TTL = 15 * 60 * 1000; // 15 menit
+const calendarPrefetchInFlight = new Map();
+
+const clearCalendarCache = () => {
+    calendarCache.clear();
+    calendarPrefetchInFlight.clear();
+};
+window.clearCalendarCache = clearCalendarCache;
+
+const getCalendarCacheKey = (rawUrl) => {
+    try {
+        const u = new URL(rawUrl, window.location.origin);
+        const params = new URLSearchParams(u.search);
+        params.sort();
+        return `${u.pathname}?${params.toString()}`;
+    } catch {
+        return rawUrl;
+    }
+};
+
+const prefetchCalendarPartial = async (rawUrl) => {
+    try {
+        const u = new URL(rawUrl, window.location.origin);
+        if (u.pathname !== '/calendar') return null;
+
+        const cacheKey = getCalendarCacheKey(rawUrl);
+        const cached = calendarCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp < CALENDAR_CACHE_TTL)) {
+            return cached.htmlText;
+        }
+
+        if (calendarPrefetchInFlight.has(cacheKey)) {
+            return calendarPrefetchInFlight.get(cacheKey);
+        }
+
+        const fetchPromise = fetch(u.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Partial-Content': 'calendar'
+            }
+        }).then(async (response) => {
+            calendarPrefetchInFlight.delete(cacheKey);
+            if (!response.ok || response.redirected) return null;
+            const text = await response.text();
+            calendarCache.set(cacheKey, {
+                htmlText: text,
+                timestamp: Date.now()
+            });
+            return text;
+        }).catch(() => {
+            calendarPrefetchInFlight.delete(cacheKey);
+            return null;
+        });
+
+        calendarPrefetchInFlight.set(cacheKey, fetchPromise);
+        return fetchPromise;
+    } catch {
+        return null;
+    }
+};
+
+const scheduleAdjacentCalendarPrefetch = () => {
+    const runPrefetch = () => {
+        const shell = document.querySelector('.gcal-shell');
+        if (!shell) return;
+
+        // 1. Simpan shell yang sedang aktif ke cache jika belum ada
+        const currentKey = getCalendarCacheKey(window.location.href);
+        if (!calendarCache.has(currentKey)) {
+            calendarCache.set(currentKey, {
+                htmlText: shell.outerHTML,
+                timestamp: Date.now()
+            });
+        }
+
+        // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, serta tombol hari ini
+        const arrowLinks = document.querySelectorAll('.gcal-nav-arrows a.gcal-arrow-btn, .gcal-mini-nav a.gcal-mini-nav-btn, .gcal-nav-group a.gcal-btn-today');
+        arrowLinks.forEach((link) => {
+            if (link.href) {
+                prefetchCalendarPartial(link.href);
+            }
+        });
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(runPrefetch, { timeout: 800 });
+    } else {
+        setTimeout(runPrefetch, 60);
+    }
+};
+
 const isCacheableUrl = (urlStr) => {
     try {
         const u = new URL(urlStr, window.location.origin);
@@ -582,14 +678,9 @@ const navigateTo = async (url, pushState = true) => {
                                      !targetUrlObj.pathname.match(/\/calendar\/events\/\d+/);
 
         // =========================================================================
-        // IN-CALENDAR SEAMLESS TRANSITION
+        // IN-CALENDAR SEAMLESS ZERO-DELAY TRANSITION
         // =========================================================================
         if (isCalendarToCalendar) {
-            const curShell = document.querySelector('.gcal-shell');
-            if (curShell) {
-                curShell.classList.add('gcal-is-updating');
-            }
-
             // Preserve active category checkbox filters, selected LPK, and selected PIC
             const activeCatStates = {};
             document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
@@ -603,19 +694,48 @@ const navigateTo = async (url, pushState = true) => {
                 url = targetUrlObj.toString();
             }
 
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-Partial-Content': 'calendar'
-                }
-            });
+            const cacheKey = getCalendarCacheKey(url);
+            let htmlText = null;
+            const cached = calendarCache.get(cacheKey);
+            const isCacheHit = Boolean(cached && (Date.now() - cached.timestamp < CALENDAR_CACHE_TTL));
 
-            if (!response.ok || response.redirected) {
-                window.location.href = response.url || url;
-                return;
+            if (isCacheHit) {
+                // INSTANT 0ms DOM SWAP - NO NETWORK DELAY, NO OPACITY DIMMING
+                htmlText = cached.htmlText;
+            } else {
+                // Cache miss: tampilkan indikator loading hanya saat menunggu jaringan
+                const curShell = document.querySelector('.gcal-shell');
+                if (curShell) {
+                    curShell.classList.add('gcal-is-updating');
+                }
+
+                if (calendarPrefetchInFlight.has(cacheKey)) {
+                    htmlText = await calendarPrefetchInFlight.get(cacheKey);
+                }
+
+                if (!htmlText) {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Partial-Content': 'calendar'
+                        }
+                    });
+
+                    if (!response.ok || response.redirected) {
+                        window.location.href = response.url || url;
+                        return;
+                    }
+
+                    htmlText = await response.text();
+                }
+
+                // Simpan ke cache untuk navigasi kembali yang instan
+                calendarCache.set(cacheKey, {
+                    htmlText,
+                    timestamp: Date.now()
+                });
             }
 
-            const htmlText = await response.text();
             const activeShell = document.querySelector('.gcal-shell');
 
             let newShell = null;
@@ -644,6 +764,7 @@ const navigateTo = async (url, pushState = true) => {
             }
 
             if (newShell && activeShell) {
+                newShell.classList.remove('gcal-is-updating');
                 activeShell.replaceWith(newShell);
             } else {
                 const newContent = tempDiv.querySelector('#page-content-wrapper') || tempDiv.querySelector('.page-wrap');
@@ -691,6 +812,9 @@ const navigateTo = async (url, pushState = true) => {
             if (pushState) {
                 window.history.pushState({ url }, '', url);
             }
+
+            // Rantai prefetch otomatis: Unduh bulan berikutnya & sebelumnya di latar belakang
+            scheduleAdjacentCalendarPrefetch();
 
             window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
             return;
@@ -855,7 +979,7 @@ const navigateTo = async (url, pushState = true) => {
 };
 
 let routerInitialized = false;
-export const initSpaRouter = (callback) => {
+const initSpaRouter = (callback) => {
     if (callback) {
         onNavigateCallback = callback;
     }
@@ -927,17 +1051,27 @@ export const initSpaRouter = (callback) => {
         if (link.hasAttribute('download')) return;
         if (link.closest('form')) return;
 
-        prefetchUrl(link.href);
+        try {
+            const url = new URL(link.href, window.location.origin);
+            if (url.pathname === '/calendar') {
+                prefetchCalendarPartial(link.href);
+            } else {
+                prefetchUrl(link.href);
+            }
+        } catch {
+            // Abaikan URL tidak valid
+        }
     };
 
     document.addEventListener('pointerenter', handlePrefetch, { passive: true, capture: true });
     document.addEventListener('touchstart', handlePrefetch, { passive: true, capture: true });
 
-    // Invalidate page cache when any mutative form is submitted
+    // Invalidate page & calendar cache when any mutative form is submitted
     document.addEventListener('submit', (event) => {
         const form = event.target.closest('form');
         if (form && form.method.toUpperCase() !== 'GET') {
             clearPageCache();
+            clearCalendarCache();
         }
     }, { capture: true });
 
@@ -957,6 +1091,28 @@ export const initSpaRouter = (callback) => {
             }
         }
     });
+
+    // Otomatis aktifkan prefetch bulan sebelum & sesudah saat pertama kali halaman kalender dimuat
+    if (window.location.pathname === '/calendar') {
+        scheduleAdjacentCalendarPrefetch();
+    }
 };
 
-export { navigateTo, clearPageCache, prefetchUrl };
+window.navigateTo = navigateTo;
+window.clearPageCache = clearPageCache;
+window.prefetchUrl = prefetchUrl;
+window.clearCalendarCache = clearCalendarCache;
+window.prefetchCalendarPartial = prefetchCalendarPartial;
+window.scheduleAdjacentCalendarPrefetch = scheduleAdjacentCalendarPrefetch;
+
+export {
+    initSpaRouter,
+    navigateTo,
+    clearPageCache,
+    prefetchUrl,
+    clearCalendarCache,
+    getCalendarCacheKey,
+    prefetchCalendarPartial,
+    scheduleAdjacentCalendarPrefetch
+};
+
