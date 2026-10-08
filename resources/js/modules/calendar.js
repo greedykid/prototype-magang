@@ -802,9 +802,110 @@ function initCalendarHighlight() {
     }
 }
 
+const RANGE_ANCHOR_KEY = 'simasadi_calendar_range_anchor';
+
+function getRangeAnchor() {
+    try {
+        return sessionStorage.getItem(RANGE_ANCHOR_KEY) || window._calendarRangeAnchor || null;
+    } catch {
+        return window._calendarRangeAnchor || null;
+    }
+}
+
+function setRangeAnchor(dateStr) {
+    if (!dateStr) {
+        clearRangeAnchor();
+        return;
+    }
+    window._calendarRangeAnchor = dateStr;
+    window._lastClickedCalendarDate = dateStr;
+    try {
+        sessionStorage.setItem(RANGE_ANCHOR_KEY, dateStr);
+    } catch (_) {}
+    renderRangeFloatingPill();
+    updateAnchorCellHighlight();
+}
+
+function clearRangeAnchor() {
+    window._calendarRangeAnchor = null;
+    try {
+        sessionStorage.removeItem(RANGE_ANCHOR_KEY);
+    } catch (_) {}
+    renderRangeFloatingPill();
+    updateAnchorCellHighlight();
+}
+window.getRangeAnchor = getRangeAnchor;
+window.setRangeAnchor = setRangeAnchor;
+window.clearRangeAnchor = clearRangeAnchor;
+
+function toggleRangeSelectionMode() {
+    const currentAnchor = getRangeAnchor();
+    if (currentAnchor) {
+        clearRangeAnchor();
+    } else {
+        const shell = document.querySelector('.gcal-shell');
+        const defaultDate = shell?.dataset?.activeDate || window._lastClickedCalendarDate || new Date().toISOString().slice(0, 10);
+        setRangeAnchor(defaultDate);
+    }
+}
+window.toggleRangeSelectionMode = toggleRangeSelectionMode;
+
+function updateAnchorCellHighlight() {
+    const anchor = getRangeAnchor();
+    document.querySelectorAll('.gcal-month-cell').forEach((cell) => {
+        const isAnchor = Boolean(anchor && cell.dataset.date === anchor);
+        cell.classList.toggle('gcal-cell-anchor-start', isAnchor);
+    });
+
+    const rangeBtn = document.getElementById('gcal-btn-range-mode');
+    if (rangeBtn) {
+        rangeBtn.classList.toggle('is-active', Boolean(anchor));
+    }
+}
+
+function renderRangeFloatingPill() {
+    const anchor = getRangeAnchor();
+    let pill = document.getElementById('gcal-range-floating-pill');
+
+    if (!anchor) {
+        if (pill) pill.remove();
+        return;
+    }
+
+    if (!pill) {
+        pill = document.createElement('div');
+        pill.id = 'gcal-range-floating-pill';
+        pill.className = 'gcal-range-floating-pill';
+        const targetContainer = document.querySelector('.gcal-main') || document.querySelector('.page-wrap');
+        const toolbar = document.querySelector('.gcal-toolbar');
+        if (toolbar && toolbar.nextSibling) {
+            toolbar.parentNode.insertBefore(pill, toolbar.nextSibling);
+        } else if (targetContainer) {
+            targetContainer.prepend(pill);
+        }
+    }
+
+    const startD = new Date(anchor);
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    const formatted = startD.toLocaleDateString('id-ID', options);
+
+    pill.innerHTML = `
+        <div class="gcal-range-pill-content">
+            <span class="gcal-range-pill-badge">Mode Rentang</span>
+            <span>Mulai: <strong>${formatted}</strong> &bull; Pindah ke bulan/tahun mana saja, lalu klik tanggal selesai (atau Shift+Klik)</span>
+        </div>
+        <div class="gcal-range-pill-actions">
+            <button type="button" class="gcal-range-pill-btn-close" onclick="window.clearRangeAnchor()" title="Batalkan rentang">&times;</button>
+        </div>
+    `;
+}
+
 function initCalendarRangeSelection() {
     const monthGrid = document.querySelector('.gcal-month-grid');
     if (!monthGrid) return;
+
+    renderRangeFloatingPill();
+    updateAnchorCellHighlight();
 
     let isMouseDown = false;
     let isDragging = false;
@@ -830,17 +931,69 @@ function initCalendarRangeSelection() {
         });
     };
 
-    const clearHighlight = () => {
+    const clearDragHighlight = () => {
         monthGrid.querySelectorAll('.gcal-cell-range-selected, .gcal-cell-range-start, .gcal-cell-range-end').forEach((el) => {
             el.classList.remove('gcal-cell-range-selected', 'gcal-cell-range-start', 'gcal-cell-range-end');
         });
         document.body.classList.remove('is-selecting-calendar-range');
+        updateAnchorCellHighlight();
     };
 
+    // Capture-phase click listener: handles Shift+Click and Active Range Mode across all elements in cells
+    if (monthGrid._rangeCaptureClickHandler) {
+        monthGrid.removeEventListener('click', monthGrid._rangeCaptureClickHandler, true);
+    }
+
+    const handleCaptureClick = (e) => {
+        if (e.target.closest('.gcal-event-chip')) return;
+
+        const cell = e.target.closest('.gcal-month-cell');
+        if (!cell || !cell.dataset.date) return;
+
+        const clickedDate = cell.dataset.date;
+        const activeAnchor = getRangeAnchor();
+
+        // 1. Shift + Click
+        if (e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const anchor = activeAnchor || window._lastClickedCalendarDate || document.querySelector('.gcal-shell')?.dataset?.activeDate;
+
+            if (anchor && anchor !== clickedDate) {
+                const [d1, d2] = [anchor, clickedDate].sort();
+                clearRangeAnchor();
+                quickAddAtRange(d1, d2);
+            } else {
+                setRangeAnchor(clickedDate);
+            }
+            return;
+        }
+
+        // 2. Active Anchor Mode (User previously picked a start date and is clicking the end date across months/years)
+        if (activeAnchor) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (activeAnchor !== clickedDate) {
+                const [d1, d2] = [activeAnchor, clickedDate].sort();
+                clearRangeAnchor();
+                quickAddAtRange(d1, d2);
+            } else {
+                clearRangeAnchor();
+                quickAddAt(clickedDate, '09:00');
+            }
+            return;
+        }
+    };
+
+    monthGrid._rangeCaptureClickHandler = handleCaptureClick;
+    monthGrid.addEventListener('click', handleCaptureClick, true);
+
+    // Mousedown listener for in-month drag-to-select
     monthGrid.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
 
-        // Skip interactive buttons, chips, links
         if (e.target.closest('button, a, input, select, .gcal-event-chip, .gcal-more-chip, .gcal-day-badge, .gcal-cell-add-btn')) {
             return;
         }
@@ -848,13 +1001,7 @@ function initCalendarRangeSelection() {
         const cell = e.target.closest('.gcal-month-cell');
         if (!cell || !cell.dataset.date) return;
 
-        // Shift + Click range selection
-        if (e.shiftKey && window._lastClickedCalendarDate) {
-            e.preventDefault();
-            const [d1, d2] = [window._lastClickedCalendarDate, cell.dataset.date].sort();
-            quickAddAtRange(d1, d2);
-            return;
-        }
+        if (getRangeAnchor()) return;
 
         isMouseDown = true;
         isDragging = false;
@@ -896,13 +1043,14 @@ function initCalendarRangeSelection() {
         isDragging = false;
         dragStartDate = null;
         currentHoverDate = null;
-        clearHighlight();
+        clearDragHighlight();
 
         if (wasDragging && sDate && hDate && sDate !== hDate) {
             e.preventDefault();
             const [d1, d2] = [sDate, hDate].sort();
             quickAddAtRange(d1, d2);
         } else if (!wasDragging && sDate) {
+            window._lastClickedCalendarDate = sDate;
             quickAddAt(sDate, '09:00');
         }
     };
@@ -939,6 +1087,10 @@ export {
     closeEventPopover,
     quickAddAt,
     quickAddAtRange,
+    getRangeAnchor,
+    setRangeAnchor,
+    clearRangeAnchor,
+    toggleRangeSelectionMode,
     toggleCreateDropdown,
     openCreateDropdown,
     closeCreateDropdown,

@@ -16,6 +16,10 @@ import {
     closeEventPopover,
     quickAddAt,
     quickAddAtRange,
+    getRangeAnchor,
+    setRangeAnchor,
+    clearRangeAnchor,
+    toggleRangeSelectionMode,
     toggleCreateDropdown,
     openCreateDropdown,
     closeCreateDropdown,
@@ -58,6 +62,10 @@ window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
 window.quickAddAt = quickAddAt;
 window.quickAddAtRange = quickAddAtRange;
+window.getRangeAnchor = getRangeAnchor;
+window.setRangeAnchor = setRangeAnchor;
+window.clearRangeAnchor = clearRangeAnchor;
+window.toggleRangeSelectionMode = toggleRangeSelectionMode;
 window.toggleCreateDropdown = toggleCreateDropdown;
 window.openCreateDropdown = openCreateDropdown;
 window.closeCreateDropdown = closeCreateDropdown;

@@ -31,6 +31,11 @@
                         Hari ini
                     </a>
 
+                    <button type="button" class="button secondary gcal-btn-range" onclick="window.toggleRangeSelectionMode()" id="gcal-btn-range-mode" title="Pilih rentang tanggal agenda melintasi bulan atau tahun">
+                        <x-icon name="calendar" size="14" />
+                        <span class="gcal-btn-range-label">Pilih Rentang</span>
+                    </button>
+
                     <div class="gcal-nav-arrows">
                         @if($viewMode === 'month')
                             <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $prevMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">

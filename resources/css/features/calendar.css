@@ -915,6 +915,134 @@ html[data-theme="dark"] .gcal-month-cell.gcal-cell-range-end {
     background: rgba(56, 189, 248, 0.22) !important;
 }
 
+/* Persistent Range Anchor Start Cell */
+.gcal-month-cell.gcal-cell-anchor-start {
+    outline: 2px solid #0284c7 !important;
+    outline-offset: -2px;
+    background: rgba(2, 132, 199, 0.12) !important;
+}
+
+.gcal-month-cell.gcal-cell-anchor-start::after {
+    content: 'Mulai';
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0284c7;
+    background: #e0f2fe;
+    padding: 1px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+html[data-theme="dark"] .gcal-month-cell.gcal-cell-anchor-start {
+    outline-color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.18) !important;
+}
+
+html[data-theme="dark"] .gcal-month-cell.gcal-cell-anchor-start::after {
+    color: #38bdf8;
+    background: #0369a1;
+}
+
+/* Range Selection Floating Banner Pill */
+.gcal-range-floating-pill {
+    margin: 8px 16px 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #0284c7;
+    color: #ffffff;
+    padding: 9px 16px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+    animation: gcal-pill-enter 160ms var(--ease-out-expo) forwards;
+}
+
+@keyframes gcal-pill-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gcal-range-pill-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+}
+
+.gcal-range-pill-badge {
+    background: rgba(255, 255, 255, 0.22);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.gcal-range-pill-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gcal-range-pill-btn-close {
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 120ms ease;
+}
+
+.gcal-range-pill-btn-close:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+html[data-theme="dark"] .gcal-range-floating-pill {
+    background: #0369a1;
+    color: #f0f9ff;
+}
+
+.gcal-btn-range {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 140ms ease;
+}
+
+.gcal-btn-range.is-active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border-color: #0284c7 !important;
+}
+
+@media (max-width: 640px) {
+    .gcal-btn-range .gcal-btn-range-label {
+        display: none;
+    }
+}
+
 /* Multi-Day Event Chip Enhancements */
 .gcal-event-chip.gcal-chip-multiday {
     border-left-width: 3px;
