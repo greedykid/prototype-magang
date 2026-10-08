@@ -119,7 +119,7 @@ export const handleCalendarTransition = async ({ url, targetUrlObj, pageWrap, pu
 
     // Sync date in quick-add modal only if modal is not open and no range anchor is active
     const isModalOpen = document.getElementById('modal-quick-add-event')?.classList.contains('is-active');
-    const hasRangeAnchor = typeof window.getRangeAnchor === 'function' && window.getRangeAnchor();
+    const hasRangeAnchor = typeof window.getRangeAnchor === 'function' && (window.getRangeAnchor() || (typeof window.isRangePendingStart === 'function' && window.isRangePendingStart()));
     if (activeDateVal && !isModalOpen && !hasRangeAnchor) {
         const curStartDate = document.getElementById('quick-input-start-date');
         if (curStartDate) curStartDate.value = activeDateVal;
