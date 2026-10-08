@@ -573,7 +573,7 @@
                 </div>
 
                 {{-- KARTU 5: Keputusan Akreditasi / SK KAN --}}
-                <div id="form-sk-block" class="lpk-form-card">
+                <div id="form-sk-block" class="lpk-form-card" style="scroll-margin-top: 85px;">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-emerald">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1171,27 +1171,48 @@
         updateStatus();
 
         // Auto-scroll dan fokus langsung ke pengisian SK jika diakses dari notifikasi SK
-        const currentHash = window.location.hash;
-        const focusParam = new URLSearchParams(window.location.search).get('focus');
-        if (currentHash === '#form-sk-block' || currentHash === '#assessment-sk-number' || focusParam === 'sk') {
-            setTimeout(function() {
-                const targetInput = document.getElementById('assessment-sk-number');
-                const targetCard = document.getElementById('form-sk-block');
-                if (targetCard) {
-                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    if (targetInput) {
+        function checkAndScrollToSk() {
+            const currentHash = window.location.hash;
+            const focusParam = new URLSearchParams(window.location.search).get('focus');
+            const isSkTarget = currentHash === '#form-sk-block' || currentHash === '#assessment-sk-number' || focusParam === 'sk';
+
+            if (!isSkTarget) return;
+
+            const targetCard = document.getElementById('form-sk-block');
+            const targetInput = document.getElementById('assessment-sk-number');
+            if (targetCard) {
+                const topbar = document.querySelector('.topbar');
+                const topbarOffset = (topbar ? topbar.offsetHeight : 64) + 16;
+                const cardTop = targetCard.getBoundingClientRect().top + window.pageYOffset;
+
+                window.scrollTo({
+                    top: Math.max(0, cardTop - topbarOffset),
+                    behavior: 'smooth'
+                });
+
+                if (targetInput) {
+                    try {
+                        targetInput.focus({ preventScroll: true });
+                    } catch (e) {
                         targetInput.focus();
                     }
-                    targetCard.style.transition = 'box-shadow 300ms ease, border-color 300ms ease';
-                    targetCard.style.borderColor = 'var(--primary, #0075de)';
-                    targetCard.style.boxShadow = '0 0 0 3px rgba(0, 117, 222, 0.2)';
-                    setTimeout(function() {
-                        targetCard.style.borderColor = '';
-                        targetCard.style.boxShadow = '';
-                    }, 2500);
                 }
-            }, 180);
+
+                targetCard.style.transition = 'box-shadow 300ms ease, border-color 300ms ease';
+                targetCard.style.borderColor = 'var(--primary, #0075de)';
+                targetCard.style.boxShadow = '0 0 0 3px rgba(0, 117, 222, 0.25)';
+                setTimeout(function() {
+                    targetCard.style.borderColor = '';
+                    targetCard.style.boxShadow = '';
+                }, 3000);
+            }
         }
+
+        // Jalankan scroll langsung serta jeda bertahap agar stabil saat render layout
+        checkAndScrollToSk();
+        setTimeout(checkAndScrollToSk, 120);
+        setTimeout(checkAndScrollToSk, 350);
+        window.addEventListener('load', checkAndScrollToSk, { once: true });
     }
 
     if (document.readyState === 'loading') {

@@ -242,6 +242,7 @@
     box-sizing: border-box;
     padding: 22px 24px;
     position: relative;
+    scroll-margin-top: 85px;
     width: 100%;
 }
 

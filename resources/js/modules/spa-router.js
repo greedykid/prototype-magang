@@ -688,11 +688,11 @@ const navigateTo = async (url, pushState = true) => {
             if (typeof initCustomSelects === 'function') initCustomSelects(document);
             if (typeof initCustomPickers === 'function') initCustomPickers(document);
 
-            window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
-
             if (pushState) {
                 window.history.pushState({ url }, '', url);
             }
+
+            window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
             return;
         }
 
@@ -802,6 +802,12 @@ const navigateTo = async (url, pushState = true) => {
         void pageWrap.offsetWidth;
         pageWrap.classList.add('page-enter-active');
 
+        // Update URL state BEFORE executing page scripts so window.location (pathname, search, hash)
+        // reflects the destination page when inline scripts and page-loaded handlers run
+        if (pushState) {
+            window.history.pushState({ url }, '', url);
+        }
+
         // Re-execute script tags within swapped content (since innerHTML disables scripts)
         pageWrap.querySelectorAll('script').forEach((oldScript) => {
             const newScript = document.createElement('script');
@@ -819,8 +825,25 @@ const navigateTo = async (url, pushState = true) => {
 
         window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
 
-        if (pushState) {
-            window.history.pushState({ url }, '', url);
+        // Handle target hash scroll if navigation included an anchor fragment
+        if (targetUrlObj.hash) {
+            setTimeout(() => {
+                try {
+                    const hashId = targetUrlObj.hash.slice(1);
+                    const targetElement = document.getElementById(hashId) || document.querySelector(targetUrlObj.hash);
+                    if (targetElement) {
+                        const topbar = document.querySelector('.topbar');
+                        const topbarOffset = (topbar ? topbar.offsetHeight : 64) + 16;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                        window.scrollTo({
+                            top: Math.max(0, targetPosition - topbarOffset),
+                            behavior: 'smooth'
+                        });
+                    }
+                } catch (_) {
+                    // Ignore selector errors
+                }
+            }, 60);
         }
     } catch (err) {
         console.error('Page transition error, falling back:', err);
