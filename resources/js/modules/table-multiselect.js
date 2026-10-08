@@ -168,6 +168,10 @@ async function handleBulkDelete(bulkBar) {
         // Clear selection
         clearTableSelection(tableId);
 
+        // Invalidate router cache so counts and metrics across other views update
+        if (typeof window.clearPageCache === 'function') window.clearPageCache();
+        if (typeof window.clearCalendarCache === 'function') window.clearCalendarCache();
+
         // Show success alert
         Swal.fire({
             icon: 'success',

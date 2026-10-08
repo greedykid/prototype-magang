@@ -11,8 +11,11 @@ import {
     clearPageCache,
     clearCalendarCache,
     getCalendarCacheKey,
+    getCleanPageUrl,
+    cacheCurrentPage,
     prefetchCalendarPartial,
     scheduleAdjacentCalendarPrefetch,
+    scheduleNavigationPrewarm,
     isCacheableUrl,
     prefetchUrl
 } from './spa/router-cache.js';
@@ -108,6 +111,7 @@ const scrollToAnchorHash = (hash) => {
 
 /**
  * SPA-Style Transition & Navigation Controller
+ * Delivers zero-delay (0ms) instant switches across all application menus.
  */
 const navigateTo = async (url, pushState = true) => {
     const pageWrap = document.querySelector('#page-content-wrapper') || document.querySelector('.page-wrap');
@@ -159,7 +163,7 @@ const navigateTo = async (url, pushState = true) => {
         let htmlText = null;
         let fetchUrlRedirect = null;
 
-        const cleanTargetUrl = targetUrlObj.href;
+        const cleanTargetUrl = getCleanPageUrl(targetUrlObj.href);
         const cached = pageCache.get(cleanTargetUrl);
 
         if (cached && (Date.now() - cached.timestamp < PAGE_CACHE_TTL)) {
@@ -242,6 +246,9 @@ const navigateTo = async (url, pushState = true) => {
 
         window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
 
+        // Schedule proactive idle prewarm for adjacent menus
+        scheduleNavigationPrewarm();
+
         scrollToAnchorHash(targetUrlObj.hash);
     } catch (err) {
         console.error('Page transition error, falling back:', err);
@@ -312,7 +319,7 @@ const initSpaRouter = (callback) => {
         navigateTo(url.toString());
     });
 
-    // Prefetch on hover (pointerenter) and mobile touchstart
+    // Prefetch on hover (pointerenter), touchstart, and pointerdown (instant mousedown trigger)
     const handlePrefetch = (event) => {
         const link = event.target.closest('a');
         if (!link) return;
@@ -335,6 +342,7 @@ const initSpaRouter = (callback) => {
     };
 
     document.addEventListener('pointerenter', handlePrefetch, { passive: true, capture: true });
+    document.addEventListener('pointerdown', handlePrefetch, { passive: true, capture: true });
     document.addEventListener('touchstart', handlePrefetch, { passive: true, capture: true });
 
     // Invalidate caches when mutative form submits
@@ -363,9 +371,8 @@ const initSpaRouter = (callback) => {
         }
     });
 
-    if (window.location.pathname === '/calendar') {
-        scheduleAdjacentCalendarPrefetch();
-    }
+    // Proactively prewarm all primary navigation links and active page
+    scheduleNavigationPrewarm();
 };
 
 // Window bindings for backward compatibility and inline Blade usage
@@ -375,6 +382,8 @@ window.prefetchUrl = prefetchUrl;
 window.clearCalendarCache = clearCalendarCache;
 window.prefetchCalendarPartial = prefetchCalendarPartial;
 window.scheduleAdjacentCalendarPrefetch = scheduleAdjacentCalendarPrefetch;
+window.scheduleNavigationPrewarm = scheduleNavigationPrewarm;
+window.cacheCurrentPage = cacheCurrentPage;
 
 export {
     initSpaRouter,
@@ -383,6 +392,9 @@ export {
     prefetchUrl,
     clearCalendarCache,
     getCalendarCacheKey,
+    getCleanPageUrl,
+    cacheCurrentPage,
     prefetchCalendarPartial,
-    scheduleAdjacentCalendarPrefetch
+    scheduleAdjacentCalendarPrefetch,
+    scheduleNavigationPrewarm
 };

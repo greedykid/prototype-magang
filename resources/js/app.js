@@ -31,7 +31,8 @@ import {
     prefetchUrl,
     clearCalendarCache,
     prefetchCalendarPartial,
-    scheduleAdjacentCalendarPrefetch
+    scheduleAdjacentCalendarPrefetch,
+    scheduleNavigationPrewarm
 } from './modules/spa-router.js';
 import { initLiveFilters, executePartialFilter } from './modules/live-filter.js';
 import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
@@ -66,6 +67,7 @@ window.prefetchUrl = prefetchUrl;
 window.clearCalendarCache = clearCalendarCache;
 window.prefetchCalendarPartial = prefetchCalendarPartial;
 window.scheduleAdjacentCalendarPrefetch = scheduleAdjacentCalendarPrefetch;
+window.scheduleNavigationPrewarm = scheduleNavigationPrewarm;
 window.toggleSidebarState = toggleSidebarState;
 window.initDataTables = initDataTables;
 window.executePartialFilter = executePartialFilter;
