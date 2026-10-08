@@ -62,7 +62,21 @@ class LpkController extends Controller
         $needsSurveillanceFilter = ! empty($surveillance);
 
         if ($needsDynamicStatusFilter || $needsSurveillanceFilter) {
-            $candidateLpks = (clone $query)->with('assessments')->get();
+            $candidateQuery = (clone $query)
+                ->select(['id', 'status', 'certificate_date', 'expired_at', 'last_surveillance_notified_at'])
+                ->with(['assessments' => function ($q) {
+                    $q->select([
+                        'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
+                        'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                        'report_date', 'eha_date', 'sk_number', 'created_at',
+                    ]);
+                }]);
+
+            if ($status === 'EXPIRED') {
+                $candidateQuery->whereNotNull('expired_at')->where('expired_at', '<', now());
+            }
+
+            $candidateLpks = $candidateQuery->get();
             foreach ($candidateLpks as $candidate) {
                 foreach ($candidate->assessments as $asm) {
                     $asm->setRelation('lpk', $candidate);
@@ -89,7 +103,12 @@ class LpkController extends Controller
                 });
             }
 
-            $query->whereIn('id', $candidateLpks->pluck('id'));
+            $validIds = $candidateLpks->pluck('id')->all();
+            if (empty($validIds)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('id', $validIds);
+            }
         }
 
         $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
@@ -340,47 +359,7 @@ class LpkController extends Controller
                 ];
             }
 
-            // Konfigurasi SMTP dinamis: Cegah host 127.0.0.1 lokal dan dukung port 587/2525 secara otomatis
-            $host = config('mail.mailers.smtp.host');
-            if (empty($host) || $host === '127.0.0.1') {
-                $host = 'sandbox.smtp.mailtrap.io';
-            }
-
-            $port = (int) (config('mail.mailers.smtp.port') ?: 587);
-            if ($port !== 587 && $port !== 2525 && empty($port)) {
-                $port = 587;
-            }
-
-            $username = config('mail.mailers.smtp.username');
-            $password = config('mail.mailers.smtp.password');
-            $encryption = config('mail.mailers.smtp.encryption') ?: 'tls';
-
-            // Selalu bersihkan cache mailer agar instance lama di php artisan serve tidak digunakan
-            \Illuminate\Support\Facades\Mail::purge('smtp');
-            config([
-                'mail.default' => 'smtp',
-                'mail.mailers.smtp.transport' => 'smtp',
-                'mail.mailers.smtp.host' => $host,
-                'mail.mailers.smtp.port' => $port,
-                'mail.mailers.smtp.username' => $username,
-                'mail.mailers.smtp.password' => $password,
-                'mail.mailers.smtp.encryption' => $encryption,
-                'mail.mailers.smtp.timeout' => 10,
-            ]);
-
-            try {
-                \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
-            } catch (\Throwable $sendException) {
-                // Auto-fallback dual-port: jika port 587/2525 terkendala di network lokal atau cloud, coba port pasangannya secara otomatis
-                if (str_contains($host, 'mailtrap.io') && in_array($port, [587, 2525], true)) {
-                    $altPort = ($port === 587) ? 2525 : 587;
-                    \Illuminate\Support\Facades\Mail::purge('smtp');
-                    config(['mail.mailers.smtp.port' => $altPort]);
-                    \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
-                } else {
-                    throw $sendException;
-                }
-            }
+            \Illuminate\Support\Facades\Mail::to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('lpks', 'last_surveillance_notified_at')) {
                 $lpk->update(['last_surveillance_notified_at' => now()]);

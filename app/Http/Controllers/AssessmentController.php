@@ -114,7 +114,19 @@ class AssessmentController extends Controller
                     });
                 } elseif ($status === 'IN_PROGRESS') {
                     $query->where('status', 'IN_PROGRESS')
+                        ->where('tp_status', '!=', Assessment::TP_STATUS_SATISFIED)
+                        ->whereNull('sk_number')
                         ->whereNotIn('id', Assessment::select('id')->tpOverdue());
+                } elseif ($status === 'PLANNED') {
+                    $query->where('status', 'PLANNED')
+                        ->where('tp_status', '!=', Assessment::TP_STATUS_SATISFIED)
+                        ->whereNull('sk_number');
+                } elseif ($status === 'COMPLETED') {
+                    $query->where(function ($q) {
+                        $q->where('status', 'COMPLETED')
+                            ->orWhere('tp_status', Assessment::TP_STATUS_SATISFIED)
+                            ->orWhereNotNull('sk_number');
+                    });
                 } else {
                     $query->where('status', $status);
                 }

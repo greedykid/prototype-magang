@@ -226,7 +226,22 @@ const navigateTo = async (url, pushState = true) => {
             contextTitle.textContent = newContextTitle.textContent;
         }
 
+        const newMetaCsrf = doc.querySelector('meta[name="csrf-token"]');
+        if (newMetaCsrf) {
+            const currentMeta = document.querySelector('meta[name="csrf-token"]');
+            if (currentMeta) {
+                currentMeta.setAttribute('content', newMetaCsrf.getAttribute('content'));
+            }
+        }
+
         pageWrap.innerHTML = newContent.innerHTML;
+
+        const activeCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (activeCsrfToken) {
+            pageWrap.querySelectorAll('input[name="_token"]').forEach(input => {
+                input.value = activeCsrfToken;
+            });
+        }
 
         pageWrap.classList.remove('page-enter-active');
         void pageWrap.offsetWidth;
@@ -345,10 +360,17 @@ const initSpaRouter = (callback) => {
     document.addEventListener('pointerdown', handlePrefetch, { passive: true, capture: true });
     document.addEventListener('touchstart', handlePrefetch, { passive: true, capture: true });
 
-    // Invalidate caches when mutative form submits
+    // Invalidate caches and refresh token when mutative form submits
     document.addEventListener('submit', (event) => {
         const form = event.target.closest('form');
         if (form && form.method.toUpperCase() !== 'GET') {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (token) {
+                const tokenInput = form.querySelector('input[name="_token"]');
+                if (tokenInput && tokenInput.value !== token) {
+                    tokenInput.value = token;
+                }
+            }
             clearPageCache();
             clearCalendarCache();
         }

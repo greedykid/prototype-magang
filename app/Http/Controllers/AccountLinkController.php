@@ -30,8 +30,18 @@ class AccountLinkController extends Controller
             ->orderBy('name')
             ->get();
 
+        $ownerIds = $linkedOwners->pluck('id')->all();
+        $assessmentCounts = ! empty($ownerIds)
+            ? Assessment::join('lpks', 'assessments.lpk_id', '=', 'lpks.id')
+                ->whereIn('lpks.pic_id', $ownerIds)
+                ->groupBy('lpks.pic_id')
+                ->selectRaw('lpks.pic_id, count(assessments.id) as aggregate')
+                ->pluck('aggregate', 'pic_id')
+                ->all()
+            : [];
+
         foreach ($linkedOwners as $owner) {
-            $owner->assessments_count = Assessment::whereHas('lpk', fn ($q) => $q->where('pic_id', $owner->id))->count();
+            $owner->assessments_count = $assessmentCounts[$owner->id] ?? 0;
         }
 
         $alreadyViewerIds = $linkedViewers->pluck('id')->push($user->id)->all();

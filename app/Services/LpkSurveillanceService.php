@@ -416,7 +416,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $s1Assessment->tp_satisfied_at ?: $s1End->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $s1IsPast && in_array($s1Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s1Assessment->report_date) && empty($s1Assessment->sk_number)) {
+            } elseif (! $s1IsPast && $s1Assessment->status === 'PLANNED' && empty($s1Assessment->report_date) && empty($s1Assessment->sk_number)) {
                 $s1Assessment->update([
                     'start_at' => $s1Target,
                     'end_at' => $s1End,
@@ -465,7 +465,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $s2Assessment->tp_satisfied_at ?: $s2End->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $s2IsPast && in_array($s2Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s2Assessment->report_date) && empty($s2Assessment->sk_number)) {
+            } elseif (! $s2IsPast && $s2Assessment->status === 'PLANNED' && empty($s2Assessment->report_date) && empty($s2Assessment->sk_number)) {
                 $s2Assessment->update([
                     'start_at' => $s2Target,
                     'end_at' => $s2End,
@@ -514,7 +514,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $raAssessment->tp_satisfied_at ?: $raEnd->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $raIsPast && in_array($raAssessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($raAssessment->report_date) && empty($raAssessment->sk_number)) {
+            } elseif (! $raIsPast && $raAssessment->status === 'PLANNED' && empty($raAssessment->report_date) && empty($raAssessment->sk_number)) {
                 $raAssessment->update([
                     'start_at' => $raTarget,
                     'end_at' => $raEnd,

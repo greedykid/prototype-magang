@@ -1,0 +1,121 @@
+name: simasadi
+
+x-simasadi-environment: &simasadi-env
+  APP_NAME: "${APP_NAME:-SIMASADI KAN BSN}"
+  APP_ENV: "${APP_ENV:-production}"
+  APP_DEBUG: "${APP_DEBUG:-false}"
+  APP_KEY: "${APP_KEY:?APP_KEY belum diisi di .env}"
+  APP_URL: "${APP_URL:-http://localhost:8086}"
+  APP_LOCALE: "${APP_LOCALE:-id}"
+  APP_TIMEZONE: "${APP_TIMEZONE:-Asia/Jakarta}"
+
+  DB_CONNECTION: sqlite
+  DB_DATABASE: /var/www/data/database.sqlite
+
+  SESSION_DRIVER: database
+  SESSION_LIFETIME: 120
+  CACHE_STORE: database
+  QUEUE_CONNECTION: database
+
+  LOG_CHANNEL: stderr
+  LOG_LEVEL: "${LOG_LEVEL:-warning}"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    image: simasadi-app:latest
+    container_name: simasadi-app
+    restart: unless-stopped
+    environment: *simasadi-env
+    volumes:
+      - simasadi-data:/var/www/data
+      - simasadi-storage:/var/www/html/storage
+      - ./app:/var/www/html/app:ro
+      - ./routes:/var/www/html/routes:ro
+      - ./config:/var/www/html/config:ro
+      - ./database:/var/www/html/database:ro
+      - ./resources/views:/var/www/html/resources/views:ro
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - simasadi-net
+
+  queue:
+    image: simasadi-app:latest
+    container_name: simasadi-queue
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3
+    environment: *simasadi-env
+    volumes:
+      - simasadi-data:/var/www/data
+      - simasadi-storage:/var/www/html/storage
+      - ./app:/var/www/html/app:ro
+      - ./routes:/var/www/html/routes:ro
+      - ./config:/var/www/html/config:ro
+      - ./database:/var/www/html/database:ro
+      - ./resources/views:/var/www/html/resources/views:ro
+    depends_on:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - simasadi-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    image: simasadi-web:latest
+    container_name: simasadi-web
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8086}:80"
+    volumes:
+      - simasadi-storage:/var/www/html/storage:ro
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/up >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - simasadi-net
+
+networks:
+  simasadi-net:
+    driver: bridge
+
+volumes:
+  simasadi-data:
+    driver: local
+  simasadi-storage:
+    driver: local

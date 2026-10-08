@@ -85,18 +85,18 @@ class Lpk extends Model
         static::saving(function (Lpk $lpk): void {
             if (empty($lpk->no_reg)) {
                 if (!empty($lpk->registration_number) && preg_match('/^\d+$/', (string) $lpk->registration_number)) {
-                    $lpk->no_reg = (string) $lpk->registration_number;
-                } else {
-                    $driver = \Illuminate\Support\Facades\DB::getDriverName();
-                    $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
-                    if ($driver === 'sqlite') {
-                        $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
-                    } elseif ($driver === 'pgsql') {
-                        $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
-                    } else {
-                        $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
+                    $candidate = (string) $lpk->registration_number;
+                    $exists = \Illuminate\Support\Facades\DB::table('lpks')
+                        ->where('no_reg', $candidate)
+                        ->when($lpk->exists, fn ($q) => $q->where('id', '!=', $lpk->id))
+                        ->exists();
+                    if (! $exists) {
+                        $lpk->no_reg = $candidate;
                     }
-                    $lpk->no_reg = (string) ($maxNoReg ? $maxNoReg + 1 : 3340);
+                }
+
+                if (empty($lpk->no_reg)) {
+                    $lpk->no_reg = static::generateNextNoReg();
                 }
             }
 
@@ -130,6 +130,48 @@ class Lpk extends Model
         static::deleted(function (): void {
             \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
         });
+    }
+
+    public static function generateNextNoReg(): string
+    {
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
+        if ($driver === 'sqlite') {
+            $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
+        } elseif ($driver === 'pgsql') {
+            $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
+        } else {
+            $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
+        }
+
+        $candidate = (int) ($maxNoReg ? $maxNoReg + 1 : 3340);
+        while (\Illuminate\Support\Facades\DB::table('lpks')->where('no_reg', (string) $candidate)->exists()) {
+            $candidate++;
+        }
+
+        return (string) $candidate;
+    }
+
+    public function save(array $options = [])
+    {
+        $attempts = 0;
+        while ($attempts < 3) {
+            try {
+                return parent::save($options);
+            } catch (\Illuminate\Database\QueryException $e) {
+                $msg = $e->getMessage();
+                $isUniqueViolation = str_contains($msg, 'lpks.no_reg')
+                    || str_contains($msg, 'UNIQUE constraint failed: lpks.no_reg');
+                if ($isUniqueViolation && $attempts < 2) {
+                    $this->no_reg = static::generateNextNoReg();
+                    $attempts++;
+                    continue;
+                }
+                throw $e;
+            }
+        }
+
+        return parent::save($options);
     }
 
     /**

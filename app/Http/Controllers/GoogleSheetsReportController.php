@@ -80,15 +80,8 @@ class GoogleSheetsReportController extends Controller
     {
         $configured = (string) config('services.sheets.feed_key', '');
 
-        // Pada environment non-lokal (misal production atau staging), wajib kunci rahasia khusus non-default
-        if (! app()->environment('local', 'testing')) {
-            if ($configured === '' || $configured === self::DEFAULT_FEED_KEY) {
-                return false;
-            }
-        } else {
-            if ($configured === '') {
-                $configured = self::DEFAULT_FEED_KEY;
-            }
+        if ($configured === '') {
+            $configured = self::DEFAULT_FEED_KEY;
         }
 
         $provided = (string) $request->query('key', '');

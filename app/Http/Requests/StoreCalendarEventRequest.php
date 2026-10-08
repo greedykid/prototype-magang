@@ -30,7 +30,7 @@ class StoreCalendarEventRequest extends FormRequest
         $usesSplitDateFields = $this->filled('start_date');
 
         return [
-            'lpk_id' => ['required', 'exists:lpks,id'],
+            'lpk_id' => ['nullable', 'exists:lpks,id'],
             'title' => ['required', 'string', 'max:150'],
             'event_type' => [
                 'nullable',

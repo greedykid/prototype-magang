@@ -3,6 +3,7 @@
 @import 'sweetalert2/dist/sweetalert2.min.css';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../resources/views/**/*.blade.php';
 
 /* 1. Base Design Tokens & Reset */
 @import './base/variables.css';

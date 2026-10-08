@@ -151,7 +151,8 @@ class CalendarEventController extends Controller
                 $sub->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter))
                     ->orWhere(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $picFilter));
             }))
-            ->whereBetween('start_at', [$queryStart, $queryEnd])
+            ->where('start_at', '<=', $queryEnd)
+            ->where('end_at', '>=', $queryStart)
             ->orderBy('start_at')
             ->get();
 
@@ -159,7 +160,8 @@ class CalendarEventController extends Controller
         $assessments = Assessment::with('lpk')
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
-            ->whereBetween('start_at', [$queryStart, $queryEnd])
+            ->where('start_at', '<=', $queryEnd)
+            ->where('end_at', '>=', $queryStart)
             ->orderBy('start_at')
             ->get();
 

@@ -58,7 +58,10 @@ export const isCacheableUrl = (urlStr) => {
         if (
             u.pathname.includes('/logout') ||
             u.pathname.includes('/export') ||
-            u.pathname.includes('/download')
+            u.pathname.includes('/download') ||
+            u.pathname.includes('/create') ||
+            u.pathname.includes('/edit') ||
+            u.pathname.includes('/password')
         ) {
             return false;
         }

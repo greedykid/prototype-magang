@@ -7,6 +7,18 @@
       "sourceType": "well-known",
       "computedHash": "3eaa9d82fdbcd34032c09854e110432f09e2ab387766ec81fdb79f71a94c26f7",
       "wellKnownDigest": "sha256:743da687e044ade92b736f3eecd0e142993f70863a34f84745bd19012ca985ae"
+    },
+    "ponytail": {
+      "source": "dietrichgebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "89689013408391ee226b9e465e74fd4be91eddc228801310d0c9beef80494305"
+    },
+    "ponytail-audit": {
+      "source": "dietrichgebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail-audit/SKILL.md",
+      "computedHash": "1d718f893dabc01caad0dacef86444b5b4b3e1e59409527d66e8b5dd0cd85ae0"
     }
   }
 }
