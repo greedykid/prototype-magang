@@ -361,6 +361,215 @@ body.modal-open .sidebar {
     background: var(--surface-hover);
 }
 
+/* ==========================================================================
+   Notion Interactive Drag & Drop File Upload Area
+   ========================================================================== */
+.file-dropzone {
+    align-items: center;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1.5px dashed var(--line, rgba(0, 0, 0, 0.14));
+    border-radius: var(--radius-md, 8px);
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 120px;
+    padding: 20px 16px;
+    position: relative;
+    text-align: center;
+    transition: background-color var(--motion-duration-normal, 150ms) ease,
+                border-color var(--motion-duration-normal, 150ms) ease,
+                box-shadow var(--motion-duration-normal, 150ms) ease,
+                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+    user-select: none;
+    width: 100%;
+}
+
+.file-dropzone:hover {
+    background: var(--surface-hover, #efedea);
+    border-color: var(--primary, #0075de);
+}
+
+.file-dropzone:focus-visible {
+    border-color: var(--primary, #0075de);
+    outline: 2px solid var(--primary, #0075de);
+    outline-offset: 2px;
+}
+
+.file-dropzone.is-dragover {
+    background: var(--primary-subtle, #e6f3fe) !important;
+    border-color: var(--primary, #0075de) !important;
+    border-style: solid;
+    box-shadow: 0 0 0 3px var(--primary-subtle, rgba(0, 117, 222, 0.15)), 0 6px 16px -4px rgba(0, 117, 222, 0.18);
+    transform: scale(1.01);
+}
+
+.file-dropzone.has-file {
+    background: var(--surface, #ffffff);
+    border-style: solid;
+    border-color: var(--line, rgba(0, 0, 0, 0.12));
+    padding: 14px 16px;
+}
+
+.file-dropzone-input {
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    z-index: -1;
+}
+
+/* Dropzone Idle Content */
+.dropzone-idle-content {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    width: 100%;
+}
+
+.dropzone-icon-wrap {
+    align-items: center;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    color: var(--primary, #0075de);
+    display: inline-flex;
+    height: 42px;
+    justify-content: center;
+    transition: transform var(--motion-duration-normal, 150ms) var(--ease-out-expo),
+                background-color var(--motion-duration-normal, 150ms) ease,
+                color var(--motion-duration-normal, 150ms) ease;
+    width: 42px;
+}
+
+.file-dropzone:hover .dropzone-icon-wrap {
+    transform: translateY(-2px);
+}
+
+.file-dropzone.is-dragover .dropzone-icon-wrap {
+    background: var(--primary, #0075de);
+    color: #ffffff;
+    transform: translateY(-4px) scale(1.08);
+}
+
+.dropzone-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dropzone-prompt {
+    color: var(--ink, #191918);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dropzone-prompt strong {
+    color: var(--primary, #0075de);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.dropzone-sub {
+    color: var(--muted, #615d59);
+    font-size: 11.5px;
+}
+
+/* Dropzone Active / File Selected Content */
+.dropzone-active-content {
+    align-items: center;
+    animation: dropzone-pop 200ms var(--ease-out-expo) forwards;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+@keyframes dropzone-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.dropzone-file-info {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    text-align: left;
+}
+
+.dropzone-file-icon {
+    align-items: center;
+    background: var(--success-bg, #d0f4d8);
+    border: 1px solid var(--success-border, rgba(20, 131, 43, 0.2));
+    border-radius: var(--radius-sm, 6px);
+    color: var(--success-text, #0f6220);
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 36px;
+    justify-content: center;
+    width: 36px;
+}
+
+.dropzone-file-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dropzone-file-name {
+    color: var(--ink, #191918);
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropzone-file-size {
+    color: var(--muted, #615d59);
+    font-size: 11px;
+}
+
+.dropzone-remove-btn {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-xs, 4px);
+    color: var(--muted, #615d59);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 500;
+    gap: 4px;
+    padding: 5px 9px;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.dropzone-remove-btn:hover {
+    background: var(--danger-bg, #fdd3cd);
+    border-color: var(--danger-border, rgba(246, 73, 50, 0.25));
+    color: var(--danger-text, #b01601);
+}
+
 .import-url-input {
     width: 100%;
     padding: 10px 12px;
@@ -563,6 +772,85 @@ html[data-theme="dark"] .import-form-help {
 html[data-theme="dark"] .import-drag-area {
     background: var(--input-bg);
     border-color: var(--input-border);
+}
+
+html[data-theme="dark"] .file-dropzone {
+    background: var(--surface-subtle, #262625);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+}
+
+html[data-theme="dark"] .file-dropzone:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
+    border-color: var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .file-dropzone:focus-visible {
+    border-color: var(--primary, #62aef0);
+    outline: 2px solid var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .file-dropzone.is-dragover {
+    background: rgba(98, 174, 240, 0.14) !important;
+    border-color: var(--primary, #62aef0) !important;
+    box-shadow: 0 0 0 3px rgba(98, 174, 240, 0.25), 0 6px 16px -4px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .file-dropzone.has-file {
+    background: var(--card-bg, #202020);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+}
+
+html[data-theme="dark"] .dropzone-icon-wrap {
+    background: #191918;
+    border-color: var(--line, rgba(255, 255, 255, 0.1));
+    color: var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .file-dropzone.is-dragover .dropzone-icon-wrap {
+    background: var(--primary, #62aef0);
+    color: #121212;
+}
+
+html[data-theme="dark"] .dropzone-prompt {
+    color: var(--ink, #f6f5f4);
+}
+
+html[data-theme="dark"] .dropzone-prompt strong {
+    color: var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .dropzone-sub {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .dropzone-active-content {
+    background: #202020;
+    border-color: var(--line, rgba(255, 255, 255, 0.1));
+}
+
+html[data-theme="dark"] .dropzone-file-name {
+    color: var(--ink, #f6f5f4);
+}
+
+html[data-theme="dark"] .dropzone-file-size {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .dropzone-file-icon {
+    background: rgba(104, 206, 126, 0.16);
+    border-color: rgba(104, 206, 126, 0.32);
+    color: #68ce7e;
+}
+
+html[data-theme="dark"] .dropzone-remove-btn {
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .dropzone-remove-btn:hover {
+    background: rgba(247, 116, 99, 0.16);
+    border-color: rgba(247, 116, 99, 0.32);
+    color: #ff8b7c;
 }
 
 html[data-theme="dark"] .import-file-input {

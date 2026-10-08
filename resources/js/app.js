@@ -29,6 +29,7 @@ import { initLiveFilters, executePartialFilter } from './modules/live-filter.js'
 import { initTableMultiselect, syncTableState, clearTableSelection } from './modules/table-multiselect.js';
 import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
 import { initPasswordToggles } from './modules/password-toggle.js';
+import { initFileDropzones, initFileDropzone } from './modules/file-dropzone.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -37,6 +38,8 @@ window.closeAllCustomSelects = closeAllCustomSelects;
 window.initCustomPickers = initCustomPickers;
 window.closeAllCustomPickers = closeAllCustomPickers;
 window.syncCustomPickers = syncCustomPickers;
+window.initFileDropzones = initFileDropzones;
+window.initFileDropzone = initFileDropzone;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.returnModalToPlaceholder = returnModalToPlaceholder;
@@ -241,6 +244,9 @@ export const initPageComponents = () => {
 
     // 8. Password Visibility Toggles
     initPasswordToggles();
+
+    // 9. File Dropzones
+    initFileDropzones();
 };
 
 window.initPageComponents = initPageComponents;

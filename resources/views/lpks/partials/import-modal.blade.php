@@ -41,15 +41,42 @@
 
                     {{-- Opsi A: Unggah Berkas Excel atau CSV --}}
                     <div class="import-form-group">
-                        <label class="import-form-label">
+                        <label class="import-form-label" id="dropzone-label-lpk">
                             Pilihan A: Unggah Berkas Excel (.xlsx) atau CSV (.csv)
                         </label>
-                        <input
-                            type="file"
-                            name="csv_file"
-                            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
-                            class="import-file-input"
-                        >
+                        <div class="file-dropzone" data-dropzone tabindex="0" role="region" aria-labelledby="dropzone-label-lpk">
+                            <input
+                                type="file"
+                                name="csv_file"
+                                accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+                                class="file-dropzone-input"
+                                tabindex="-1"
+                            >
+                            <div class="dropzone-idle-content">
+                                <div class="dropzone-icon-wrap" aria-hidden="true">
+                                    <x-icon name="upload" size="22" />
+                                </div>
+                                <div class="dropzone-text">
+                                    <span class="dropzone-prompt"><strong>Pilih berkas</strong> atau tarik &amp; lepas ke sini</span>
+                                    <span class="dropzone-sub">Excel (.xlsx) atau CSV (.csv) &bull; Maksimal 10MB</span>
+                                </div>
+                            </div>
+                            <div class="dropzone-active-content" style="display: none;">
+                                <div class="dropzone-file-info">
+                                    <div class="dropzone-file-icon" aria-hidden="true">
+                                        <x-icon name="sheets" size="20" />
+                                    </div>
+                                    <div class="dropzone-file-meta">
+                                        <span class="dropzone-file-name"></span>
+                                        <span class="dropzone-file-size"></span>
+                                    </div>
+                                </div>
+                                <button type="button" class="dropzone-remove-btn" title="Ganti berkas" aria-label="Ganti berkas">
+                                    <x-icon name="x" size="13" />
+                                    <span>Ganti</span>
+                                </button>
+                            </div>
+                        </div>
                         <small class="import-form-help">
                             Maksimal 10MB. Format didukung: Excel (.xlsx) atau CSV (.csv pemisah koma / titik koma).
                         </small>
