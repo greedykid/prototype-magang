@@ -84,7 +84,7 @@
     <div class="sidebar-foot">
         <div class="drawer-account">
             <a href="{{ route('profile.edit') }}" class="user-identity" title="Pengaturan Profil &amp; Kata Sandi">
-                <span class="user-avatar" aria-hidden="true">{{ collect(explode(' ', auth()->user()->name ?? 'Tamu'))->map(fn ($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
+                <span class="user-avatar" aria-hidden="true">{{ auth()->user()?->initials ?? 'U' }}</span>
                 <div class="user-details">
                     <strong>{{ auth()->user()->name ?? 'Tamu' }}</strong>
                     <span class="badge-role {{ auth()->user()?->role_badge_class ?? 'badge-role-default' }}" title="{{ auth()->user()?->role_label ?? '' }}">
