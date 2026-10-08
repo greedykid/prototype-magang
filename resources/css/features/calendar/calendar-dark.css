@@ -1,0 +1,447 @@
+/* ==========================================================================
+   Google Calendar Dark Theme Overrides
+   ========================================================================== */
+html[data-theme="dark"] .gcal-sidebar,
+html[data-theme="dark"] .gcal-main,
+html[data-theme="dark"] .gcal-toolbar,
+html[data-theme="dark"] .gcal-week-header-row {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .gcal-btn-create {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-btn-create:hover {
+    background: var(--surface-hover);
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .gcal-view-switcher {
+    background: var(--surface-subtle, #202020) !important;
+    border: 1px solid var(--line, #262626) !important;
+}
+
+html[data-theme="dark"] .gcal-view-tab {
+    color: var(--muted, #888884) !important;
+}
+
+html[data-theme="dark"] .gcal-view-tab:hover {
+    color: var(--ink, #f0ede8) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="dark"] .gcal-view-tab.is-active {
+    background: #242424 !important;
+    border: 1px solid var(--line, #262626) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .gcal-popover-card {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-popover-head {
+    background: var(--surface-subtle);
+    border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .gcal-popover-body h3 {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] #popover-agenda {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-popover-row {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .gcal-popover-notes {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-popover-footer {
+    background: var(--surface-subtle);
+    border-top-color: var(--line);
+}
+
+html[data-theme="dark"] .gcal-btn-gcal {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .gcal-btn-gcal:hover {
+    background: #283548 !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .gcal-popover-close:hover {
+    background: #1e293b;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-indigo {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-purple {
+    background: rgba(168, 85, 247, 0.2);
+    color: #d8b4fe;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-emerald {
+    background: rgba(16, 185, 129, 0.2);
+    color: #a7f3d0;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-amber {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-rose {
+    background: rgba(244, 63, 94, 0.2);
+    color: #fda4af;
+    border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-sky,
+html[data-theme="dark"] .gcal-popover-cat-pill.theme-cyan {
+    background: rgba(6, 182, 212, 0.2);
+    color: #a5b4fc;
+    border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+html[data-theme="dark"] .gcal-time-corner,
+html[data-theme="dark"] .gcal-week-col-head {
+    border-right-color: var(--line);
+}
+
+/* Calendar Selects Dark Overrides */
+html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .gcal-select-wrapper .custom-select-trigger:hover {
+    background: var(--surface-hover) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-select-wrapper .custom-select-menu {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+html[data-theme="dark"] .gcal-select-wrapper .custom-select-option:hover {
+    background: var(--surface-hover) !important;
+}
+
+html[data-theme="dark"] .gcal-select-wrapper .custom-select-arrow {
+    color: var(--muted) !important;
+}
+
+/* Create Button Icon Dark Overrides */
+html[data-theme="dark"] .gcal-btn-create-icon {
+    background: #1e293b;
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-btn-create:hover .gcal-btn-create-icon,
+html[data-theme="dark"] .gcal-btn-create[aria-expanded="true"] .gcal-btn-create-icon {
+    background: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
+}
+
+/* Calendar Grid Lines & Cells Dark Overrides */
+html[data-theme="dark"] .gcal-month-cell {
+    border-bottom: 1px solid var(--line) !important;
+    border-right: 1px solid var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-month-headings {
+    border-bottom: 1px solid var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-time-corner,
+html[data-theme="dark"] .gcal-week-col-head,
+html[data-theme="dark"] .gcal-time-gutter,
+html[data-theme="dark"] .gcal-week-col {
+    border-right: 1px solid var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-hour-slot {
+    border-bottom: 1px solid var(--line-subtle, #1f2937) !important;
+}
+
+html[data-theme="dark"] .gcal-day-header {
+    border-bottom: 1px solid var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-day-body .gcal-time-gutter {
+    border-right: 1px solid var(--line) !important;
+}
+
+html[data-theme="dark"] .gcal-month-cell.is-selected {
+    background: rgba(2, 132, 199, 0.15) !important;
+}
+
+html[data-theme="dark"] .gcal-month-cell.outside,
+html[data-theme="dark"] .gcal-mini-cell.outside {
+    background: rgba(0, 0, 0, 0.28) !important;
+    opacity: 0.5;
+}
+
+html[data-theme="dark"] .gcal-mini-cell:hover {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .gcal-month-cell:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Event Chips & Cards Dark Mode Theming */
+html[data-theme="dark"] .gcal-event-chip.theme-indigo {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-purple {
+    background: rgba(168, 85, 247, 0.18);
+    border-color: rgba(168, 85, 247, 0.4);
+    color: #d8b4fe;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-amber {
+    background: rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-rose {
+    background: rgba(244, 63, 94, 0.18);
+    border-color: rgba(244, 63, 94, 0.4);
+    color: #fda4af;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-emerald {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #a7f3d0;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-cyan {
+    background: rgba(6, 182, 212, 0.18);
+    border-color: rgba(6, 182, 212, 0.4);
+    color: #a5f3fc;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-amber {
+    background: #231c10 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    border-left: 3.5px solid #f59e0b !important;
+    color: #fde68a !important;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-rose {
+    background: #24131a !important;
+    border: 1px solid rgba(244, 63, 94, 0.35) !important;
+    border-left: 3.5px solid #f43f5e !important;
+    color: #fda4af !important;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-emerald {
+    background: #112218 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border-left: 3.5px solid #10b981 !important;
+    color: #a7f3d0 !important;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-cyan {
+    background: #0f2029 !important;
+    border: 1px solid rgba(6, 182, 212, 0.35) !important;
+    border-left: 3.5px solid #06b6d4 !important;
+    color: #a5f3fc !important;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-indigo {
+    background: #161a2e !important;
+    border: 1px solid rgba(99, 102, 241, 0.35) !important;
+    border-left: 3.5px solid #6366f1 !important;
+    color: #c7d2fe !important;
+}
+
+html[data-theme="dark"] .gcal-timed-card.theme-purple {
+    background: #1f142b !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    border-left: 3.5px solid #a855f7 !important;
+    color: #e9d5ff !important;
+}
+
+/* Quick Add Menu Dropdown */
+html[data-theme="dark"] .gcal-create-menu {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .gcal-create-menu-header {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .gcal-create-item:hover {
+    background: #1e293b;
+}
+
+html[data-theme="dark"] .gcal-create-item:focus-visible {
+    background: #1e293b;
+    box-shadow: inset 0 0 0 1.5px #60a5fa;
+}
+
+html[data-theme="dark"] .gcal-create-item-text strong {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-create-item-text small {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .gcal-create-menu-divider {
+    background: var(--line);
+}
+
+html[data-theme="dark"] .gcal-create-badge.prl {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+html[data-theme="dark"] .gcal-create-badge.stt {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+}
+
+html[data-theme="dark"] .gcal-create-badge.agenda {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border-color: rgba(129, 140, 248, 0.3);
+}
+
+/* Agenda View in Calendar */
+html[data-theme="dark"] .gcal-agenda-row {
+    background: var(--surface);
+    border: 1px solid var(--line);
+}
+
+html[data-theme="dark"] .gcal-agenda-row:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-indigo {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-purple {
+    background: rgba(168, 85, 247, 0.08);
+    border-color: rgba(168, 85, 247, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-amber {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-rose {
+    background: rgba(244, 63, 94, 0.08);
+    border-color: rgba(244, 63, 94, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-emerald {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-row.theme-cyan {
+    background: rgba(6, 182, 212, 0.08);
+    border-color: rgba(6, 182, 212, 0.25);
+}
+
+html[data-theme="dark"] .gcal-agenda-time-col strong {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-agenda-time-col small {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .gcal-agenda-title {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-agenda-meta {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .gcal-agenda-meta strong {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-indigo {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    border: 1px solid rgba(165, 180, 252, 0.3);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-purple {
+    background: rgba(168, 85, 247, 0.2);
+    color: #d8b4fe;
+    border: 1px solid rgba(216, 180, 254, 0.3);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-amber {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde047;
+    border: 1px solid rgba(253, 224, 71, 0.3);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-rose {
+    background: rgba(244, 63, 94, 0.2);
+    color: #fda4af;
+    border: 1px solid rgba(253, 164, 175, 0.3);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-emerald {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(110, 231, 183, 0.3);
+}
+
+html[data-theme="dark"] .gcal-badge-pill.theme-cyan {
+    background: rgba(6, 182, 212, 0.2);
+    color: #67e8f9;
+    border: 1px solid rgba(103, 232, 249, 0.3);
+}

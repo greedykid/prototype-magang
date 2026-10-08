@@ -1,0 +1,710 @@
+/* Milestone Cards */
+/* ==========================================================================
+   KAN U-01 Connected Process Timeline & Milestone Cards (Opsi A)
+   ========================================================================== */
+
+/* 1. Horizontal Stepper Timeline Bar */
+.lpk-cycle-timeline-bar {
+    align-items: center;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-xs);
+    box-sizing: border-box;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    width: 100%;
+}
+
+.lpk-cycle-step-item {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.lpk-step-bullet {
+    align-items: center;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: 50%;
+    color: var(--muted, #78736f);
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    height: 28px;
+    justify-content: center;
+    transition: all 160ms var(--ease-out-expo);
+    width: 28px;
+    min-width: 28px;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-bullet {
+    background: var(--ink, #191918);
+    border-color: var(--ink, #191918);
+    box-shadow: 0 0 0 3px rgba(25, 25, 24, 0.12);
+    color: #ffffff;
+}
+
+.lpk-cycle-step-item.is-completed .lpk-step-bullet {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}
+
+.lpk-step-label-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.lpk-step-num {
+    color: var(--muted, #78736f);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-num {
+    color: var(--primary, #0075de);
+}
+
+.lpk-cycle-step-item.is-completed .lpk-step-num {
+    color: var(--success-text, #0f6220);
+}
+
+.lpk-step-name {
+    color: var(--ink, #191918);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-item.is-current .lpk-step-name {
+    color: var(--ink, #191918);
+}
+
+.lpk-step-timing {
+    color: var(--muted, #78736f);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.lpk-cycle-step-line {
+    background: var(--line, #e2e8f0);
+    flex: 1;
+    height: 2px;
+    min-width: 24px;
+    transition: background-color 160ms ease;
+}
+
+.lpk-cycle-step-line.is-passed {
+    background: var(--color-green-500, #10b981);
+}
+
+/* 2. Milestone Cards Grid */
+.lpk-milestones-grid {
+    box-sizing: border-box;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
+.lpk-milestone-card {
+    background: #ffffff;
+    border: 1.5px solid var(--line, #e2e8f0);
+    border-top: 3.5px solid #cbd5e1;
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px;
+    position: relative;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease;
+}
+
+/* ==========================================================================
+   Warna Card Container Tahapan Siklus Berdasarkan Matrix 5 Warna Resmi KAN:
+   1. KUNING: Reminder S1 - RA, Reminder TP & VTP, Reminder SK
+   2. MERAH: JT S1 - RA (Jatuh Tempo / Overdue / Revoked / Expired)
+   3. HIJAU: Pelaksanaan S1 - RA, PRL, dan STT (Selesai, Terjadwal, Rencana, dsb.)
+   4. CYAN: Batas TP dan VTP (Tindakan Perbaikan Aktif)
+   5. BIRU: Dibekukan (Bukan Ungu)
+   6. NETRAL (SLATE): Belum Ada Agenda & Belum Reminder
+   ========================================================================== */
+
+/* 1. PELAKSANAAN S1 - RA, PRL, STT - HIJAU */
+.lpk-milestone-card.is-pelaksanaan,
+.lpk-milestone-card.is-completed,
+.lpk-milestone-card.is-scheduled,
+.lpk-milestone-card.is-in-progress,
+.lpk-milestone-card.is-planned {
+    background: #f4fbf6;
+    border: 1.5px solid #4ade80;
+    border-top: 4px solid #16a34a;
+    box-shadow: 0 3px 12px rgba(22, 163, 74, 0.08);
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-completed .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-planned .lpk-milestone-phase-tag {
+    color: #15803d;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-milestone-key-target,
+.lpk-milestone-card.is-completed .lpk-milestone-key-target,
+.lpk-milestone-card.is-scheduled .lpk-milestone-key-target,
+.lpk-milestone-card.is-in-progress .lpk-milestone-key-target,
+.lpk-milestone-card.is-planned .lpk-milestone-key-target {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-key-target-header,
+.lpk-milestone-card.is-completed .lpk-key-target-header,
+.lpk-milestone-card.is-scheduled .lpk-key-target-header,
+.lpk-milestone-card.is-in-progress .lpk-key-target-header,
+.lpk-milestone-card.is-planned .lpk-key-target-header {
+    color: #047857;
+}
+.lpk-milestone-card.is-pelaksanaan .lpk-key-target-date,
+.lpk-milestone-card.is-completed .lpk-key-target-date,
+.lpk-milestone-card.is-scheduled .lpk-key-target-date,
+.lpk-milestone-card.is-in-progress .lpk-key-target-date,
+.lpk-milestone-card.is-planned .lpk-key-target-date,
+.lpk-milestone-card.is-pelaksanaan .lpk-target-value,
+.lpk-milestone-card.is-completed .lpk-target-value,
+.lpk-milestone-card.is-scheduled .lpk-target-value,
+.lpk-milestone-card.is-in-progress .lpk-target-value,
+.lpk-milestone-card.is-planned .lpk-target-value {
+    color: #064e3b;
+}
+
+/* 2. REMINDER S1 - RA, TP & VTP, SK - KUNING */
+.lpk-milestone-card.is-reminder,
+.lpk-milestone-card.is-due {
+    background: #fffdf0;
+    border: 1.5px solid #facc15;
+    border-top: 4px solid #ca8a04;
+    box-shadow: 0 3px 12px rgba(202, 138, 4, 0.08);
+}
+.lpk-milestone-card.is-reminder .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-due .lpk-milestone-phase-tag {
+    color: #a16207;
+}
+.lpk-milestone-card.is-reminder .lpk-milestone-key-target,
+.lpk-milestone-card.is-due .lpk-milestone-key-target {
+    background: #fefce8;
+    border-color: #fef08a;
+}
+.lpk-milestone-card.is-reminder .lpk-key-target-header,
+.lpk-milestone-card.is-due .lpk-key-target-header {
+    color: #854d0e;
+}
+.lpk-milestone-card.is-reminder .lpk-key-target-date,
+.lpk-milestone-card.is-due .lpk-key-target-date,
+.lpk-milestone-card.is-reminder .lpk-target-value,
+.lpk-milestone-card.is-due .lpk-target-value {
+    color: #713f12;
+}
+
+/* 3. JT S1 - RA / LEWAT JADWAL / DICABUT - MERAH */
+.lpk-milestone-card.is-jt,
+.lpk-milestone-card.is-overdue,
+.lpk-milestone-card.is-expired,
+.lpk-milestone-card.is-revoked {
+    background: #fff5f5;
+    border: 1.5px solid #f87171;
+    border-top: 4px solid #dc2626;
+    box-shadow: 0 3px 12px rgba(220, 38, 38, 0.08);
+}
+.lpk-milestone-card.is-jt .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-overdue .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-expired .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-revoked .lpk-milestone-phase-tag {
+    color: #dc2626;
+}
+.lpk-milestone-card.is-jt .lpk-milestone-key-target,
+.lpk-milestone-card.is-overdue .lpk-milestone-key-target,
+.lpk-milestone-card.is-expired .lpk-milestone-key-target,
+.lpk-milestone-card.is-revoked .lpk-milestone-key-target {
+    background: #fff1f2;
+    border-color: #fecdd3;
+}
+.lpk-milestone-card.is-jt .lpk-key-target-header,
+.lpk-milestone-card.is-overdue .lpk-key-target-header,
+.lpk-milestone-card.is-expired .lpk-key-target-header,
+.lpk-milestone-card.is-revoked .lpk-key-target-header {
+    color: #be123c;
+}
+.lpk-milestone-card.is-jt .lpk-key-target-date,
+.lpk-milestone-card.is-overdue .lpk-key-target-date,
+.lpk-milestone-card.is-expired .lpk-key-target-date,
+.lpk-milestone-card.is-revoked .lpk-key-target-date,
+.lpk-milestone-card.is-jt .lpk-target-value,
+.lpk-milestone-card.is-overdue .lpk-target-value,
+.lpk-milestone-card.is-expired .lpk-target-value,
+.lpk-milestone-card.is-revoked .lpk-target-value {
+    color: #881337;
+}
+
+/* 4. BATAS TP DAN VTP - CYAN (BIRU MUDA) */
+.lpk-milestone-card.is-batas-tp {
+    background: #f0fdff;
+    border: 1.5px solid #22d3ee;
+    border-top: 4px solid #0891b2;
+    box-shadow: 0 3px 12px rgba(8, 145, 178, 0.08);
+}
+.lpk-milestone-card.is-batas-tp .lpk-milestone-phase-tag {
+    color: #0891b2;
+}
+.lpk-milestone-card.is-batas-tp .lpk-milestone-key-target {
+    background: #ecfeff;
+    border-color: #a5f3fc;
+}
+.lpk-milestone-card.is-batas-tp .lpk-key-target-header {
+    color: #0e7490;
+}
+.lpk-milestone-card.is-batas-tp .lpk-key-target-date,
+.lpk-milestone-card.is-batas-tp .lpk-target-value {
+    color: #155e75;
+}
+
+/* 5. DIBEKUKAN - BIRU */
+.lpk-milestone-card.is-dibekukan,
+.lpk-milestone-card.is-suspended {
+    background: #eff6ff;
+    border: 1.5px solid #60a5fa;
+    border-top: 4px solid #2563eb;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.08);
+}
+.lpk-milestone-card.is-dibekukan .lpk-milestone-phase-tag,
+.lpk-milestone-card.is-suspended .lpk-milestone-phase-tag {
+    color: #1d4ed8;
+}
+.lpk-milestone-card.is-dibekukan .lpk-milestone-key-target,
+.lpk-milestone-card.is-suspended .lpk-milestone-key-target {
+    background: #f0f7ff;
+    border-color: #bfdbfe;
+}
+.lpk-milestone-card.is-dibekukan .lpk-key-target-header,
+.lpk-milestone-card.is-suspended .lpk-key-target-header {
+    color: #1e40af;
+}
+.lpk-milestone-card.is-dibekukan .lpk-key-target-date,
+.lpk-milestone-card.is-suspended .lpk-key-target-date,
+.lpk-milestone-card.is-dibekukan .lpk-target-value,
+.lpk-milestone-card.is-suspended .lpk-target-value {
+    color: #1e3a8a;
+}
+
+/* 6. AKAN DATANG (BELUM ADA AGENDA & BELUM REMINDER) - NETRAL SLATE */
+.lpk-milestone-card.is-upcoming {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-top: 3.5px solid #94a3b8;
+}
+.lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
+    color: #64748b;
+}
+.lpk-milestone-card.is-upcoming .lpk-milestone-key-target {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+.lpk-milestone-card.is-upcoming .lpk-key-target-header {
+    color: #64748b;
+}
+.lpk-milestone-card.is-upcoming .lpk-key-target-date,
+.lpk-milestone-card.is-upcoming .lpk-target-value {
+    color: #0f172a;
+}
+
+/* Current Focus State Ring: Memberi penegasan fokus alur tanpa mengubah warna border status */
+.lpk-milestone-card.is-current-focus {
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+.lpk-milestone-card-top {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 10px;
+    width: 100%;
+}
+
+.lpk-milestone-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.lpk-milestone-heading-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.lpk-milestone-phase-tag {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.lpk-milestone-title {
+    color: var(--ink, #0f172a);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.lpk-milestone-badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.badge-focus {
+    align-items: center;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 5px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    padding: 2.5px 8px;
+    white-space: nowrap;
+}
+
+.lpk-milestone-desc {
+    color: var(--muted, #64748b);
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* 3. Primary Milestone Target Date */
+.lpk-milestone-primary-target {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 4px 0 6px;
+}
+
+.lpk-target-label {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.lpk-target-value {
+    color: var(--ink, #0f172a);
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+/* Backward compatibility for previous key-target selectors */
+.lpk-milestone-key-target {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 4px 0 6px;
+}
+
+.lpk-key-target-header {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.lpk-key-target-date {
+    color: var(--ink, #0f172a);
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+/* 4. Supporting Dates Rows */
+.lpk-milestone-subdates {
+    border-top: 1px dashed var(--line, #e2e8f0);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 8px;
+}
+
+.lpk-subdate-row {
+    align-items: center;
+    color: var(--muted, #64748b);
+    display: flex;
+    font-size: 11.5px;
+    justify-content: space-between;
+    line-height: 1.35;
+}
+
+.lpk-subdate-val {
+    color: var(--ink, #0f172a);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.lpk-delay-penalty-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    box-sizing: border-box;
+    color: #92400e;
+    font-size: 11.5px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    margin-top: 6px;
+}
+
+/* 5. Agenda Asesmen Strip */
+.lpk-milestone-agenda-strip {
+    align-items: flex-start;
+    border-top: 1px dashed var(--line, #e2e8f0);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    font-size: 11.5px;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-top: auto;
+    padding-top: 10px;
+    width: 100%;
+}
+
+.lpk-agenda-caption {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.lpk-agenda-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.lpk-agenda-chip {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--line, #cbd5e1);
+    border-radius: 6px;
+    box-sizing: border-box;
+    color: var(--ink, #1e293b);
+    display: inline-flex;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 5px;
+    height: 28px;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 10px;
+    text-decoration: none !important;
+    transition: all 140ms ease;
+    white-space: nowrap;
+}
+
+.lpk-agenda-chip:hover {
+    border-color: var(--ink, #0f172a);
+    color: var(--ink, #0f172a);
+}
+
+.lpk-agenda-unassigned {
+    align-items: center;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px dashed var(--line, #cbd5e1);
+    border-radius: 6px;
+    box-sizing: border-box;
+    color: var(--muted, #94a3b8);
+    display: inline-flex;
+    font-size: 11.5px;
+    font-style: italic;
+    height: 28px;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+.lpk-milestone-card .assessment-cal-shortcut {
+    align-items: center;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    color: var(--primary, #0284c7);
+    display: inline-flex;
+    font-size: 11.5px;
+    font-weight: 550;
+    gap: 5px;
+    height: 28px;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 10px;
+    text-decoration: none;
+    transition: all 140ms ease;
+    white-space: nowrap;
+}
+
+.lpk-milestone-card .assessment-cal-shortcut:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+/* 6. Distilled Team Member List */
+.lpk-team-list {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+    overflow: hidden;
+}
+
+.lpk-team-member {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 10px 12px;
+    transition: background-color 120ms ease;
+}
+
+.lpk-team-member:last-child {
+    border-bottom: none;
+}
+
+.lpk-team-member.is-lead {
+    background: #fbfdfc;
+}
+
+.lpk-member-info {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+}
+
+.lpk-member-avatar {
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    color: #475569;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-weight: 700;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+}
+
+.lpk-member-avatar.is-lead {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.lpk-member-avatar.is-viewer {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: #0369a1;
+}
+
+.lpk-member-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.lpk-member-name {
+    color: var(--ink, #0f172a);
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lpk-member-email {
+    color: var(--muted, #64748b);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lpk-member-actions {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+/* 7. Footer Actions */
+.lpk-milestone-footer-actions {
+    border-top: 1px solid var(--line, #e2e8f0);
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+.lpk-primary-action-btn {
+    align-items: center;
+    display: flex;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 5px;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 10px;
+    width: 100%;
+}
+

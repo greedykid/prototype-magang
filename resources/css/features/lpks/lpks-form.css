@@ -1,0 +1,553 @@
+/* ==========================================================================
+   SIMASADI LPK Form & Workspace Feature Styles
+   Executive-Grade Form Layout & Information Architecture
+   ========================================================================== */
+
+.lpk-form-container {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 0;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
+/* Header & Back Navigation */
+.lpk-form-header,
+.lpk-show-header {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 20px 24px;
+}
+
+.lpk-header-back-wrap {
+    align-items: center;
+    display: flex;
+    margin-bottom: 12px;
+}
+
+.lpk-back-btn {
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: none;
+    color: var(--muted, #615d59);
+    display: inline-flex;
+    font-family: inherit;
+    font-size: var(--text-sm, 13px);
+    font-weight: var(--font-medium, 500);
+    gap: 6px;
+    line-height: 1.4;
+    min-height: 32px;
+    padding: 4px 8px 4px 4px;
+    text-decoration: none !important;
+    transition: background-color var(--motion-duration-normal, 150ms) ease,
+                color var(--motion-duration-normal, 150ms) ease,
+                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+    user-select: none;
+    width: fit-content;
+}
+
+.lpk-back-btn:hover {
+    background: var(--surface-hover, rgba(0, 0, 0, 0.045));
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--ink, #191918);
+    text-decoration: none !important;
+}
+
+.lpk-back-btn:focus-visible {
+    outline: 2px solid var(--primary, #0075de);
+    outline-offset: 2px;
+}
+
+.lpk-back-btn svg {
+    color: var(--muted, #615d59);
+    flex-shrink: 0;
+    transition: color var(--motion-duration-normal, 150ms) ease,
+                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+}
+
+.lpk-back-btn:hover svg {
+    color: var(--ink, #191918);
+    transform: translateX(-3px);
+}
+
+.lpk-back-btn:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 640px) {
+    .lpk-back-btn {
+        font-size: 13.5px;
+        min-height: 40px;
+        padding: 6px 10px 6px 6px;
+    }
+}
+
+.lpk-header-row {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
+.lpk-header-title-group {
+    display: flex;
+    flex: 1 1 500px;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.lpk-header-title-group h1 {
+    color: var(--ink);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.lpk-header-title-group .lpk-form-desc {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.lpk-header-badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.lpk-badge-reg {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #0f172a;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 2.5px 8.5px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.lpk-badge-acc {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #0f172a;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 2.5px 8.5px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.lpk-badge-type {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #1d4ed8;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 2.5px 8.5px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.lpk-header-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* 2-Column Responsive Layout */
+.lpk-form-layout {
+    align-items: start;
+    box-sizing: border-box;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    width: 100%;
+}
+
+@media (max-width: 1024px) {
+    .lpk-form-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lpk-form-column {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+    width: 100%;
+}
+
+/* Card Container */
+.lpk-form-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-sizing: border-box;
+    padding: 22px 24px;
+    position: relative;
+    scroll-margin-top: 85px;
+    width: 100%;
+}
+
+.lpk-form-card-header {
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+}
+
+.lpk-card-icon-wrap {
+    align-items: center;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--primary, #0075de);
+    display: flex;
+    flex-shrink: 0;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+}
+
+.lpk-card-header-text h2 {
+    color: var(--ink);
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.lpk-card-header-text p {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.4;
+    margin: 2px 0 0;
+}
+
+/* Field Grouping & Grid Helpers */
+.lpk-field {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+    max-width: 100%;
+    min-width: 0;
+    position: relative;
+    width: 100%;
+}
+
+.lpk-field:last-child {
+    margin-bottom: 0;
+}
+
+.lpk-field-row {
+    box-sizing: border-box;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 18px;
+    width: 100%;
+}
+
+.lpk-field-row .lpk-field {
+    margin-bottom: 0;
+}
+
+.lpk-field-row:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+    .lpk-field-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lpk-label {
+    align-items: center;
+    color: var(--ink);
+    display: flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 4px;
+    margin-bottom: 7px;
+}
+
+.lpk-required-dot {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.lpk-field-hint {
+    color: var(--muted);
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.45;
+    margin-top: 5px;
+}
+
+/* Textarea Customizations */
+.lpk-textarea-scope {
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 200px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+.lpk-textarea-address {
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.55;
+    min-height: 85px;
+    padding: 10px 12px;
+    resize: vertical;
+}
+
+/* Scope Tips Box */
+.lpk-scope-meta {
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    color: #64748b;
+    display: flex;
+    font-size: 11.5px;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+/* Google Drive Input Wrap */
+.lpk-drive-input-wrap {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.lpk-drive-input-wrap input {
+    flex: 1 1 0%;
+}
+
+.lpk-drive-preview-btn {
+    align-items: center;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    color: #15803d;
+    cursor: pointer;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px;
+    text-decoration: none;
+    transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.lpk-drive-preview-btn:hover {
+    background: #dcfce7;
+    border-color: #86efac;
+}
+
+/* Visual KAN Surveillance Milestones Box */
+.kan-cycle-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 16px;
+}
+
+.kan-cycle-box-header {
+    align-items: center;
+    color: #0f172a;
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.kan-cycle-steps {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
+}
+
+.kan-cycle-step-item {
+    align-items: flex-start;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    transition: border-color 140ms ease;
+}
+
+.kan-cycle-step-item:hover {
+    border-color: #cbd5e1;
+}
+
+.kan-step-badge {
+    background: var(--color-blue-100, #f2f9ff);
+    border: 1px solid rgba(0, 117, 222, 0.16);
+    border-radius: var(--radius-xs, 4px);
+    color: var(--color-blue-700, #005bab);
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    padding: 3px 8px;
+    text-align: center;
+}
+
+.kan-step-info {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.kan-step-title {
+    color: #1e293b;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.kan-step-timing {
+    color: #475569;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.kan-cycle-notice {
+    align-items: center;
+    border-top: 1px solid #e2e8f0;
+    color: #64748b;
+    display: flex;
+    font-size: 11.5px;
+    gap: 6px;
+    line-height: 1.4;
+    margin-top: 4px;
+    padding-top: 10px;
+}
+
+/* Action Bar */
+.lpk-form-actions-bar {
+    align-items: center;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 16px 24px;
+    width: 100%;
+}
+
+/* Danger Zone */
+.lpk-danger-card {
+    align-items: center;
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 20px 24px;
+    width: 100%;
+}
+
+.lpk-danger-text {
+    display: flex;
+    flex: 1 1 400px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lpk-danger-title {
+    color: #991b1b;
+    font-size: 14.5px;
+    font-weight: 700;
+}
+
+.lpk-danger-desc {
+    color: #7f1d1d;
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
