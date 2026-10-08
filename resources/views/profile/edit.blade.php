@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="profile-container">
-    {{-- Navigasi Kembali ke Dasbor --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: 16px;">
-        <a href="{{ route('dashboard') }}" class="lpk-back-btn">
-            <x-icon name="chevron-left" size="14" />
-            <span>Kembali ke Dasbor</span>
+    {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
+        <a href="{{ route('dashboard') }}" class="lpk-back-btn" title="Kembali ke Dasbor">
+            <x-icon name="chevron-left" size="16" />
+            <span>Dasbor</span>
         </a>
     </div>
 

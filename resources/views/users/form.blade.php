@@ -3,10 +3,10 @@
 @section('title', $formTitle . ' | SIMASADI')
 
 @section('content')
-<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
-    <a href="{{ route('users.index') }}" class="lpk-back-btn">
-        <x-icon name="chevron-left" size="14" />
-        <span>Kembali ke Manajemen Anggota</span>
+<div class="lpk-header-back-wrap">
+    <a href="{{ route('users.index') }}" class="lpk-back-btn" title="Kembali ke Manajemen Anggota">
+        <x-icon name="chevron-left" size="16" />
+        <span>Manajemen Anggota</span>
     </a>
 </div>
 

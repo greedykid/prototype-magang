@@ -130,11 +130,11 @@
 @endphp
 
 <div class="lpk-form-container">
-    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
-        <a href="{{ route('assessments.index') }}" class="lpk-back-btn">
-            <x-icon name="chevron-left" size="14" />
-            <span>Semua asesmen</span>
+    {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
+        <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke {{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}">
+            <x-icon name="chevron-left" size="16" />
+            <span>{{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}</span>
         </a>
     </div>
 

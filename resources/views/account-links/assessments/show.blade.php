@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Tombol Navigasi Kembali ke Program Asesmen Akun Tertaut --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+    {{-- Navigasi Breadcrumb Kembali ke Program Asesmen Akun Tertaut (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
         <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="lpk-back-btn" title="Kembali ke Program Asesmen Akun Tertaut">
-            <x-icon name="chevron-left" size="14" />
+            <x-icon name="chevron-left" size="16" />
             <span>Program Asesmen Akun: {{ $owner->name }}</span>
         </a>
     </div>

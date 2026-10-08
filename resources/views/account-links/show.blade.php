@@ -3,10 +3,10 @@
 @section('title', 'Data Akun Tertaut: ' . $owner->name . ' | SIMASADI')
 
 @section('content')
-<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
-    <a href="{{ route('account-links.index') }}" class="lpk-back-btn">
-        <x-icon name="chevron-left" size="14" />
-        <span>Kembali ke Tautan Akun</span>
+<div class="lpk-header-back-wrap">
+    <a href="{{ route('account-links.index') }}" class="lpk-back-btn" title="Kembali ke Tautan Akun">
+        <x-icon name="chevron-left" size="16" />
+        <span>Tautan Akun</span>
     </a>
 </div>
 

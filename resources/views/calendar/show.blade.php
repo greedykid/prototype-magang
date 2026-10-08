@@ -3,10 +3,10 @@
 @section('title', $event->title . ' | SIMASADI')
 
 @section('content')
-<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
-    <a href="{{ route('calendar.index', ['month' => $event->start_at->format('Y-m')]) }}" class="lpk-back-btn">
-        <x-icon name="chevron-left" size="14" />
-        <span>Kembali ke Kalender</span>
+<div class="lpk-header-back-wrap">
+    <a href="{{ route('calendar.index', ['month' => $event->start_at->format('Y-m')]) }}" class="lpk-back-btn" title="Kembali ke Kalender Pengawasan">
+        <x-icon name="chevron-left" size="16" />
+        <span>Kalender Pengawasan</span>
     </a>
 </div>
 

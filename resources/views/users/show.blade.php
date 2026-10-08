@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Tombol Navigasi Kembali --}}
+    {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
     <div class="lpk-header-back-wrap">
-        <a href="{{ route('users.index') }}" class="lpk-back-btn">
-            <x-icon name="chevron-left" size="14" />
-            <span>Kembali ke Manajemen Anggota</span>
+        <a href="{{ route('users.index') }}" class="lpk-back-btn" title="Kembali ke Manajemen Anggota">
+            <x-icon name="chevron-left" size="16" />
+            <span>Manajemen Anggota</span>
         </a>
     </div>
 

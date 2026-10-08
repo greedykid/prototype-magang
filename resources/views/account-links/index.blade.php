@@ -3,10 +3,10 @@
 @section('title', 'Tautan Akun Kolaborasi | SIMASADI')
 
 @section('content')
-<div class="lpk-header-back-wrap" style="margin-bottom: 12px;">
-    <a href="{{ route('dashboard') }}" class="lpk-back-btn">
-        <x-icon name="chevron-left" size="14" />
-        <span>Kembali ke Dasbor</span>
+<div class="lpk-header-back-wrap">
+    <a href="{{ route('dashboard') }}" class="lpk-back-btn" title="Kembali ke Dasbor">
+        <x-icon name="chevron-left" size="16" />
+        <span>Dasbor</span>
     </a>
 </div>
 

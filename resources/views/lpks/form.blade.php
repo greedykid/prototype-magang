@@ -4,11 +4,11 @@
 
 @section('content')
 <div class="lpk-form-container">
-    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
-        <a href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}" class="lpk-back-btn">
-            <x-icon name="chevron-left" size="14" />
-            <span>{{ $lpk->exists ? 'Kembali ke detail LPK' : 'Semua LPK' }}</span>
+    {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
+        <a href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}" class="lpk-back-btn" title="{{ $lpk->exists ? 'Kembali ke detail laboratorium' : 'Kembali ke data laboratorium' }}">
+            <x-icon name="chevron-left" size="16" />
+            <span>{{ $lpk->exists ? 'Detail Laboratorium' : 'Data Laboratorium' }}</span>
         </a>
     </div>
 

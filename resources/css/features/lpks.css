@@ -33,45 +33,67 @@
 .lpk-header-back-wrap {
     align-items: center;
     display: flex;
-    margin-bottom: 2px;
+    margin-bottom: 12px;
 }
-
 
 .lpk-back-btn {
     align-items: center;
-    background: #f8fafc;
-    border: 1px solid var(--line, #cbd5e1);
-    border-radius: 7px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    color: #475569;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: none;
+    color: var(--muted, #615d59);
     display: inline-flex;
-    font-size: 12px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: var(--text-sm, 13px);
+    font-weight: var(--font-medium, 500);
     gap: 6px;
-    padding: 5px 11px;
+    line-height: 1.4;
+    min-height: 32px;
+    padding: 4px 8px 4px 4px;
     text-decoration: none !important;
-    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    transition: background-color var(--motion-duration-normal, 150ms) ease,
+                color var(--motion-duration-normal, 150ms) ease,
+                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
     user-select: none;
     width: fit-content;
 }
 
 .lpk-back-btn:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-    color: #0f172a;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background: var(--surface-hover, rgba(0, 0, 0, 0.045));
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--ink, #191918);
     text-decoration: none !important;
 }
 
+.lpk-back-btn:focus-visible {
+    outline: 2px solid var(--primary, #0075de);
+    outline-offset: 2px;
+}
+
 .lpk-back-btn svg {
-    color: #64748b;
+    color: var(--muted, #615d59);
     flex-shrink: 0;
-    transition: color 140ms ease, transform 140ms ease;
+    transition: color var(--motion-duration-normal, 150ms) ease,
+                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
 }
 
 .lpk-back-btn:hover svg {
-    color: #0f172a;
-    transform: translateX(-2px);
+    color: var(--ink, #191918);
+    transform: translateX(-3px);
+}
+
+.lpk-back-btn:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 640px) {
+    .lpk-back-btn {
+        font-size: 13.5px;
+        min-height: 40px;
+        padding: 6px 10px 6px 6px;
+    }
 }
 
 .lpk-header-row {
@@ -2668,25 +2690,26 @@ html[data-theme="dark"] .kan-cycle-notice {
     border-top-color: var(--line);
 }
 
-/* Global LPK Back Navigation Button */
+/* Global LPK Back Navigation Button (Dark Mode Notion) */
 html[data-theme="dark"] .lpk-back-btn {
-    background: var(--surface-subtle);
-    border-color: var(--line);
-    color: #cbd5e1;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--muted, #a39e98);
 }
 
 html[data-theme="dark"] .lpk-back-btn:hover {
-    background: var(--surface-hover);
-    border-color: #475569;
-    color: #ffffff;
+    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
+    border-color: transparent;
+    color: var(--ink, #f6f5f4);
 }
 
 html[data-theme="dark"] .lpk-back-btn svg {
-    color: #94a3b8;
+    color: var(--muted, #a39e98);
 }
 
 html[data-theme="dark"] .lpk-back-btn:hover svg {
-    color: #ffffff;
+    color: var(--ink, #f6f5f4);
 }
 
 .lpk-alert-callout.is-warning {

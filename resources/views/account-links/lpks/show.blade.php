@@ -4,10 +4,10 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Tombol Navigasi Kembali ke Daftar LPK Akun Tertaut --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+    {{-- Navigasi Breadcrumb Kembali ke Daftar LPK Akun Tertaut (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
         <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="lpk-back-btn" title="Kembali ke Daftar LPK Akun Tertaut">
-            <x-icon name="chevron-left" size="14" />
+            <x-icon name="chevron-left" size="16" />
             <span>Daftar LPK Akun: {{ $owner->name }}</span>
         </a>
     </div>

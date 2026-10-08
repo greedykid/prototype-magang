@@ -4,17 +4,17 @@
 
 @section('content')
 <div class="lpk-show-container">
-    {{-- Tombol Navigasi Kembali (di Luar Container Card) --}}
-    <div class="lpk-header-back-wrap" style="margin-bottom: -6px;">
+    {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
+    <div class="lpk-header-back-wrap">
         @if(auth()->check() && $lpk->pic_id && auth()->user()->isViewerFor($lpk->pic_id))
             <a href="{{ route('account-links.show', $lpk->pic_id) }}" class="lpk-back-btn" title="Kembali ke Daftar LPK Akun Tertaut">
-                <x-icon name="chevron-left" size="14" />
+                <x-icon name="chevron-left" size="16" />
                 <span>LPK Akun Tertaut ({{ $lpk->pic?->name }})</span>
             </a>
         @else
-            <a href="{{ route('lpks.index') }}" class="lpk-back-btn">
-                <x-icon name="chevron-left" size="14" />
-                <span>Semua LPK</span>
+            <a href="{{ route('lpks.index') }}" class="lpk-back-btn" title="Kembali ke Data Laboratorium">
+                <x-icon name="chevron-left" size="16" />
+                <span>Data Laboratorium</span>
             </a>
         @endif
     </div>
