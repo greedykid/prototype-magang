@@ -276,26 +276,106 @@ body.swal2-toast-shown .swal2-container,
 }
 
 .swal2-popup.swal2-toast .swal2-icon {
+    align-items: center !important;
     align-self: center !important;
+    animation: swal2-toast-icon-pop 200ms var(--ease-out-expo) forwards !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
     flex-shrink: 0 !important;
-    height: 24px !important;
+    height: 28px !important;
+    justify-content: center !important;
     margin: 0 !important;
-    min-width: 24px !important;
-    transform: scale(0.9) !important;
-    width: 24px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+    position: relative !important;
+    transform: none !important;
+    width: 28px !important;
 }
 
-.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success {
-    border-color: var(--success-text, #0f6220) !important;
-    color: var(--success-text, #0f6220) !important;
+/* Hide all SweetAlert2 default multi-layer DOM hack elements in toast */
+.swal2-popup.swal2-toast .swal2-icon > * {
+    display: none !important;
 }
 
-.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success [class^='swal2-success-line'] {
-    background-color: var(--success-text, #0f6220) !important;
+@keyframes swal2-toast-icon-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-.swal2-popup.swal2-toast .swal2-icon.swal2-icon-success .swal2-success-ring {
-    border-color: rgba(20, 131, 43, 0.3) !important;
+/* Toast Success Icon (Crisp Notion Vector Badge) */
+.swal2-popup.swal2-toast .swal2-icon.swal2-success {
+    background: var(--success-bg, #d0f4d8) !important;
+    border: 1px solid var(--success-border, rgba(20, 131, 43, 0.25)) !important;
+    box-shadow: 0 1px 2px rgba(20, 131, 43, 0.1) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-success::before {
+    background-color: var(--success-text, #0f6220);
+    content: '';
+    display: block;
+    height: 15px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat;
+    width: 15px;
+}
+
+/* Toast Error Icon */
+.swal2-popup.swal2-toast .swal2-icon.swal2-error {
+    background: var(--danger-bg, #fdd3cd) !important;
+    border: 1px solid var(--danger-border, rgba(246, 73, 50, 0.25)) !important;
+    box-shadow: 0 1px 2px rgba(246, 73, 50, 0.1) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-error::before {
+    background-color: var(--danger-text, #b01601);
+    content: '';
+    display: block;
+    height: 15px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E") center / contain no-repeat;
+    width: 15px;
+}
+
+/* Toast Warning Icon */
+.swal2-popup.swal2-toast .swal2-icon.swal2-warning {
+    background: var(--warning-bg, #ffdec4) !important;
+    border: 1px solid var(--warning-border, rgba(255, 109, 0, 0.25)) !important;
+    box-shadow: 0 1px 2px rgba(255, 109, 0, 0.1) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-warning::before {
+    background-color: var(--warning-text, #ab4a00);
+    content: '';
+    display: block;
+    height: 15px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E") center / contain no-repeat;
+    width: 15px;
+}
+
+/* Toast Info Icon */
+.swal2-popup.swal2-toast .swal2-icon.swal2-info {
+    background: var(--info-bg, #e6f3fe) !important;
+    border: 1px solid var(--info-border, rgba(0, 117, 222, 0.25)) !important;
+    box-shadow: 0 1px 2px rgba(0, 117, 222, 0.1) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-icon.swal2-info::before {
+    background-color: var(--info-text, #005bab);
+    content: '';
+    display: block;
+    height: 15px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E") center / contain no-repeat;
+    width: 15px;
 }
 
 .swal2-popup.swal2-toast .swal2-title {
@@ -348,11 +428,53 @@ html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-html-container {
     color: var(--muted) !important;
 }
 
-html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-icon-success {
-    border-color: #68ce7e !important;
-    color: #68ce7e !important;
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-success {
+    background: rgba(104, 206, 126, 0.18) !important;
+    border-color: rgba(104, 206, 126, 0.35) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
-html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-icon-success [class^='swal2-success-line'] {
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-success::before {
     background-color: #68ce7e !important;
 }
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-error {
+    background: rgba(247, 116, 99, 0.18) !important;
+    border-color: rgba(247, 116, 99, 0.35) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-error::before {
+    background-color: #ff8b7c !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-warning {
+    background: rgba(255, 138, 51, 0.18) !important;
+    border-color: rgba(255, 138, 51, 0.35) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-warning::before {
+    background-color: #ffad71 !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-info {
+    background: rgba(98, 174, 240, 0.18) !important;
+    border-color: rgba(98, 174, 240, 0.35) !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-icon.swal2-info::before {
+    background-color: #62aef0 !important;
+}
+
+.swal2-popup.swal2-toast .swal2-timer-progress-bar {
+    background: var(--ink, #111111) !important;
+    border-bottom-left-radius: var(--radius-md, 8px) !important;
+    border-bottom-right-radius: var(--radius-md, 8px) !important;
+    height: 3px !important;
+    opacity: 0.25 !important;
+}
+
+html[data-theme="dark"] .swal2-popup.swal2-toast .swal2-timer-progress-bar {
+    background: var(--ink) !important;
+    opacity: 0.3 !important;
+}
+
