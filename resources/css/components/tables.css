@@ -2288,10 +2288,10 @@ tr.is-selected:hover {
 .table-bulk-bar-inner,
 .floating-bulk-bar-inner {
     align-items: center;
-    background: var(--color-gray-900, #191918);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
     border-radius: var(--radius-md, 8px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
@@ -2299,11 +2299,12 @@ tr.is-selected:hover {
     justify-content: space-between;
     padding: 8px 14px;
     width: 100%;
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .bulk-bar-info {
     align-items: center;
-    color: #ffffff;
+    color: var(--ink, #111111);
     display: inline-flex;
     gap: 8px;
     font-size: 13.5px;
@@ -2326,7 +2327,7 @@ tr.is-selected:hover {
 }
 
 .bulk-count-label {
-    color: #ffffff;
+    color: var(--ink, #111111);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -2354,16 +2355,16 @@ tr.is-selected:hover {
 
 .table-bulk-bar .button.secondary,
 .floating-bulk-bar .button.secondary {
-    background: #ffffff;
-    border: 1px solid #c8c4be;
-    color: var(--ink);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+    color: var(--ink, #111111);
 }
 
 .table-bulk-bar .button.secondary:hover,
 .floating-bulk-bar .button.secondary:hover {
-    background: #ffffff;
-    border-color: #b0aba3;
-    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.07);
+    background: var(--surface-hover, #efedea);
+    border-color: rgba(0, 0, 0, 0.18);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .table-bulk-bar .button.danger,
@@ -2384,15 +2385,16 @@ tr.is-selected:hover {
 .floating-bulk-bar .button.ghost {
     background: transparent;
     border: 1px solid transparent;
-    color: var(--muted);
+    color: var(--muted, #78736f);
 }
 
 .table-bulk-bar .button.ghost:hover,
 .floating-bulk-bar .button.ghost:hover {
-    background: var(--surface-hover, #f1f5f9);
+    background: var(--surface-hover, #efedea);
     border-color: transparent;
-    color: var(--ink);
+    color: var(--ink, #111111);
 }
+
 
 @media (max-width: 640px) {
     .table-bulk-bar-inner,
@@ -2999,21 +3001,27 @@ html[data-theme="dark"] .bulk-bar-info {
     color: var(--ink);
 }
 
+html[data-theme="dark"] .bulk-count-badge {
+    background-color: var(--primary, #62aef0);
+    color: #0d1e33;
+}
+
 html[data-theme="dark"] .bulk-count-label {
     color: var(--ink);
 }
 
 html[data-theme="dark"] .table-bulk-bar .button.secondary,
 html[data-theme="dark"] .floating-bulk-bar .button.secondary {
-    background: #1e293b;
-    border-color: #334155;
+    background: var(--surface-subtle, #262625);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
     color: var(--ink);
+    box-shadow: none;
 }
 
 html[data-theme="dark"] .table-bulk-bar .button.secondary:hover,
 html[data-theme="dark"] .floating-bulk-bar .button.secondary:hover {
-    background: #334155;
-    border-color: #475569;
+    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: rgba(255, 255, 255, 0.2);
     color: #ffffff;
 }
 
@@ -3021,12 +3029,12 @@ html[data-theme="dark"] .table-bulk-bar .button.ghost,
 html[data-theme="dark"] .floating-bulk-bar .button.ghost {
     background: transparent;
     border-color: transparent;
-    color: #94a3b8;
+    color: var(--muted, #a39e98);
 }
 
 html[data-theme="dark"] .table-bulk-bar .button.ghost:hover,
 html[data-theme="dark"] .floating-bulk-bar .button.ghost:hover {
-    background: var(--surface-hover);
+    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
     border-color: transparent;
     color: var(--ink);
 }
