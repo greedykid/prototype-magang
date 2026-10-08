@@ -67,7 +67,7 @@ class LpkNotificationActionsTest extends TestCase
             $response->assertSee('Masa Tenggang Akreditasi Ulang');
             $response->assertSee('Input SK Akreditasi KAN');
             $response->assertSee('Perbarui Sertifikat');
-            $response->assertSee(route('assessments.show', $raAssessment));
+            $response->assertSee('/edit#form-sk-block');
             $response->assertSee(route('lpks.edit', $lpk));
         }
     }

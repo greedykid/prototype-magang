@@ -1169,6 +1169,29 @@
         // Jalankan penentuan info LPK dan status otomatis saat form dimuat
         updateSelectedLpkInfo();
         updateStatus();
+
+        // Auto-scroll dan fokus langsung ke pengisian SK jika diakses dari notifikasi SK
+        const currentHash = window.location.hash;
+        const focusParam = new URLSearchParams(window.location.search).get('focus');
+        if (currentHash === '#form-sk-block' || currentHash === '#assessment-sk-number' || focusParam === 'sk') {
+            setTimeout(function() {
+                const targetInput = document.getElementById('assessment-sk-number');
+                const targetCard = document.getElementById('form-sk-block');
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (targetInput) {
+                        targetInput.focus();
+                    }
+                    targetCard.style.transition = 'box-shadow 300ms ease, border-color 300ms ease';
+                    targetCard.style.borderColor = 'var(--primary, #0075de)';
+                    targetCard.style.boxShadow = '0 0 0 3px rgba(0, 117, 222, 0.2)';
+                    setTimeout(function() {
+                        targetCard.style.borderColor = '';
+                        targetCard.style.boxShadow = '';
+                    }, 2500);
+                }
+            }, 180);
+        }
     }
 
     if (document.readyState === 'loading') {

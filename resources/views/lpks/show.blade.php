@@ -259,7 +259,7 @@
             @if($lpk->canManage(auth()->user()))
                 <div class="lpk-alert-callout-actions">
                     @if($linkedRA)
-                        <a href="{{ route('assessments.show', $linkedRA) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-warning" title="Buka asesmen reakreditasi untuk melengkapi keputusan dan nomor SK KAN">
+                        <a href="{{ route('assessments.edit', $linkedRA) }}#form-sk-block" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-warning" title="Ubah asesmen reakreditasi dan langsung menuju pengisian nomor &amp; tanggal SK KAN">
                             <x-icon name="check-circle" size="14" />
                             <span>Input SK Akreditasi KAN</span>
                         </a>
