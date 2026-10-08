@@ -346,6 +346,51 @@ section.has-open-select,
     word-break: break-word;
 }
 
+.custom-select-badge {
+    align-self: flex-start;
+    background: var(--surface-subtle, #f7f6f5);
+    border: 1px solid var(--line, #dfdcd9);
+    border-radius: var(--radius-xs, 4px);
+    color: var(--ink, #191918);
+    flex-shrink: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+    margin-top: 2px;
+    padding: 2px 6px;
+    white-space: nowrap;
+}
+
+.custom-select-option.is-selected .custom-select-badge {
+    background: #ffffff;
+    border-color: rgba(0, 117, 222, 0.35);
+    color: var(--primary-hover, #005bab);
+}
+
+.custom-select-badge-trigger {
+    background: var(--surface-subtle, #f7f6f5);
+    border: 1px solid var(--line, #dfdcd9);
+    border-radius: var(--radius-xs, 4px);
+    color: var(--ink, #191918);
+    flex-shrink: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+
+.custom-select-label-trigger {
+    flex: 1 1 0%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .custom-select-check {
     align-items: center;
     color: var(--primary, #0075de);
@@ -398,4 +443,18 @@ html[data-theme="dark"] .custom-select-option.is-selected.is-focused {
 html[data-theme="dark"] .custom-select-search-input:focus {
     background: var(--input-bg, #202020) !important;
 }
+
+html[data-theme="dark"] .custom-select-badge,
+html[data-theme="dark"] .custom-select-badge-trigger {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: var(--ink, #ffffff);
+}
+
+html[data-theme="dark"] .custom-select-option.is-selected .custom-select-badge {
+    background: rgba(0, 117, 222, 0.25);
+    border-color: rgba(0, 117, 222, 0.5);
+    color: #93c5fd;
+}
+
 

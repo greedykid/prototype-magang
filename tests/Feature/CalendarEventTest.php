@@ -481,4 +481,20 @@ class CalendarEventTest extends TestCase
         $response->assertForbidden();
         $this->assertDatabaseHas('calendar_events', ['id' => $event->id]);
     }
+
+    public function test_quick_add_modal_renders_lpk_accreditation_number_in_options(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create([
+            'accreditation_number' => 'LP-999-IDN',
+            'registration_number' => 'LP-999-IDN',
+            'name' => 'Laboratorium Uji Presisi Utama',
+        ]);
+
+        $response = $this->actingAs($user)->get('/calendar');
+        $response->assertOk();
+        $response->assertSee('LP-999-IDN');
+        $response->assertSee('data-badge="LP-999-IDN"', false);
+        $response->assertSee('Laboratorium Uji Presisi Utama');
+    }
 }

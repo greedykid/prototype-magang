@@ -117,7 +117,12 @@
                 <select id="gcal-filter-lpk" class="gcal-lpk-select">
                     <option value="">Semua LPK</option>
                     @foreach($lpks as $lpk)
-                        <option value="{{ $lpk->id }}">{{ $lpk->name }}</option>
+                        @php
+                            $accNo = $lpk->accreditation_number ?: $lpk->registration_number;
+                        @endphp
+                        <option value="{{ $lpk->id }}" @if($accNo) data-badge="{{ $accNo }}" data-accreditation-no="{{ $accNo }}" @endif>
+                            {{ $accNo ? $accNo . ' — ' : '' }}{{ $lpk->name }}
+                        </option>
                     @endforeach
                 </select>
             </div>

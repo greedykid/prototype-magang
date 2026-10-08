@@ -129,10 +129,22 @@ const createCustomSelect = (select) => {
             if (isSelected) optionEl.classList.add('is-selected');
 
             const labelText = opt.textContent.trim();
+            const badge = opt.dataset.badge || opt.dataset.code;
+
+            let badgeHtml = '';
+            let textHtml = labelText;
+
+            if (badge) {
+                badgeHtml = `<span class="custom-select-badge">${badge}</span>`;
+                if (textHtml.startsWith(badge)) {
+                    textHtml = textHtml.slice(badge.length).replace(/^[\s—\-:]+/, '');
+                }
+            }
 
             optionEl.innerHTML = `
                 <span class="custom-select-option-content">
-                    <span class="custom-select-option-text">${labelText}</span>
+                    ${badgeHtml}
+                    <span class="custom-select-option-text">${textHtml}</span>
                 </span>
                 <span class="custom-select-check">${checkIconSvg}</span>
             `;
@@ -151,7 +163,16 @@ const createCustomSelect = (select) => {
         const selectedOpt = select.options[select.selectedIndex] || select.options[0];
         if (selectedOpt) {
             const labelText = selectedOpt.textContent.trim();
-            valueSpan.innerHTML = `<span>${labelText}</span>`;
+            const badge = selectedOpt.dataset.badge || selectedOpt.dataset.code;
+            if (badge && selectedOpt.value) {
+                let textHtml = labelText;
+                if (textHtml.startsWith(badge)) {
+                    textHtml = textHtml.slice(badge.length).replace(/^[\s—\-:]+/, '');
+                }
+                valueSpan.innerHTML = `<span class="custom-select-badge-trigger">${badge}</span><span class="custom-select-label-trigger">${textHtml}</span>`;
+            } else {
+                valueSpan.innerHTML = `<span>${labelText}</span>`;
+            }
             valueSpan.classList.toggle('is-placeholder', !selectedOpt.value && select.required);
         } else {
             valueSpan.innerHTML = '<span>Pilih...</span>';
@@ -181,7 +202,7 @@ const createCustomSelect = (select) => {
         const query = term.toLowerCase().trim();
         let visibleCount = 0;
         optionElements.forEach((el) => {
-            const text = el.querySelector('.custom-select-option-text')?.textContent.toLowerCase() || '';
+            const text = (el.querySelector('.custom-select-option-content')?.textContent || el.textContent || '').toLowerCase();
             const matches = !query || text.includes(query);
             el.classList.toggle('is-hidden', !matches);
             if (matches) visibleCount++;

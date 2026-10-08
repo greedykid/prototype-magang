@@ -530,7 +530,7 @@ class CalendarEventController extends Controller
         $lpks = Lpk::accessibleBy($user)
             ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'accreditation_number', 'registration_number', 'no_reg']);
         $hoursRange = range(7, 19);
 
         $viewData = compact(
