@@ -580,7 +580,19 @@
 }
 
 .gcal-select-wrapper-year {
-    width: 76px;
+    min-width: 86px;
+    width: 86px;
+}
+
+.gcal-select-wrapper-year .custom-select-trigger {
+    padding: 0 6px 0 8px !important;
+}
+
+.gcal-select-wrapper-year .custom-select-value,
+.gcal-select-wrapper-year .custom-select-value > span {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
 }
 
 .gcal-select-wrapper .custom-select-wrapper {
@@ -726,7 +738,8 @@
 }
 
 .gcal-title-selects.is-compact .gcal-select-wrapper-year {
-    width: 72px;
+    min-width: 82px;
+    width: 82px;
 }
 
 .gcal-title-selects.is-compact .custom-select-trigger {
@@ -1082,7 +1095,8 @@ html[data-theme="dark"] .gcal-range-floating-pill {
         width: 108px;
     }
     .gcal-select-wrapper-year {
-        width: 72px;
+        min-width: 86px;
+        width: 86px;
     }
     .gcal-view-tab {
         padding: 0 8px;
