@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class LpkSurveillanceService
 {
@@ -829,16 +830,18 @@ class LpkSurveillanceService
             return false;
         }
 
-        // Update LPK ke siklus 5 tahun berikutnya
-        $lpk->update([
-            'certificate_date' => $newCertDate->toDateString(),
-            'expired_at' => $newExpDate->toDateString(),
-            'status' => 'ACTIVE',
-        ]);
+        // Update LPK ke siklus 5 tahun berikutnya secara atomik
+        return DB::transaction(function () use ($lpk, $newCertDate, $newExpDate): bool {
+            $lpk->update([
+                'certificate_date' => $newCertDate->toDateString(),
+                'expired_at' => $newExpDate->toDateString(),
+                'status' => 'ACTIVE',
+            ]);
 
-        $this->generateAssessments($lpk);
+            $this->generateAssessments($lpk);
 
-        return true;
+            return true;
+        });
     }
 
     /**

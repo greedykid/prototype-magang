@@ -447,4 +447,38 @@ class CalendarEventTest extends TestCase
         $calResponse->assertOk();
         $calResponse->assertSee('Surveilen 1', false);
     }
+
+    public function test_authorized_user_can_delete_calendar_event(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create(['pic_id' => $user->id]);
+        $event = CalendarEvent::factory()->create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $user->id,
+            'title' => 'Agenda Akan Dihapus',
+        ]);
+
+        $response = $this->actingAs($user)->delete('/calendar/events/' . $event->id);
+
+        $response->assertRedirect('/calendar');
+        $response->assertSessionHas('success');
+        $this->assertDatabaseMissing('calendar_events', ['id' => $event->id]);
+    }
+
+    public function test_unauthorized_user_cannot_delete_calendar_event(): void
+    {
+        $owner = User::factory()->create(['role' => User::ROLE_PIC]);
+        $otherUser = User::factory()->create(['role' => User::ROLE_PIC]);
+        $lpk = Lpk::factory()->create(['pic_id' => $owner->id]);
+        $event = CalendarEvent::factory()->create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $owner->id,
+            'title' => 'Agenda Rahasia',
+        ]);
+
+        $response = $this->actingAs($otherUser)->delete('/calendar/events/' . $event->id);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('calendar_events', ['id' => $event->id]);
+    }
 }

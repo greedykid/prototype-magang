@@ -341,19 +341,19 @@ class LpkController extends Controller
             }
 
             // Konfigurasi SMTP dinamis: Cegah host 127.0.0.1 lokal dan dukung port 587/2525 secara otomatis
-            $host = env('MAIL_HOST');
+            $host = config('mail.mailers.smtp.host');
             if (empty($host) || $host === '127.0.0.1') {
                 $host = 'sandbox.smtp.mailtrap.io';
             }
 
-            $port = (int) (env('MAIL_PORT') ?: config('mail.mailers.smtp.port') ?: 587);
+            $port = (int) (config('mail.mailers.smtp.port') ?: 587);
             if ($port !== 587 && $port !== 2525 && empty($port)) {
                 $port = 587;
             }
 
-            $username = env('MAIL_USERNAME') ?: config('mail.mailers.smtp.username');
-            $password = env('MAIL_PASSWORD') ?: config('mail.mailers.smtp.password');
-            $encryption = env('MAIL_ENCRYPTION') ?: config('mail.mailers.smtp.encryption') ?: 'tls';
+            $username = config('mail.mailers.smtp.username');
+            $password = config('mail.mailers.smtp.password');
+            $encryption = config('mail.mailers.smtp.encryption') ?: 'tls';
 
             // Selalu bersihkan cache mailer agar instance lama di php artisan serve tidak digunakan
             \Illuminate\Support\Facades\Mail::purge('smtp');

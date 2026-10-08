@@ -204,6 +204,28 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif login.');
         }
 
+        // Proteksi integritas relasional & preservasi jejak audit ISO/KAN:
+        // Akun yang pernah mencatat asesmen, agenda kalender, atau menjadi PIC utama LPK dicegah dihapus
+        $hasAssessments = $user->assessments()->exists();
+        $hasEvents = $user->calendarEvents()->exists();
+        $hasPrimaryLpks = $user->lpks()->exists();
+
+        if ($hasAssessments || $hasEvents || $hasPrimaryLpks) {
+            $reasons = [];
+            if ($hasAssessments) {
+                $reasons[] = 'program asesmen';
+            }
+            if ($hasEvents) {
+                $reasons[] = 'agenda kalender';
+            }
+            if ($hasPrimaryLpks) {
+                $reasons[] = 'LPK utama binaan';
+            }
+
+            $reasonStr = implode(', ', $reasons);
+            return back()->with('error', "Akun {$user->name} tidak dapat dihapus karena tercatat sebagai pembuat/penanggung jawab {$reasonStr}. Anda dapat menonaktifkan akun dengan mengganti kata sandi atau memperbarui perannya.");
+        }
+
         $userId = $user->id;
         $userEmail = $user->email;
         $userName = $user->name;

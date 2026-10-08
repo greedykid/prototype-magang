@@ -78,7 +78,7 @@ class GoogleSheetsReportController extends Controller
      */
     protected function isValidFeedKey(Request $request): bool
     {
-        $configured = (string) (config('services.sheets.feed_key') ?: env('SHEETS_FEED_KEY') ?: '');
+        $configured = (string) config('services.sheets.feed_key', '');
 
         // Pada environment non-lokal (misal production atau staging), wajib kunci rahasia khusus non-default
         if (! app()->environment('local', 'testing')) {

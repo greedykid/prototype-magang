@@ -36,10 +36,23 @@
             </svg>
             <span>Google Calendar</span>
         </a>
-        <a class="button secondary" href="{{ route('calendar.events.edit', $event) }}">
-            <x-icon name="edit" size="16" />
-            <span>Ubah agenda</span>
-        </a>
+        @php
+            $canManageEvent = auth()->user() && (auth()->user()->isAdmin() || ($event->lpk && $event->lpk->canManage(auth()->user())) || (int) $event->created_by === (int) auth()->id());
+        @endphp
+        @if($canManageEvent)
+            <a class="button secondary" href="{{ route('calendar.events.edit', $event) }}">
+                <x-icon name="edit" size="16" />
+                <span>Ubah agenda</span>
+            </a>
+            <form method="POST" action="{{ route('calendar.events.destroy', $event) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda \'{{ addslashes($event->title) }}\'? Tindakan ini tidak dapat dibatalkan.');" style="margin: 0; display: inline-block;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="button danger" style="background: #dc2626; border-color: #b91c1c; color: #ffffff; display: inline-flex; align-items: center; gap: 6px;" title="Hapus Agenda">
+                    <x-icon name="trash" size="16" />
+                    <span>Hapus</span>
+                </button>
+            </form>
+        @endif
     </div>
 </div>
 

@@ -10,6 +10,7 @@ use App\Models\Lpk;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class CalendarEventController extends Controller
@@ -622,6 +623,26 @@ class CalendarEventController extends Controller
         $event->update($validated);
 
         return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');
+    }
+
+    public function destroy(CalendarEvent $event, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $this->canUserManageEvent($user, $event)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus agenda ini.');
+        }
+
+        $title = $event->title;
+        $event->delete();
+
+        Log::info('Calendar event deleted', [
+            'event_id' => $event->id,
+            'title' => $title,
+            'deleted_by' => $user?->id,
+            'ip' => $request->ip(),
+        ]);
+
+        return redirect()->route('calendar.index')->with('success', "Agenda \"{$title}\" berhasil dihapus.");
     }
 
     protected function canUserManageEvent(?\App\Models\User $user, CalendarEvent $event): bool

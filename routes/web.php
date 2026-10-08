@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/calendar/events/{event}', [CalendarEventController::class, 'show'])->name('calendar.events.show');
     Route::get('/calendar/events/{event}/edit', [CalendarEventController::class, 'edit'])->name('calendar.events.edit');
     Route::put('/calendar/events/{event}', [CalendarEventController::class, 'update'])->name('calendar.events.update');
+    Route::delete('/calendar/events/{event}', [CalendarEventController::class, 'destroy'])->name('calendar.events.destroy');
 
     // Pengelolaan Lembaga Penilaian Kesesuaian (LPK)
     Route::get('/lpks', [LpkController::class, 'index'])->name('lpks.index');

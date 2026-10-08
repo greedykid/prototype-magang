@@ -204,6 +204,19 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $admin->id]);
     }
 
+    public function test_admin_cannot_delete_user_with_associated_records(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $targetUser = User::factory()->create(['role' => User::ROLE_PIC]);
+
+        $lpk = \App\Models\Lpk::factory()->create(['pic_id' => $targetUser->id]);
+
+        $response = $this->actingAs($admin)->delete('/users/' . $targetUser->id);
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $targetUser->id]);
+    }
+
     public function test_cannot_create_or_promote_second_admin_user(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
