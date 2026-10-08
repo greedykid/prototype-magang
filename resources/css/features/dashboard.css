@@ -814,6 +814,12 @@ html[data-theme="dark"] .metric:hover {
     box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
 }
 
+html[data-theme="dark"] .metric-icon.theme-indigo {
+    background: rgba(99, 102, 241, 0.16) !important;
+    border-color: rgba(99, 102, 241, 0.35) !important;
+    color: #a5b4fc !important;
+}
+
 html[data-theme="dark"] .metric-icon.theme-emerald {
     background: rgba(16, 185, 129, 0.16) !important;
     border-color: rgba(16, 185, 129, 0.35) !important;
