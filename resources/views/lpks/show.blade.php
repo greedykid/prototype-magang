@@ -256,6 +256,25 @@
                     <strong>Peringatan Penggunaan Simbol KAN:</strong> Selama masa akreditasi telah habis dan keputusan akreditasi ulang belum ditetapkan, LPK <u>dilarang</u> menggunakan simbol akreditasi KAN dan/atau membuat pernyataan akreditasi pada sertifikat, laporan pengujian/kalibrasi, kop surat, maupun media publikasi lainnya.
                 </div>
             </div>
+            @if($lpk->canManage(auth()->user()))
+                <div class="lpk-alert-callout-actions">
+                    @if($linkedRA)
+                        <a href="{{ route('assessments.show', $linkedRA) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-warning" title="Buka asesmen reakreditasi untuk melengkapi keputusan dan nomor SK KAN">
+                            <x-icon name="check-circle" size="14" />
+                            <span>Input SK Akreditasi KAN</span>
+                        </a>
+                    @else
+                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'RA', 'target_date' => $ra['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-warning" title="Catat agenda asesmen akreditasi ulang">
+                            <x-icon name="plus" size="14" />
+                            <span>Catat Reakreditasi</span>
+                        </a>
+                    @endif
+                    <a href="{{ route('lpks.edit', $lpk) }}" class="button secondary button-sm lpk-alert-action-btn" title="Perbarui sertifikat dan masa berlaku akreditasi LPK">
+                        <x-icon name="edit" size="14" />
+                        <span>Perbarui Sertifikat</span>
+                    </a>
+                </div>
+            @endif
         </div>
     @elseif($lpk->isRevocationOverdue())
         <div class="lpk-alert-callout">
@@ -272,6 +291,18 @@
                     @endif
                 </p>
             </div>
+            @if($lpk->canManage(auth()->user()))
+                <div class="lpk-alert-callout-actions">
+                    <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'assessment_type' => 'INITIAL', 'title' => 'Akreditasi Awal - ' . $lpk->name]) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Daftarkan permohonan asesmen akreditasi awal baru">
+                        <x-icon name="plus" size="14" />
+                        <span>Ajukan Akreditasi Awal</span>
+                    </a>
+                    <a href="{{ route('lpks.edit', $lpk) }}" class="button secondary button-sm lpk-alert-action-btn" title="Perbarui data dan status laboratorium">
+                        <x-icon name="edit" size="14" />
+                        <span>Perbarui Data LPK</span>
+                    </a>
+                </div>
+            @endif
         </div>
     @endif
 
@@ -297,15 +328,49 @@
                     </div>
                 @endif
             </div>
-            @if(auth()->user()?->isAdmin())
-                <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin: 0; flex-shrink: 0;">
-                    @csrf
-                    <button type="submit" class="button primary" style="background-color: #e11d48; border-color: #e11d48; font-size: 12.5px; padding: 7px 16px; min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>Kirim Notifikasi Email PIC Lab</span>
-                    </button>
-                </form>
-            @endif
+            <div class="lpk-alert-callout-actions">
+                @if($lpk->canManage(auth()->user()))
+                    @foreach($activeAlerts as $a)
+                        @php
+                            $alertCode = strtoupper($a['code'] ?? 'S1');
+                            $alertTarget = ($a['visit_target_date'] ?? $a['target_date'])?->format('Y-m-d');
+                            $linkedAssessment = match($alertCode) {
+                                'S1' => $linkedS1,
+                                'S2' => $linkedS2,
+                                'RA' => $linkedRA,
+                                default => null,
+                            };
+                        @endphp
+                        @if($linkedAssessment)
+                            @if($linkedAssessment->start_at)
+                                <a href="{{ route('assessments.show', $linkedAssessment) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Buka detail agenda asesmen {{ $a['name'] }}">
+                                    <x-icon name="calendar" size="14" />
+                                    <span>Buka {{ $a['name'] }}</span>
+                                </a>
+                            @else
+                                <a href="{{ route('assessments.edit', $linkedAssessment) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Lengkapi jadwal kunjungan asesmen {{ $a['name'] }}">
+                                    <x-icon name="calendar" size="14" />
+                                    <span>Input Tanggal {{ $a['name'] }}</span>
+                                </a>
+                            @endif
+                        @else
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => $alertCode, 'target_date' => $alertTarget]) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Jadwalkan agenda kunjungan asesmen {{ $a['name'] }} sekarang">
+                                <x-icon name="plus" size="14" />
+                                <span>Jadwalkan {{ $a['name'] }}</span>
+                            </a>
+                        @endif
+                    @endforeach
+                @endif
+                @if(auth()->user()?->isAdmin())
+                    <form method="POST" action="{{ route('lpks.surveillance.remind', $lpk) }}" style="margin: 0; flex-shrink: 0;">
+                        @csrf
+                        <button type="submit" class="button secondary button-sm lpk-alert-action-btn" title="Kirim notifikasi email pengingat pengawasan ke PIC Lab">
+                            <x-icon name="mail" size="14" />
+                            <span>Kirim Notifikasi Email PIC Lab</span>
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
     @endif
 
