@@ -7,6 +7,7 @@
     gap: 20px;
     align-items: start;
     margin-bottom: 30px;
+    overflow-anchor: none;
     transition: opacity 140ms ease;
 }
 
@@ -477,6 +478,7 @@
     box-shadow: 0 1px 3px rgba(26, 26, 26, 0.03);
     min-width: 0;
     overflow: visible;
+    overflow-anchor: none;
     position: relative;
 }
 

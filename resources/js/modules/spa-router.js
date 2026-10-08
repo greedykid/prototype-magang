@@ -646,8 +646,10 @@ const navigateTo = async (url, pushState = true) => {
         if (typeof closeEventPopover === 'function') closeEventPopover();
         else window.closeEventPopover?.();
 
-        if (typeof closeModal === 'function') closeModal();
-        else window.closeModal?.();
+        if (document.querySelector('.simasadi-modal.is-active')) {
+            if (typeof closeModal === 'function') closeModal();
+            else window.closeModal?.();
+        }
 
         if (typeof closeAllCustomPickers === 'function') closeAllCustomPickers();
         else window.closeAllCustomPickers?.();
@@ -681,6 +683,14 @@ const navigateTo = async (url, pushState = true) => {
         // IN-CALENDAR SEAMLESS ZERO-DELAY TRANSITION
         // =========================================================================
         if (isCalendarToCalendar) {
+            // Strictly preserve the user's current scroll position so switching months never jumps
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+            // Blur active element so browser does not attempt automatic focus rescue scrolling
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
             // Preserve active category checkbox filters, selected LPK, and selected PIC
             const activeCatStates = {};
             document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
@@ -804,14 +814,20 @@ const navigateTo = async (url, pushState = true) => {
                 picSelect.value = selectedPic;
             }
 
+            if (pushState) {
+                window.history.pushState({ url }, '', url);
+            }
+
             // Re-initialize calendar components and custom dropdowns
             if (typeof initGcalComponents === 'function') initGcalComponents();
             if (typeof initCustomSelects === 'function') initCustomSelects(document);
             if (typeof initCustomPickers === 'function') initCustomPickers(document);
 
-            if (pushState) {
-                window.history.pushState({ url }, '', url);
-            }
+            // Firmly lock and restore the exact scroll position down to the pixel
+            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+            });
 
             // Rantai prefetch otomatis: Unduh bulan berikutnya & sebelumnya di latar belakang
             scheduleAdjacentCalendarPrefetch();

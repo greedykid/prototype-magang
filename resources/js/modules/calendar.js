@@ -717,8 +717,7 @@ function initGcalMonthYearPicker() {
 
 function initCalendarHighlight() {
     const urlParams = new URLSearchParams(window.location.search);
-    const shell = document.querySelector('.gcal-shell');
-    const highlightId = urlParams.get('highlight') || shell?.dataset?.highlightId;
+    const highlightId = urlParams.get('highlight');
     if (!highlightId) return;
 
     const rawId = highlightId.replace(/^assessment-/, '');

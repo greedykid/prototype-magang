@@ -93,6 +93,12 @@ export function openModal(modalId) {
 
 export function closeModal(modalIdOrEl) {
     closeAllCustomPickers();
+
+    const activeModals = document.querySelectorAll('.simasadi-modal.is-active');
+    if (!activeModals.length && !document.body.classList.contains('modal-open')) {
+        return;
+    }
+
     if (!modalIdOrEl) {
         document.querySelectorAll('.simasadi-modal').forEach((m) => {
             m.classList.remove('is-active');
@@ -103,6 +109,7 @@ export function closeModal(modalIdOrEl) {
         if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
             window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
         }
+        savedModalScrollY = 0;
         restoreFocus();
         return;
     }
@@ -131,6 +138,7 @@ export function closeModal(modalIdOrEl) {
         if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
             window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
         }
+        savedModalScrollY = 0;
         restoreFocus();
     }
 }
