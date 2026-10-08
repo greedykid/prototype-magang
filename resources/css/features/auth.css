@@ -1,33 +1,78 @@
 /* ==========================================================================
    SIMASADI Auth / Login Page
+   Notion Design System Aligned (Light & Dark Theme)
    ========================================================================== */
 
 .auth-page {
     align-items: center;
-    background: var(--maroon-dark, #4534b3);
+    background: #00396b;
+    background: linear-gradient(145deg, #002244 0%, #00396b 55%, #005bab 100%);
+    box-sizing: border-box;
     display: flex;
     justify-content: center;
     min-height: 100vh;
     padding: clamp(16px, 4vw, 32px);
-    box-sizing: border-box;
+    position: relative;
+    transition: background 200ms ease;
+}
+
+/* Theme Toggle Bar on Auth Page */
+.auth-theme-bar {
+    position: absolute;
+    right: clamp(16px, 4vw, 32px);
+    top: clamp(16px, 4vw, 32px);
+    z-index: 10;
+}
+
+.auth-theme-btn {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    height: 38px;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-expo);
+    width: 38px;
+}
+
+.auth-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: scale(1.05);
+}
+
+.auth-theme-icon-sun {
+    display: none;
+}
+
+.auth-theme-icon-moon {
+    display: inline-flex;
 }
 
 .login-card {
-    background: #ffffff;
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 14px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-lg, 14px);
     box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04);
     box-sizing: border-box;
+    margin: 0 auto;
     max-width: 460px;
     padding: clamp(24px, 5vw, 36px);
+    position: relative;
+    transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
     width: 100%;
-    margin: 0 auto;
 }
 
 /* Brand Section */
 .login-card .brand {
     align-items: center;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line, #f1f5f9);
     display: flex;
     gap: 14px;
     margin-bottom: 22px;
@@ -36,11 +81,11 @@
 
 .login-brand-logo {
     display: block;
+    flex-shrink: 0;
     height: 40px;
     max-width: 92px;
     object-fit: contain;
     width: auto;
-    flex-shrink: 0;
 }
 
 .login-brand-text {
@@ -51,7 +96,7 @@
 }
 
 .login-brand-text strong {
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     font-size: 16px;
     font-weight: 750;
     letter-spacing: 0.04em;
@@ -59,7 +104,7 @@
 }
 
 .login-brand-text small {
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     font-size: 11.5px;
     font-weight: 500;
     line-height: 1.3;
@@ -68,7 +113,7 @@
 
 /* Header Text */
 .login-card h1 {
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     font-size: clamp(1.35rem, 3.5vw, 1.55rem);
     font-weight: 700;
     letter-spacing: -0.025em;
@@ -77,7 +122,7 @@
 }
 
 .login-card .lede {
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     font-size: 13px;
     line-height: 1.45;
     margin: 0 0 18px 0;
@@ -85,15 +130,15 @@
 
 /* Role Selector (1-Click) */
 .role-selector-wrap {
-    background: #f8fafc;
-    border: 1px solid var(--line, #e2e8f0);
-    border-radius: 10px;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-md, 10px);
     margin: 18px 0 20px;
     padding: 12px;
 }
 
 .role-selector-title {
-    color: #64748b;
+    color: var(--muted, #615d59);
     display: block;
     font-size: 11px;
     font-weight: 700;
@@ -110,9 +155,9 @@
 
 .role-pill-btn {
     align-items: flex-start;
-    background: #ffffff;
-    border: 1.5px solid var(--line, #e2e8f0);
-    border-radius: 8px;
+    background: var(--surface, #ffffff);
+    border: 1.5px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-md, 8px);
     box-sizing: border-box;
     cursor: pointer;
     display: flex;
@@ -121,32 +166,33 @@
     min-height: 52px;
     padding: 8px 10px;
     text-align: left;
-    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out-expo);
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms var(--ease-out-expo);
     width: 100%;
 }
 
 .role-pill-btn:hover {
-    border-color: var(--maroon, #5645d4);
-    box-shadow: 0 2px 6px rgba(86, 69, 212, 0.12);
+    background-color: var(--surface-hover, #efedea);
+    border-color: var(--primary, #0075de);
+    box-shadow: 0 2px 6px rgba(0, 117, 222, 0.12);
     transform: translateY(-1px);
 }
 
 .role-pill-btn.is-active {
-    background: #f5f3ff;
-    border-color: var(--maroon, #5645d4);
-    box-shadow: 0 0 0 2px var(--maroon, #5645d4);
+    background: var(--primary-subtle, #f2f9ff);
+    border-color: var(--primary, #0075de);
+    box-shadow: 0 0 0 2px var(--primary, #0075de);
 }
 
 .role-pill-top {
     align-items: center;
     display: flex;
-    justify-content: space-between;
     gap: 4px;
+    justify-content: space-between;
     width: 100%;
 }
 
 .role-pill-name {
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     font-size: 12px;
     font-weight: 650;
     line-height: 1.2;
@@ -161,7 +207,7 @@
 }
 
 .role-pill-desc {
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     font-size: 10.5px;
     line-height: 1.3;
 }
@@ -175,7 +221,7 @@
 
 .form-stack label {
     box-sizing: border-box;
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     display: grid;
     font-size: 13px;
     font-weight: 600;
@@ -185,27 +231,27 @@
 }
 
 .form-stack input:not([type="checkbox"]) {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    background: var(--input-bg, #ffffff);
+    border: 1px solid var(--input-border, var(--line));
+    border-radius: var(--radius-sm, 6px);
     box-sizing: border-box;
-    color: var(--ink, #0f172a);
+    color: var(--ink, #191918);
     font-size: 13.5px;
     min-height: 42px;
     padding: 9px 12px;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
     width: 100%;
 }
 
 .form-stack input:not([type="checkbox"]):focus {
-    border-color: var(--maroon, #5645d4);
-    box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.15);
+    border-color: var(--primary, #0075de);
+    box-shadow: 0 0 0 3px var(--primary-subtle, rgba(0, 117, 222, 0.15));
     outline: none;
 }
 
 .form-stack label.check {
     align-items: center;
-    color: #475569;
+    color: var(--muted, #615d59);
     display: flex;
     font-size: 13px;
     font-weight: 400;
@@ -213,11 +259,16 @@
     margin-top: -2px;
 }
 
+.form-stack label.check input[type="checkbox"] {
+    accent-color: var(--primary, #0075de);
+}
+
 .login-submit-btn {
     align-items: center;
-    background: var(--maroon, #5645d4);
-    border: none;
-    border-radius: 8px;
+    background: var(--primary, #0075de);
+    border: 1px solid var(--primary, #0075de);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     color: #ffffff;
     cursor: pointer;
     display: flex;
@@ -228,29 +279,30 @@
     margin-top: 4px;
     min-height: 44px;
     padding: 10px 16px;
-    transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out-expo);
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out-expo);
     width: 100%;
 }
 
 .login-submit-btn:hover {
-    background: var(--maroon-dark, #4534b3);
-    box-shadow: 0 4px 12px rgba(86, 69, 212, 0.28);
+    background: var(--primary-hover, #005bab);
+    border-color: var(--primary-hover, #005bab);
+    box-shadow: 0 4px 12px rgba(0, 117, 222, 0.28);
     transform: translateY(-1px);
 }
 
 .login-card .hint {
-    color: var(--muted, #64748b);
+    color: var(--muted, #615d59);
     font-size: 11.5px;
     margin-top: 18px;
     text-align: center;
 }
 
 .login-card .hint code {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    color: var(--ink, #0f172a);
-    font-family: monospace;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-radius: var(--radius-xs, 4px);
+    color: var(--ink, #191918);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 11.5px;
     padding: 2px 6px;
 }
@@ -259,4 +311,111 @@
     .role-pills-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ==========================================================================
+   Dark Theme Overrides for Auth / Login
+   ========================================================================== */
+html[data-theme="dark"] .auth-page {
+    background: #111111;
+    background: radial-gradient(circle at 50% 20%, #1c1c1b 0%, #0d0d0c 100%);
+}
+
+html[data-theme="dark"] .auth-theme-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    color: var(--ink, #f6f5f4);
+}
+
+html[data-theme="dark"] .auth-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+html[data-theme="dark"] .auth-theme-icon-sun {
+    display: inline-flex;
+}
+
+html[data-theme="dark"] .auth-theme-icon-moon {
+    display: none;
+}
+
+html[data-theme="dark"] .login-card {
+    background: var(--card-bg, #202020);
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .login-card .brand {
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+}
+
+html[data-theme="dark"] .role-selector-wrap {
+    background: #181817;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+}
+
+html[data-theme="dark"] .role-selector-title {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .role-pill-btn {
+    background: #252525;
+    border: 1.5px solid var(--line, rgba(255, 255, 255, 0.085));
+}
+
+html[data-theme="dark"] .role-pill-btn:hover {
+    background: #2d2d2c;
+    border-color: var(--primary, #62aef0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .role-pill-btn.is-active {
+    background: rgba(98, 174, 240, 0.16);
+    border-color: var(--primary, #62aef0);
+    box-shadow: 0 0 0 2px var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .role-pill-name {
+    color: var(--ink, #f6f5f4);
+}
+
+html[data-theme="dark"] .role-pill-desc {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .form-stack input:not([type="checkbox"]) {
+    background: var(--input-bg, #141414);
+    border: 1px solid var(--input-border, rgba(255, 255, 255, 0.14));
+    color: var(--ink, #f6f5f4);
+}
+
+html[data-theme="dark"] .form-stack input:not([type="checkbox"]):focus {
+    border-color: var(--primary, #62aef0);
+    box-shadow: 0 0 0 3px var(--primary-subtle, rgba(98, 174, 240, 0.2));
+}
+
+html[data-theme="dark"] .form-stack label.check {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .form-stack label.check input[type="checkbox"] {
+    accent-color: var(--primary, #62aef0);
+}
+
+html[data-theme="dark"] .login-submit-btn {
+    background: var(--primary, #62aef0);
+    border-color: var(--primary, #62aef0);
+    color: #121212;
+}
+
+html[data-theme="dark"] .login-submit-btn:hover {
+    background: var(--primary-hover, #93cdfe);
+    border-color: var(--primary-hover, #93cdfe);
+    box-shadow: 0 4px 14px rgba(98, 174, 240, 0.35);
+}
+
+html[data-theme="dark"] .login-card .hint code {
+    background: #141414;
+    border: 1px solid var(--line, rgba(255, 255, 255, 0.085));
+    color: var(--ink, #f6f5f4);
 }

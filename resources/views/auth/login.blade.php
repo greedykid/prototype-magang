@@ -22,6 +22,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="auth-page">
+<div class="auth-theme-bar">
+    <button type="button" id="theme-toggle-btn" class="auth-theme-btn" aria-label="Beralih mode tampilan" title="Beralih mode tampilan">
+        <span class="auth-theme-icon-sun" aria-hidden="true"><x-icon name="sun" size="18" /></span>
+        <span class="auth-theme-icon-moon" aria-hidden="true"><x-icon name="moon" size="18" /></span>
+    </button>
+</div>
 <main class="login-card" id="login-card">
     <div class="brand login-brand">
         <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="login-brand-logo" width="86" height="36">
