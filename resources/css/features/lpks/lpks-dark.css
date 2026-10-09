@@ -521,26 +521,34 @@ html[data-theme="dark"] .kan-cycle-notice {
     border-top-color: var(--line);
 }
 
-/* Global LPK Back Navigation Button (Dark Mode Notion) */
+/* Global LPK Back Navigation Button (Dark Mode Tactile Navigation Pill) */
 html[data-theme="dark"] .lpk-back-btn {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--muted, #a39e98);
-}
-
-html[data-theme="dark"] .lpk-back-btn:hover {
-    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
-    border-color: transparent;
-    color: var(--ink, #f6f5f4);
+    background: var(--surface, #1e1e1e);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: var(--ink, #f6f5f4) !important;
 }
 
 html[data-theme="dark"] .lpk-back-btn svg {
     color: var(--muted, #a39e98);
 }
 
+html[data-theme="dark"] .lpk-back-btn:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: var(--line-strong, rgba(255, 255, 255, 0.22));
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+    color: #ffffff !important;
+}
+
 html[data-theme="dark"] .lpk-back-btn:hover svg {
-    color: var(--ink, #f6f5f4);
+    color: var(--primary, #4a9df8);
+    transform: translateX(-3px);
+}
+
+html[data-theme="dark"] .lpk-back-btn:active {
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.05));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transform: translateY(0) scale(0.98);
 }
 
 .lpk-alert-callout.is-warning {

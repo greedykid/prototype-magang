@@ -33,66 +33,79 @@
 .lpk-header-back-wrap {
     align-items: center;
     display: flex;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
+/* Tactile Navigation Pill (Back Button) */
 .lpk-back-btn {
     align-items: center;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-md, 8px);
-    box-shadow: none;
-    color: var(--muted);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #eaecf5);
+    border-radius: var(--radius-full, 9999px);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 0 0 1px rgba(16, 24, 40, 0.02);
+    color: var(--ink, #030d26) !important;
+    cursor: pointer;
     display: inline-flex;
     font-family: inherit;
     font-size: var(--text-sm, 13px);
-    font-weight: var(--font-medium, 500);
-    gap: 6px;
-    line-height: 1.4;
-    min-height: 32px;
-    padding: 4px 8px 4px 4px;
+    font-weight: 600;
+    gap: 7px;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    min-height: 34px;
+    padding: 6px 14px 6px 10px;
     text-decoration: none !important;
     transition: background-color var(--motion-duration-normal, 150ms) ease,
+                border-color var(--motion-duration-normal, 150ms) ease,
+                box-shadow var(--motion-duration-normal, 150ms) ease,
                 color var(--motion-duration-normal, 150ms) ease,
                 transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
     user-select: none;
     width: fit-content;
 }
 
-.lpk-back-btn:hover {
-    background: var(--surface-hover);
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--ink);
-    text-decoration: none !important;
-}
-
-.lpk-back-btn:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
 .lpk-back-btn svg {
-    color: var(--muted, #615d59);
+    color: var(--muted, #5d6b98);
+    display: block;
     flex-shrink: 0;
     transition: color var(--motion-duration-normal, 150ms) ease,
-                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+                transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lpk-back-btn:hover {
+    background: var(--surface-hover, #f0f2f8);
+    border-color: var(--line-strong, #dcdfea);
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.08);
+    color: var(--ink, #030d26) !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
 }
 
 .lpk-back-btn:hover svg {
-    color: var(--ink, #191918);
+    color: var(--primary, #1972f5);
     transform: translateX(-3px);
 }
 
 .lpk-back-btn:active {
-    transform: scale(0.98);
+    background: var(--surface-subtle, #f8f8fc);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    transform: translateY(0) scale(0.98);
+}
+
+.lpk-back-btn:focus-visible {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus-ring);
+    outline: none;
 }
 
 @media (max-width: 640px) {
+    .lpk-header-back-wrap {
+        margin-bottom: 12px;
+    }
+
     .lpk-back-btn {
-        font-size: 13.5px;
-        min-height: 40px;
-        padding: 6px 10px 6px 6px;
+        font-size: 13px;
+        min-height: 38px;
+        padding: 7px 14px 7px 10px;
     }
 }
 
