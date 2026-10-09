@@ -218,9 +218,9 @@ export const scheduleNavigationPrewarm = () => {
             scheduleAdjacentCalendarPrefetch();
         }
 
-        // 3. Prewarm semua tautan navigasi utama di sidebar & topbar
+        // 3. Prewarm semua tautan navigasi utama di sidebar, topbar & bottom nav
         const primaryLinks = document.querySelectorAll(
-            '#primary-navigation a[href], .brand a[href], .brand-mark[href], .topbar a[href], .user-nav a[href]'
+            '#primary-navigation a[href], .brand a[href], .brand-mark[href], .topbar a[href], .user-nav a[href], .bottom-nav a[href], .bottom-sheet a[href]'
         );
 
         primaryLinks.forEach((link) => {

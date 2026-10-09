@@ -51,6 +51,7 @@
         'moon' => '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
         'panel-left' => '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path class="sidebar-pane-fill" d="M3 5a2 2 0 0 1 2-2h4v18H5a2 2 0 0 1-2-2z" fill="currentColor" opacity="0.22"/>',
         'sidebar' => '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path class="sidebar-pane-fill" d="M3 5a2 2 0 0 1 2-2h4v18H5a2 2 0 0 1-2-2z" fill="currentColor" opacity="0.22"/>',
+        'more-horizontal' => '<circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/><circle cx="5" cy="12" r="1.6"/>',
     ];
 @endphp
 

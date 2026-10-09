@@ -1,0 +1,445 @@
+/* ==========================================================================
+   Mobile Bottom Navigation & Action Sheet
+   Adheres to antislop-layoutmobile: 44x44px+ tap targets, thumb-zone ergonomics,
+   safe-area insets, zero content overlap.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Bottom Navigation Bar (Hidden by default on Desktop/Large Screens)
+   -------------------------------------------------------------------------- */
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+    z-index: 900;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.bottom-nav-item {
+    align-items: center;
+    background: transparent;
+    border: none;
+    box-sizing: border-box;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    height: 100%;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 0;
+    padding: 4px 2px;
+    position: relative;
+    text-decoration: none !important;
+    transition: color 150ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-icon-wrap {
+    align-items: center;
+    border-radius: var(--radius-full, 9999px);
+    display: inline-flex;
+    height: 26px;
+    justify-content: center;
+    position: relative;
+    transition: background-color 160ms var(--ease-out-expo), color 160ms var(--ease-out-expo), transform 160ms ease;
+    width: 44px;
+}
+
+.bottom-nav-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 160ms ease, font-weight 160ms ease;
+    white-space: nowrap;
+}
+
+/* Active & Pressed States */
+.bottom-nav-item:active .bottom-nav-icon-wrap {
+    transform: scale(0.92);
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.bottom-nav-item.active .bottom-nav-icon-wrap {
+    background: var(--primary-subtle, rgba(25, 114, 245, 0.12));
+    color: var(--primary);
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   2. Bottom Sheet for More / Account Navigation
+   -------------------------------------------------------------------------- */
+.bottom-sheet-backdrop {
+    background: rgba(15, 12, 30, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 220ms ease;
+    width: 100vw;
+    z-index: 9500;
+}
+
+.bottom-sheet-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.bottom-sheet {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    bottom: 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    flex-direction: column;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 520px;
+    max-height: 85vh;
+    max-height: 85dvh;
+    overflow-y: auto;
+    padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    position: fixed;
+    transform: translateY(100%);
+    transition: transform 260ms var(--ease-out-expo);
+    width: 100%;
+    z-index: 9501;
+}
+
+.bottom-sheet.is-open {
+    display: flex;
+    transform: translateY(0);
+}
+
+.bottom-sheet-handle-bar {
+    align-items: center;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 4px;
+    width: 100%;
+}
+
+.bottom-sheet-handle {
+    background: var(--line-strong, rgba(0, 0, 0, 0.15));
+    border-radius: 4px;
+    height: 4px;
+    width: 36px;
+}
+
+.bottom-sheet-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0 12px;
+}
+
+.bottom-sheet-title-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bottom-sheet-title {
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+}
+
+.bottom-sheet-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.bottom-sheet-close {
+    align-items: center;
+    background: var(--surface-subtle, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 10px);
+    color: var(--muted);
+    cursor: pointer;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 0;
+    transition: background 150ms ease, color 150ms ease;
+    width: 32px;
+}
+
+.bottom-sheet-close:hover {
+    background: var(--surface-hover);
+    color: var(--ink);
+}
+
+/* User Identity Mini Card in Sheet */
+.bottom-sheet-account {
+    margin: 4px 0 10px;
+}
+
+.bottom-sheet-user-card {
+    align-items: center;
+    background: var(--surface-subtle, rgba(0, 0, 0, 0.02));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    text-decoration: none !important;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.bottom-sheet-user-card:hover {
+    background: var(--surface-hover);
+    border-color: var(--line-strong, var(--line));
+}
+
+.bottom-sheet-user-meta {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bottom-sheet-user-name {
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bottom-sheet-user-email {
+    color: var(--muted);
+    font-size: 11.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bottom-sheet-badge-wrap {
+    margin-top: 2px;
+}
+
+.bottom-sheet-user-chevron {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.bottom-sheet-divider {
+    background: var(--line);
+    height: 1px;
+    margin: 6px 0 10px;
+    width: 100%;
+}
+
+/* Navigation Links List */
+.bottom-sheet-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bottom-sheet-item {
+    align-items: center;
+    border-radius: var(--radius-md, 10px);
+    display: flex;
+    gap: 12px;
+    min-height: 48px;
+    padding: 8px 10px;
+    text-decoration: none !important;
+    transition: background-color 140ms ease, transform 140ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-sheet-item:hover,
+.bottom-sheet-item:active {
+    background: var(--surface-hover);
+}
+
+.bottom-sheet-item.active {
+    background: var(--primary-subtle, rgba(25, 114, 245, 0.08));
+}
+
+.bottom-sheet-item.active .bottom-sheet-item-icon {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.bottom-sheet-item.active .bottom-sheet-item-text strong {
+    color: var(--primary);
+}
+
+.bottom-sheet-item-icon {
+    align-items: center;
+    background: var(--surface-subtle, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 8px);
+    color: var(--ink);
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 36px;
+    justify-content: center;
+    transition: background 150ms ease, color 150ms ease;
+    width: 36px;
+}
+
+.bottom-sheet-item-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.bottom-sheet-item-text strong {
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.bottom-sheet-item-text small {
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.25;
+}
+
+.bottom-sheet-item-arrow {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+/* Footer / Logout */
+.bottom-sheet-footer {
+    padding-top: 4px;
+}
+
+.bottom-sheet-logout-btn {
+    align-items: center;
+    background: var(--danger-subtle, rgba(239, 68, 68, 0.08));
+    border: 1px solid var(--danger-border, rgba(239, 68, 68, 0.2));
+    border-radius: var(--radius-md, 10px);
+    color: var(--danger, #dc2626);
+    cursor: pointer;
+    display: flex;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    gap: 10px;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    transition: background 160ms ease, border-color 160ms ease;
+    width: 100%;
+}
+
+.bottom-sheet-logout-btn:hover,
+.bottom-sheet-logout-btn:active {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: var(--danger, #dc2626);
+}
+
+/* --------------------------------------------------------------------------
+   3. Media Query Breakpoint (<= 900px: Mobile/Compact Mode)
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+    .bottom-nav {
+        display: flex;
+    }
+
+    /* Topbar Mobile Brand Logo */
+    .topbar-brand-mark {
+        align-items: center;
+        display: inline-flex !important;
+        flex-shrink: 0;
+        margin-right: 2px;
+        text-decoration: none;
+    }
+
+    .topbar-brand-img {
+        display: block;
+        height: 28px;
+        width: 28px;
+    }
+
+    /* Reserve bottom space on page content so nothing is covered by bottom nav */
+    .page-wrap {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 24px) !important;
+    }
+}
+
+@media (min-width: 901px) {
+    .topbar-brand-mark {
+        display: none !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   4. Dark Mode Customizations
+   -------------------------------------------------------------------------- */
+html[data-theme="dark"] .bottom-nav {
+    background: var(--surface);
+    border-top-color: var(--line);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .bottom-sheet {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .bottom-sheet-handle {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+html[data-theme="dark"] .bottom-sheet-item-icon {
+    background: var(--surface-hover);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .bottom-sheet-user-card {
+    background: var(--surface-hover);
+    border-color: var(--line);
+}

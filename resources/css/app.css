@@ -26,6 +26,7 @@
 @import './components/password-toggle.css';
 @import './components/sweetalert.css';
 @import './components/modals.css';
+@import './components/bottom-nav.css';
 
 /* 4. Domain & Features */
 @import './features/dashboard.css';

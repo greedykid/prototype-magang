@@ -20,6 +20,7 @@ import {
     prefetchUrl
 } from './spa/router-cache.js';
 import { handleCalendarTransition } from './spa/calendar-handler.js';
+import { syncBottomNavActive, setBottomSheetState } from './bottom-nav.js';
 
 let currentNavSequence = 0;
 let activeNavAbortController = null;
@@ -40,6 +41,9 @@ const cleanupActiveOverlays = () => {
 
     if (typeof closeAllCustomPickers === 'function') closeAllCustomPickers();
     else window.closeAllCustomPickers?.();
+
+    if (typeof setBottomSheetState === 'function') setBottomSheetState(false);
+    else window.setBottomSheetState?.(false);
 
     window.closeNotificationDropdown?.();
 
@@ -73,6 +77,12 @@ const updateActiveNavLinks = (targetPath) => {
             : (targetPath.startsWith(linkPath) && linkPath !== '/');
         link.classList.toggle('active', isActive);
     });
+
+    if (typeof syncBottomNavActive === 'function') {
+        syncBottomNavActive(targetPath);
+    } else if (typeof window.syncBottomNavActive === 'function') {
+        window.syncBottomNavActive(targetPath);
+    }
 };
 
 /**

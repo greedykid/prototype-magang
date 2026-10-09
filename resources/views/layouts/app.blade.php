@@ -83,6 +83,8 @@
     </main>
 </div>
 
+@include('layouts.partials.bottom-nav')
+
 <div class="drawer-backdrop" data-drawer-close></div>
 
 @include('layouts.partials.logout-curtain')

@@ -1,9 +1,8 @@
 <header class="topbar">
     <div class="topbar-nav-left">
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
-            <span class="sr-only">Buka navigasi</span>
-            <span class="menu-icon" aria-hidden="true"></span>
-        </button>
+        <a href="{{ route('dashboard') }}" class="topbar-brand-mark" title="SIMASADI">
+            <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" width="28" height="28" class="topbar-brand-img">
+        </a>
         <button class="navbar-sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
             <x-icon name="panel-left" size="18" />
         </button>

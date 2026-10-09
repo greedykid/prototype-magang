@@ -44,6 +44,7 @@ import { initTableMultiselect, syncTableState, clearTableSelection } from './mod
 import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
 import { initPasswordToggles } from './modules/password-toggle.js';
 import { initFileDropzones, initFileDropzone } from './modules/file-dropzone.js';
+import { initBottomNav, syncBottomNavActive, setBottomSheetState } from './modules/bottom-nav.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -87,6 +88,9 @@ window.clearTableSelection = clearTableSelection;
 window.toggleTheme = toggleTheme;
 window.applyTheme = applyTheme;
 window.initPasswordToggles = initPasswordToggles;
+window.initBottomNav = initBottomNav;
+window.syncBottomNavActive = syncBottomNavActive;
+window.setBottomSheetState = setBottomSheetState;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -270,6 +274,14 @@ export const initPageComponents = () => {
 
     // 9. File Dropzones
     initFileDropzones();
+
+    // 10. Mobile Bottom Navigation
+    try {
+        initBottomNav();
+        syncBottomNavActive();
+    } catch (err) {
+        console.error('Error initializing bottom nav:', err);
+    }
 };
 
 window.initPageComponents = initPageComponents;
@@ -342,6 +354,7 @@ initClickableRows();
 initLiveFilters();
 initTheme();
 initPasswordToggles();
+initBottomNav();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {
