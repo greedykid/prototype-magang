@@ -179,9 +179,9 @@ html[data-theme="dark"] .badge-tp-danger,
 html[data-theme="dark"] .badge-tp-revoked { background: rgba(247, 116, 99, 0.18); border-color: rgba(247, 116, 99, 0.25); color: var(--color-red-400, #f77463); }
 html[data-theme="dark"] .badge-tp-suspended { background: rgba(98, 174, 240, 0.18); border-color: rgba(98, 174, 240, 0.25); color: var(--color-blue-400, #62aef0); }
 
-html[data-theme="dark"] .lpk-alert-badge.is-urgent { background-color: rgba(247, 116, 99, 0.18); border-color: rgba(247, 116, 99, 0.25); color: var(--color-red-400, #f77463); }
-html[data-theme="dark"] .lpk-alert-badge.is-warning { background-color: rgba(255, 201, 94, 0.18); border-color: rgba(255, 201, 94, 0.25); color: var(--color-yellow-400, #ffc95e); }
-html[data-theme="dark"] .lpk-pic-badge { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.085); color: var(--color-gray-400, #a39e98); }
+html[data-theme="dark"] .lpk-alert-badge.is-urgent { background-color: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+html[data-theme="dark"] .lpk-alert-badge.is-warning { background-color: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+html[data-theme="dark"] .lpk-pic-badge { background: var(--surface-subtle); border-color: var(--line); color: var(--muted); }
 
 @media (max-width: 640px) {
     .badge, .status, .priority, .badge-role, .badge-tp, .lpk-alert-badge, .lpk-pic-badge {

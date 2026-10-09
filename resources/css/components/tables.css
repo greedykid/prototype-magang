@@ -208,7 +208,7 @@
 }
 
 .active-filters-heading {
-    color: #666158;
+    color: var(--muted, #666158);
     display: inline-flex;
     font-size: 11px;
     font-weight: 700;
@@ -253,7 +253,7 @@
 }
 
 .filter-chip-text {
-    color: #1b6b38;
+    color: inherit;
     display: block;
     font-size: 12.5px;
     font-weight: 500;
@@ -291,7 +291,7 @@
 }
 
 .filter-reset-link {
-    color: #666158;
+    color: var(--muted, #666158);
     cursor: pointer;
     font-size: 12.5px;
     font-weight: 500;
@@ -302,7 +302,7 @@
 }
 
 .filter-reset-link:hover {
-    color: var(--primary-hover, #005bab);
+    color: var(--primary, #005bab);
     text-decoration: none;
 }
 
@@ -994,15 +994,15 @@ table.table-lpks-custom .lpk-alert-badge {
 }
 
 table.table-lpks-custom .lpk-alert-badge.is-urgent {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
-    color: #991b1b;
+    background-color: var(--danger-bg, #fef2f2);
+    border-color: var(--danger-border, #fca5a5);
+    color: var(--danger-text, #991b1b);
 }
 
 table.table-lpks-custom .lpk-alert-badge.is-warning {
-    background-color: #fffbeb;
-    border-color: #fde68a;
-    color: #92400e;
+    background-color: var(--warning-bg, #fffbeb);
+    border-color: var(--warning-border, #fde68a);
+    color: var(--warning-text, #92400e);
 }
 
 /* 2. Col: Nama LPK */
@@ -2612,6 +2612,20 @@ html[data-theme="dark"] table.table-lpks-custom .lpk-pic-badge {
     color: #94a3b8;
 }
 
+html[data-theme="dark"] table.table-lpks-custom .lpk-alert-badge.is-urgent,
+html[data-theme="dark"] .table-mode-grid .table-lpks-custom .lpk-alert-badge.is-urgent {
+    background-color: var(--danger-bg) !important;
+    border-color: var(--danger-border) !important;
+    color: var(--danger-text) !important;
+}
+
+html[data-theme="dark"] table.table-lpks-custom .lpk-alert-badge.is-warning,
+html[data-theme="dark"] .table-mode-grid .table-lpks-custom .lpk-alert-badge.is-warning {
+    background-color: var(--warning-bg) !important;
+    border-color: var(--warning-border) !important;
+    color: var(--warning-text) !important;
+}
+
 /* LPK Auto Status Dark Overrides */
 html[data-theme="dark"] .lpk-auto-status,
 html[data-theme="dark"] .table-lpks-custom .lpk-auto-status {
@@ -3136,5 +3150,104 @@ html[data-theme="dark"] .empty .button.ghost:hover {
     background: var(--surface-hover);
     border-color: var(--line-strong, var(--line));
     color: #ffffff;
+}
+
+/* ==========================================================================
+   Active Filters & Chip Badges Dark Overrides
+   ========================================================================== */
+html[data-theme="dark"] .active-filters-heading {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .filter-chip {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success-text);
+}
+
+html[data-theme="dark"] .filter-chip:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(74, 222, 128, 0.45);
+}
+
+html[data-theme="dark"] .filter-chip-text {
+    color: var(--success-text);
+}
+
+html[data-theme="dark"] .filter-chip-remove {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--success-text);
+}
+
+html[data-theme="dark"] .filter-chip-remove:hover {
+    background: rgba(74, 222, 128, 0.35);
+    color: #ffffff;
+    transform: scale(1.12);
+}
+
+html[data-theme="dark"] .filter-reset-link {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .filter-reset-link:hover {
+    color: var(--primary);
+}
+
+/* ==========================================================================
+   Process & Category Badges Dark Overrides (LPK Tables)
+   ========================================================================== */
+html[data-theme="dark"] .lpk-keterangan-process-badge.theme-rose {
+    background: rgba(244, 63, 94, 0.16);
+    border-color: rgba(244, 63, 94, 0.32);
+    color: #fda4af;
+}
+
+html[data-theme="dark"] .lpk-keterangan-process-badge.theme-amber {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.32);
+    color: #fde047;
+}
+
+html[data-theme="dark"] .lpk-keterangan-process-badge.theme-cyan {
+    background: rgba(6, 182, 212, 0.16);
+    border-color: rgba(6, 182, 212, 0.32);
+    color: #67e8f9;
+}
+
+html[data-theme="dark"] .lpk-keterangan-process-badge.theme-emerald {
+    background: rgba(16, 185, 129, 0.16);
+    border-color: rgba(16, 185, 129, 0.32);
+    color: #6ee7b7;
+}
+
+html[data-theme="dark"] .lpk-keterangan-process-badge.theme-purple {
+    background: rgba(168, 85, 247, 0.16);
+    border-color: rgba(168, 85, 247, 0.32);
+    color: #d8b4fe;
+}
+
+html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-rose {
+    background: rgba(244, 63, 94, 0.18);
+    color: #f87171;
+}
+
+html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-amber {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-cyan {
+    background: rgba(6, 182, 212, 0.18);
+    color: #38bdf8;
+}
+
+html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-emerald {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+}
+
+html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-purple {
+    background: rgba(168, 85, 247, 0.18);
+    color: #c084fc;
 }
 
