@@ -35,7 +35,7 @@ class AssessmentController extends Controller
         $user = $request->user();
         $isPic = $user && $user->isPic();
 
-        $assessments = Assessment::query()
+        $query = Assessment::query()
             ->with(['lpk'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
@@ -143,15 +143,26 @@ class AssessmentController extends Controller
                 }
             })
             ->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))
-            ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo))
-            ->orderBy('start_at')
+            ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo));
+
+        $sort = $request->input('sort');
+        $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['title', 'start_at', 'status', 'created_at'];
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('start_at');
+        }
+
+        $assessments = $query
             ->paginate($perPage)
             ->withQueryString();
 
         $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage'));
+            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage', 'sort', 'direction'));
         }
 
         return view('assessments.index', array_merge([
@@ -160,7 +171,7 @@ class AssessmentController extends Controller
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
             'linkedOwnersCount' => $linkedOwnersCount,
-        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));
+        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage', 'sort', 'direction')));
     }
 
     public function create(Request $request): View

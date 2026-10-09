@@ -43,13 +43,19 @@
 
         <label class="full">
             Nama Lengkap
-            <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
+            <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T." class="@error('name') is-invalid @enderror">
+            @error('name')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
             <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Nama resmi personel atau perwakilan laboratorium.</small>
         </label>
 
         <label class="full">
             Alamat Email
-            <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id">
+            <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id" class="@error('email') is-invalid @enderror">
+            @error('email')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
             <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Digunakan sebagai identitas masuk (login) ke aplikasi.</small>
         </label>
 
@@ -60,7 +66,7 @@
                     ->when($user->exists, fn ($q) => $q->where('id', '!=', $user->id))
                     ->exists();
             @endphp
-            <select name="role" required>
+            <select name="role" required class="@error('role') is-invalid @enderror">
                 @if(!$adminExists)
                     <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
                         Ketua Tim (Dit. Akreditasi Laboratorium KAN)
@@ -74,6 +80,9 @@
                     PIC Laboratorium (Laboratorium Penguji / Kalibrasi / Medik)
                 </option>
             </select>
+            @error('role')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
             @if($user->exists && auth()->id() === $user->id)
                 <small style="color: var(--danger-text, #ef4444); font-size: 11.5px; display: block; margin-top: 4px;">
                     Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses Ketua Tim.
@@ -88,12 +97,15 @@
         <label class="full">
             Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}">
+                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}" class="@error('password') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                 </button>
             </div>
+            @error('password')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
             <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
                 {{ $user->exists ? 'Isi bidang ini hanya jika ingin mengatur ulang (reset) kata sandi pengguna.' : 'Kata sandi awal untuk masuk ke akun. Minimal 8 karakter.' }}
             </small>
@@ -102,12 +114,15 @@
         <label class="full">
             Konfirmasi Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi">
+                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi" class="@error('password_confirmation') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                 </button>
             </div>
+            @error('password_confirmation')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
         </label>
 
         <div class="form-actions full" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">

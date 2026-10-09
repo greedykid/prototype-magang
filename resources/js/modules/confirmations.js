@@ -22,7 +22,7 @@ export const initConfirmations = () => {
         const isDeleteLpk = form.matches('.form-delete-lpk');
 
         if (form.dataset.confirmHtml) {
-            htmlContent = form.dataset.confirmHtml;
+            htmlContent = sanitizeHtml(form.dataset.confirmHtml);
         } else if (form.dataset.confirmText) {
             htmlContent = escapeHtml(form.dataset.confirmText);
         } else if (isDeleteLpk || (!title && form.matches('[data-confirm-delete]:not([data-confirm-title])'))) {
@@ -93,4 +93,23 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function sanitizeHtml(dirty) {
+    if (!dirty) return '';
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(dirty, 'text/html');
+        doc.querySelectorAll('script, iframe, object, embed, link, style').forEach(el => el.remove());
+        doc.querySelectorAll('*').forEach(el => {
+            Array.from(el.attributes).forEach(attr => {
+                if (attr.name.toLowerCase().startsWith('on') || attr.value.toLowerCase().startsWith('javascript:')) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+        return doc.body.innerHTML;
+    } catch {
+        return escapeHtml(dirty);
+    }
 }

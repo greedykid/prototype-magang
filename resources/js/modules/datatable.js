@@ -4,6 +4,7 @@
 
 import { initCustomSelects } from './custom-select.js';
 import { syncTableState } from './table-multiselect.js';
+import { executePartialFilter } from './live-filter.js';
 
 export const createViewToggle = (className, label, views, activeView, onChange) => {
     const toggle = document.createElement('div');
@@ -81,9 +82,6 @@ export const parseCellValue = (rawText) => {
 };
 
 export const sortTableByColumn = (table, colIndex, targetTh) => {
-    const tbody = table.querySelector('tbody');
-    if (!tbody) return;
-
     const currentSort = targetTh.getAttribute('aria-sort') || 'none';
     const nextSort = currentSort === 'ascending' ? 'descending' : 'ascending';
 
@@ -92,6 +90,36 @@ export const sortTableByColumn = (table, colIndex, targetTh) => {
         th.setAttribute('aria-sort', 'none');
     });
     targetTh.setAttribute('aria-sort', nextSort);
+
+    const sortField = targetTh.dataset.sortField;
+    const filterForm = table.closest('.panel')?.querySelector('form[data-partial-filter="true"]') ||
+                       document.querySelector('form[data-partial-filter="true"]');
+
+    if (sortField && filterForm) {
+        let sortInput = filterForm.querySelector('input[name="sort"]');
+        if (!sortInput) {
+            sortInput = document.createElement('input');
+            sortInput.type = 'hidden';
+            sortInput.name = 'sort';
+            filterForm.appendChild(sortInput);
+        }
+        let dirInput = filterForm.querySelector('input[name="direction"]');
+        if (!dirInput) {
+            dirInput = document.createElement('input');
+            dirInput.type = 'hidden';
+            dirInput.name = 'direction';
+            filterForm.appendChild(dirInput);
+        }
+
+        sortInput.value = sortField;
+        dirInput.value = nextSort === 'ascending' ? 'asc' : 'desc';
+
+        executePartialFilter(filterForm, true);
+        return;
+    }
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
     if (!rows.length) return;
@@ -125,6 +153,10 @@ export const initSortableHeaders = (table) => {
     const theadThs = table.querySelectorAll('thead th');
     if (!theadThs.length) return;
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeSortField = urlParams.get('sort');
+    const activeSortDir = urlParams.get('direction') === 'desc' ? 'descending' : 'ascending';
+
     const sortSvg = `
         <span class="table-sort-icon" aria-hidden="true">
             <svg class="sort-arrows-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,7 +181,12 @@ export const initSortableHeaders = (table) => {
         th.classList.add('is-sortable');
         th.setAttribute('tabindex', '0');
         th.setAttribute('role', 'columnheader');
-        th.setAttribute('aria-sort', 'none');
+
+        if (activeSortField && th.dataset.sortField === activeSortField) {
+            th.setAttribute('aria-sort', activeSortDir);
+        } else {
+            th.setAttribute('aria-sort', 'none');
+        }
 
         const label = document.createElement('span');
         label.className = 'th-label';
@@ -731,17 +768,21 @@ export const initDataTables = () => {
 };
 
 let viewToggleResizeTimer;
-window.addEventListener('resize', () => {
-    clearTimeout(viewToggleResizeTimer);
-    viewToggleResizeTimer = setTimeout(syncViewToggleLocation, 50);
-});
+if (typeof window !== 'undefined') {
+    window.addEventListener('resize', () => {
+        clearTimeout(viewToggleResizeTimer);
+        viewToggleResizeTimer = setTimeout(syncViewToggleLocation, 50);
+    });
+}
 
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-        document.querySelectorAll('.filter-drawer.filters-open').forEach((filter) => {
-            filter.classList.remove('filters-open');
-            filter.querySelector('.filter-toggle')?.setAttribute('aria-expanded', 'false');
-        });
-        document.body.classList.remove('filter-drawer-open');
-    }
-});
+if (typeof document !== 'undefined') {
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('.filter-drawer.filters-open').forEach((filter) => {
+                filter.classList.remove('filters-open');
+                filter.querySelector('.filter-toggle')?.setAttribute('aria-expanded', 'false');
+            });
+            document.body.classList.remove('filter-drawer-open');
+        }
+    });
+}

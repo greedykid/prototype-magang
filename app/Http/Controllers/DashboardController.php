@@ -26,17 +26,17 @@ class DashboardController extends Controller
             ->tpDueSoon(14)
             ->count();
 
-        $urgentTpAssessmentsAll = Assessment::with('lpk')
+        $urgentTpQuery = Assessment::with('lpk')
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->whereNotIn('tp_status', [Assessment::TP_STATUS_NONE, Assessment::TP_STATUS_SATISFIED])
-            ->whereNotNull('tp_due_date')
-            ->get()
-            ->filter(fn (Assessment $a) => $a->is_tp_overdue || ($a->days_remaining_tp !== null && $a->days_remaining_tp <= 14))
-            ->sortBy('effective_tp_due_date')
-            ->values();
+            ->where(function ($q) {
+                $q->tpOverdue()
+                    ->orWhere(fn ($sub) => $sub->tpDueSoon(14));
+            })
+            ->orderBy('tp_due_date', 'asc');
 
-        $urgentTpTotalCount = $urgentTpAssessmentsAll->count();
-        $urgentTpAssessments = $urgentTpAssessmentsAll->take(5);
+        $urgentTpTotalCount = (clone $urgentTpQuery)->count();
+        $urgentTpAssessments = $urgentTpQuery->take(5)->get();
 
         $lpkCount = $isPic ? Lpk::primaryFor($user)->count() : Lpk::count();
 

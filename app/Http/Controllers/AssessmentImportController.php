@@ -215,14 +215,16 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs dan Asesmen untuk performa (disesuaikan dengan hak akses PIC / Admin)
+        // Cache LPKs dan Asesmen terproyeksi untuk performa (disesuaikan dengan hak akses PIC / Admin)
         $user = auth()->user();
-        $accessibleLpks = Lpk::accessibleBy($user)->get();
+        $accessibleLpks = Lpk::accessibleBy($user)->select(['id', 'registration_number', 'name', 'address', 'pic_id'])->get();
         $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        // Pre-load existing assessments untuk mengeliminasi query N+1
-        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))->get();
+        // Pre-load existing assessments terproyeksi untuk mengeliminasi query N+1
+        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))
+            ->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'created_by'])
+            ->get();
 
         DB::transaction(function () use (
             $rows,

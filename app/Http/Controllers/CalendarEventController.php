@@ -395,13 +395,18 @@ class CalendarEventController extends Controller
 
         // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
         // Optimasi performa: Proyeksikan kolom esensial untuk memangkas footprint RAM dan beban database
+        $cycleMinDate = $queryStart->subMonths(60)->toDateString();
+        $cycleMaxDate = $queryEnd->addMonths(2)->toDateString();
+        $expiredMinDate = $queryStart->subMonths(6)->toDateString();
+        $expiredMaxDate = $queryEnd->addMonths(12)->toDateString();
+
         $lpksWithMilestones = Lpk::accessibleBy($request->user())
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
             ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status'])])
             ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
-            ->where(function ($q) {
-                $q->whereNotNull('certificate_date')
-                    ->orWhereNotNull('expired_at');
+            ->where(function ($q) use ($cycleMinDate, $cycleMaxDate, $expiredMinDate, $expiredMaxDate) {
+                $q->whereBetween('certificate_date', [$cycleMinDate, $cycleMaxDate])
+                    ->orWhereBetween('expired_at', [$expiredMinDate, $expiredMaxDate]);
             })
             ->get();
 

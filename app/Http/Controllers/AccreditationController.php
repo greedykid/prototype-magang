@@ -11,8 +11,6 @@ class AccreditationController extends Controller
 {
     public function index(Request $request): View
     {
-        $user = $request->user();
-        $isPic = $user && $user->isPic();
         $lpkId = $request->integer('lpk_id') ?: null;
         $status = $request->string('status')->toString();
         $startFrom = $request->date('start_from')?->format('Y-m-d');
@@ -25,7 +23,6 @@ class AccreditationController extends Controller
         }
         $accreditations = Accreditation::query()
             ->with(['lpk'])
-            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($startFrom, fn ($query) => $query->whereDate('start_date', '>=', $startFrom))
@@ -38,7 +35,7 @@ class AccreditationController extends Controller
 
         return view('accreditations.index', array_merge([
             'accreditations' => $accreditations,
-            'lpks' => Lpk::accessibleBy($user)->orderBy('name')->get(['id', 'name']),
+            'lpks' => Lpk::orderBy('name')->get(['id', 'name']),
         ], compact('lpkId', 'status', 'startFrom', 'startTo', 'targetFrom', 'targetTo', 'perPage')));
     }
 

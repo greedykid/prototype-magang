@@ -72,8 +72,34 @@ class LpkController extends Controller
                     ]);
                 }]);
 
+            // Pre-filter level database untuk memangkas footprint RAM dan jumlah kandidat
             if ($status === 'EXPIRED') {
                 $candidateQuery->whereNotNull('expired_at')->where('expired_at', '<', now());
+            } elseif ($status === 'ACTIVE') {
+                $candidateQuery->where('status', '!=', 'INACTIVE');
+            } elseif ($status === 'GRACE_PERIOD') {
+                $candidateQuery->whereNotNull('expired_at')
+                    ->where('expired_at', '<', now())
+                    ->where('expired_at', '>=', now()->subMonths(6));
+            } elseif ($status === 'REVOKED') {
+                $candidateQuery->where(function ($q) {
+                    $q->whereIn('status', ['REVOKED', 'DICABUT'])
+                        ->orWhere('expired_at', '<', now()->subMonths(6))
+                        ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'REVOKED'));
+                });
+            } elseif ($status === 'SUSPENDED') {
+                $candidateQuery->where(function ($q) {
+                    $q->where('status', 'SUSPENDED')
+                        ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'SUSPENDED')->orWhere('tp_status', 'IN_PROGRESS'));
+                });
+            } elseif (in_array($status, ['SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE'], true)) {
+                $candidateQuery->whereNotNull('certificate_date')->where('status', '!=', 'INACTIVE');
+            }
+
+            if (in_array($surveillance, ['DUE_S1', 'DUE_S2', 'OVERDUE'], true)) {
+                $candidateQuery->whereNotNull('certificate_date');
+            } elseif ($surveillance === 'DUE_RA') {
+                $candidateQuery->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
             }
 
             $candidateLpks = $candidateQuery->get();
@@ -111,7 +137,17 @@ class LpkController extends Controller
             }
         }
 
-        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
+        $sort = $request->input('sort');
+        $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['name', 'accreditation_number', 'registration_number', 'no_reg', 'created_at', 'expired_at'];
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->latest();
+        }
+
+        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->paginate($perPage)->withQueryString();
         foreach ($lpks as $lpk) {
             foreach ($lpk->assessments as $assessment) {
                 $assessment->setRelation('lpk', $lpk);
@@ -119,12 +155,12 @@ class LpkController extends Controller
         }
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage'));
+            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'sort', 'direction'));
         }
 
         $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
-        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'linkedOwnersCount'));
+        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'linkedOwnersCount', 'sort', 'direction'));
     }
 
     public function create(Request $request): View

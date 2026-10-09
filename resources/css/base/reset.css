@@ -101,5 +101,24 @@ body.modal-open .sidebar {
     }
 }
 
+/* ==========================================================================
+   Form Field Validation Error States
+   ========================================================================== */
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid,
+.is-invalid input:not([type="checkbox"]):not([type="radio"]),
+.is-invalid select,
+.is-invalid textarea {
+    border-color: var(--danger-text, #bc081f) !important;
+    box-shadow: 0 0 0 2px rgba(188, 8, 31, 0.18) !important;
+}
 
-
+.field-error-text {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--danger-text, #bc081f);
+    margin-top: 4px;
+    line-height: 1.4;
+}

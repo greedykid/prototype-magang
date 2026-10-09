@@ -350,7 +350,8 @@ class LpkSurveillanceService
      */
     public function generateAssessments(Lpk $lpk, ?int $creatorId = null): int
     {
-        /** @var Carbon|null $cycleEnd */
+        return DB::transaction(function () use ($lpk, $creatorId) {
+            /** @var Carbon|null $cycleEnd */
         $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
         if (! $cycleEnd) {
             return 0;
@@ -523,7 +524,8 @@ class LpkSurveillanceService
             }
         }
 
-        return $created;
+            return $created;
+        });
     }
 
     /**

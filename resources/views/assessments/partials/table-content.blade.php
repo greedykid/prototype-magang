@@ -6,12 +6,12 @@
                     <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
                         <input type="checkbox" class="table-select-all" data-table-id="assessments-table" aria-label="Pilih semua asesmen di halaman ini">
                     </th>
-                    <th>Agenda</th>
+                    <th data-sort-field="title">Agenda</th>
                     <th>LPK</th>
-                    <th>Tanggal</th>
+                    <th data-sort-field="start_at">Tanggal</th>
                     <th>Tindakan Perbaikan (TP)</th>
-                    <th>Status Asesmen</th>
-                    <th>Aksi</th>
+                    <th data-sort-field="status">Status Asesmen</th>
+                    <th data-sortable="false">Aksi</th>
                 </tr>
             </thead>
             <tbody>

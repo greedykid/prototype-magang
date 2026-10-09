@@ -24,7 +24,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN || strtoupper((string) $this->role) === 'ADMIN_UNIT' || str_contains(strtolower((string) $this->role), 'admin');
+        return in_array($this->role, [self::ROLE_ADMIN, 'ADMIN_UNIT', 'admin_unit'], true);
     }
 
     public function isPic(): bool

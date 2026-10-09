@@ -83,7 +83,10 @@
                             <span>Nama LPK / Laboratorium</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="lpk-name" name="name" value="{{ old('name', $lpk->name) }}" required placeholder="Contoh: Balai Besar Pengujian Minyak dan Gas Bumi LEMIGAS">
+                        <input id="lpk-name" name="name" value="{{ old('name', $lpk->name) }}" required placeholder="Contoh: Balai Besar Pengujian Minyak dan Gas Bumi LEMIGAS" class="@error('name') is-invalid @enderror">
+                        @error('name')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Nama lengkap unit atau balai pengujian yang tercantum pada sertifikat akreditasi.</span>
                     </div>
 
@@ -92,11 +95,14 @@
                             <label class="lpk-label" for="lpk-accreditation-type">
                                 <span>Jenis Akreditasi</span>
                             </label>
-                            <select id="lpk-accreditation-type" name="accreditation_type">
+                            <select id="lpk-accreditation-type" name="accreditation_type" class="@error('accreditation_type') is-invalid @enderror">
                                 @foreach(\App\Models\Lpk::ACCREDITATION_TYPES as $key => $label)
                                     <option value="{{ $key }}" @selected(old('accreditation_type', $lpk->accreditation_type ?: 'Laboratorium Penguji') === $key)>{{ $label }}</option>
                                 @endforeach
                             </select>
+                            @error('accreditation_type')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Skema akreditasi resmi KAN (LP, LK, LM, dsb).</span>
                         </div>
 
@@ -104,7 +110,10 @@
                             <label class="lpk-label" for="lpk-no-reg">
                                 <span>No. Reg LPK (ID Unik KAN)</span>
                             </label>
-                            <input id="lpk-no-reg" name="no_reg" value="{{ old('no_reg', $lpk->no_reg) }}" placeholder="Contoh: 3434">
+                            <input id="lpk-no-reg" name="no_reg" value="{{ old('no_reg', $lpk->no_reg) }}" placeholder="Contoh: 3434" class="@error('no_reg') is-invalid @enderror">
+                            @error('no_reg')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Nomor registrasi unik pada basis data KAN.</span>
                         </div>
                     </div>
@@ -114,7 +123,10 @@
                             <label class="lpk-label" for="lpk-accreditation-number">
                                 <span>No. Akreditasi KAN</span>
                             </label>
-                            <input id="lpk-accreditation-number" name="accreditation_number" value="{{ old('accreditation_number', $lpk->accreditation_number ?: $lpk->registration_number) }}" placeholder="Contoh: LP-021-IDN">
+                            <input id="lpk-accreditation-number" name="accreditation_number" value="{{ old('accreditation_number', $lpk->accreditation_number ?: $lpk->registration_number) }}" placeholder="Contoh: LP-021-IDN" class="@error('accreditation_number') is-invalid @enderror">
+                            @error('accreditation_number')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Kosongkan jika sertifikat belum terbit (masih Asesmen Awal).</span>
                         </div>
 
@@ -122,11 +134,14 @@
                             <label class="lpk-label" for="lpk-status">
                                 <span>Status Akreditasi</span>
                             </label>
-                            <select id="lpk-status" name="status">
+                            <select id="lpk-status" name="status" class="@error('status') is-invalid @enderror">
                                 <option value="ACTIVE" @selected(old('status', $lpk->status ?: 'ACTIVE') === 'ACTIVE')>Aktif</option>
                                 <option value="SUSPENDED" @selected(old('status', $lpk->status) === 'SUSPENDED')>Dibekukan</option>
                                 <option value="INACTIVE" @selected(old('status', $lpk->status) === 'INACTIVE')>Tidak Aktif</option>
                             </select>
+                            @error('status')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Status kepatuhan administratif LPK.</span>
                         </div>
                     </div>
@@ -136,12 +151,15 @@
                             <label class="lpk-label" for="lpk-pic-id">
                                 <span>PIC Penanggung Jawab Internal</span>
                             </label>
-                            <select id="lpk-pic-id" name="pic_id">
+                            <select id="lpk-pic-id" name="pic_id" class="@error('pic_id') is-invalid @enderror">
                                 <option value="">-- Belum Ditugaskan --</option>
                                 @foreach($pics as $p)
                                     <option value="{{ $p->id }}" @selected(old('pic_id', $lpk->pic_id) == $p->id)>{{ $p->name }} ({{ $p->email }})</option>
                                 @endforeach
                             </select>
+                            @error('pic_id')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Petugas atau analis laboratorium yang ditugaskan mengawal proses LPK ini.</span>
                         </div>
                     @endif
@@ -167,7 +185,10 @@
                         <label class="lpk-label" for="lpk-scope">
                             <span>Uraian Lengkap Ruang Lingkup</span>
                         </label>
-                        <textarea id="lpk-scope" name="scope" rows="8" class="lpk-textarea-scope" placeholder="Masukkan ruang lingkup akreditasi laboratorium secara lengkap (bidang pengujian/kalibrasi, bahan/produk yang diuji, parameter/spesifikasi pengujian, metode uji standar SNI/ISO/IEC/ASTM, dsb.)...">{{ old('scope', $lpk->scope) }}</textarea>
+                        <textarea id="lpk-scope" name="scope" rows="8" class="lpk-textarea-scope @error('scope') is-invalid @enderror" placeholder="Masukkan ruang lingkup akreditasi laboratorium secara lengkap (bidang pengujian/kalibrasi, bahan/produk yang diuji, parameter/spesifikasi pengujian, metode uji standar SNI/ISO/IEC/ASTM, dsb.)...">{{ old('scope', $lpk->scope) }}</textarea>
+                        @error('scope')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <div class="lpk-scope-meta">
                             <span>Tips: Salin langsung lampiran ruang lingkup dari lampiran resmi sertifikat KAN.</span>
                             <span id="scope-char-count"></span>
@@ -196,7 +217,7 @@
                             <span>Tautan Google Drive Dokumen</span>
                         </label>
                         <div class="lpk-drive-input-wrap">
-                            <input id="lpk-drive-url" type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)">
+                            <input id="lpk-drive-url" type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)" class="@error('drive_url') is-invalid @enderror">
                             @if($lpk->drive_url)
                                 <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="lpk-drive-preview-btn" title="Buka tautan Google Drive di tab baru">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -204,6 +225,9 @@
                                 </a>
                             @endif
                         </div>
+                        @error('drive_url')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Tempelkan tautan folder Google Drive terpadu yang memuat Sertifikat Akreditasi, Amandemen, dan Lampiran.</span>
                     </div>
                 </div>
@@ -232,7 +256,10 @@
                         <label class="lpk-label" for="lpk-certificate-date">
                             <span>Tanggal Terbit Sertifikat</span>
                         </label>
-                        <input id="lpk-certificate-date" type="date" name="certificate_date" value="{{ old('certificate_date', $lpk->certificate_date?->format('Y-m-d')) }}">
+                        <input id="lpk-certificate-date" type="date" name="certificate_date" value="{{ old('certificate_date', $lpk->certificate_date?->format('Y-m-d')) }}" class="@error('certificate_date') is-invalid @enderror">
+                        @error('certificate_date')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Tanggal penetapan SK atau sertifikat akreditasi terbit.</span>
                     </div>
 
@@ -240,7 +267,10 @@
                         <label class="lpk-label" for="lpk-expired-at">
                             <span>Masa Berlaku Akreditasi</span>
                         </label>
-                        <input id="lpk-expired-at" type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}">
+                        <input id="lpk-expired-at" type="date" name="expired_at" value="{{ old('expired_at', $lpk->expired_at?->format('Y-m-d')) }}" class="@error('expired_at') is-invalid @enderror">
+                        @error('expired_at')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Otomatis dihitung +5 tahun jika dikosongkan dan tanggal terbit diisi.</span>
                     </div>
 
@@ -306,7 +336,10 @@
                         <label class="lpk-label" for="lpk-email">
                             <span>Email Resmi Laboratorium</span>
                         </label>
-                        <input id="lpk-email" type="email" name="email" value="{{ old('email', $lpk->email) }}" placeholder="laboratorium@instansi.go.id">
+                        <input id="lpk-email" type="email" name="email" value="{{ old('email', $lpk->email) }}" placeholder="laboratorium@instansi.go.id" class="@error('email') is-invalid @enderror">
+                        @error('email')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Alamat surat elektronik untuk pengiriman surat resmi &amp; notifikasi pengawasan.</span>
                     </div>
 
@@ -314,7 +347,10 @@
                         <label class="lpk-label" for="lpk-phone">
                             <span>Nomor Telepon / Hotline</span>
                         </label>
-                        <input id="lpk-phone" name="phone" value="{{ old('phone', $lpk->phone) }}" placeholder="Contoh: (022) 2503171 / 08123456789">
+                        <input id="lpk-phone" name="phone" value="{{ old('phone', $lpk->phone) }}" placeholder="Contoh: (022) 2503171 / 08123456789" class="@error('phone') is-invalid @enderror">
+                        @error('phone')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Nomor kontak langsung fasilitas pengujian.</span>
                     </div>
 
@@ -322,7 +358,10 @@
                         <label class="lpk-label" for="lpk-address">
                             <span>Alamat Lengkap Fasilitas</span>
                         </label>
-                        <textarea id="lpk-address" name="address" rows="3" class="lpk-textarea-address" placeholder="Jalan, nomor gedung, kelurahan, kecamatan, kota/kabupaten, dan provinsi...">{{ old('address', $lpk->address) }}</textarea>
+                        <textarea id="lpk-address" name="address" rows="3" class="lpk-textarea-address @error('address') is-invalid @enderror" placeholder="Jalan, nomor gedung, kelurahan, kecamatan, kota/kabupaten, dan provinsi...">{{ old('address', $lpk->address) }}</textarea>
+                        @error('address')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Lokasi fisik tempat pengujian atau kalibrasi diselenggarakan.</span>
                     </div>
                 </div>

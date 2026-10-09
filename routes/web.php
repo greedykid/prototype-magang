@@ -70,8 +70,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/assessments/{assessment}/tp-tracking', [AssessmentController::class, 'updateTp'])->name('assessments.tp.update')->whereNumber('assessment');
 
     // Ekspor CSV Terotentikasi & Integrasi Google Sheets
-    Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
-    Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
+    Route::match(['get', 'post'], '/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
+    Route::match(['get', 'post'], '/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
     // Pengaturan Profil & Kata Sandi Pengguna
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

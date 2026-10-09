@@ -225,7 +225,7 @@
                             <span>LPK / Laboratorium Sasaran</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <select id="assessment-lpk-id" name="lpk_id" required>
+                        <select id="assessment-lpk-id" name="lpk_id" required class="@error('lpk_id') is-invalid @enderror">
                             <option value="">Pilih LPK</option>
                             @foreach($lpks as $lpk)
                                 @php
@@ -249,6 +249,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        @error('lpk_id')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Lembaga Penilaian Kesesuaian yang terdaftar di Komite Akreditasi Nasional.</span>
 
                         {{-- Info Kecil Detail LPK Terpilih --}}
@@ -284,7 +287,10 @@
                             <span>Judul Agenda Asesmen</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)">
+                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)" class="@error('title') is-invalid @enderror">
+                        @error('title')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Nama penugasan yang tercantum pada surat tugas dan kalender asesmen.</span>
                     </div>
 
@@ -294,7 +300,7 @@
                                 <span>Jenis Asesmen (Standar KAN U-01)</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <select id="assessment-type-select" name="assessment_type" required>
+                            <select id="assessment-type-select" name="assessment_type" required class="@error('assessment_type') is-invalid @enderror">
                                 <option value="">Pilih jenis asesmen</option>
                                 @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
                                     <option value="{{ $typeKey }}" @selected(
@@ -309,6 +315,9 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('assessment_type')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Jenis siklus akreditasi KAN (Asesmen Awal, Surveilen, Re-asesmen, STT/PRL).</span>
                         </div>
 
@@ -356,7 +365,13 @@
                                 <span>Tanggal Mulai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-start-date" type="date" name="start_date" value="{{ $startDateVal }}" required>
+                            <input id="assessment-start-date" type="date" name="start_date" value="{{ $startDateVal }}" required class="@error('start_date') is-invalid @enderror @error('start_at') is-invalid @enderror">
+                            @error('start_date')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
+                            @error('start_at')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Tanggal pembukaan opening meeting asesmen.</span>
                         </div>
 
@@ -365,7 +380,13 @@
                                 <span>Tanggal Selesai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-end-date" type="date" name="end_date" value="{{ $endDateVal }}" required>
+                            <input id="assessment-end-date" type="date" name="end_date" value="{{ $endDateVal }}" required class="@error('end_date') is-invalid @enderror @error('end_at') is-invalid @enderror">
+                            @error('end_date')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
+                            @error('end_at')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                             <span class="lpk-field-hint">Tanggal penutupan closing meeting asesmen.</span>
                         </div>
                     </div>

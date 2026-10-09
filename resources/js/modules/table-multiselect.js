@@ -98,11 +98,31 @@ function handleBulkExport(bulkBar) {
     }
 
     const ids = Array.from(selectedSet).join(',');
-    const url = new URL(exportUrl, window.location.origin);
-    url.searchParams.set('ids', ids);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    // Trigger file download
-    window.location.href = url.toString();
+    // Create a temporary hidden POST form to avoid HTTP 414 URI Too Long on large selections
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = exportUrl;
+    form.style.display = 'none';
+
+    if (csrfToken) {
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = csrfToken;
+        form.appendChild(tokenInput);
+    }
+
+    const idsInput = document.createElement('input');
+    idsInput.type = 'hidden';
+    idsInput.name = 'ids';
+    idsInput.value = ids;
+    form.appendChild(idsInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => form.remove(), 1000);
 }
 
 /**

@@ -32,6 +32,7 @@ export function handleFlashNotifications() {
     // 2. Flash Error Notification
     const errorEl = document.getElementById('flash-error-data');
     if (errorEl) {
+        window.resetButtonLoaders?.();
         const message = errorEl.dataset.message;
         errorEl.remove();
         if (message) {
@@ -54,6 +55,7 @@ export function handleFlashNotifications() {
     // 3. Validation Errors Notification
     const errorsEl = document.getElementById('flash-errors-data');
     if (errorsEl) {
+        window.resetButtonLoaders?.();
         const title = errorsEl.dataset.title || 'Periksa Kembali Input';
         let errors = [];
         try {

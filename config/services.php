@@ -36,7 +36,7 @@ return [
     ],
 
     'sheets' => [
-        'feed_key' => env('SHEETS_FEED_KEY', 'simasadi-live'),
+        'feed_key' => env('SHEETS_FEED_KEY'),
     ],
 
     'recaptcha' => [

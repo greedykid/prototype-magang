@@ -84,22 +84,28 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
 
         $activeNoticeCount += count($alerts);
 
+        if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
+            $this->line("  ℹ {$lpk->registration_number} - {$lpk->name}: Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
+            continue;
+        }
+
+        $hasSentForLpk = false;
+
         foreach ($alerts as $alert) {
             $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
 
-            if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
-                $this->line("    ℹ Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
-                continue;
-            }
-
             try {
-                \Illuminate\Support\Facades\Mail::to($picEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
-                $lpk->update(['last_surveillance_notified_at' => now()]);
+                \Illuminate\Support\Facades\Mail::to($picEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
                 $notifiedCount++;
-                $this->info("    ✓ Email pengingat internal berhasil dikirim ke PIC ({$picSummary}) via Mailtrap.");
+                $hasSentForLpk = true;
+                $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim PIC ({$picSummary}).");
             } catch (\Throwable $e) {
                 $this->error("    ✗ Gagal mengirim email ke PIC: " . $e->getMessage());
             }
+        }
+
+        if ($hasSentForLpk) {
+            $lpk->update(['last_surveillance_notified_at' => now()]);
         }
     }
 
@@ -109,16 +115,17 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
 Artisan::command('lpk:generate-assessments', function () {
     $this->info('Menjalankan pembuatan otomatis agenda asesmen surveilen & re-akreditasi LPK...');
 
-    $lpks = \App\Models\Lpk::all();
     $totalCreated = 0;
 
-    foreach ($lpks as $lpk) {
-        $count = $lpk->generateSurveillanceAssessments();
-        if ($count > 0) {
-            $this->line("  ✓ {$lpk->registration_number} ({$lpk->name}): {$count} agenda asesmen berhasil dibuat.");
-            $totalCreated += $count;
+    \App\Models\Lpk::chunk(100, function ($lpks) use (&$totalCreated) {
+        foreach ($lpks as $lpk) {
+            $count = $lpk->generateSurveillanceAssessments();
+            if ($count > 0) {
+                $this->line("  ✓ {$lpk->registration_number} ({$lpk->name}): {$count} agenda asesmen berhasil dibuat.");
+                $totalCreated += $count;
+            }
         }
-    }
+    });
 
     $this->info("Selesai! Sebanyak {$totalCreated} agenda asesmen surveilen berhasil dibuat/disinkronkan.");
 })->purpose('Otomatis membuat agenda asesmen surveilen (S1, S2) dan Re-Akreditasi (RA) untuk seluruh LPK berdasarkan siklus tanggal sertifikat KAN.');

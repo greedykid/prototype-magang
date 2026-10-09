@@ -15,9 +15,9 @@
                     <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
                         <input type="checkbox" class="table-select-all" data-table-id="lpks-table" aria-label="Pilih semua LPK di halaman ini">
                     </th>
-                    <th data-label="No Akreditasi" class="col-th-no">NO. AKREDITASI</th>
-                    <th data-label="Nama LPK" class="col-th-name">NAMA LPK</th>
-                    <th data-label="Masa Berlaku" class="col-th-validity">
+                    <th data-label="No Akreditasi" class="col-th-no" data-sort-field="accreditation_number">NO. AKREDITASI</th>
+                    <th data-label="Nama LPK" class="col-th-name" data-sort-field="name">NAMA LPK</th>
+                    <th data-label="Masa Berlaku" class="col-th-validity" data-sort-field="expired_at">
                         <div class="th-header-dual">
                             <span class="th-title-main">MASA BERLAKU</span>
                             <span class="th-title-sub">AWAL &amp; AKHIR</span>

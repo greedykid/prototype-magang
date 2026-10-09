@@ -3,7 +3,7 @@
  * Delivers zero-delay (0ms) instant page switches across all application menus.
  */
 
-export const PAGE_CACHE_TTL = 15 * 60 * 1000; // 15 minutes TTL (matches calendar cache)
+export const PAGE_CACHE_TTL = 30 * 1000; // 30 seconds TTL (ensures fresh operational data)
 export const pageCache = new Map();
 export const prefetchInFlight = new Map();
 
@@ -13,7 +13,7 @@ export const clearPageCache = () => {
 };
 
 export const calendarCache = new Map();
-export const CALENDAR_CACHE_TTL = 15 * 60 * 1000; // 15 minutes TTL
+export const CALENDAR_CACHE_TTL = 60 * 1000; // 60 seconds TTL
 export const calendarPrefetchInFlight = new Map();
 
 export const clearCalendarCache = () => {

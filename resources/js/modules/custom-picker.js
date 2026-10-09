@@ -60,24 +60,29 @@ const setupGlobalPickerListeners = () => {
         closeAllCustomPickers();
     });
 
+    let scrollRafId = null;
     window.addEventListener('scroll', (event) => {
         if (event.target && event.target.closest && event.target.closest('.custom-picker-popover')) {
             return;
         }
-        const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
-        if (openPicker) {
-            const trigger = openPicker.querySelector('.custom-picker-trigger');
-            if (trigger) {
-                const triggerRect = trigger.getBoundingClientRect();
-                const topbar = document.querySelector('.topbar');
-                const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
-                if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
-                    closeAllCustomPickers();
-                    return;
+        if (scrollRafId) return;
+        scrollRafId = requestAnimationFrame(() => {
+            scrollRafId = null;
+            const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
+            if (openPicker) {
+                const trigger = openPicker.querySelector('.custom-picker-trigger');
+                if (trigger) {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    const topbar = document.querySelector('.topbar');
+                    const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+                    if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
+                        closeAllCustomPickers();
+                        return;
+                    }
+                    adjustPickerPosition(openPicker, trigger);
                 }
-                adjustPickerPosition(openPicker, trigger);
             }
-        }
+        });
     }, true);
 };
 

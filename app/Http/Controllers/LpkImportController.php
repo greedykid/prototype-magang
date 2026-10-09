@@ -249,8 +249,12 @@ class LpkImportController extends Controller
         $currentUser = auth()->user();
         $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
 
-        // Pre-load LPKs ke dalam memory collection untuk mengeliminasi query N+1
-        $allLpks = Lpk::all();
+        // Pre-load LPKs ke dalam memory collection secara terproyeksi untuk menghemat RAM dan mengeliminasi query N+1
+        $allLpks = Lpk::select([
+            'id', 'pic_id', 'no_reg', 'accreditation_number', 'accreditation_type',
+            'registration_number', 'name', 'status', 'certificate_date', 'expired_at',
+            'drive_url', 'scope', 'address', 'email', 'phone', 'notes',
+        ])->with('members')->get();
         $lpksByNoReg = $allLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
         $lpksByAccreditation = $allLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
         $lpksByRegNo = $allLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));

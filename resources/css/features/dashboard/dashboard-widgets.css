@@ -3,6 +3,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: 1;
 }
 
 .agenda-card {
@@ -16,6 +17,9 @@
     gap: 14px;
     transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease, background-color 160ms ease;
     text-decoration: none;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .agenda-card:hover {
@@ -169,7 +173,14 @@
 .dashboard-lpk-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    flex: 1;
+}
+
+/* Ketika list terisi penuh 5 item, distribusikan ruang secara harmonis agar kedua kartu sejajar hingga baris terakhir */
+.dashboard-lpk-list:has(> :nth-child(5)) > .dashboard-lpk-item,
+.agenda-list:has(> :nth-child(5)) > .agenda-card {
+    flex: 1;
 }
 
 .dashboard-lpk-item {
