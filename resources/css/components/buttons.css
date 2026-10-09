@@ -112,8 +112,7 @@
     background: transparent;
     border-color: transparent;
     box-shadow: none;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
     color: var(--primary-hover, #0456ce);
 }
 

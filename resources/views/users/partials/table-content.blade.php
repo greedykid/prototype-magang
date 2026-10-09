@@ -20,7 +20,7 @@
                                 </span>
                                 <div style="min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="color: var(--ink); font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
+                                        <a href="{{ route('users.show', $userItem) }}" style="color: var(--ink); font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
                                             {{ $userItem->name }}
                                         </a>
                                         @if(auth()->id() === $userItem->id)
@@ -43,7 +43,7 @@
                                 $totalLab = $leadCount + $memberCount;
                             @endphp
                             @if($totalLab > 0)
-                                <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="display: inline-flex; flex-direction: column; gap: 3px; text-decoration: none;" title="Lihat rincian {{ $totalLab }} laboratorium yang dikerjakan">
+                                <a href="{{ route('users.show', $userItem) }}" style="display: inline-flex; flex-direction: column; gap: 3px; text-decoration: none;" title="Lihat rincian {{ $totalLab }} laboratorium yang dikerjakan">
                                     <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                                         @if($leadCount > 0)
                                             <span class="badge badge-pic-lead">

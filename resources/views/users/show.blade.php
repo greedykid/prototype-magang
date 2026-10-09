@@ -122,12 +122,12 @@
                             @endphp
                             <tr class="clickable-row" data-href="{{ route('lpks.show', $lpkItem) }}" tabindex="0" role="link" title="Buka rincian {{ $lpkItem->name }}">
                                 <td data-sort-value="{{ $lpkItem->accreditation_number ?: $lpkItem->registration_number }}">
-                                    <a href="{{ route('lpks.show', $lpkItem) }}" class="hover-underline" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); text-decoration: none;">
+                                    <a href="{{ route('lpks.show', $lpkItem) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); text-decoration: none;">
                                         {{ $lpkItem->accreditation_number ?: ($lpkItem->registration_number ?: '-') }}
                                     </a>
                                 </td>
                                 <td data-sort-value="{{ $lpkItem->name }}">
-                                    <a href="{{ route('lpks.show', $lpkItem) }}" class="hover-underline" style="font-weight: 700; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;">
+                                    <a href="{{ route('lpks.show', $lpkItem) }}" style="font-weight: 700; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;">
                                         {{ $lpkItem->name }}
                                     </a>
                                     @if($lpkItem->scope)

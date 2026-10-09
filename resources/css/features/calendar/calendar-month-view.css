@@ -434,6 +434,6 @@ html[data-theme="dark"] .gcal-range-floating-pill {
 
 .gcal-more-chip:hover {
     color: var(--ink);
-    text-decoration: underline;
+    text-decoration: none;
 }
 

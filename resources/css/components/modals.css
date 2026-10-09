@@ -476,8 +476,7 @@ body.modal-open .sidebar {
 .dropzone-prompt strong {
     color: var(--primary, #0075de);
     font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
 }
 
 .dropzone-sub {

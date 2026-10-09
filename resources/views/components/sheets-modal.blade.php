@@ -65,7 +65,7 @@
                 <div style="margin-top: 14px; background: var(--surface, #fafaf9); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: 12px; color: var(--ink);">
                     <strong>Cara Penggunaan di Google Sheets:</strong>
                     <ol style="margin: 4px 0 0 16px; padding: 0; line-height: 1.6; color: var(--muted);">
-                        <li>Buka spreadsheet baru di Google Drive (atau ketik <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" style="color: var(--green, #10b981); font-weight: 600; text-decoration: underline;">sheets.new</a>).</li>
+                        <li>Buka spreadsheet baru di Google Drive (atau ketik <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" style="color: var(--green, #10b981); font-weight: 600; text-decoration: none;">sheets.new</a>).</li>
                         <li>Klik pada sel <strong>A1</strong>.</li>
                         <li>Tempelkan (Paste) rumus di atas, lalu tekan <strong>Enter</strong>. Tabel akan langsung terisi!</li>
                     </ol>

@@ -19,7 +19,7 @@
                 @foreach($assessments as $assessment)
                     <tr class="clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->display_title }}">
                         <td>
-                            <a href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" class="hover-underline" style="font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block;">
+                            <a href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" style="font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block;">
                                 {{ $assessment->display_title }}
                             </a>
                             @php
@@ -47,7 +47,7 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="hover-underline" style="color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; display: block;" title="Buka rincian LPK">
+                            <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" style="color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; display: block;" title="Buka rincian LPK">
                                 {{ $assessment->lpk->name }}
                             </a>
                             <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 2px;">{{ $assessment->lpk->registration_number }}</span>

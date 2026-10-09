@@ -5,8 +5,13 @@ a {
 }
 a:hover {
     color: var(--primary-hover);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
+}
+a:focus,
+a:active,
+.hover-underline,
+.hover-underline:hover {
+    text-decoration: none !important;
 }
 
 :focus-visible {

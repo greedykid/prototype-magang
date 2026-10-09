@@ -308,7 +308,7 @@
                             <div class="profile-link-item-left">
                                 <span class="profile-link-avatar" aria-hidden="true">{{ $owner->initials }}</span>
                                 <div class="profile-link-details">
-                                    <a href="{{ route('account-links.show', $owner) }}" class="hover-underline" style="color: var(--ink); text-decoration: none;">
+                                    <a href="{{ route('account-links.show', $owner) }}" style="color: var(--ink); text-decoration: none;">
                                         <strong class="profile-link-name">{{ $owner->name }}</strong>
                                     </a>
                                     <small class="profile-link-email">{{ $owner->email }} &bull; <a href="{{ route('account-links.show', $owner) }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">{{ $owner->lpks_count }} LPK</a></small>

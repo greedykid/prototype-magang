@@ -296,14 +296,14 @@
     font-size: 12.5px;
     font-weight: 500;
     margin-left: 4px;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
     transition: color 140ms ease;
     white-space: nowrap;
 }
 
 .filter-reset-link:hover {
     color: var(--primary-hover, #005bab);
+    text-decoration: none;
 }
 
 /* Modern Crisp Data Table Design */
@@ -967,7 +967,7 @@ table.table-lpks-custom .lpk-card-reg-wrap a.lpk-reg-link {
 
 table.table-lpks-custom .lpk-card-reg-wrap a.lpk-reg-link:hover {
     color: var(--maroon, #5645d4);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 table.table-lpks-custom .lpk-card-alerts {
@@ -1019,7 +1019,7 @@ table.table-lpks-custom tbody td.col-lpk-name .lpk-name-link {
 
 table.table-lpks-custom tbody td.col-lpk-name .lpk-name-link:hover {
     color: var(--maroon, #5645d4);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 table.table-lpks-custom tbody td.col-lpk-name .lpk-status-wrap {
@@ -1789,7 +1789,7 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 
 .table-mode-grid .table-lpks-custom .lpk-name-link:hover {
     color: #5645d4 !important;
-    text-decoration: underline !important;
+    text-decoration: none !important;
 }
 
 .table-mode-grid .table-lpks-custom .lpk-status-wrap {

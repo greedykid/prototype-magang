@@ -138,7 +138,7 @@
                                 {{ $owner->initials }}
                             </div>
                             <div style="min-width: 0;">
-                                <a href="{{ route('account-links.show', $owner) }}" class="hover-underline" style="font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; word-break: break-word;" title="Buka daftar LPK milik {{ $owner->name }}">
+                                <a href="{{ route('account-links.show', $owner) }}" style="font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; word-break: break-word;" title="Buka daftar LPK milik {{ $owner->name }}">
                                     {{ $owner->name }}
                                 </a>
                                 <div style="font-size: 12px; color: var(--muted); margin-top: 2px; word-break: break-all;">

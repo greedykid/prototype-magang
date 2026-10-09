@@ -10,7 +10,8 @@
 .user-identity strong { font-size: 13px; line-height: 1.25; color: var(--ink); font-weight: 600; }
 .user-identity small { color: var(--muted); font-size: 11px; line-height: 1.25; margin-top: 2px; }
 .user-avatar { align-items: center; background: var(--primary-subtle, #edf5ff); border: 1px solid rgba(25, 114, 245, 0.2); border-radius: 50%; color: var(--primary, #1972f5); display: inline-flex; flex: 0 0 34px; font-size: 12px; font-weight: 700; height: 34px; justify-content: center; width: 34px; }
-.link-button { background: none; border: 0; color: var(--primary, #1972f5); cursor: pointer; font: inherit; min-height: 44px; padding: 8px 0; text-decoration: underline; }
+.link-button { background: none; border: 0; color: var(--primary, #1972f5); cursor: pointer; font: inherit; min-height: 44px; padding: 8px 0; text-decoration: none; }
+.link-button:hover { text-decoration: none; }
 .link-button, .icon-button, .icon-link { align-items: center; display: inline-flex; gap: 7px; }
 .icon-button { min-width: 44px; padding: 10px; }
 .icon-link { min-height: 44px; min-width: 44px; justify-content: center; }

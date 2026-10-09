@@ -28,7 +28,7 @@
                         <!-- 1. NO AKREDITASI -->
                         <td class="col-lpk-no" data-sort-value="{{ $lpk->accreditation_number ?: $lpk->registration_number }}">
                             <div class="lpk-card-reg-wrap">
-                                <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="hover-underline lpk-reg-link" title="Buka rincian LPK">
+                                <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="lpk-reg-link" title="Buka rincian LPK">
                                     {{ $lpk->accreditation_number ?: $lpk->registration_number }}
                                 </a>
                             </div>
@@ -36,7 +36,7 @@
 
                         <!-- 2. NAMA LPK -->
                         <td class="col-lpk-name" data-sort-value="{{ $lpk->name }}">
-                            <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="hover-underline lpk-name-link" title="Buka rincian LPK">
+                            <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="lpk-name-link" title="Buka rincian LPK">
                                 {{ $lpk->name }}
                             </a>
                             <div class="lpk-status-wrap">
