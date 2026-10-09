@@ -72,7 +72,7 @@ export const isCacheableUrl = (urlStr) => {
 };
 
 /**
- * Store current active page in memory cache immediately
+ * Store current active page in memory cache immediately with pristine server HTML
  */
 export const cacheCurrentPage = () => {
     try {
@@ -80,13 +80,10 @@ export const cacheCurrentPage = () => {
         if (!isCacheableUrl(currentUrl)) return;
         const cleanUrl = getCleanPageUrl(currentUrl);
         if (!pageCache.has(cleanUrl)) {
-            pageCache.set(cleanUrl, {
-                htmlText: document.documentElement.outerHTML,
-                timestamp: Date.now()
-            });
+            prefetchUrl(cleanUrl);
         }
     } catch (_) {
-        // Silently ignore DOM snapshot errors
+        // Silently ignore prefetch errors
     }
 };
 
@@ -183,13 +180,10 @@ export const scheduleAdjacentCalendarPrefetch = () => {
         const shell = document.querySelector('.gcal-shell');
         if (!shell) return;
 
-        // 1. Simpan shell yang sedang aktif ke cache jika belum ada
+        // 1. Simpan partial kalender yang sedang aktif ke cache jika belum ada
         const currentKey = getCalendarCacheKey(window.location.href);
         if (!calendarCache.has(currentKey)) {
-            calendarCache.set(currentKey, {
-                htmlText: shell.outerHTML,
-                timestamp: Date.now()
-            });
+            prefetchCalendarPartial(window.location.href);
         }
 
         // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, serta tombol hari ini

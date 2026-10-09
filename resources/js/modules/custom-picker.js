@@ -840,6 +840,11 @@ const createCustomDatePicker = (input) => {
     input.addEventListener('input', () => syncFromNative());
     input.form?.addEventListener('reset', () => setTimeout(syncFromNative, 20));
 
+    wrapper._customPickerInstance = true;
+    wrapper._customPickerToggle = togglePopover;
+    wrapper._customPickerOpen = openPopover;
+    wrapper._customPickerClose = closePopover;
+
     attachValueInterceptor(input, () => syncFromNative());
 
     syncFromNative();
@@ -1276,6 +1281,11 @@ const createCustomClockPicker = (input) => {
     input.addEventListener('input', () => syncFromNative());
     input.form?.addEventListener('reset', () => setTimeout(syncFromNative, 20));
 
+    wrapper._customPickerInstance = true;
+    wrapper._customPickerToggle = togglePopover;
+    wrapper._customPickerOpen = openPopover;
+    wrapper._customPickerClose = closePopover;
+
     attachValueInterceptor(input, () => syncFromNative());
 
     syncFromNative();
@@ -1286,6 +1296,20 @@ const createCustomClockPicker = (input) => {
 // ==========================================================================
 export const initCustomDatePickers = (container = document) => {
     setupGlobalPickerListeners();
+
+    // Self-healing: unwrap stale datepicker wrappers if missing active JS instance
+    container.querySelectorAll('.custom-datepicker-wrapper').forEach((wrapper) => {
+        if (!wrapper._customPickerInstance) {
+            const nativeInput = wrapper.querySelector('input.custom-picker-native') || wrapper.querySelector('input[type="date"]');
+            if (nativeInput) {
+                nativeInput.classList.remove('custom-picker-native');
+                delete nativeInput.dataset.customPickerInit;
+                wrapper.parentNode.insertBefore(nativeInput, wrapper);
+            }
+            wrapper.remove();
+        }
+    });
+
     const inputs = container.querySelectorAll('input[type="date"]:not([data-custom-picker-init])');
     inputs.forEach((input) => {
         if (input.dataset.noCustom !== undefined) return;
@@ -1296,6 +1320,20 @@ export const initCustomDatePickers = (container = document) => {
 
 export const initCustomClockPickers = (container = document) => {
     setupGlobalPickerListeners();
+
+    // Self-healing: unwrap stale clockpicker wrappers if missing active JS instance
+    container.querySelectorAll('.custom-clockpicker-wrapper').forEach((wrapper) => {
+        if (!wrapper._customPickerInstance) {
+            const nativeInput = wrapper.querySelector('input.custom-picker-native') || wrapper.querySelector('input[type="time"]');
+            if (nativeInput) {
+                nativeInput.classList.remove('custom-picker-native');
+                delete nativeInput.dataset.customPickerInit;
+                wrapper.parentNode.insertBefore(nativeInput, wrapper);
+            }
+            wrapper.remove();
+        }
+    });
+
     const inputs = container.querySelectorAll('input[type="time"]:not([data-custom-picker-init])');
     inputs.forEach((input) => {
         if (input.dataset.noCustom !== undefined) return;

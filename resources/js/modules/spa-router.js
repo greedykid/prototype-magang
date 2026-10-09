@@ -21,6 +21,8 @@ import {
 } from './spa/router-cache.js';
 import { handleCalendarTransition } from './spa/calendar-handler.js';
 
+let currentNavSequence = 0;
+let activeNavAbortController = null;
 let isNavigating = false;
 let onNavigateCallback = null;
 
@@ -120,7 +122,14 @@ const navigateTo = async (url, pushState = true) => {
         return;
     }
 
-    if (isNavigating) return;
+    // Sequence control: cancel any in-flight navigation if user switched quickly
+    const thisNavSequence = ++currentNavSequence;
+    if (activeNavAbortController) {
+        activeNavAbortController.abort();
+    }
+    activeNavAbortController = new AbortController();
+    const { signal } = activeNavAbortController;
+
     isNavigating = true;
 
     try {
@@ -172,20 +181,27 @@ const navigateTo = async (url, pushState = true) => {
             htmlText = await prefetchInFlight.get(cleanTargetUrl);
         }
 
+        if (thisNavSequence !== currentNavSequence) return;
+
         if (!htmlText) {
             // Debounced skeleton: Only show skeleton if fetch takes longer than 150ms
             const skeletonTimer = setTimeout(() => {
-                skeletonRendered = true;
-                pageWrap.innerHTML = renderSkeletonForType(type);
+                if (thisNavSequence === currentNavSequence) {
+                    skeletonRendered = true;
+                    pageWrap.innerHTML = renderSkeletonForType(type);
+                }
             }, 150);
 
             const response = await fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                signal
             });
 
             clearTimeout(skeletonTimer);
+
+            if (thisNavSequence !== currentNavSequence) return;
 
             if (response.redirected) {
                 if (skeletonRendered) {
@@ -204,6 +220,8 @@ const navigateTo = async (url, pushState = true) => {
                 });
             }
         }
+
+        if (thisNavSequence !== currentNavSequence) return;
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
@@ -266,11 +284,18 @@ const navigateTo = async (url, pushState = true) => {
 
         scrollToAnchorHash(targetUrlObj.hash);
     } catch (err) {
+        if (err.name === 'AbortError' || thisNavSequence !== currentNavSequence) {
+            // Superseded by newer navigation request, ignore silently
+            return;
+        }
         console.error('Page transition error, falling back:', err);
         window.location.href = url;
     } finally {
-        document.querySelector('.gcal-shell')?.classList.remove('gcal-is-updating');
-        isNavigating = false;
+        if (thisNavSequence === currentNavSequence) {
+            document.querySelector('.gcal-shell')?.classList.remove('gcal-is-updating');
+            isNavigating = false;
+            activeNavAbortController = null;
+        }
     }
 };
 
@@ -306,8 +331,7 @@ const initSpaRouter = (callback) => {
         const url = new URL(link.href, window.location.origin);
         if (url.origin !== window.location.origin) return;
 
-        if (link.closest('form')) return;
-        if (link.closest('.lpk-table-container .pagination, .lpk-table-container nav[role="navigation"]')) return;
+        if (link.closest('.lpk-table-container .pagination, .lpk-table-container nav[role="navigation"], .assessment-table-container .pagination, .assessment-table-container nav[role="navigation"], .user-table-container .pagination, .user-table-container nav[role="navigation"]')) return;
 
         event.preventDefault();
         navigateTo(link.href);
