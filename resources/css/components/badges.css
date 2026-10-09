@@ -6,7 +6,7 @@
 .badge, .status, .priority, .badge-role, .badge-tp {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--radius-sm, 8px);
+    border-radius: var(--radius-pill, 9999px);
     box-sizing: border-box;
     display: inline-flex;
     font-size: 11.5px;
@@ -108,9 +108,9 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
 .badge-role-default { background: var(--surface); border-color: var(--line); color: var(--muted); }
 .badge-viewer { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 10px; font-weight: 500; padding: 1px 6px; }
 .badge-viewer-linked { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); font-size: 10.5px; font-weight: 500; padding: 2px 8px; }
-.badge-pic-lead { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
-.badge-pic-viewer { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
-.badge-counter { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm, 8px); }
+.badge-pic-lead { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill, 9999px); }
+.badge-pic-viewer { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-pill, 9999px); }
+.badge-counter { background: var(--neutral-chip-bg); border: 1px solid var(--neutral-chip-border); color: var(--neutral-chip-text); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill, 9999px); }
 
 /* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
 .badge-tp-neutral { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); }
@@ -124,7 +124,7 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
 .lpk-alert-badge {
     align-items: center;
     border: 1px solid;
-    border-radius: var(--radius-xs, 4px);
+    border-radius: var(--radius-pill, 9999px);
     box-sizing: border-box;
     display: inline-flex;
     font-size: 11px;
@@ -137,23 +137,23 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
     flex-shrink: 0;
 }
 .lpk-alert-badge.is-urgent {
-    background-color: var(--color-red-200, #fdd3cd);
-    border-color: rgba(227, 45, 20, 0.18);
-    color: var(--color-red-700, #b01601);
+    background-color: var(--danger-bg, #fef2f2);
+    border-color: var(--danger-border, rgba(220, 38, 38, 0.25));
+    color: var(--danger-text, #dc2626);
 }
 .lpk-alert-badge.is-warning {
-    background-color: var(--color-yellow-200, #ffe4af);
-    border-color: rgba(232, 157, 1, 0.22);
-    color: var(--color-yellow-900, #704b00);
+    background-color: var(--warning-bg, #fff6ea);
+    border-color: var(--warning-border, rgba(161, 67, 0, 0.25));
+    color: var(--warning-text, #a14300);
 }
 
 .lpk-pic-badge {
     align-items: center;
-    background: var(--color-gray-200, #f6f5f4);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--radius-xs, 4px);
+    background: var(--neutral-chip-bg, #f8f8fc);
+    border: 1px solid var(--neutral-chip-border, #eaecf5);
+    border-radius: var(--radius-pill, 9999px);
     box-sizing: border-box;
-    color: var(--color-gray-600, #615d59);
+    color: var(--neutral-chip-text, #5d6b98);
     display: inline-flex;
     font-size: 11px;
     font-weight: 500;

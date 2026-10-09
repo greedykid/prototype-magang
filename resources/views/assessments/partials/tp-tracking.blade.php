@@ -38,7 +38,7 @@
 
     {{-- Batas Waktu Metrics Grid --}}
     <div class="tp-metrics-grid">
-        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
+        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px);">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Status Tindakan Perbaikan
             </span>
@@ -50,7 +50,7 @@
             </small>
         </div>
 
-        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
+        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px);">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Batas Waktu Awal (KAN)
             </span>
@@ -69,7 +69,7 @@
             </small>
         </div>
 
-        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
+        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px);">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Permohonan Perpanjangan
             </span>
@@ -95,7 +95,7 @@
             @endif
         </div>
 
-        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px;">
+        <div style="padding: 16px; background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px);">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
                 Batas Akhir Efektif / Hasil
             </span>
@@ -134,7 +134,7 @@
     @if($assessment->sk_number)
         <div class="tp-sk-banner">
             <div class="tp-sk-banner-left">
-                <div class="icon-wrap-emerald" style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
+                <div class="icon-wrap-emerald" style="width: 40px; height: 40px; border-radius: var(--radius-md, 10px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
                     <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>

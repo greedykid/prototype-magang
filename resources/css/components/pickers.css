@@ -313,7 +313,7 @@ section.has-open-picker,
     align-items: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 8px);
     color: var(--muted);
     cursor: pointer;
     display: inline-flex;
@@ -353,7 +353,7 @@ section.has-open-picker,
     align-items: center;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     color: var(--ink);
     cursor: pointer;
@@ -397,7 +397,7 @@ section.has-open-picker,
 .custom-datepicker-year-select {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: var(--radius-md, 10px);
     box-sizing: border-box;
     color: var(--ink);
     cursor: pointer;
@@ -432,7 +432,7 @@ section.has-open-picker,
     align-items: center;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     box-sizing: border-box;
     color: var(--ink);
     cursor: pointer;
@@ -561,7 +561,7 @@ section.has-open-picker,
 .clock-digit {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     color: var(--ink);
     cursor: pointer;
     font-family: inherit;

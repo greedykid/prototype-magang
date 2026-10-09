@@ -1,6 +1,7 @@
 // ==========================================================================
 // Live Partial Filter & Instant Pagination Controller
 // ==========================================================================
+import { initCustomSelects } from './custom-select.js';
 
 let activeAbortControllers = new Map();
 let searchDebounceTimers = new Map();
@@ -93,6 +94,8 @@ export const executePartialFilter = async (form, pushHistory = false) => {
             window.initDataTables();
         }
 
+        initCustomSelects(container);
+
         document.dispatchEvent(new CustomEvent('table-content-updated', { detail: { container } }));
     } catch (err) {
         if (err.name === 'AbortError') {
@@ -145,6 +148,8 @@ export const executePaginationClick = async (link, targetContainer) => {
         if (typeof window.initDataTables === 'function') {
             window.initDataTables();
         }
+
+        initCustomSelects(targetContainer);
 
         document.dispatchEvent(new CustomEvent('table-content-updated', { detail: { container: targetContainer } }));
 

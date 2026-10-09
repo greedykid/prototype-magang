@@ -145,7 +145,7 @@
 
 /* Timed Event Cards */
 .gcal-timed-card {
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     cursor: pointer;
     left: 3px;
@@ -321,7 +321,7 @@
 .gcal-agenda-day-num {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     color: var(--ink);
     display: inline-flex;
     font-size: 18px;
@@ -352,7 +352,7 @@
 
 .gcal-agenda-row {
     align-items: center;
-    border-radius: 8px;
+    border-radius: var(--radius-lg, 12px);
     box-sizing: border-box;
     display: grid;
     gap: 16px;
@@ -423,10 +423,10 @@
 }
 
 .gcal-badge-pill {
-    border-radius: 5px;
+    border-radius: var(--radius-pill, 9999px);
     font-size: 10.5px;
     font-weight: 600;
-    padding: 2px 8px;
+    padding: 2px 9px;
 }
 
 .gcal-badge-pill.theme-indigo {

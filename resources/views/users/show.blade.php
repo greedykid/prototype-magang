@@ -52,7 +52,7 @@
     {{-- Metrik Ringkas Beban Kerja PIC --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <x-icon name="lpks" size="22" />
             </div>
             <div>
@@ -63,7 +63,7 @@
         </div>
 
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
             <div>
@@ -180,8 +180,8 @@
                 </table>
             </div>
         @else
-            <div style="text-align: center; padding: 40px 16px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: 8px;">
-                <div style="width: 48px; height: 48px; border-radius: 24px; background: var(--neutral-chip-bg); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="text-align: center; padding: 40px 16px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px);">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-pill, 9999px); background: var(--neutral-chip-bg); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
                     <x-icon name="lpks" size="22" />
                 </div>
                 <h3 style="font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 4px 0;">Belum Ada Laboratorium</h3>

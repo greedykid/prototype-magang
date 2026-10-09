@@ -340,7 +340,7 @@ button.is-loading > svg:not(.btn-spinner svg),
     align-items: center;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 8px);
     color: var(--muted, #64748b);
     cursor: pointer;
     display: inline-flex;

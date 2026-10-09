@@ -39,6 +39,12 @@ section.has-open-select,
     z-index: 35 !important;
 }
 
+.table-filters:has(.custom-select-wrapper.is-open),
+.table-filters.has-open-select,
+.table-filter-grid:has(.custom-select-wrapper.is-open),
+.table-filter-grid.has-open-select,
+.table-filter-grid label:has(.custom-select-wrapper.is-open),
+.table-filter-grid label.has-open-select,
 .inline-form:has(.custom-select-wrapper.is-open),
 .inline-form.has-open-select,
 .inline-form label:has(.custom-select-wrapper.is-open),
@@ -53,7 +59,7 @@ section.has-open-select,
 .simasadi-modal-box label.has-open-select {
     overflow: visible !important;
     position: relative !important;
-    z-index: 85 !important;
+    z-index: 95 !important;
 }
 
 .custom-select-wrapper {
@@ -237,7 +243,7 @@ section.has-open-select,
 .custom-select-search-input {
     background: var(--surface) !important;
     border: 1px solid var(--line) !important;
-    border-radius: 6px !important;
+    border-radius: var(--radius-sm, 8px) !important;
     box-sizing: border-box !important;
     color: var(--ink) !important;
     font-family: inherit !important;
@@ -284,7 +290,7 @@ section.has-open-select,
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: var(--radius-xs, 4px);
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     color: var(--ink);
     cursor: pointer;
@@ -352,7 +358,7 @@ section.has-open-select,
     align-self: flex-start;
     background: var(--surface-subtle, #f7f6f5);
     border: 1px solid var(--line, #dfdcd9);
-    border-radius: var(--radius-xs, 4px);
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     color: var(--ink, #191918);
     display: inline-flex;
@@ -381,7 +387,7 @@ section.has-open-select,
     align-items: center;
     background: var(--surface-subtle, #f7f6f5);
     border: 1px solid var(--line, #dfdcd9);
-    border-radius: var(--radius-xs, 4px);
+    border-radius: var(--radius-sm, 8px);
     box-sizing: border-box;
     color: var(--ink, #191918);
     display: inline-flex;

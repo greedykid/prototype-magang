@@ -22,7 +22,7 @@
 </x-page-header>
 
 @if(!empty($linkedOwnersCount) && $linkedOwnersCount > 0)
-    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border); border-radius: var(--radius-xl, 18px); padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="color: var(--info-text, #0284c7); display: inline-flex;">
                 <x-icon name="link" size="18" />

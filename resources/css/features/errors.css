@@ -74,19 +74,19 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px 9px;
+    border-radius: var(--radius-pill, 9999px);
     margin-bottom: 6px;
 }
 
 .error-code-badge.forbidden {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--danger-bg);
+    color: var(--danger-fg);
 }
 
 .error-code-badge.not-found {
-    background: #f1f5f9;
-    color: #334155;
+    background: var(--surface-subtle);
+    color: var(--muted);
 }
 
 .error-code-badge.server-error {

@@ -136,7 +136,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: transparent !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-md, 10px) !important;
         box-sizing: border-box !important;
         color: var(--ink) !important;
         cursor: pointer !important;
@@ -231,7 +231,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: transparent !important;
         border: 0 !important;
-        border-radius: 6px !important;
+        border-radius: var(--radius-md, 10px) !important;
         color: var(--muted) !important;
         cursor: pointer !important;
         display: inline-flex !important;
@@ -294,7 +294,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         border-bottom: 0 !important;
         border-left: 0 !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-md, 10px) !important;
         color: var(--ink) !important;
         display: flex !important;
         font-size: 14px !important;
@@ -599,7 +599,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         min-height: 36px !important;
         min-width: 36px !important;
         padding: 0 !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-md, 10px) !important;
         width: 36px !important;
     }
 
@@ -607,7 +607,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: transparent !important;
         border: none !important;
-        border-radius: var(--radius-md, 8px) !important;
+        border-radius: var(--radius-md, 10px) !important;
         box-shadow: none !important;
         display: inline-flex !important;
         flex-shrink: 0 !important;
@@ -644,7 +644,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     /* Mobile Panels & Containers */
     .panel {
         padding: 16px 14px !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-xl, 18px) !important;
     }
 
     .panel-head {
@@ -765,7 +765,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         gap: 10px !important;
         background: var(--surface) !important;
         border: 1px solid var(--line) !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-lg, 12px) !important;
     }
 
     .surveillance-alert-actions {
@@ -803,7 +803,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         gap: 8px 12px !important;
         padding: 12px !important;
         align-items: start !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-lg, 12px) !important;
     }
 
     .agenda-card-date {
@@ -1386,7 +1386,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: var(--surface) !important;
         border: 1px solid var(--line) !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-lg, 12px) !important;
         color: var(--ink) !important;
         cursor: pointer !important;
         display: inline-flex !important;
@@ -1429,7 +1429,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .table-wrap:not(.table-mode-grid) {
         border: 1px solid var(--line) !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-xl, 18px) !important;
         box-shadow: none !important;
         margin: 0 0 16px 0 !important;
         max-width: 100% !important;
@@ -1626,7 +1626,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         align-items: center !important;
         background: transparent !important;
         border: 0 !important;
-        border-radius: 6px !important;
+        border-radius: var(--radius-md, 10px) !important;
         color: var(--muted) !important;
         cursor: pointer !important;
         display: inline-flex !important;
@@ -1731,7 +1731,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     .metric {
         min-height: 84px !important;
         padding: 12px !important;
-        border-radius: 8px !important;
+        border-radius: var(--radius-lg, 12px) !important;
         box-sizing: border-box !important;
     }
 
@@ -1752,7 +1752,7 @@ a, button, input, select, textarea, .list-row, .pagination-item {
     .metric-icon {
         height: 26px !important;
         width: 26px !important;
-        border-radius: 6px !important;
+        border-radius: var(--radius-md, 10px) !important;
     }
 
     .metric-icon svg {

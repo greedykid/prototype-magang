@@ -22,7 +22,7 @@ const setupGlobalSelectListeners = () => {
     globalSelectListenersAdded = true;
 
     document.addEventListener('click', (event) => {
-        if (!event.target.closest('.custom-select-wrapper')) {
+        if (!event.target.closest('.custom-select-wrapper') && !event.target.closest('label:has(.custom-select-wrapper)')) {
             closeAllCustomSelects();
         }
     });
@@ -64,6 +64,14 @@ const createCustomSelect = (select) => {
     trigger.className = 'custom-select-trigger';
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
+
+    // Connect label to trigger button instead of hidden select to avoid dead clicks & synthetic closures
+    const parentLabel = wrapper.closest('label') || (select.id ? document.querySelector(`label[for="${select.id}"]`) : null);
+    if (parentLabel) {
+        const triggerId = select.id ? `${select.id}-trigger` : `custom-select-trigger-${Math.random().toString(36).slice(2, 8)}`;
+        trigger.id = triggerId;
+        parentLabel.setAttribute('for', triggerId);
+    }
 
     const valueSpan = document.createElement('span');
     valueSpan.className = 'custom-select-value';
@@ -238,6 +246,9 @@ const createCustomSelect = (select) => {
         let el = wrapper.parentElement;
         while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
             if (el.tagName === 'LABEL' ||
+                el.classList.contains('table-filter-grid') ||
+                el.classList.contains('table-filters') ||
+                el.classList.contains('table-filter-actions') ||
                 el.classList.contains('modal-form-grid-2col') ||
                 el.classList.contains('lpk-field-row') ||
                 el.classList.contains('lpk-field') ||

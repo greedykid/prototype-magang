@@ -33,7 +33,7 @@
                     @else
                         <x-status :value="$assessment->status" />
                     @endif
-                    <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                    <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill, 9999px);">
                         Mode Pemantauan (Viewer) - Milik Akun: {{ $owner->name }}
                     </span>
                 </div>
@@ -286,7 +286,7 @@
                     </div>
                 </div>
 
-                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
+                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
             </div>
         </div>
 

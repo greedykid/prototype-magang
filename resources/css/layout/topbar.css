@@ -256,8 +256,8 @@
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: 8px;
-    color: #334155;
+    border-radius: var(--radius-md, 10px);
+    color: var(--ink);
     cursor: pointer;
     display: flex;
     font-size: 13px;
@@ -288,20 +288,20 @@
 }
 
 .user-dropdown-logout {
-    color: #b91c1c;
+    color: var(--danger-fg);
 }
 
 .user-dropdown-logout svg {
-    color: #dc2626;
+    color: var(--danger-fg);
 }
 
 .user-dropdown-logout:hover {
-    background: #fef2f2;
-    color: #991b1b;
+    background: var(--danger-bg);
+    color: var(--danger-fg);
 }
 
 .user-dropdown-logout:hover svg {
-    color: #991b1b;
+    color: var(--danger-fg);
 }
 
 .logout-form {
@@ -313,7 +313,7 @@
     align-items: center;
     background-color: transparent;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     color: var(--muted, #64748b);
     cursor: pointer;
     display: inline-flex;
@@ -513,8 +513,8 @@
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: 6px;
-    color: #94a3b8;
+    border-radius: var(--radius-sm, 8px);
+    color: var(--muted);
     cursor: pointer;
     display: inline-flex;
     height: 28px;
@@ -525,8 +525,8 @@
 }
 
 .notif-close-btn:hover {
-    background: #f1f5f9;
-    color: #334155;
+    background: var(--surface-hover);
+    color: var(--ink);
 }
 
 /* Dropdown Body */
@@ -646,26 +646,26 @@
 .badge-milestone {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: 5px;
+    border-radius: var(--radius-pill, 9999px);
     box-sizing: border-box;
     display: inline-flex;
     font-size: 10.5px;
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0.02em;
-    padding: 2px 7px;
+    padding: 2px 8px;
 }
 
 .badge-milestone-urgent {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
-    color: #991b1b;
+    background-color: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-fg);
 }
 
 .badge-milestone-warning {
-    background-color: #fffbeb;
-    border-color: #fde68a;
-    color: #92400e;
+    background-color: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning-fg);
 }
 
 .notif-milestone-label {
@@ -727,10 +727,10 @@
 
 .notif-btn-ghost {
     align-items: center;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 6px;
-    color: #0284c7;
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    border-radius: var(--radius-sm, 8px);
+    color: var(--info-fg);
     display: inline-flex;
     font-size: 11px;
     font-weight: 600;
@@ -1001,7 +1001,7 @@
     align-items: center;
     background-color: transparent;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     color: var(--muted, #64748b);
     cursor: pointer;
     display: inline-flex;

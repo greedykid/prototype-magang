@@ -95,7 +95,7 @@
         {{ $assessments->links() }}
     </div>
 @else
-    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 8px; margin-top: 16px;">
+    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px); margin-top: 16px;">
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 12px;">
             <x-icon name="assessments" size="24" />
         </div>

@@ -4,7 +4,7 @@
     position: relative;
     overflow: hidden;
     background: var(--skeleton-bg, #e2e8f0);
-    border-radius: 6px;
+    border-radius: var(--radius-md, 10px);
     display: inline-block;
 }
 
@@ -62,7 +62,7 @@
 .skeleton-metric-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-xl, 18px);
     display: flex;
     flex-direction: column;
     justify-content: space-between;

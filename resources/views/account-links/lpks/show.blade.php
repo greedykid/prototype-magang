@@ -29,7 +29,7 @@
                         <span class="lpk-badge-type">{{ $lpk->accreditation_type }}</span>
                     @endif
                     <x-status :value="$lpk->dynamic_status" />
-                    <span class="badge" style="background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 5px;">
+                    <span class="badge" style="background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill, 9999px);">
                         Mode Pemantauan (Viewer) - Milik Akun: {{ $owner->name }}
                     </span>
                 </div>
@@ -290,7 +290,7 @@
                                     default => 'Re-Akreditasi',
                                 };
                             @endphp
-                            <span style="font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: 5px; background: var(--neutral-chip-bg); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; letter-spacing: 0.02em;">
+                            <span style="font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: var(--radius-pill, 9999px); background: var(--neutral-chip-bg); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; letter-spacing: 0.02em;">
                                 Fokus Siklus: {{ $focusLabel }}
                             </span>
                         </h2>
@@ -725,7 +725,7 @@
                     @if($lpk->scope)
                         <div class="lpk-scope-box">{{ $lpk->scope }}</div>
                     @else
-                        <div style="background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: 8px; padding: 16px; text-align: center; color: var(--muted); font-size: 13px;">
+                        <div style="background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: var(--radius-lg, 12px); padding: 16px; text-align: center; color: var(--muted); font-size: 13px;">
                             Belum ada rincian ruang lingkup akreditasi yang diinput.
                         </div>
                     @endif
@@ -958,7 +958,7 @@
 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     @forelse($lpk->assessments->sortBy('start_at') as $item)
-                        <div class="assessment-list-row clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $item]) }}" tabindex="0" role="link" aria-label="{{ $item->display_title }}" style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 140ms ease, box-shadow 140ms ease;">
+                        <div class="assessment-list-row clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $item]) }}" tabindex="0" role="link" aria-label="{{ $item->display_title }}" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 140ms ease, box-shadow 140ms ease;">
                             <div class="assessment-list-content">
                                 <a href="{{ route('account-links.assessments.show', [$owner, $item]) }}" class="assessment-list-title" style="font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none;">
                                     {{ $item->display_title }}
@@ -992,7 +992,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="empty" style="text-align: center; padding: 24px 16px; color: var(--muted); font-size: 13px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: 8px;">
+                        <div class="empty" style="text-align: center; padding: 24px 16px; color: var(--muted); font-size: 13px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: var(--radius-lg, 12px);">
                             Belum ada agenda asesmen untuk LPK ini.
                         </div>
                     @endforelse

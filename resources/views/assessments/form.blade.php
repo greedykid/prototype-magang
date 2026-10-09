@@ -184,7 +184,7 @@
                         Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->registration_number }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
                     </p>
                 </div>
-                <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;">
+                <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
                     Auto Pre-filled
                 </span>
             </div>

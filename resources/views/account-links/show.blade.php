@@ -15,7 +15,7 @@
     <div>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
             <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: var(--ink);">Data Akun Tertaut</h1>
-            <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 5px;">
+            <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-pill, 9999px);">
                 Mode Pemantauan (Viewer)
             </span>
         </div>
@@ -72,7 +72,7 @@
 
         {{-- Total LPK --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
                 <x-icon name="building" size="20" />
             </div>
             <div>
@@ -83,7 +83,7 @@
 
         {{-- LPK Aktif --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
                 <x-icon name="shield-check" size="20" />
             </div>
             <div>

@@ -140,10 +140,10 @@
 /* SBM Callout Box */
 .sbm-callout {
     align-items: flex-start;
-    background: var(--color-yellow-100, #fff5e0);
-    border: 1px solid rgba(232, 157, 1, 0.25);
-    border-radius: var(--radius-sm, 6px);
-    color: #795200;
+    background: var(--warning-bg, #fff6ea);
+    border: 1px solid var(--warning-border, rgba(161, 67, 0, 0.25));
+    border-radius: var(--radius-lg, 12px);
+    color: var(--warning-text, #a14300);
     display: flex;
     font-size: 13px;
     gap: 12px;
@@ -152,7 +152,7 @@
 }
 
 .sbm-callout svg {
-    color: #b7791f;
+    color: var(--warning-text, #a14300);
     flex-shrink: 0;
     margin-top: 2px;
 }

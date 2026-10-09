@@ -293,7 +293,7 @@
                     </div>
                 </div>
 
-                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
+                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
             </div>
         </div>
 

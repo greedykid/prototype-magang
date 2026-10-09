@@ -188,12 +188,12 @@
     .lpk-badge-reg,
     .lpk-badge-acc,
     .lpk-badge-type {
-        border-radius: 8px;
+        border-radius: var(--radius-pill, 9999px);
         display: inline-block;
         line-height: 1.4;
         max-width: 100%;
         overflow-wrap: break-word;
-        padding: 4px 9px;
+        padding: 4px 10px;
         white-space: normal;
         word-break: break-word;
     }

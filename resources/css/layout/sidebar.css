@@ -282,8 +282,8 @@
 .drawer-account .badge-role {
     font-size: 10px;
     font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill, 9999px);
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -309,18 +309,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: var(--radius-md, 10px);
     background: transparent;
     border: 1px solid transparent;
-    color: #94a3b8;
+    color: var(--muted);
     cursor: pointer;
     transition: all 150ms ease;
 }
 
 .logout-icon:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-fg);
     transform: scale(1.05);
 }
 
@@ -331,7 +331,7 @@
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 10px);
     color: var(--muted);
     cursor: pointer;
     display: inline-flex;
@@ -532,7 +532,7 @@
     .app-shell.sidebar-collapsed .sidebar nav a::after {
         background: #0f172a;
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 6px;
+        border-radius: var(--radius-sm, 8px);
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
         color: #ffffff;
         content: attr(data-tooltip);

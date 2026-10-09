@@ -24,7 +24,7 @@
                                             {{ $userItem->name }}
                                         </a>
                                         @if(auth()->id() === $userItem->id)
-                                            <span class="badge badge-counter" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">Akun Anda</span>
+                                            <span class="badge badge-counter" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: var(--radius-pill, 9999px);">Akun Anda</span>
                                         @endif
                                     </div>
                                     <div style="color: var(--muted); font-size: 12px; margin-top: 2px;">{{ $userItem->email }}</div>
