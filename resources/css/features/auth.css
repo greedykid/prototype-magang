@@ -316,8 +316,8 @@
    Dark Theme Overrides for Auth / Login
    ========================================================================== */
 html[data-theme="dark"] .auth-page {
-    background: #030d26;
-    background: radial-gradient(circle at 50% 0%, #071330 0%, #030d26 65%, #020818 100%);
+    background: #111215;
+    background: radial-gradient(circle at 50% 0%, #1c1d22 0%, #111215 65%, #0b0c0e 100%);
 }
 
 html[data-theme="dark"] .auth-theme-btn {
