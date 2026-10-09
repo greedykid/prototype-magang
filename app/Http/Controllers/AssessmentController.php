@@ -357,7 +357,7 @@ class AssessmentController extends Controller
 
         $assessment->update($data);
 
-        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil diperbarui.');
+        return redirect()->route('assessments.show', $assessment)->with('success', 'Program asesmen berhasil diperbarui.');
     }
 
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse

@@ -228,11 +228,7 @@ body.swal2-toast-shown .swal2-container,
 @media (max-width: 640px) {
     body.swal2-toast-shown .swal2-container,
     .swal2-toast-shown .swal2-container,
-    .swal2-container:has(.swal2-toast),
-    .swal2-container.swal2-top,
-    .swal2-container.swal2-top-end,
-    .swal2-container.swal2-top-right,
-    .swal2-container.swal2-center {
+    .swal2-container:has(.swal2-toast) {
         align-items: flex-start !important;
         bottom: auto !important;
         display: flex !important;
@@ -245,6 +241,34 @@ body.swal2-toast-shown .swal2-container,
         position: fixed !important;
         right: 0 !important;
         top: 16px !important;
+        transform: none !important;
+        width: 100% !important;
+    }
+
+    /* Mobile Standard Modal Popup: Centered vertically & horizontally without clipping */
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) {
+        align-items: center !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        inset: 0 !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        position: fixed !important;
+        width: 100% !important;
+        z-index: 2147483647 !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-popup {
+        border-radius: var(--radius-2xl, 22px) !important;
+        box-sizing: border-box !important;
+        margin: auto !important;
+        max-height: calc(100vh - 40px) !important;
+        max-height: calc(100dvh - 40px) !important;
+        max-width: min(390px, calc(100vw - 28px)) !important;
+        overflow-y: auto !important;
+        padding: 22px 20px 20px !important;
         transform: none !important;
         width: 100% !important;
     }

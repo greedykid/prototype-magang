@@ -184,7 +184,7 @@ class LpkController extends Controller
 
         $lpk->update($data);
 
-        return redirect()->route('lpks.index')->with('success', 'Data LPK berhasil diperbarui.');
+        return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
     }
 
     public function updateNotes(UpdateLpkNotesRequest $request, Lpk $lpk): RedirectResponse

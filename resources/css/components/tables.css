@@ -614,7 +614,9 @@ td span {
     display: none;
 }
 
-.filter-drawer-close {
+.filter-drawer-close,
+.filter-sheet-header,
+.filter-sheet-done-btn {
     display: none;
 }
 

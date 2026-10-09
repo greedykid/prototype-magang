@@ -1435,37 +1435,45 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         z-index: auto !important;
     }
 
-    /* Filter Drawer */
+    /* Filter Bottom Sheet (Mobile) */
     .filter-drawer {
         background: var(--surface) !important;
-        border: 0 !important;
-        border-left: 1px solid var(--line) !important;
+        border: 1px solid var(--line) !important;
+        border-bottom: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
         bottom: 0 !important;
-        box-shadow: -12px 0 36px rgba(26, 26, 26, 0.24) !important;
+        box-shadow: 0 -8px 36px rgba(15, 12, 30, 0.22) !important;
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        left: auto !important;
-        margin: 0 !important;
-        max-width: min(88vw, 360px) !important;
+        height: auto !important;
+        left: 0 !important;
+        margin: 0 auto !important;
+        max-height: 85vh !important;
+        max-height: 85dvh !important;
+        max-width: min(100vw, 560px) !important;
         overflow-y: auto !important;
-        padding: 24px 18px 24px !important;
+        overscroll-behavior-y: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 12px 18px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
         pointer-events: none !important;
         position: fixed !important;
         right: 0 !important;
-        top: 0 !important;
-        transform: translateX(100%) !important;
-        transition: transform 240ms var(--ease-out-expo), visibility 240ms !important;
+        top: auto !important;
+        transform: translateY(100%) !important;
+        transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), visibility 260ms !important;
         visibility: hidden !important;
         width: 100% !important;
         z-index: 9999 !important;
     }
 
+    html[data-theme="dark"] .filter-drawer {
+        box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.55) !important;
+    }
+
     .filter-drawer.filters-open {
         pointer-events: auto !important;
-        transform: translateX(0) !important;
+        transform: translateY(0) !important;
         visibility: visible !important;
     }
 
@@ -1512,6 +1520,49 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         z-index: 10005 !important;
     }
 
+    /* Bottom Sheet Header & Drag Handle */
+    .filter-sheet-header {
+        align-items: center !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin-bottom: 14px !important;
+        position: relative !important;
+        width: 100% !important;
+    }
+
+    .filter-sheet-handle {
+        background: var(--line-strong, rgba(0, 0, 0, 0.2)) !important;
+        border-radius: 9999px !important;
+        cursor: grab !important;
+        flex-shrink: 0 !important;
+        height: 4px !important;
+        margin: 0 auto 12px !important;
+        width: 38px !important;
+    }
+
+    html[data-theme="dark"] .filter-sheet-handle {
+        background: rgba(255, 255, 255, 0.22) !important;
+    }
+
+    .filter-sheet-title-row {
+        align-items: center !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+
+    .filter-sheet-title {
+        color: var(--ink) !important;
+        display: block !important;
+        font-family: 'Instrument Sans', sans-serif !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.2px !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     .filter-drawer .table-filter-grid {
         display: grid !important;
         gap: 12px !important;
@@ -1526,7 +1577,8 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         margin-top: 18px !important;
     }
 
-    .filter-drawer .table-filter-actions .button {
+    .filter-drawer .table-filter-actions .button,
+    .filter-sheet-done-btn {
         justify-content: center !important;
         min-height: 44px !important;
         width: 100% !important;
@@ -1534,21 +1586,37 @@ a, button, input, select, textarea, .list-row, .pagination-item {
 
     .filter-drawer-close {
         align-items: center !important;
-        background: transparent !important;
-        border: 0 !important;
-        border-radius: var(--radius-md, 10px) !important;
+        background: var(--surface-hover, rgba(0, 0, 0, 0.05)) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 9999px !important;
         color: var(--muted) !important;
         cursor: pointer !important;
         display: inline-flex !important;
-        font-size: 26px !important;
-        height: 40px !important;
+        height: 32px !important;
         justify-content: center !important;
-        min-height: 40px !important;
-        min-width: 40px !important;
-        position: absolute !important;
-        right: 14px !important;
-        top: 14px !important;
-        width: 40px !important;
+        margin: 0 !important;
+        min-height: 32px !important;
+        min-width: 32px !important;
+        padding: 0 !important;
+        position: static !important;
+        transition: background 150ms ease, color 150ms ease, border-color 150ms ease !important;
+        width: 32px !important;
+    }
+
+    .filter-drawer-close:hover,
+    .filter-drawer-close:focus-visible {
+        background: var(--line) !important;
+        color: var(--ink) !important;
+    }
+
+    html[data-theme="dark"] .filter-drawer-close {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--line) !important;
+    }
+
+    html[data-theme="dark"] .filter-drawer-close:hover {
+        background: rgba(255, 255, 255, 0.16) !important;
+        color: #ffffff !important;
     }
 
     .filter-drawer-backdrop {

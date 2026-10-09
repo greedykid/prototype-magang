@@ -381,12 +381,42 @@ export const initDataTables = () => {
         const filterIconSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
         toggle.innerHTML = `<span class="filter-toggle-icon" aria-hidden="true">${filterIconSvg}</span><span>Filter data</span>`;
 
+        const sheetHeader = document.createElement('div');
+        sheetHeader.className = 'filter-sheet-header';
+
+        const sheetHandle = document.createElement('div');
+        sheetHandle.className = 'filter-sheet-handle';
+        sheetHandle.setAttribute('aria-hidden', 'true');
+
+        const sheetTitleRow = document.createElement('div');
+        sheetTitleRow.className = 'filter-sheet-title-row';
+
+        const sheetTitle = document.createElement('h3');
+        sheetTitle.className = 'filter-sheet-title';
+        sheetTitle.textContent = 'Filter Data';
+
         const closeButton = document.createElement('button');
         closeButton.className = 'filter-drawer-close';
         closeButton.type = 'button';
         closeButton.setAttribute('aria-label', 'Tutup filter');
-        closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
-        filter.prepend(closeButton);
+        closeButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+        sheetTitleRow.appendChild(sheetTitle);
+        sheetTitleRow.appendChild(closeButton);
+        sheetHeader.appendChild(sheetHandle);
+        sheetHeader.appendChild(sheetTitleRow);
+        filter.prepend(sheetHeader);
+
+        // Add a bottom "Tutup Filter" button in actions if not present
+        const actions = filter.querySelector('.table-filter-actions');
+        if (actions && !actions.querySelector('.filter-sheet-done-btn')) {
+            const doneButton = document.createElement('button');
+            doneButton.type = 'button';
+            doneButton.className = 'button secondary filter-sheet-done-btn';
+            doneButton.textContent = 'Tutup Filter';
+            doneButton.addEventListener('click', () => closeDrawer());
+            actions.appendChild(doneButton);
+        }
 
         const backdrop = document.createElement('div');
         backdrop.className = 'filter-drawer-backdrop';
@@ -394,12 +424,16 @@ export const initDataTables = () => {
         filter.classList.add('filter-drawer');
 
         const closeDrawer = () => {
+            filter.style.transform = '';
+            filter.style.transition = '';
             filter.classList.remove('filters-open');
             toggle.setAttribute('aria-expanded', 'false');
             document.body.classList.remove('filter-drawer-open');
         };
 
         const openDrawer = () => {
+            filter.style.transform = '';
+            filter.style.transition = '';
             filter.classList.add('filters-open');
             toggle.setAttribute('aria-expanded', 'true');
             document.body.classList.add('filter-drawer-open');
@@ -423,9 +457,51 @@ export const initDataTables = () => {
             }
         });
 
-        // Ensure drawer and backdrop are mounted directly to document.body on mobile screens
+        // Touch drag down to dismiss bottom sheet
+        let touchStartY = 0;
+        let touchCurrentY = 0;
+        let isDraggingSheet = false;
+
+        filter.addEventListener('touchstart', (e) => {
+            if (!filter.classList.contains('filters-open')) return;
+            if (filter.scrollTop <= 0) {
+                touchStartY = e.touches[0].clientY;
+                touchCurrentY = touchStartY;
+                isDraggingSheet = true;
+            } else {
+                isDraggingSheet = false;
+            }
+        }, { passive: true });
+
+        filter.addEventListener('touchmove', (e) => {
+            if (!isDraggingSheet) return;
+            touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchCurrentY - touchStartY;
+            if (deltaY > 0) {
+                filter.style.transform = `translateY(${deltaY}px)`;
+                filter.style.transition = 'none';
+            } else {
+                filter.style.transform = '';
+            }
+        }, { passive: true });
+
+        const finishDrag = () => {
+            if (!isDraggingSheet) return;
+            isDraggingSheet = false;
+            const deltaY = touchCurrentY - touchStartY;
+            filter.style.transform = '';
+            filter.style.transition = '';
+            if (deltaY > 70) {
+                closeDrawer();
+            }
+        };
+
+        filter.addEventListener('touchend', finishDrag, { passive: true });
+        filter.addEventListener('touchcancel', finishDrag, { passive: true });
+
+        // Ensure bottom sheet and backdrop are mounted directly to document.body on mobile screens
         const syncDrawerMount = () => {
-            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            const isMobile = window.matchMedia('(max-width: 680px)').matches;
             if (isMobile) {
                 if (filter.parentElement !== document.body) {
                     document.body.appendChild(backdrop);
