@@ -39,8 +39,8 @@ section.has-open-select,
     z-index: 35 !important;
 }
 
-.table-filters:has(.custom-select-wrapper.is-open),
-.table-filters.has-open-select,
+.table-filters:not(.filter-drawer):has(.custom-select-wrapper.is-open),
+.table-filters:not(.filter-drawer).has-open-select,
 .table-filter-grid:has(.custom-select-wrapper.is-open),
 .table-filter-grid.has-open-select,
 .table-filter-grid label:has(.custom-select-wrapper.is-open),

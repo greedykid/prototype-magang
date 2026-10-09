@@ -131,7 +131,7 @@ const createCustomSelect = (select) => {
     let searchInput = null;
     let emptyNotice = null;
 
-    if (optionsCount > 6 && select.dataset.noSearch === undefined) {
+    if (optionsCount > 8 && select.dataset.noSearch === undefined) {
         const searchWrap = document.createElement('div');
         searchWrap.className = 'custom-select-search-wrap';
         searchWrap.innerHTML = '<svg class="custom-select-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
@@ -265,6 +265,7 @@ const createCustomSelect = (select) => {
 
         const rect = trigger.getBoundingClientRect();
         const modalBox = wrapper.closest('.simasadi-modal-box');
+        const drawer = wrapper.closest('.filter-drawer');
         let spaceBelow = window.innerHeight - rect.bottom;
         let spaceAbove = rect.top;
 
@@ -274,7 +275,8 @@ const createCustomSelect = (select) => {
             spaceAbove = rect.top - modalRect.top;
         }
 
-        if (spaceBelow < 190 && spaceAbove > spaceBelow && spaceAbove >= 190) {
+        const minSpace = drawer ? 240 : 190;
+        if (spaceBelow < minSpace && spaceAbove > spaceBelow && spaceAbove >= 180) {
             wrapper.classList.add('dropup');
         } else {
             wrapper.classList.remove('dropup');
@@ -319,6 +321,18 @@ const createCustomSelect = (select) => {
             if (selectedOption) {
                 selectedOption.scrollIntoView({ block: 'nearest' });
             }
+        }
+
+        if (drawer) {
+            setTimeout(() => {
+                const openMenuEl = wrapper.querySelector('.custom-select-menu');
+                if (openMenuEl && wrapper.classList.contains('is-open')) {
+                    const menuRect = openMenuEl.getBoundingClientRect();
+                    if (menuRect.bottom > window.innerHeight - 16) {
+                        openMenuEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            }, 40);
         }
     };
 

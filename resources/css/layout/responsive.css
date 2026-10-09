@@ -1602,6 +1602,49 @@ a, button, input, select, textarea, .list-row, .pagination-item {
         visibility: visible !important;
     }
 
+    /* Filter Drawer Stacking & Open State Protection */
+    .filter-drawer,
+    .filter-drawer.filters-open,
+    .filter-drawer.has-open-select,
+    .filter-drawer.has-open-picker,
+    body .filter-drawer,
+    body .filter-drawer.has-open-select,
+    body .filter-drawer.has-open-picker,
+    form.table-filters.filter-drawer,
+    form.table-filters.filter-drawer.has-open-select,
+    form.table-filters.filter-drawer.has-open-picker {
+        z-index: 9999 !important;
+    }
+
+    /* Elevate active dropdown/picker above adjacent drawer fields */
+    .filter-drawer .table-filter-grid label {
+        position: relative;
+    }
+
+    .filter-drawer .table-filter-grid label:has(.custom-select-wrapper.is-open),
+    .filter-drawer .table-filter-grid label.has-open-select,
+    .filter-drawer .table-filter-grid label:has(.custom-datepicker-wrapper.is-open),
+    .filter-drawer .table-filter-grid label.has-open-picker {
+        z-index: 50 !important;
+    }
+
+    .filter-drawer .custom-select-wrapper.is-open,
+    .filter-drawer .custom-datepicker-wrapper.is-open,
+    .filter-drawer .custom-clockpicker-wrapper.is-open {
+        position: relative;
+        z-index: 60 !important;
+    }
+
+    .filter-drawer .custom-select-menu {
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        max-height: 250px !important;
+        z-index: 10005 !important;
+    }
+
+    .filter-drawer .custom-picker-popover {
+        z-index: 10005 !important;
+    }
+
     .filter-drawer .table-filter-grid {
         display: grid !important;
         gap: 12px !important;

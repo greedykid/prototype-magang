@@ -56,9 +56,9 @@ section.has-open-picker,
     z-index: 50 !important;
 }
 
-.table-filters:has(.custom-datepicker-wrapper.is-open),
-.table-filters:has(.custom-clockpicker-wrapper.is-open),
-.table-filters.has-open-picker,
+.table-filters:not(.filter-drawer):has(.custom-datepicker-wrapper.is-open),
+.table-filters:not(.filter-drawer):has(.custom-clockpicker-wrapper.is-open),
+.table-filters:not(.filter-drawer).has-open-picker,
 .table-filter-grid:has(.custom-datepicker-wrapper.is-open),
 .table-filter-grid:has(.custom-clockpicker-wrapper.is-open),
 .table-filter-grid.has-open-picker,
