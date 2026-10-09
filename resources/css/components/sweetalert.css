@@ -19,13 +19,30 @@ div:where(.swal2-container),
     width: min(440px, calc(100vw - 32px)) !important;
     max-width: calc(100vw - 32px) !important;
     box-sizing: border-box !important;
-    margin: auto !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
-.simasadi-swal-popup .swal2-timer-progress-bar-container {
+.simasadi-swal-popup .swal2-timer-progress-bar-container,
+.swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar-container,
+.swal2-container:not(.swal2-toast-shown) .swal2-timer-progress-bar-container {
+    background: rgba(0, 0, 0, 0.04) !important;
     border-bottom-right-radius: var(--radius-2xl, 24px) !important;
     border-bottom-left-radius: var(--radius-2xl, 24px) !important;
+    bottom: 0 !important;
+    height: 3px !important;
+    left: 0 !important;
     overflow: hidden !important;
+    position: absolute !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-popup .swal2-timer-progress-bar-container,
+html[data-theme="dark"] .swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar-container,
+html[data-theme="dark"] .swal2-container:not(.swal2-toast-shown) .swal2-timer-progress-bar-container {
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .simasadi-swal-title {
@@ -116,8 +133,18 @@ div:where(.swal2-container),
     color: var(--ink, #000000) !important;
 }
 
-.swal2-timer-progress-bar {
-    background: var(--primary) !important;
+.swal2-timer-progress-bar,
+.simasadi-swal-popup .swal2-timer-progress-bar,
+.swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar {
+    background: var(--primary-gradient, linear-gradient(90deg, #1972f5 0%, #0456ce 100%)) !important;
+    border-radius: 9999px !important;
+    height: 100% !important;
+}
+
+html[data-theme="dark"] .swal2-timer-progress-bar,
+html[data-theme="dark"] .simasadi-swal-popup .swal2-timer-progress-bar,
+html[data-theme="dark"] .swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar {
+    background: var(--primary-gradient, linear-gradient(90deg, #3b8cf5 0%, #1a6fd8 100%)) !important;
 }
 
 /* SweetAlert2 Dark Theme Overrides */
@@ -267,10 +294,21 @@ body.swal2-toast-shown .swal2-container,
         max-height: calc(100vh - 40px) !important;
         max-height: calc(100dvh - 40px) !important;
         max-width: min(390px, calc(100vw - 28px)) !important;
-        overflow-y: auto !important;
+        overflow: hidden !important;
         padding: 22px 20px 20px !important;
+        position: relative !important;
         transform: none !important;
         width: 100% !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-timer-progress-bar-container {
+        border-bottom-right-radius: var(--radius-2xl, 22px) !important;
+        border-bottom-left-radius: var(--radius-2xl, 22px) !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-html-container {
+        max-height: 55vh !important;
+        overflow-y: auto !important;
     }
 
     .swal2-popup.swal2-toast {
