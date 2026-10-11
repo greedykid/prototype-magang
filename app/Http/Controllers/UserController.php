@@ -79,10 +79,16 @@ class UserController extends Controller
 
         // 3. LPK dari Tautan Akun (Account-level Viewer)
         $linkedOwners = $user->linkedOwners()->withCount('lpks')->get();
-        $linkedOwnerLpks = \App\Models\Lpk::whereIn('pic_id', $linkedOwners->pluck('id'))
+        $ownerIds = $linkedOwners->pluck('id')->all();
+        $linkedOwnerLpks = ! empty($ownerIds)
+            ? \App\Models\Lpk::where(function ($q) use ($ownerIds) {
+                $q->whereIn('pic_id', $ownerIds)
+                  ->orWhereHas('members', fn ($mq) => $mq->whereIn('lpk_members.user_id', $ownerIds));
+            })
             ->with(['assessments'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            : collect();
 
         $linkedViewers = $user->linkedViewers()->withCount('lpks')->get();
 

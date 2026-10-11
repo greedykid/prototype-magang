@@ -82,10 +82,13 @@ class CalendarEventController extends Controller
                     $dateParam = $cev->start_at->toDateString();
                 }
             } else {
-                $assId = (int) str_replace('assessment-', '', $highlightParam);
-                $ass = Assessment::find($assId);
-                if ($ass && $ass->start_at) {
-                    $dateParam = $ass->start_at->toDateString();
+                $cleanHighlight = str_replace('assessment-', '', $highlightParam);
+                if (is_numeric($cleanHighlight) && (int) $cleanHighlight > 0) {
+                    $assId = (int) $cleanHighlight;
+                    $ass = Assessment::find($assId);
+                    if ($ass && $ass->start_at) {
+                        $dateParam = $ass->start_at->toDateString();
+                    }
                 }
             }
         }
@@ -260,6 +263,11 @@ class CalendarEventController extends Controller
         $tpAssessments = Assessment::with('lpk')
             ->whereNotNull('tp_status')
             ->where('tp_status', '!=', Assessment::TP_STATUS_NONE)
+            ->where(function ($q) use ($queryStart, $queryEnd) {
+                $q->whereBetween('tp_due_date', [$queryStart->toDateString(), $queryEnd->toDateString()])
+                    ->orWhereBetween('tp_satisfied_at', [$queryStart->subDays(15)->toDateString(), $queryEnd->toDateString()])
+                    ->orWhereBetween('end_at', [$queryStart->subMonths(5), $queryEnd->endOfDay()]);
+            })
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
             ->get();
@@ -402,7 +410,7 @@ class CalendarEventController extends Controller
 
         $lpksWithMilestones = Lpk::accessibleBy($request->user())
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
-            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status'])])
+            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'tp_satisfied_at', 'sk_number'])])
             ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
             ->where(function ($q) use ($cycleMinDate, $cycleMaxDate, $expiredMinDate, $expiredMaxDate) {
                 $q->whereBetween('certificate_date', [$cycleMinDate, $cycleMaxDate])
@@ -617,8 +625,13 @@ class CalendarEventController extends Controller
         $user = $request->user();
         if ($request->filled('lpk_id')) {
             $lpk = Lpk::find($request->input('lpk_id'));
-            if ($user && $lpk && ! $lpk->canManage($user)) {
-                abort(403, 'Anda tidak memiliki hak untuk menambah agenda pada LPK ini.');
+            if ($lpk) {
+                if ($user && ! $lpk->canManage($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk menambah agenda pada LPK ini.');
+                }
+                if ($lpk->status === 'INACTIVE') {
+                    return back()->withInput()->with('error', 'Tidak dapat menambahkan agenda pada LPK yang berstatus nonaktif.');
+                }
             }
         }
 
@@ -657,8 +670,13 @@ class CalendarEventController extends Controller
         $validated = $request->validated();
         if (! empty($validated['lpk_id']) && (int) $validated['lpk_id'] !== (int) $event->lpk_id) {
             $newLpk = Lpk::find($validated['lpk_id']);
-            if ($user && $newLpk && ! $newLpk->canManage($user)) {
-                abort(403, 'Anda tidak memiliki hak untuk memindahkan agenda ke LPK ini.');
+            if ($newLpk) {
+                if ($user && ! $newLpk->canManage($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk memindahkan agenda ke LPK ini.');
+                }
+                if ($newLpk->status === 'INACTIVE') {
+                    return back()->withInput()->with('error', 'Tidak dapat memindahkan agenda ke LPK yang berstatus nonaktif.');
+                }
             }
         }
 

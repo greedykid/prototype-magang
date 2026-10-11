@@ -31,14 +31,12 @@ class AccountLinkController extends Controller
             ->get();
 
         $ownerIds = $linkedOwners->pluck('id')->all();
-        $assessmentCounts = ! empty($ownerIds)
-            ? Assessment::join('lpks', 'assessments.lpk_id', '=', 'lpks.id')
-                ->whereIn('lpks.pic_id', $ownerIds)
-                ->groupBy('lpks.pic_id')
-                ->selectRaw('lpks.pic_id, count(assessments.id) as aggregate')
-                ->pluck('aggregate', 'pic_id')
-                ->all()
-            : [];
+        $assessmentCounts = [];
+        if (! empty($ownerIds)) {
+            foreach ($linkedOwners as $ownerItem) {
+                $assessmentCounts[$ownerItem->id] = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($ownerItem))->count();
+            }
+        }
 
         foreach ($linkedOwners as $owner) {
             $owner->assessments_count = $assessmentCounts[$owner->id] ?? 0;
@@ -81,12 +79,12 @@ class AccountLinkController extends Controller
             $perPage = 10;
         }
 
-        $totalLpkCount = Lpk::where('pic_id', $owner->id)->count();
-        $activeLpkCount = Lpk::where('pic_id', $owner->id)->where('status', 'ACTIVE')->count();
-        $totalAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->where('pic_id', $owner->id))->count();
-        $activeAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->where('pic_id', $owner->id))->whereIn('status', ['SCHEDULED', 'IN_PROGRESS'])->count();
-        $completedAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->where('pic_id', $owner->id))->where('status', 'COMPLETED')->count();
-        $ownerLpks = Lpk::where('pic_id', $owner->id)->orderBy('name')->get();
+        $totalLpkCount = Lpk::primaryFor($owner)->count();
+        $activeLpkCount = Lpk::primaryFor($owner)->where('status', 'ACTIVE')->count();
+        $totalAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->count();
+        $activeAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->whereIn('status', ['SCHEDULED', 'IN_PROGRESS'])->count();
+        $completedAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->where('status', 'COMPLETED')->count();
+        $ownerLpks = Lpk::primaryFor($owner)->orderBy('name')->get();
         $assessmentTypes = Assessment::TYPES;
 
         if ($tab === 'assessments') {
@@ -100,7 +98,7 @@ class AccountLinkController extends Controller
 
             $assessmentQuery = Assessment::query()
                 ->with(['lpk'])
-                ->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $owner->id))
+                ->whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))
                 ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
                       ->orWhere('sk_number', 'like', "%{$search}%")
@@ -285,7 +283,12 @@ class AccountLinkController extends Controller
                 });
             }
 
-            $query->whereIn('id', $candidateLpks->pluck('id'));
+            $validIds = $candidateLpks->pluck('id')->all();
+            if (empty($validIds)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('id', $validIds);
+            }
         }
 
         $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();

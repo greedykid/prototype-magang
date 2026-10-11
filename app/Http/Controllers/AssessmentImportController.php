@@ -215,9 +215,13 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs dan Asesmen terproyeksi untuk performa (disesuaikan dengan hak akses PIC / Admin)
+        // Cache LPKs dan Asesmen terproyeksi untuk performa (hanya LPK yang memiliki hak kelola bagi PIC / Admin)
         $user = auth()->user();
-        $accessibleLpks = Lpk::accessibleBy($user)->select(['id', 'registration_number', 'name', 'address', 'pic_id'])->get();
+        $accessibleLpks = Lpk::accessibleBy($user)
+            ->with('members')
+            ->select(['id', 'registration_number', 'name', 'address', 'pic_id'])
+            ->get()
+            ->filter(fn ($l) => ! $user || $user->isAdmin() || $l->canManage($user));
         $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
@@ -288,7 +292,7 @@ class AssessmentImportController extends Controller
                 if (! $startAt) {
                     $startAt = now()->addDays(7)->setTime(9, 0);
                 }
-                if (! $endAt) {
+                if (! $endAt || $endAt->lt($startAt)) {
                     $endAt = (clone $startAt)->addDays(2)->setTime(17, 0);
                 }
 

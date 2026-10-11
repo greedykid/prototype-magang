@@ -61,7 +61,6 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $force = (bool) $this->option('force');
     $this->info('Memeriksa status siklus pengawasan KAN (S1, S2, Re-Akreditasi)...');
 
-    $lpks = \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])->get();
     $notifiedCount = 0;
     $activeNoticeCount = 0;
 
@@ -76,38 +75,42 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $picSummary = implode(', ', $picEmails);
     $this->line("Target penerima pengingat internal: {$picSummary}");
 
-    foreach ($lpks as $lpk) {
-        $alerts = $lpk->getActiveSurveillanceAlerts();
-        if (empty($alerts)) {
-            continue;
-        }
+    \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
+        ->with(['assessments'])
+        ->chunk(100, function ($lpks) use (&$notifiedCount, &$activeNoticeCount, $force, $picEmails, $picSummary) {
+            foreach ($lpks as $lpk) {
+                $alerts = $lpk->getActiveSurveillanceAlerts();
+                if (empty($alerts)) {
+                    continue;
+                }
 
-        $activeNoticeCount += count($alerts);
+                $activeNoticeCount += count($alerts);
 
-        if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
-            $this->line("  ℹ {$lpk->registration_number} - {$lpk->name}: Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
-            continue;
-        }
+                if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
+                    $this->line("  ℹ {$lpk->registration_number} - {$lpk->name}: Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
+                    continue;
+                }
 
-        $hasSentForLpk = false;
+                $hasSentForLpk = false;
 
-        foreach ($alerts as $alert) {
-            $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
+                foreach ($alerts as $alert) {
+                    $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
 
-            try {
-                \Illuminate\Support\Facades\Mail::to($picEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
-                $notifiedCount++;
-                $hasSentForLpk = true;
-                $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim PIC ({$picSummary}).");
-            } catch (\Throwable $e) {
-                $this->error("    ✗ Gagal mengirim email ke PIC: " . $e->getMessage());
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($picEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
+                        $notifiedCount++;
+                        $hasSentForLpk = true;
+                        $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim PIC ({$picSummary}).");
+                    } catch (\Throwable $e) {
+                        $this->error("    ✗ Gagal mengirim email ke PIC: " . $e->getMessage());
+                    }
+                }
+
+                if ($hasSentForLpk) {
+                    $lpk->update(['last_surveillance_notified_at' => now()]);
+                }
             }
-        }
-
-        if ($hasSentForLpk) {
-            $lpk->update(['last_surveillance_notified_at' => now()]);
-        }
-    }
+        });
 
     $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
 })->purpose('Memeriksa jadwal jatuh tempo pengawasan KAN untuk seluruh LPK dan mengirim email pengingat ke staf/PIC internal Unit Akreditasi Laboratorium BSN.');
