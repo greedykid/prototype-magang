@@ -177,13 +177,7 @@ class AssessmentController extends Controller
     public function create(Request $request): View
     {
         $user = $request->user();
-        $lpksQuery = Lpk::orderBy('name');
-        if ($user && $user->isPic()) {
-            $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
+        $lpks = Lpk::manageableBy($user)->orderBy('name')->get();
 
         $assessment = new Assessment;
 
@@ -328,15 +322,7 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
         }
 
-        $lpksQuery = Lpk::orderBy('name');
-        if ($user && $user->isPic()) {
-            $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
+        return view('assessments.form', ['assessment' => $assessment, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get()]);
     }
 
     public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse

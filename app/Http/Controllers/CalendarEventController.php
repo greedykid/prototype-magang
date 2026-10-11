@@ -617,7 +617,7 @@ class CalendarEventController extends Controller
         $event = new CalendarEvent;
         $selectedDate = $request->date('date')?->toDateString();
 
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::manageableBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
     }
 
     public function store(StoreCalendarEventRequest $request): RedirectResponse
@@ -657,7 +657,7 @@ class CalendarEventController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($user)->orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
     }
 
     public function update(UpdateCalendarEventRequest $request, CalendarEvent $event): RedirectResponse

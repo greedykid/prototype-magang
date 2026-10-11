@@ -217,11 +217,9 @@ class AssessmentImportController extends Controller
 
         // Cache LPKs dan Asesmen terproyeksi untuk performa (hanya LPK yang memiliki hak kelola bagi PIC / Admin)
         $user = auth()->user();
-        $accessibleLpks = Lpk::accessibleBy($user)
-            ->with('members')
+        $accessibleLpks = Lpk::manageableBy($user)
             ->select(['id', 'registration_number', 'name', 'address', 'pic_id'])
-            ->get()
-            ->filter(fn ($l) => ! $user || $user->isAdmin() || $l->canManage($user));
+            ->get();
         $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 

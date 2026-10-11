@@ -633,6 +633,22 @@ class Lpk extends Model
         })->distinct();
     }
 
+    public function scopeManageableBy(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('lpks.pic_id', $user->id)
+              ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
+        })->distinct();
+    }
+
     public function scopeAccessibleBy(Builder $query, ?User $user): Builder
     {
         if (! $user) {
