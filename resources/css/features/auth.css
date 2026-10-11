@@ -5,8 +5,8 @@
 
 .auth-page {
     align-items: center;
-    background: #f8f9fd;
-    background: radial-gradient(circle at 50% 0%, #edf2fe 0%, #f8f9fd 65%, #f2f5fb 100%);
+    background: var(--primary, #1972f5);
+    background: radial-gradient(circle at 50% 12%, #2b7ff7 0%, #1972f5 48%, #0456ce 100%);
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -26,23 +26,24 @@
 
 .auth-theme-btn {
     align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--surface, #ffffff);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: var(--radius-lg, 12px);
-    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
-    color: var(--ink);
+    box-shadow: 0 4px 14px rgba(3, 13, 38, 0.18);
+    color: var(--ink, #030d26);
     cursor: pointer;
     display: inline-flex;
     height: 40px;
     justify-content: center;
     padding: 0;
-    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-expo);
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-expo), box-shadow 160ms ease;
     width: 40px;
 }
 
 .auth-theme-btn:hover {
-    background: var(--surface-hover);
-    border-color: var(--line-subtle);
+    background: var(--surface-hover, #f0f2f8);
+    border-color: #ffffff;
+    box-shadow: 0 6px 18px rgba(3, 13, 38, 0.25);
     transform: scale(1.05);
 }
 
@@ -58,7 +59,7 @@
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
     border-radius: var(--radius-2xl, 24px);
-    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.12), 0 0 0 1px var(--line);
+    box-shadow: 0 24px 64px -12px rgba(3, 13, 38, 0.28), 0 4px 16px rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
     margin: 0 auto;
     max-width: 460px;
