@@ -83,11 +83,11 @@
                             <span>Nama LPK / Laboratorium</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="lpk-name" name="name" value="{{ old('name', $lpk->name) }}" required placeholder="Contoh: Balai Besar Pengujian Minyak dan Gas Bumi LEMIGAS" class="@error('name') is-invalid @enderror">
+                        <input id="lpk-name" name="name" value="{{ old('name', $lpk->name) }}" required maxlength="255" placeholder="Contoh: Balai Besar Pengujian Minyak dan Gas Bumi LEMIGAS" class="@error('name') is-invalid @enderror">
                         @error('name')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Nama lengkap unit atau balai pengujian yang tercantum pada sertifikat akreditasi.</span>
+                        <span class="lpk-field-hint">Nama lengkap unit atau balai pengujian yang tercantum pada sertifikat akreditasi (maksimal 255 karakter).</span>
                     </div>
 
                     <div class="lpk-field-row">

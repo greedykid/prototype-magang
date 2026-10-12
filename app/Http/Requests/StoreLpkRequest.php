@@ -19,7 +19,7 @@ class StoreLpkRequest extends FormRequest
             'accreditation_number' => ['nullable', 'string', 'max:50'],
             'accreditation_type' => ['nullable', 'string', 'max:50'],
             'registration_number' => ['nullable', 'string', 'max:50', 'unique:lpks,registration_number'],
-            'name' => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:255'],
             'scope' => ['nullable', 'string', 'max:50000'],
             'certificate_date' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
