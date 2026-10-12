@@ -13,7 +13,7 @@
     min-height: 40px;
     padding: 8px 18px;
     text-decoration: none;
-    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, filter 150ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 }
 .button svg { flex-shrink: 0; }
 
@@ -30,7 +30,7 @@
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
 }
 .button.primary:hover {
-    background: linear-gradient(180deg, #1665dc 0%, #034bb3 100%);
+    filter: brightness(1.08);
     border-color: #034bb3;
     color: #ffffff;
     box-shadow: 0 3px 6px rgba(25, 114, 245, 0.25), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
@@ -400,7 +400,7 @@ html[data-theme="dark"] .button.primary {
 }
 
 html[data-theme="dark"] .button.primary:hover {
-    background: var(--primary-hover);
+    filter: brightness(1.12);
     border-color: var(--primary-border, #3d7fde);
     color: #ffffff;
     box-shadow: var(--shadow-sm);

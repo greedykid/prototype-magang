@@ -272,8 +272,9 @@ const navigateTo = async (url, pushState = true) => {
         }
 
         pageWrap.classList.remove('page-enter-active');
-        void pageWrap.offsetWidth;
-        pageWrap.classList.add('page-enter-active');
+        requestAnimationFrame(() => {
+            pageWrap.classList.add('page-enter-active');
+        });
 
         if (pushState) {
             window.history.pushState({ url }, '', url);

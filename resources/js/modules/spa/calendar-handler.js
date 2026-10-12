@@ -112,8 +112,9 @@ export const handleCalendarTransition = async ({ url, targetUrlObj, pageWrap, pu
         if (newContent) {
             pageWrap.innerHTML = newContent.innerHTML;
             pageWrap.classList.remove('page-enter-active');
-            void pageWrap.offsetWidth;
-            pageWrap.classList.add('page-enter-active');
+            requestAnimationFrame(() => {
+                pageWrap.classList.add('page-enter-active');
+            });
         }
     }
 
