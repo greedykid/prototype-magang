@@ -297,7 +297,7 @@ class AssessmentImportController extends Controller
                 }
 
                 // Judul agenda default bila kosong
-                $typeInput = $this->normalizeAssessmentType($data['assessment_type'] ?? 'Surveilen');
+                $typeInput = Assessment::normalizeType($data['assessment_type'] ?? 'Surveilen 1', $titleInput ?? '');
                 if (empty($titleInput)) {
                     $titleInput = "Asesmen {$typeInput} - {$matchedLpk->name}";
                 }
@@ -451,33 +451,6 @@ class AssessmentImportController extends Controller
         }, $headerRaw);
     }
 
-    protected function normalizeAssessmentType(string $input): string
-    {
-        $input = trim($input);
-        $lower = strtolower($input);
-
-        if (str_contains($lower, 'awal') || str_contains($lower, 'initial')) {
-            return 'Asesmen Awal';
-        }
-        if (str_contains($lower, 'surveilen') || str_contains($lower, 'surveillance')) {
-            return 'Surveilen';
-        }
-        if (str_contains($lower, 're-') || str_contains($lower, 'reasesmen') || str_contains($lower, 'reakreditasi') || str_contains($lower, 'reassessment')) {
-            return 'Re-asesmen';
-        }
-        if (str_contains($lower, 'kecukupan') || str_contains($lower, 'adequacy')) {
-            return 'Audit Kecukupan';
-        }
-        if (str_contains($lower, 'witness') || str_contains($lower, 'pemasaksian') || str_contains($lower, 'penyaksian')) {
-            return 'Penyaksian';
-        }
-        if (str_contains($lower, 'perluasan') || str_contains($lower, 'extension')) {
-            return 'Perluasan Lingkup';
-        }
-
-        return $input ?: 'Surveilen';
-    }
-
     protected function normalizeStatus(string $input): string
     {
         $input = strtoupper(trim($input));
@@ -511,8 +484,10 @@ class AssessmentImportController extends Controller
             return null;
         }
 
+        $normalized = $this->normalizeDateString($value);
+
         try {
-            return Carbon::parse($value);
+            return Carbon::parse($normalized);
         } catch (\Throwable) {
             return null;
         }
@@ -524,11 +499,41 @@ class AssessmentImportController extends Controller
             return null;
         }
 
+        $normalized = $this->normalizeDateString($value);
+
         try {
-            return Carbon::parse($value)->toDateString();
+            return Carbon::parse($normalized)->toDateString();
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    protected function normalizeDateString(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $val = trim($value);
+
+        if (preg_match('/^\d{4}$/', $val)) {
+            return "{$val}-12-31";
+        }
+
+        $idMonths = [
+            'januari' => 'january', 'februari' => 'february', 'maret' => 'march',
+            'april' => 'april', 'mei' => 'may', 'juni' => 'june',
+            'juli' => 'july', 'agustus' => 'august', 'september' => 'september',
+            'oktober' => 'october', 'november' => 'november', 'desember' => 'december',
+            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
+        ];
+
+        $lower = strtolower($val);
+        foreach ($idMonths as $id => $en) {
+            $lower = str_replace($id, $en, $lower);
+        }
+
+        return str_replace('/', '-', $lower);
     }
 
 

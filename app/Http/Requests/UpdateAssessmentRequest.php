@@ -107,6 +107,11 @@ class UpdateAssessmentRequest extends FormRequest
         $tpExtensionMonths = (int) ($data['tp_extension_months'] ?? $assessment?->tp_extension_months ?? 0);
         $tpSatisfiedAt = ! empty($data['tp_satisfied_at']) ? Carbon::parse($data['tp_satisfied_at']) : $assessment?->tp_satisfied_at;
 
+        $data['assessment_type'] = Assessment::normalizeType(
+            $data['assessment_type'] ?? $assessment?->assessment_type,
+            (string) ($data['title'] ?? ($assessment?->title ?: ''))
+        );
+
         $data['status'] = Assessment::determineStatusFromDates(
             $startAt,
             $endAt,
@@ -119,7 +124,7 @@ class UpdateAssessmentRequest extends FormRequest
             $tpHasExtension,
             $tpExtensionMonths,
             $tpSatisfiedAt,
-            $data['assessment_type'] ?? $assessment?->assessment_type
+            $data['assessment_type']
         );
 
         return $data;

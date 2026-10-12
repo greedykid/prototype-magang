@@ -648,7 +648,11 @@ class CalendarEventController extends Controller
                             'url' => route('lpks.show', $lpkItem),
                             'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
-                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'assessment_type' => match ($key) {
+                                    's1' => Assessment::TYPE_SURVEILEN_1,
+                                    's2' => Assessment::TYPE_SURVEILEN_2,
+                                    default => Assessment::TYPE_RE_AKREDITASI,
+                                },
                                 'start_at' => $remDate->format('Y-m-d\T09:00'),
                                 'end_at' => $remDateEnd->format('Y-m-d\T17:00'),
                             ]) : null,
@@ -685,7 +689,11 @@ class CalendarEventController extends Controller
                             'url' => route('lpks.show', $lpkItem),
                             'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
-                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'assessment_type' => match ($key) {
+                                    's1' => Assessment::TYPE_SURVEILEN_1,
+                                    's2' => Assessment::TYPE_SURVEILEN_2,
+                                    default => Assessment::TYPE_RE_AKREDITASI,
+                                },
                                 'start_at' => $targetDate->format('Y-m-d\T09:00'),
                                 'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
                             ]) : null,

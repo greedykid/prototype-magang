@@ -191,7 +191,12 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers', 'members'])]);
+        $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers', 'members']);
+        foreach ($lpk->assessments as $assessment) {
+            $assessment->setRelation('lpk', $lpk);
+        }
+
+        return view('lpks.show', ['lpk' => $lpk]);
     }
 
     public function edit(Lpk $lpk, Request $request): View

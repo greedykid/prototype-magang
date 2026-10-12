@@ -146,7 +146,7 @@ class AssessmentController extends Controller
                     $assessment->assessment_type = Assessment::TYPE_RE_AKREDITASI;
                     $assessment->title = 'Re-asesmen Siklus KAN - ' . $lpk->name;
                 } elseif ($request->filled('assessment_type')) {
-                    $assessment->assessment_type = $request->input('assessment_type');
+                    $assessment->assessment_type = Assessment::normalizeType($request->input('assessment_type'), (string) $request->input('title', ''));
                     $assessment->title = ($assessment->assessment_type ?: 'Asesmen') . ' - ' . $lpk->name;
                 } else {
                     $assessment->assessment_type = Assessment::TYPE_SURVEILEN_1;
@@ -174,8 +174,8 @@ class AssessmentController extends Controller
         if ($request->filled('title')) {
             $assessment->title = $request->input('title');
         }
-        if ($request->filled('assessment_type')) {
-            $assessment->assessment_type = $request->input('assessment_type');
+        if (empty($assessment->assessment_type) && $request->filled('assessment_type')) {
+            $assessment->assessment_type = Assessment::normalizeType($request->input('assessment_type'), (string) ($assessment->title ?: $request->input('title', '')));
         }
         if ($request->filled('location')) {
             $assessment->location = $request->input('location');
