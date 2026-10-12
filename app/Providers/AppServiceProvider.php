@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                         $userId = $user ? $user->id : 'guest';
 
                         $computeAlerts = function () use ($user) {
-                            $activeLpks = \App\Models\Lpk::accessibleBy($user)
+                            $activeLpks = \App\Models\Lpk::primaryFor($user)
                                 ->with('assessments')
                                 ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
                                 ->where(function ($q) {

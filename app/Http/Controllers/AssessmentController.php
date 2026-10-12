@@ -276,7 +276,7 @@ class AssessmentController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
+        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpks]);
     }
 
     public function store(StoreAssessmentRequest $request): RedirectResponse

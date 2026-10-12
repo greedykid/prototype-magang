@@ -131,11 +131,11 @@ class AccountLinkTest extends TestCase
         $this->assertContains($lpk3->id, $accessibleLpks);
         $this->assertNotContains($otherLpk->id, $accessibleLpks);
 
-        // Verification via Dashboard
+        // Verification via Dashboard: Terisolasi dari LPK primer dan agenda akun tertaut
         $dashboardResponse = $this->actingAs($viewer)->get(route('dashboard'));
         $dashboardResponse->assertOk();
-        $dashboardResponse->assertSee('3'); // 3 LPKs terdaftar
-        $dashboardResponse->assertSee('Laboratorium Kimia Terpadu');
+        $dashboardResponse->assertViewHas('lpkCount', 0);
+        $dashboardResponse->assertDontSee('Laboratorium Kimia Terpadu');
 
         // Verification via Assessment List: Terisolasi dari daftar asesmen primer
         $assessmentResponse = $this->actingAs($viewer)->get(route('assessments.index'));

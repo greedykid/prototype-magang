@@ -14,20 +14,21 @@ class DashboardController extends Controller
         $user = $request->user();
         $isPic = $user && $user->isPic();
 
-        $activeTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+        // Dasbor adalah ruang kerja operasional mandiri: seluruh metrik & peringatan PIC hanya memuat LPK primer
+        $activeTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->tpActive()
             ->count();
 
-        $overdueTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+        $overdueTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->tpOverdue()
             ->count();
 
-        $dueSoonTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+        $dueSoonTpCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->tpDueSoon(14)
             ->count();
 
         $urgentTpQuery = Assessment::with('lpk')
-            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->whereNotIn('tp_status', [Assessment::TP_STATUS_NONE, Assessment::TP_STATUS_SATISFIED])
             ->where(function ($q) {
                 $q->tpOverdue()
@@ -40,12 +41,12 @@ class DashboardController extends Controller
 
         $lpkCount = $isPic ? Lpk::primaryFor($user)->count() : Lpk::count();
 
-        $assessmentCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+        $assessmentCount = Assessment::when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->whereBetween('start_at', [now()->startOfMonth(), now()->endOfMonth()])
             ->count();
 
         $upcomingAssessments = Assessment::with('lpk')
-            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->where('start_at', '>=', now()->startOfDay())
             ->orderBy('start_at', 'asc')
             ->take(5)
