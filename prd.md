@@ -31,8 +31,8 @@ Sistem SIMASADI mengimplementasikan pemisahan hak akses berbasis **2 peran (*rol
 
 | Peran (*Role*) | Akun Referensi | Deskripsi Tanggung Jawab | Hak Akses Utama | Batasan Keamanan |
 | :--- | :--- | :--- | :--- | :--- |
-| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Penanggung jawab tata kelola sistem, administrasi operasional akreditasi, dan verifikasi kepatuhan. | Akses penuh (*Full Control*): Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; pembatasan tunggal 1 akun Ketua Tim; dan pemicu notifikasi surveilen. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
-| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan (dan LPK tertaut sebagai viewer), memantau tenggat waktu surveilen dan toleransi pengisian, melihat kalender agenda kerja, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data asesmen massal, dilarang mengakses data LPK di luar tanggung jawabnya tanpa tautan viewer, dan dilarang mengelola akun pengguna sistem. |
+| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Penanggung jawab tata kelola sistem, administrasi operasional akreditasi, dan verifikasi kepatuhan. | Akses penuh (*Full Control*): Registrasi, ubah, dan hapus LPK; impor massal LPK dan Asesmen untuk seluruh laboratorium (CSV/XLSX/Google Sheets); penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; pencatatan SK KAN; ekspor data Google Sheets live feed; manajemen pengguna; pembatasan tunggal 1 akun Ketua Tim; dan pemicu notifikasi surveilen. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
+| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Narahubung / personel operasional unit teknis yang mendampingi LPK binaan. | Akses pengelolaan LPK binaannya: melihat profil LPK kelolaan (dan LPK tertaut sebagai viewer), penjadwalan agenda kalender & program asesmen untuk LPK kelolaan (`manageableBy`), impor massal data asesmen khusus LPK kelolaan, memantau tenggat waktu surveilen dan toleransi pengisian, pencatatan kemajuan tindakan perbaikan (TP), serta penginputan nomor surat permohonan perpanjangan waktu. | Dibatasi secara terarah (*403 Forbidden*): dilarang mengimpor data master LPK baru lintas unit, dilarang mengakses/mengubah data LPK di luar tanggung jawabnya tanpa hak kelola/viewer, dan dilarang mengelola akun pengguna sistem. |
 
 ---
 
@@ -211,10 +211,13 @@ Sistem memberlakukan aturan siklus hidup bertingkat (*Three-Stage Surveillance L
 
 ### 3.8 Modul 8: Impor Massal Asesmen & LPK
 * **Impor Data Asesmen Massal**:
-  * Fitur unggah CSV untuk penjadwalan banyak asesmen sekaligus dengan pemetaan otomatis: nomor registrasi LPK, tipe asesmen KAN, nama asesor kepala, tanggal mulai, dan tanggal selesai.
+  * Fitur unggah CSV/XLSX dan Google Sheets live untuk penjadwalan banyak asesmen sekaligus dengan pemetaan otomatis: nomor registrasi LPK, tipe asesmen KAN, nama asesor kepala, tanggal mulai, tanggal selesai, batas waktu TP, dan status.
+  * **Otorisasi Berbasis Hak Kelola LPK (`scopeManageableBy`)**: Admin dapat mengimpor asesmen untuk seluruh LPK; PIC dibatasi hanya dapat mengimpor asesmen untuk LPK yang menjadi binaannya atau LPK dengan peran Lead PIC.
+  * **Proteksi Tanggal Terbalik (*Inverted Dates Auto-Clamping*)**: Jika berkas impor memuat tanggal selesai yang mendahului tanggal mulai (`end_at < start_at`) atau tanggal selesai kosong, sistem secara otomatis mengoreksi nilai menjadi `start_at + 2 hari` pukul 17:00, mencegah anomali durasi negatif.
 * **Impor Data LPK (Smart Upsert)**:
   * Mendukung pemrosesan data LPK dengan template baku `.csv` dan `.xlsx`.
   * Penarikan berkas dari tautan publik Google Sheets secara langsung.
+  * Otorisasi pembaruan LPK terikat pada validasi hak kelola pengguna.
 
 ---
 
@@ -335,6 +338,13 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Baris tabel pada tabel LPK, tabel Asesmen, dan kartu rincian asesmen dapat diklik langsung untuk membuka halaman detail tujuan.
    * Klik pada elemen interaktif di dalam baris (tombol, tautan kalender, checkbox) secara cerdas tidak memicu navigasi baris induk.
    * Dilengkapi dukungan penuh navigasi keyboard (`tabindex="0"`, Enter / Spasi untuk eksekusi, indikator fokus ring yang tegas).
+7. **Standarisasi Tombol Navigasi Taktil (10px Radius)**:
+   * Seluruh tombol kembali (*back button*) distandarisasi menggunakan *tactile navigation button* dengan radius sudut 10px (`var(--radius-md)` / rounded-lg), selaras dengan tombol aksi sistem dan menghapus style pill 9999px.
+8. **Navigasi Mobile Ergonomis (Bottom Navigation & Bottom Sheet)**:
+   * Menggantikan drawer samping konvensional dengan *Bottom Navigation Bar* modern (`.bottom-nav`) dan lembar aksi cepat (*Quick Actions Modal Sheet*) untuk kemudahan pengoperasian satu tangan.
+   * Panel filter pada tampilan seluler meluncur mulus dari bawah (*tactile bottom sheet*) lengkap dengan pegangan sentuh (*drag handle*).
+9. **Pembaruan Visual Canvas Login**:
+   * Canvas halaman masuk (`.auth-page`) pada Mode Terang mengadopsi gradien biru primer kedinasan (`#1972f5` ke `#0456ce`) yang menyatu harmonis dengan tombol login, serta kontras tinggi berlatar charcoal zinc (`#111215`) pada Mode Gelap.
 
 ---
 
@@ -345,16 +355,18 @@ SIMASADI menggunakan skema relasional terpadu yang telah dirampingkan dari modul
    * Penggantian data tabel parsial (live filter) selesai dalam waktu di bawah 80 ms.
    * Pergantian tampilan kalender via partial AJAX selesai dalam waktu di bawah 100 ms.
    * Implementasi Eager Loading (`with(['lpk', 'creator', 'teamMembers'])`) di seluruh controller untuk meniadakan masalah N+1 Query.
+   * Pembatasan rentang kueri batas waktu TP pada kalender (`whereBetween` dan `subMonths(5)`) untuk menjamin skalabilitas memori server saat volume data historis membesar.
+   * Optimasi background cron `lpk:check-surveillance` dengan teknik `chunk(100)` dan eager loading.
 2. **Keamanan & Integritas Data**:
    * Proteksi token CSRF pada seluruh transaksi POST/PUT/DELETE.
-   * Middleware otorisasi peran berbasis hak akses pengguna (`admin` dan `pic`).
-   * Pencegahan akses lintas data antar PIC pada tingkat kueri basis data.
+   * Middleware otorisasi peran berbasis hak akses pengguna (`admin` dan `pic`) dengan penegakan scope `scopeManageableBy`.
+   * Pencegahan akses dan mutasi lintas data antar PIC pada tingkat kueri basis data.
 3. **Kepatuhan Audit & Standar Regulasi**:
    * Logika tahapan pengawasan dan penegakan SLA mengacu pada pedoman Komite Akreditasi Nasional (KAN U-01).
    * Penatausahaan dokumen dan penetapan SK akreditasi mematuhi tata kelola administrasi resmi KAN.
 4. **Keandalan Uji Otomatis (Automated Testing Coverage)**:
-   * Dilengkapi rangkaian pengujian otomatis (*Feature Tests* & *Unit Tests*) mencakup **183 pengujian** dengan **1102 asersi** yang lulus 100% tanpa kegagalan (`Tests: 183 passed`).
-   * Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, kolaborasi tim multi-PIC, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.
+   * **Backend Test Suite (PHPUnit)**: Mencakup **183 pengujian** dengan **1102 asersi** yang lulus 100% tanpa kegagalan (`Tests: 183 passed`). Menguji otomasi toleransi surveilen, transisi pembekuan 1 tahun, penolakan perpanjangan TP tanpa progres, kolaborasi tim multi-PIC, live filter parsial, navigasi selector tahun kalender, deep-linking auto-focus kalender, hingga akses kontrol peran.
+   * **Frontend Test Suite (Node.js Native Test Runner)**: Mencakup **8 pengujian** pada `tests/frontend/router-cache.test.mjs` dan `datatable.test.mjs` yang lulus 100%, memverifikasi integritas router cache TTL, sanitasi URL tanpa fragmen hash, normalisasi parameter filter kalender, dan fungsi parsing tipe data sel datatable (mata uang, tanggal, teks).
 
 ---
 

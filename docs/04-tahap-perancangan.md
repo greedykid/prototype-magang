@@ -586,6 +586,10 @@ classDiagram
         +date certificate_date
         +date expired_at
         +int pic_user_id
+        +scopeAccessibleBy(query, user) Builder
+        +scopeManageableBy(query, user) Builder
+        +canManage(user) bool
+        +canView(user) bool
         +getDynamicStatusAttribute() string
         +getDynamicKeteranganAttribute() string
         +getSurveillanceMilestonesAttribute() array
@@ -661,7 +665,7 @@ classDiagram
 +---------------------------------------------------------------------------------------------------+
 |  [LOGO BSN/KAN] SIMASADI Workspace               [Tema] [Lonceng: 2] [Avatar PL v]                 |
 +---------------------------------------------------------------------------------------------------+
-|  <- Kembali ke Daftar Asesmen | No. Reg: LP-001-IDN | Status: [ DIBEKUKAN ] (Badge Ungu)          |
+|  [<- Kembali ke Daftar Asesmen] (Tactile Button: 10px Radius)  No. Reg: LP-001-IDN  [ DIBEKUKAN ]  |
 +---------------------------------------------------------------------------------------------------+
 |  RINGKASAN ASESMEN                                                                                |
 |  * Tipe Asesmen   : Surveilen 1 (S1)           * Tanggal Pelaksanaan : 29/03/2027 s/d 30/03/2027   |
@@ -682,10 +686,10 @@ classDiagram
 +---------------------------------------------------------------------------------------------------+
 ```
 
-#### 4.7.2 Wireframe Tampilan Mobile (Responsif & Filter Drawer)
+#### 4.7.2 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation & Bottom Sheet)
 ```text
 +-----------------------------+
-| [=] SIMASADI        [Avatar]|
+| SIMASADI           [Avatar] |
 +-----------------------------+
 | ALERT PERSISTEN PRIORITAS   |
 | ! 3 Pengawasan Butuh Aksi   |
@@ -709,4 +713,34 @@ classDiagram
 | | [ Detail Asesmen -> ]   | |
 | +-------------------------+ |
 +-----------------------------+
+| [🏠 Dash] [🏢 LPK] [➕ Aksi] [📋 Asm] [📅 Kal] | <- Modern Bottom Nav (.bottom-nav)
++-----------------------------+
+```
+
+#### 4.7.3 Wireframe Antarmuka Halaman Masuk (Login Canvas)
+```text
++-----------------------------------------------------------------------------------+
+|                        CANVAS LATAR BIRU PRIMER RESMI                             |
+|              (Light Mode: Gradient #1972f5 -> #0456ce | Dark Mode: #111215)       |
+|                                                                                   |
+|                   +---------------------------------------+                       |
+|                   |        [LOGO BSN / KAN SIMASADI]      |                       |
+|                   |  Sistem Informasi Manajemen Akreditasi|                       |
+|                   |                                       |                       |
+|                   |  Alamat Email                         |                       |
+|                   |  [ admin@simasadi.local             ] |                       |
+|                   |                                       |                       |
+|                   |  Kata Sandi                           |                       |
+|                   |  [ ••••••••••••••••••               ] |                       |
+|                   |                                       |                       |
+|                   |  [x] Ingat saya                       |                       |
+|                   |                                       |                       |
+|                   |  [      Masuk ke Workspace      ]     |                       |
+|                   |  (Primary Button Gradient #1972f5)    |                       |
+|                   |                                       |                       |
+|                   |  Akses Cepat Pengujian:               |                       |
+|                   |  [ Ketua Tim ] [ PIC Laboratorium ]   |                       |
+|                   +---------------------------------------+                       |
+|                                                                                   |
++-----------------------------------------------------------------------------------+
 ```

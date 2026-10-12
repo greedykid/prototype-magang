@@ -46,8 +46,12 @@ Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otom
   * Banner peringatan pengawasan bersifat persisten dan wajib (tidak dapat disembunyikan sementara).
 - Kolaborasi Tim Multi-PIC & Role Scoping:
   * Dasbor, Kalender, dan Tabel Asesmen secara otomatis memfilter data LPK binaan yang ditugaskan kepada PIC yang login (Lead PIC maupun Viewer PIC via scope `accessibleBy`).
-  * Lead PIC dapat menambahkan PIC lain sebagai Viewer read-only untuk memantau LPK binaannya.
-  * Viewer tidak memiliki wewenang untuk mengubah data atau menjadwalkan asesmen.
+  * Otorisasi modifikasi, penjadwalan agenda, dan impor massal asesmen ditegakkan terpusat melalui scope `manageableBy` (Admin Unit memiliki hak penuh; PIC hanya berhak atas LPK kelolaan langsung atau LPK dengan peran tim Lead).
+  * Lead PIC dapat menambahkan PIC lain sebagai Viewer read-only untuk memantau LPK binaannya secara transparan.
+  * Viewer tidak memiliki wewenang untuk mengubah data profil LPK, menjadwalkan agenda, atau mengimpor data asesmen.
+- Keandalan Kueri & Validasi Data:
+  * Kueri riwayat batas waktu TP pada kalender dibatasi secara cerdas (`whereBetween` dan `subMonths(5)`) untuk menghindari kelebihan muatan memori.
+  * Mesin impor asesmen secara otomatis mengoreksi tanggal terbalik (`end_at < start_at` disesuaikan otomatis menjadi `start_at + 2 hari`) dan memvalidasi kepemilikan LPK kelolaan.
 - Saluran Notifikasi (Notification Channels):
   * In-App UI (Dasbor Operasional, Kalender Kerja Interaktif, Tabel & Kartu Asesmen): Aktif penuh untuk Admin Unit dan PIC.
   * Email Notifications: Otomatisasi pengiriman email saat ini telah beroperasi untuk pengingat siklus surveilen LPK; otomasi email untuk batas waktu tindakan perbaikan (TP) disiapkan pada tahapan pengembangan berikutnya.
@@ -58,13 +62,16 @@ Satu-satunya sistem manajemen akreditasi laboratorium yang mengintegrasikan otom
 - Nama resmi: SIMASADI (Sistem Informasi Manajemen Asesmen & Akreditasi Terpadu).
 - Nuansa profesional, andal, berstandar kepatuhan tinggi instansi pemerintah (BSN / KAN).
 - Perbedaan visual yang tegas pada badge status risiko (badge Dibekukan menggunakan warna ungu kontras `#f3e8ff` dengan teks `#6b21a8`).
-- Dukungan tema visual ganda: Mode Terang (resmi/kedinasan) dan Mode Gelap (visibilitas tinggi/ramah mata saat audit panjang).
+- Dukungan tema visual ganda: Mode Terang (resmi/kedinasan dengan canvas login gradien biru primer `#1972f5` ke `#0456ce`) dan Mode Gelap (charcoal zinc `#111215` yang ramah mata saat audit panjang).
+- Standarisasi tombol navigasi taktil ber-radius 10px (`var(--radius-md)`) di seluruh aplikasi, serta navigasi mobile ergonomis berbasis Bottom Navigation Bar (`.bottom-nav`).
 
 ## Evidence on Hand
 - PRD lengkap: prd.md
 - Dokumentasi Arsitektur Aplikasi: docs/DOKUMENTASI_ARSITEKTUR_APLIKASI.docx
 - Rencana implementasi dan alur kerja di docs/
-- Rangkaian pengujian otomatis: 183 kasus uji fitur lulus 100% (1.102 asersi) memverifikasi kalkulasi SLA, transisi status pembekuan, perpanjangan bersyarat, tautan akun, dan kontrol akses.
+- Rangkaian pengujian otomatis: 
+  * Backend: 183 kasus uji fitur PHPUnit lulus 100% (1.102 asersi) memverifikasi kalkulasi SLA, transisi status pembekuan, perpanjangan bersyarat, tautan akun, dan kontrol akses.
+  * Frontend: 8 pengujian otomatis Node.js test runner lulus 100% memverifikasi integritas router cache, normalisasi parameter query, dan parsing sel tabel datatable.
 
 ## Product Principles
 - Deterministic Compliance: Aturan KAN U-01 dan SLA ditegakkan oleh sistem tanpa ambiguitas atau bypass manual yang tidak terdokumentasi.

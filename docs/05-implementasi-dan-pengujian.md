@@ -15,9 +15,11 @@ Sistem SIMASADI diimplementasikan dengan spesifikasi lingkungan teknis sebagai b
 | **Basis Data** | SQLite | 3.x | Database file lokal terpadu nir-konfigurasi (`database/database.sqlite`). |
 | **Asset Bundler** | Vite | 6.x / 8.x | Kompilasi SCSS/CSS dan bundling JavaScript Hot Module Replacement (HMR). |
 | **Desain Antarmuka** | Vanilla CSS (CSS Variables) | Native CSS3 | Sistem desain kustom (Design Tokens), flexbox, CSS grid, dan responsif media queries. |
+| **Navigasi Mobile** | Ergonomic Bottom Navigation | Native CSS & JS | Bottom Navigation Bar (`.bottom-nav`) dan lembar modal aksi cepat (*quick action sheet*). |
 | **Tipografi** | Instrument Sans | WOFF2 / WOFF | Font korporat modern untuk kejelasan baca data pada antarmuka. |
 | **Notifikasi Interaktif** | SweetAlert2 | 11.x | Modal dialog konfirmasi dan toast feedback aksi (sukses, validasi, konfirmasi). |
-| **Test Runner** | PHPUnit | 11.x | Pengujian otomatis alur fungsional, logika regulasi KAN, dan RBAC (*Feature Testing*). |
+| **Backend Test Runner** | PHPUnit | 11.x | Pengujian otomatis alur fungsional, logika regulasi KAN, dan RBAC (*Feature Testing*). |
+| **Frontend Test Runner** | Node.js Test Runner | Native Node v20+ | Pengujian unit JavaScript klien untuk router cache TTL, URL sanitasi, dan parser tabel. |
 
 #### 5.1.2 Struktur Direktori Proyek
 ```text
@@ -38,14 +40,14 @@ prototype-magang/
 ├── resources/
 │   ├── css/
 │   │   ├── base/                 # Reset dan token desain variabel warna/tipografi
-│   │   ├── components/           # Badges, custom select, modal dialog, tabel, clickable rows
-│   │   ├── features/             # Kalender kegiatan dan dashboard eksekutif
-│   │   └── layout/               # Shell navigasi sidebar, topbar, dan responsivitas mobile
+│   │   ├── components/           # Badges, custom select, modal dialog, tabel, clickable rows, tactile buttons
+│   │   ├── features/             # Kalender kegiatan, dashboard eksekutif, dan canvas login
+│   │   └── layout/               # Shell navigasi sidebar, bottom-nav mobile, dan topbar
 │   ├── js/
-│   │   ├── modules/              # Kalender interaktif, theme switcher (Dark Mode), modal, SPA router
+│   │   ├── modules/              # Kalender interaktif, theme switcher (Dark Mode), modal, SPA router, datatable
 │   │   └── app.js                # Inisialisasi utama JavaScript antarmuka
 │   └── views/
-│       ├── components/           # Blade components: icon, status badge, alert
+│       ├── components/           # Blade components: icon, status badge, alert, tactile back button
 │       ├── layouts/              # Template master (app.blade.php) & app-shell
 │       ├── lpks/                 # Halaman index, create, edit, show LPK, dan import
 │       ├── assessments/          # Halaman program asesmen, pelacakan TP, dan alur EHA
@@ -57,7 +59,8 @@ prototype-magang/
 │   ├── console.php               # Perintah terjadwal CLI (check-surveillance)
 │   └── web.php                   # Definisi rute aplikasi terproteksi sesi dan peran
 └── tests/
-    └── Feature/                  # Test suite otomatis komprehensif (183 pengujian pada 18 file test)
+    ├── Feature/                  # Test suite otomatis komprehensif backend PHPUnit (183 pengujian)
+    └── frontend/                 # Test suite logika interaksi klien Node.js (router-cache, datatable)
 ```
 
 #### 5.1.3 Fitur Teknis Kunci yang Diimplementasikan
@@ -69,24 +72,35 @@ prototype-magang/
    * Menghitung otomatis batas waktu dasar (3 bulan untuk AA, 2 bulan untuk proses lainnya).
    * Membatasi perpanjangan maksimal 1 bulan hanya jika ada progres tindak lanjut nyata terhadap temuan ketidaksesuaian. Pengisian nomor surat permohonan resmi LPK pada form secara otomatis memperpanjang tanggal jatuh tempo +1 bulan (total 4 bulan AA, 3 bulan lainnya). Jika perbaikan kosong sama sekali, perpanjangan tidak diberikan dan proses dapat dihentikan oleh PIC.
    * Status TP dihitung sepenuhnya oleh sistem tanpa input manual: Sedang Berlangsung, Dibekukan (ungu) bila lewat batas waktu, dan Memenuhi bila telah diselesaikan.
-3. **Penyederhanaan Keterangan Operasional Otomatis (`dynamic_keterangan`):**
-   * Keterangan diformat langsung pada teks kegiatan inti yang dicetak tebal (contoh: **Surveilen 1: Terjadwal 29/03/2027**), menghapus awalan teks administratif redundan.
-4. **Interaktivitas Tabel Penuh (*Clickable Rows*):**
-   * Baris tabel pada modul LPK dan Asesmen dapat diklik langsung untuk menuju halaman detail, mempercepat navigasi pengguna tanpa harus mengklik tombol teks kecil.
-5. **Penyelarasan Posisi Toggle di Layar Ponsel & Filter Drawer:**
-   * Pada resolusi mobile (`<= 600px`), tombol toggle mode tampilan sejajar secara presisi di samping tombol filter data, dan panel filter meluncur mulus dari sisi kanan layar (*slide-out drawer*).
-6. **Kustomisasi Scrollbar & Penegasan Badge:**
-   * Seluruh tampilan aplikasi menggunakan desain scrollbar kustom yang ramping dan modern, termasuk scrollbar di dalam modal. Badge jatuh tempo ditegaskan dengan warna merah, serta badge sistem disederhanakan tanpa bullet/dot dekoratif.
+3. **Pemusatan Otorisasi Hak Kelola (`Lpk::scopeManageableBy`):**
+   * Logika hak kelola LPK dipusatkan pada scope `manageableBy($user)` di Model `Lpk`: Admin memiliki akses penuh, sedangkan PIC hanya berhak atas LPK binaannya atau LPK di mana pengguna bertindak sebagai Lead PIC.
+   * Diterapkan konsisten pada form agenda kalender (`CalendarEventController::create/edit`), manajemen asesmen (`AssessmentController`), dan impor massal asesmen (`AssessmentImportController`).
+4. **Keandalan Kueri Kalender & Proteksi Impor Tanggal Terbalik:**
+   * Kueri riwayat batas waktu TP pada kalender dibatasi secara ketat menggunakan `whereBetween` dan `subMonths(5)` dari rentang tanggal aktif, mencegah lonjakan konsumsi memori akibat full-table scan.
+   * Modul impor asesmen secara otomatis membetulkan durasi terbalik (`end_at < start_at` dikoreksi menjadi `start_at + 2 hari`), serta memverifikasi nomor registrasi LPK terhadap hak kelola pengguna.
+5. **Navigasi Mobile Ergonomis (Bottom Navigation & Bottom Sheet):**
+   * Menggantikan drawer samping dengan *Bottom Navigation Bar* (`.bottom-nav`) dan *Quick Action Sheet* yang ramah ibu jari pada layar ponsel (`<= 640px`).
+   * Panel filter pada antarmuka mobile bertransformasi menjadi lembar laci bawah (*bottom sheet*) dengan handle taktil.
+6. **Harmonisasi Tombol Navigasi Taktil (10px Radius):**
+   * Seluruh tombol kembali (*back button*) distandarisasi ke *tactile navigation button* ber-radius 10px (`var(--radius-md)` / rounded-lg), selaras dengan sistem tombol utama dan menghapus bentuk kapsul 999px yang inkonsisten.
+7. **Pembaruan Visual Canvas Halaman Masuk (Login):**
+   * Canvas login pada Mode Terang mengadopsi gradien biru primer kedinasan (`#1972f5` ke `#0456ce`) yang menyatu harmonis dengan tombol masuk utama, serta latar charcoal zinc `#111215` pada Mode Gelap.
+8. **Optimasi Background Cron Pengawasan:**
+   * Perintah CLI `lpk:check-surveillance` dioptimalkan dengan teknik *chunking* (`chunk(100)`) dan *eager loading* relasi untuk konsumsi memori yang hemat dan stabil.
 
 ---
 
 ### 5.2 Pengujian Sistem (Testing)
 
 #### 5.2.1 Strategi Pengujian
-Pengujian dilakukan menggunakan pendekatan **Feature Testing Otomatis** (berbasis PHPUnit & Database Refresh) untuk memverifikasi fungsionalitas backend, aturan regulasi KAN, dan RBAC 2 peran (Ketua Tim & PIC), serta **Manual Cross-Device Testing** untuk menguji ketepatan interaksi visual dan antarmuka.
+Pengujian dilakukan menggunakan pendekatan berlapis komprehensif:
+1. **Backend Feature Testing Otomatis (PHPUnit & Database Refresh)**: Memverifikasi fungsionalitas backend, aturan kepatuhan regulasi KAN U-01, kalkulasi SLA tindakan perbaikan, dan RBAC 2 peran (Ketua Tim & PIC) dengan isolasi basis data.
+2. **Frontend Unit Testing Otomatis (Node.js Native Test Runner)**: Memverifikasi keandalan modul interaksi klien (`resources/js`), meliputi manajemen cache router SPA (TTL, URL hashing, penanganan query string parameter), serta parsing tipe data sel datatable (mata uang, nilai kosong, tanggal, teks).
+3. **Manual Cross-Device Testing**: Memverifikasi responsivitas tampilan mobile, transisi tema instan, interaksi modal dan sweetalert, serta navigasi bottom nav.
 
-#### 5.2.2 Matriks Kasus Uji Otomatis (PHPUnit Feature Tests)
+#### 5.2.2 Matriks Kasus Uji Otomatis
 
+##### A. Matriks Kasus Uji Backend (PHPUnit Feature Tests - 183 Pengujian)
 Semua pengujian berikut tercakup dalam 17 berkas test di `tests/Feature/`:
 
 | No | File Test | Fokus Skenario Pengujian | Hasil |
@@ -109,8 +123,17 @@ Semua pengujian berikut tercakup dalam 17 berkas test di `tests/Feature/`:
 | 16 | `UserManagementTest` | Menguji manajemen akun pengguna internal oleh Administrator Unit: pencarian, filter, penambahan user baru, pembaruan password, dan proteksi larangan menghapus akun sendiri. | **PASSED** |
 | 17 | `UserProfileTest` | Menguji pembaruan profil mandiri pengguna: pengubahan nama, verifikasi keunikan email, dan validasi kecocokan kata sandi lama saat mengganti kata sandi. | **PASSED** |
 
+##### B. Matriks Kasus Uji Frontend (Node.js Test Runner - 8 Pengujian)
+Semua pengujian frontend tercakup dalam berkas di `tests/frontend/`:
+
+| No | File Test | Fokus Skenario Pengujian | Hasil |
+|---|---|---|---|
+| 1 | `router-cache.test.mjs` | Menguji konstanta batas waktu simpan cache klien (TTL), sanitasi pembersihan fragmen hash pada URL, standarisasi pengurutan parameter query kalender, dan validasi URL yang aman dicache. | **PASSED** |
+| 2 | `datatable.test.mjs` | Menguji fungsi parsing sel tabel datatable untuk format mata uang IDR/USD, penanganan nilai kosong/placeholder (`-`, `N/A`), ekstraksi format tanggal ISO/lokal, dan fallback normalisasi teks. | **PASSED** |
+
 #### 5.2.3 Bukti Hasil Eksekusi Uji Otomatis
 
+##### 1. Eksekusi Test Backend (PHPUnit)
 Perintah eksekusi:
 ```bash
 docker exec prototype-magang-laravel php artisan test
@@ -249,6 +272,32 @@ Hasil eksekusi:
   Duration: 88.24s
 ```
 
+##### 2. Eksekusi Test Frontend (Node.js Test Runner)
+Perintah eksekusi:
+```bash
+node --test tests/frontend/*.test.mjs
+```
+
+Hasil eksekusi:
+```text
+✔ parseCellValue parses currency strings correctly (2.795371ms)
+✔ parseCellValue handles blank or placeholder values (0.256687ms)
+✔ parseCellValue parses dates correctly (12.943035ms)
+✔ parseCellValue falls back to lowercased text (0.554721ms)
+✔ router cache TTL constants are optimized (1.463038ms)
+✔ getCleanPageUrl removes hash fragments (0.236907ms)
+✔ getCalendarCacheKey standardizes and sorts query parameters (0.748279ms)
+✔ isCacheableUrl validates safe URLs and excludes unsafe routes (0.342566ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 286.666057
+```
+
 #### 5.2.4 Matriks Pengujian Antarmuka & Responsivitas Manual
 
 | Skenario Antarmuka | Kondisi Uji / Resolusi | Hasil yang Diamati | Status |
@@ -257,7 +306,10 @@ Hasil eksekusi:
 | **Keterangan Operasional Otomatis** | Kartu profil LPK dan tabel asesmen | Keterangan langsung menampilkan kegiatan inti dalam teks tebal tanpa imbuhan awalan teks redundan. | **VALID** |
 | **Klik Baris Tabel (*Clickable Table Rows*)** | Klik pada sembarang area baris data pada tabel LPK / Asesmen | Sistem langsung merespons dan membuka halaman detail data terkait dengan kursor pointer interaktif. | **VALID** |
 | **Penyelarasan Kontrol Filter & Toggle di Mobile** | Layar smartphone (lebar <= 600px) | Tombol `[ Filter data ]` dan toggle `[ Tabel \| Grid ]` berposisi berdampingan horizontal rapi di baris atas. | **VALID** |
-| **Interaksi Drawer Filter Mobile** | Klik tombol `Filter data` di mobile | Filter drawer meluncur mulus dari sisi kanan layar (*slide-out* 240ms) dengan backdrop gelap dan tombol tutup berfungsi baik. | **VALID** |
+| **Interaksi Drawer Filter Mobile (Bottom Sheet)** | Klik tombol `Filter data` di mobile | Panel filter meluncur mulus dari bagian bawah layar (*tactile bottom sheet*) lengkap dengan pegangan sentuh drag handle. | **VALID** |
+| **Navigasi Ponsel Bottom Navigation** | Navigasi menu utama pada layar smartphone (`<= 640px`) | Bar navigasi bawah (`.bottom-nav`) memfasilitasi akses cepat satu tangan ke Dashboard, LPK, Aksi Cepat, Asesmen, dan Kalender. | **VALID** |
+| **Standarisasi Tombol Kembali Taktil** | Tombol navigasi kembali pada halaman show/edit/create | Tombol kembali tampil seragam ber-radius 10px (`var(--radius-md)`), selaras dengan tombol aksi sistem dan tanpa style kapsul 999px. | **VALID** |
+| **Canvas Login Biru Primer (Light Mode)** | Halaman masuk `/login` pada tema terang | Latar kanvas menampilkan gradien biru primer elegan (`#1972f5` ke `#0456ce`) yang menyatu harmonis dengan tombol login utama. | **VALID** |
 | **Sistem Mode Gelap & Terang (1-Click Toggle)** | Klik tombol ikon matahari/bulan pada navbar atas | Tema beralih seketika tanpa reload halaman, preferensi tersimpan di localStorage, dan bebas kedipan putih saat navigasi. | **VALID** |
 | **Adaptasi Empty State di Mode Gelap** | Filter tabel aktif tanpa data yang cocok (contoh: LPK / Asesmen) | Kotak pesan kosong beradaptasi mulus dengan latar gelap semantik `var(--surface)`, border putus-putus halus, dan tombol reset filter sekunder. | **VALID** |
 | **Banner Pengawasan Persisten Wajib** | Akun memiliki LPK jatuh tempo pengawasan akreditasi | Banner peringatan pengawasan KAN tampil persisten di bagian atas konten tanpa tombol silang atau opsi sembunyikan sementara. | **VALID** |

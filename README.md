@@ -83,16 +83,29 @@ Seluruh rancangan sistem telah disusun secara komprehensif mengikuti standar sik
 9. **Peringatan Pengawasan Persisten Wajib (Non-Dismissible):**
    * Banner peringatan siklus pengawasan KAN (Bulan ke-14 S1, Bulan ke-35 S2, dan 1 Bulan sebelum kedaluwarsa) tampil persisten dan tidak dapat disembunyikan sementara, menjamin kepatuhan tindak lanjut regulasi.
 
+10. **Navigasi Mobile Ergonomis & Quick Action Sheet:**
+    * Menggantikan drawer samping dengan Bottom Navigation Bar (`.bottom-nav`) dan Quick Action Modal Sheet untuk kemudahan navigasi satu tangan pada smartphone (`<= 640px`).
+    * Filter data mobile bertransformasi menjadi *bottom sheet drawer* yang meluncur dari bawah dengan drag handle yang taktil.
+
+11. **Sistem Desain Tombol Taktil & Visual Canvas Login:**
+    * Seluruh tombol kembali (*back button*) distandarisasi ke *tactile navigation button* ber-radius 10px (`var(--radius-md)` / rounded-lg), selaras dengan sistem tombol utama dan menghilangkan gaya pill yang tidak konsisten.
+    * Halaman Login (`/login`) mengadopsi gradien biru primer elegan (`#1972f5` ke `#0456ce`) pada canvas Mode Terang yang menyatu dengan tombol aksi utama, serta latar modern zinc/charcoal (`#111215`) pada Mode Gelap.
+
+12. **Optimasi Performa Kueri & Validasi Impor Tangguh:**
+    * Pembatasan rentang kueri historis TP pada kalender (`whereBetween` dan `subMonths(5)`) untuk mencegah lonjakan konsumsi memori pada ratusan riwayat asesmen.
+    * Proteksi *inverted dates* pada modul impor asesmen yang otomatis menyesuaikan tanggal selesai jika mendahului tanggal mulai (`end_at < start_at` disesuaikan otomatis ke `start_at + 2 hari`).
+    * Cron background `lpk:check-surveillance` dioptimalkan dengan pemrosesan bongkahan data (`chunk(100)`) dan *eager loading* relasi.
+
 ---
 
 ## 👥 Profil Pengguna & Hak Akses (Role-Based Access Control)
 
-Sistem mengimplementasikan pemisahan hak akses berbasis 2 peran operasional nyata:
+Sistem mengimplementasikan pemisahan hak akses berbasis 2 peran operasional nyata dengan scope terpadu (`scopeManageableBy`):
 
 | Peran (*Role*) | Akun Login | Deskripsi Hak Akses Utama | Batasan Keamanan |
 |---|---|---|---|
-| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; rilis SK; pembatasan tunggal 1 akun Ketua Tim; manajemen akun pengguna; ekspor live feeds. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
-| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Monitoring operasional LPK kelolaan: melihat direktori LPK binaan (dan LPK tertaut sebagai viewer), memantau tenggat waktu surveilen dan toleransi pengisian, pelacakan progres TP, input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data massal, dilarang mengakses LPK di luar tanggung jawabnya tanpa tautan viewer, dan dilarang mengelola user. |
+| **Ketua Tim (Admin Unit)** (`admin`) | `admin@simasadi.local` | Akses penuh (*Full Control*): Registrasi, ubah, hapus LPK; impor massal LPK & Asesmen untuk seluruh laboratorium; penjadwalan 8 tipe asesmen KAN; pemrosesan EHA; penugasan PIC; rilis SK; pembatasan tunggal 1 akun Ketua Tim; manajemen akun pengguna; ekspor live feeds. | Sistem membatasi hanya 1 akun Ketua Tim yang dapat aktif dalam basis data. |
+| **PIC Laboratorium** (`pic`) | `pic@simasadi.local` | Pengelolaan operasional LPK binaan: monitoring direktori LPK binaan (dan LPK tertaut sebagai viewer), penjadwalan agenda kalender & asesmen untuk LPK kelolaan (`manageableBy`), impor massal asesmen khusus LPK kelolaan, pemantauan batas toleransi surveilen, pelacakan progres TP, dan input nomor surat permohonan perpanjangan waktu. | Dibatasi secara ketat (*403 Forbidden*): dilarang mengimpor data master LPK baru lintas unit, dilarang mengakses/memodifikasi LPK di luar tanggung jawabnya tanpa tautan viewer/kelola, dan dilarang mengelola pengguna sistem. |
 
 *(Kata sandi bawaan untuk seluruh akun pengujian:* `password`*)*
 
@@ -103,10 +116,13 @@ Sistem mengimplementasikan pemisahan hak akses berbasis 2 peran operasional nyat
 * **Backend:** PHP 8.2+ / PHP 8.3+, Laravel 12 / 13 Framework
 * **Basis Data:** SQLite 3 (Database file lokal efisien)
 * **Frontend:** Blade Templating, Vanilla CSS (Modern CSS Variables & Design Tokens), Vanilla JavaScript modular
+* **Navigasi Mobile:** Ergonomic Bottom Navigation Bar (`.bottom-nav`) & Quick Actions Modal Sheet
 * **Asset Bundler:** Vite 6 / 8
 * **Tipografi:** Instrument Sans (WOFF2/WOFF)
-* **Library Tambahan:** SweetAlert2 (Notifikasi & modal interaktif)
-* **Testing:** PHPUnit 11 (Feature & Unit Testing)
+* **Library Tambahan:** SweetAlert2 (Notifikasi & modal interaktif terpusat)
+* **Testing Suite:** 
+  * Backend: PHPUnit 11 (183 Feature & Unit Tests)
+  * Frontend: Node.js Test Runner (8 Client Router Cache & Datatable Parser Tests)
 
 ---
 
@@ -158,17 +174,34 @@ docker exec prototype-magang-laravel npm run build
 
 ## 🧪 Pengujian Otomatis
 
-Seluruh alur fungsional sistem, logika SLA KAN, kalkulasi status otomatis, dan pembatasan hak akses peran telah diverifikasi dengan test suite otomatis PHPUnit:
+Seluruh alur fungsional sistem, logika SLA KAN, kalkulasi status otomatis, pembatasan hak akses peran, hingga penanganan caching dan penguraian tabel klien telah diverifikasi dengan dua rangkaian pengujian otomatis:
 
+### 1. Backend Feature & Unit Tests (PHPUnit)
 ```bash
 docker exec prototype-magang-laravel php artisan test
 ```
-
-**Hasil Pengujian Terkini:**
+**Hasil Pengujian Backend Terkini:**
 ```text
 Tests:    183 passed (1102 assertions)
 Duration: ~88s
 Status:   100% Passed
+```
+
+### 2. Frontend Client Logic Tests (Node.js Test Runner)
+```bash
+node --test tests/frontend/*.test.mjs
+```
+**Hasil Pengujian Frontend Terkini:**
+```text
+✔ parseCellValue parses currency strings correctly
+✔ parseCellValue handles blank or placeholder values
+✔ parseCellValue parses dates correctly
+✔ parseCellValue falls back to lowercased text
+✔ router cache TTL constants are optimized
+✔ getCleanPageUrl removes hash fragments
+✔ getCalendarCacheKey standardizes and sorts query parameters
+✔ isCacheableUrl validates safe URLs and excludes unsafe routes
+ℹ tests 8 passed, 0 failed (100% Passed)
 ```
 
 Untuk memformat kode PHP sesuai standar PSR-12:
