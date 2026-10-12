@@ -60,7 +60,7 @@
     min-width: 34px;
     padding: 0 10px;
     text-decoration: none;
-    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
     user-select: none;
 }
 
@@ -70,6 +70,11 @@
     border-color: var(--line-subtle);
     box-shadow: var(--shadow-xs);
     color: var(--ink);
+}
+
+.pagination-item.pagination-link:active {
+    transform: scale(0.95);
+    transition-duration: 70ms;
 }
 
 .pagination-item:focus-visible {

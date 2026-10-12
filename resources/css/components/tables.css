@@ -3253,3 +3253,22 @@ html[data-theme="dark"] .lpk-keterangan-cat-tag.theme-purple {
     color: #c084fc;
 }
 
+/* ==========================================================================
+   Table Row Flash & Update Feedback (Micro-Interaction)
+   ========================================================================== */
+@keyframes row-flash-fade {
+    0% {
+        background-color: var(--primary-subtle);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+tr.row-updated-flash,
+tr:target,
+.table-mode-grid tr.row-updated-flash,
+.table-mode-grid tr:target {
+    animation: row-flash-fade 1000ms var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
