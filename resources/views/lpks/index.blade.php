@@ -169,7 +169,7 @@
     title="Integrasi Google Sheets: Data Master LPK"
     subtitle="Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung."
     :export-url="route('reports.lpks.export')"
-    :feed-url="route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')])"
+    :feed-url="route('feeds.lpks', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="data-master-lpk-simasadi.csv"
     :columns="['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
 />

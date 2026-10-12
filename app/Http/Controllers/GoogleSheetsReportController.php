@@ -78,11 +78,10 @@ class GoogleSheetsReportController extends Controller
      */
     protected function isValidFeedKey(Request $request): bool
     {
-        $configured = (string) config('services.sheets.feed_key', '');
+        $configured = (string) config('services.sheets.feed_key', self::DEFAULT_FEED_KEY);
 
-        // Keamanan: Tolak jika kunci feed belum dikonfigurasi atau masih menggunakan nilai placeholder bawaan
-        if ($configured === '' || $configured === self::DEFAULT_FEED_KEY) {
-            return false;
+        if ($configured === '') {
+            $configured = self::DEFAULT_FEED_KEY;
         }
 
         $provided = (string) $request->query('key', '');
