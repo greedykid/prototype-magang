@@ -391,7 +391,7 @@
 
     html.sidebar-is-collapsed .sidebar,
     .app-shell.sidebar-collapsed .sidebar {
-        width: 72px;
+        width: 100%;
         padding: 20px 8px 16px;
     }
 
