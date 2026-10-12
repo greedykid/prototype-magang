@@ -94,6 +94,11 @@ class UserController extends Controller
 
         // 4. Gabungan unik LPK
         $allLpks = $leadLpks->concat($memberLpks)->concat($linkedOwnerLpks)->unique('id');
+        foreach ($allLpks as $lpkItem) {
+            foreach ($lpkItem->assessments as $asm) {
+                $asm->setRelation('lpk', $lpkItem);
+            }
+        }
 
         // Statistik ringkas
         $totalLead = $leadLpks->count();

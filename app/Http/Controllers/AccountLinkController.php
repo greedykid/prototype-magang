@@ -7,6 +7,7 @@ use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AccountLinkController extends Controller
@@ -33,9 +34,23 @@ class AccountLinkController extends Controller
         $ownerIds = $linkedOwners->pluck('id')->all();
         $assessmentCounts = [];
         if (! empty($ownerIds)) {
-            foreach ($linkedOwners as $ownerItem) {
-                $assessmentCounts[$ownerItem->id] = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($ownerItem))->count();
-            }
+            $ownerAssessmentMap = DB::table('assessments')
+                ->join('lpks', 'assessments.lpk_id', '=', 'lpks.id')
+                ->whereIn('lpks.pic_id', $ownerIds)
+                ->select('lpks.pic_id as user_id', 'assessments.id as assessment_id')
+                ->union(
+                    DB::table('assessments')
+                        ->join('lpk_members', 'assessments.lpk_id', '=', 'lpk_members.lpk_id')
+                        ->whereIn('lpk_members.user_id', $ownerIds)
+                        ->select('lpk_members.user_id', 'assessments.id as assessment_id')
+                );
+
+            $assessmentCounts = DB::query()
+                ->fromSub($ownerAssessmentMap, 'owner_assessments')
+                ->groupBy('user_id')
+                ->selectRaw('user_id, count(distinct assessment_id) as total')
+                ->pluck('total', 'user_id')
+                ->all();
         }
 
         foreach ($linkedOwners as $owner) {
@@ -108,65 +123,7 @@ class AccountLinkController extends Controller
                       );
                 }))
                 ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
-                ->when($assessmentType, function ($query) use ($assessmentType) {
-                    if ($assessmentType === Assessment::TYPE_AKREDITASI_AWAL || $assessmentType === 'Asesmen Awal') {
-                        $query->whereIn('assessment_type', [Assessment::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA']);
-                    } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1) {
-                        $query->where(function ($q) {
-                            $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, 'S1'])
-                                ->orWhere(function ($sq) {
-                                    $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
-                                        ->where(function ($titleQ) {
-                                            $titleQ->where('title', 'like', '%Surveilen 1%')
-                                                ->orWhere('title', 'like', '%(S1)%')
-                                                ->orWhere('title', 'like', '% S1 %');
-                                        })
-                                        ->where('title', 'not like', '%PRL%');
-                                });
-                        });
-                    } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1_PRL) {
-                        $query->where(function ($q) {
-                            $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1_PRL, 'S1 + PRL'])
-                                ->orWhere(function ($sq) {
-                                    $sq->where('title', 'like', '%Surveilen 1%')
-                                        ->where('title', 'like', '%PRL%');
-                                });
-                        });
-                    } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2) {
-                        $query->where(function ($q) {
-                            $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2, 'S2'])
-                                ->orWhere(function ($sq) {
-                                    $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
-                                        ->where(function ($titleQ) {
-                                            $titleQ->where('title', 'like', '%Surveilen 2%')
-                                                ->orWhere('title', 'like', '%(S2)%')
-                                                ->orWhere('title', 'like', '% S2 %');
-                                        })
-                                        ->where('title', 'not like', '%PRL%');
-                                });
-                        });
-                    } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2_PRL) {
-                        $query->where(function ($q) {
-                            $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2_PRL, 'S2 + PRL'])
-                                ->orWhere(function ($sq) {
-                                    $sq->where('title', 'like', '%Surveilen 2%')
-                                        ->where('title', 'like', '%PRL%');
-                                });
-                        });
-                    } elseif ($assessmentType === Assessment::TYPE_STT) {
-                        $query->whereIn('assessment_type', [Assessment::TYPE_STT, 'STT', 'Surveilen Tidak Terjadwal']);
-                    } elseif ($assessmentType === Assessment::TYPE_PRL) {
-                        $query->whereIn('assessment_type', [Assessment::TYPE_PRL, 'PRL', 'Perluasan Ruang Lingkup', 'Perluasan Lingkup']);
-                    } elseif ($assessmentType === Assessment::TYPE_RE_AKREDITASI || $assessmentType === 'Re-asesmen') {
-                        $query->whereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'RA', 'Re-asesmen', 'REASSESSMENT']);
-                    } elseif ($assessmentType === 'Surveilen') {
-                        $query->where(function ($q) {
-                            $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, Assessment::TYPE_SURVEILEN_2, 'Surveilen', 'SURVEILLANCE', 'S1', 'S2']);
-                        });
-                    } else {
-                        $query->where('assessment_type', $assessmentType);
-                    }
-                })
+                ->when($assessmentType, fn ($query) => $query->forAssessmentType($assessmentType))
                 ->when($status, function ($query, $st) {
                     if ($st === 'SUSPENDED') {
                         $query->where(function ($q) {

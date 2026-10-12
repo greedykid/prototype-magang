@@ -24,6 +24,8 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     }
 
     $tables = [
+        'lpk_members',
+        'user_account_links',
         'accreditations',
         'assessments',
         'calendar_events',

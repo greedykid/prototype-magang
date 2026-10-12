@@ -461,6 +461,71 @@ class Assessment extends Model
         return $query->whereIn('tp_status', [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION]);
     }
 
+    public function scopeForAssessmentType($query, ?string $assessmentType)
+    {
+        if (empty($assessmentType)) {
+            return $query;
+        }
+
+        if ($assessmentType === self::TYPE_AKREDITASI_AWAL || $assessmentType === 'Asesmen Awal') {
+            return $query->whereIn('assessment_type', [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA']);
+        } elseif ($assessmentType === self::TYPE_SURVEILEN_1) {
+            return $query->where(function ($q) {
+                $q->whereIn('assessment_type', [self::TYPE_SURVEILEN_1, 'S1'])
+                    ->orWhere(function ($sq) {
+                        $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
+                            ->where(function ($titleQ) {
+                                $titleQ->where('title', 'like', '%Surveilen 1%')
+                                    ->orWhere('title', 'like', '%(S1)%')
+                                    ->orWhere('title', 'like', '% S1 %');
+                            })
+                            ->where('title', 'not like', '%PRL%');
+                    });
+            });
+        } elseif ($assessmentType === self::TYPE_SURVEILEN_1_PRL) {
+            return $query->where(function ($q) {
+                $q->whereIn('assessment_type', [self::TYPE_SURVEILEN_1_PRL, 'S1 + PRL'])
+                    ->orWhere(function ($sq) {
+                        $sq->where('title', 'like', '%Surveilen 1%')
+                            ->where('title', 'like', '%PRL%');
+                    });
+            });
+        } elseif ($assessmentType === self::TYPE_SURVEILEN_2) {
+            return $query->where(function ($q) {
+                $q->whereIn('assessment_type', [self::TYPE_SURVEILEN_2, 'S2'])
+                    ->orWhere(function ($sq) {
+                        $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
+                            ->where(function ($titleQ) {
+                                $titleQ->where('title', 'like', '%Surveilen 2%')
+                                    ->orWhere('title', 'like', '%(S2)%')
+                                    ->orWhere('title', 'like', '% S2 %');
+                            })
+                            ->where('title', 'not like', '%PRL%');
+                    });
+            });
+        } elseif ($assessmentType === self::TYPE_SURVEILEN_2_PRL) {
+            return $query->where(function ($q) {
+                $q->whereIn('assessment_type', [self::TYPE_SURVEILEN_2_PRL, 'S2 + PRL'])
+                    ->orWhere(function ($sq) {
+                        $sq->where('title', 'like', '%Surveilen 2%')
+                            ->where('title', 'like', '%PRL%');
+                    });
+            });
+        } elseif ($assessmentType === self::TYPE_STT) {
+            return $query->whereIn('assessment_type', [self::TYPE_STT, 'STT', 'Surveilen Tidak Terjadwal']);
+        } elseif ($assessmentType === self::TYPE_PRL) {
+            return $query->whereIn('assessment_type', [self::TYPE_PRL, 'PRL', 'Perluasan Ruang Lingkup', 'Perluasan Lingkup']);
+        } elseif ($assessmentType === self::TYPE_RE_AKREDITASI || $assessmentType === 'Re-asesmen') {
+            return $query->whereIn('assessment_type', [self::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'RA', 'Re-asesmen', 'REASSESSMENT']);
+        } elseif ($assessmentType === 'Surveilen') {
+            return $query->where(function ($q) {
+                $q->whereIn('assessment_type', [self::TYPE_SURVEILEN_1, self::TYPE_SURVEILEN_2, 'Surveilen', 'SURVEILLANCE', 'S1', 'S2']);
+            });
+        } else {
+            return $query->where('assessment_type', $assessmentType);
+        }
+    }
+
     public function lpk(): BelongsTo
     {
         return $this->belongsTo(Lpk::class);

@@ -147,7 +147,7 @@ class LpkController extends Controller
             $query->latest();
         }
 
-        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments', 'pic', 'members'])->withCount(['accreditations'])->paginate($perPage)->withQueryString();
         foreach ($lpks as $lpk) {
             foreach ($lpk->assessments as $assessment) {
                 $assessment->setRelation('lpk', $lpk);
@@ -397,9 +397,7 @@ class LpkController extends Controller
 
             \Illuminate\Support\Facades\Mail::to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
 
-            if (\Illuminate\Support\Facades\Schema::hasColumn('lpks', 'last_surveillance_notified_at')) {
-                $lpk->update(['last_surveillance_notified_at' => now()]);
-            }
+            $lpk->update(['last_surveillance_notified_at' => now()]);
 
             $recipientCount = count($recipientEmails);
             $recipientSummary = $recipientCount === 1 ? $recipientEmails[0] : "{$recipientCount} PIC Unit (" . implode(', ', $recipientEmails) . ')';

@@ -57,65 +57,61 @@ class AppServiceProvider extends ServiceProvider
             $alerts = $req ? $req->attributes->get('simasadi_global_surveillance_alerts') : null;
 
             if ($alerts === null) {
-                if (Schema::hasTable('lpks')) {
-                    try {
-                        $user = $req ? $req->user() : null;
-                        $userId = $user ? $user->id : 'guest';
+                try {
+                    $user = $req ? $req->user() : null;
+                    $userId = $user ? $user->id : 'guest';
 
-                        $computeAlerts = function () use ($user) {
-                            $activeLpks = \App\Models\Lpk::primaryFor($user)
-                                ->with('assessments')
-                                ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
-                                ->where(function ($q) {
-                                    $q->whereNotNull('certificate_date')
-                                      ->orWhereNotNull('expired_at');
-                                })
-                                ->get();
+                    $computeAlerts = function () use ($user) {
+                        $activeLpks = \App\Models\Lpk::primaryFor($user)
+                            ->with('assessments')
+                            ->whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
+                            ->where(function ($q) {
+                                $q->whereNotNull('certificate_date')
+                                  ->orWhereNotNull('expired_at');
+                            })
+                            ->get();
 
-                            foreach ($activeLpks as $lpk) {
-                                foreach ($lpk->assessments as $assessment) {
-                                    $assessment->setRelation('lpk', $lpk);
-                                }
+                        foreach ($activeLpks as $lpk) {
+                            foreach ($lpk->assessments as $assessment) {
+                                $assessment->setRelation('lpk', $lpk);
                             }
+                        }
 
-                            $list = [];
-                            foreach ($activeLpks as $lpk) {
-                                foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
-                                    $list[] = $alert;
-                                }
+                        $list = [];
+                        foreach ($activeLpks as $lpk) {
+                            foreach ($lpk->getActiveSurveillanceAlerts() as $alert) {
+                                $list[] = $alert;
                             }
+                        }
 
-                            // Convert Carbon instances to primitive ISO strings for safe serialization
-                            return array_map(function ($item) {
-                                foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
-                                    if (!empty($item[$dateKey]) && $item[$dateKey] instanceof \Carbon\CarbonInterface) {
-                                        $item[$dateKey] = $item[$dateKey]->toIso8601String();
-                                    }
-                                }
-                                return $item;
-                            }, $list);
-                        };
-
-                        $version = \Illuminate\Support\Facades\Cache::get('simasadi_surveillance_version', 1);
-                        $cacheKey = "simasadi_alerts_{$userId}_v{$version}";
-
-                        $rawAlerts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($computeAlerts) {
-                            return $computeAlerts();
-                        });
-
-                        // Rehydrate primitive ISO strings back to real Carbon instances
-                        $alerts = array_map(function ($item) {
+                        // Convert Carbon instances to primitive ISO strings for safe serialization
+                        return array_map(function ($item) {
                             foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
-                                if (!empty($item[$dateKey]) && is_string($item[$dateKey])) {
-                                    $item[$dateKey] = \Illuminate\Support\Carbon::parse($item[$dateKey]);
+                                if (!empty($item[$dateKey]) && $item[$dateKey] instanceof \Carbon\CarbonInterface) {
+                                    $item[$dateKey] = $item[$dateKey]->toIso8601String();
                                 }
                             }
                             return $item;
-                        }, (array) $rawAlerts);
-                    } catch (\Throwable $e) {
-                        $alerts = [];
-                    }
-                } else {
+                        }, $list);
+                    };
+
+                    $version = \Illuminate\Support\Facades\Cache::get('simasadi_surveillance_version', 1);
+                    $cacheKey = "simasadi_alerts_{$userId}_v{$version}";
+
+                    $rawAlerts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($computeAlerts) {
+                        return $computeAlerts();
+                    });
+
+                    // Rehydrate primitive ISO strings back to real Carbon instances
+                    $alerts = array_map(function ($item) {
+                        foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
+                            if (!empty($item[$dateKey]) && is_string($item[$dateKey])) {
+                                $item[$dateKey] = \Illuminate\Support\Carbon::parse($item[$dateKey]);
+                            }
+                        }
+                        return $item;
+                    }, (array) $rawAlerts);
+                } catch (\Throwable $e) {
                     $alerts = [];
                 }
 

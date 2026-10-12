@@ -305,11 +305,7 @@
                                 @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
                                     <option value="{{ $typeKey }}" @selected(
                                         old('assessment_type', $assessment->assessment_type ?: request('assessment_type')) === $typeKey ||
-                                        (old('assessment_type') === null && request('assessment_type') === null && (
-                                             ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
-                                             ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
-                                             ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
-                                        ))
+                                        (old('assessment_type') === null && request('assessment_type') === null && \App\Models\Assessment::normalizeType($assessment->assessment_type, (string) $assessment->title) === $typeKey)
                                     )>
                                         {{ $typeLabel }}
                                     </option>
