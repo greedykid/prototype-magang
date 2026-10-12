@@ -262,38 +262,47 @@ const navigateTo = async (url, pushState = true) => {
             }
         }
 
-        pageWrap.innerHTML = newContent.innerHTML;
+        const commitPageUpdate = () => {
+            pageWrap.innerHTML = newContent.innerHTML;
 
-        const activeCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (activeCsrfToken) {
-            pageWrap.querySelectorAll('input[name="_token"]').forEach(input => {
-                input.value = activeCsrfToken;
+            const activeCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (activeCsrfToken) {
+                pageWrap.querySelectorAll('input[name="_token"]').forEach(input => {
+                    input.value = activeCsrfToken;
+                });
+            }
+
+            if (pushState) {
+                window.history.pushState({ url }, '', url);
+            }
+
+            reexecuteScripts(pageWrap);
+
+            if (typeof onNavigateCallback === 'function') {
+                onNavigateCallback();
+            } else if (typeof window.initPageComponents === 'function') {
+                window.initPageComponents();
+            }
+
+            window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
+
+            // Schedule proactive idle prewarm for adjacent menus
+            scheduleNavigationPrewarm();
+
+            scrollToAnchorHash(targetUrlObj.hash);
+        };
+
+        if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.startViewTransition(() => {
+                commitPageUpdate();
+            });
+        } else {
+            pageWrap.classList.remove('page-enter-active');
+            commitPageUpdate();
+            requestAnimationFrame(() => {
+                pageWrap.classList.add('page-enter-active');
             });
         }
-
-        pageWrap.classList.remove('page-enter-active');
-        requestAnimationFrame(() => {
-            pageWrap.classList.add('page-enter-active');
-        });
-
-        if (pushState) {
-            window.history.pushState({ url }, '', url);
-        }
-
-        reexecuteScripts(pageWrap);
-
-        if (typeof onNavigateCallback === 'function') {
-            onNavigateCallback();
-        } else if (typeof window.initPageComponents === 'function') {
-            window.initPageComponents();
-        }
-
-        window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
-
-        // Schedule proactive idle prewarm for adjacent menus
-        scheduleNavigationPrewarm();
-
-        scrollToAnchorHash(targetUrlObj.hash);
     } catch (err) {
         if (err.name === 'AbortError' || thisNavSequence !== currentNavSequence) {
             // Superseded by newer navigation request, ignore silently

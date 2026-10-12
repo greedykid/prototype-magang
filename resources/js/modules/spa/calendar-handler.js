@@ -104,18 +104,28 @@ export const handleCalendarTransition = async ({ url, targetUrlObj, pageWrap, pu
         if (newStartDate) activeDateVal = newStartDate.value;
     }
 
-    if (newShell && activeShell) {
-        newShell.classList.remove('gcal-is-updating');
-        activeShell.replaceWith(newShell);
-    } else {
-        const newContent = tempDiv.querySelector('#page-content-wrapper') || tempDiv.querySelector('.page-wrap');
-        if (newContent) {
-            pageWrap.innerHTML = newContent.innerHTML;
-            pageWrap.classList.remove('page-enter-active');
-            requestAnimationFrame(() => {
-                pageWrap.classList.add('page-enter-active');
-            });
+    const updateCalendarDOM = () => {
+        if (newShell && activeShell) {
+            newShell.classList.remove('gcal-is-updating');
+            activeShell.replaceWith(newShell);
+        } else {
+            const newContent = tempDiv.querySelector('#page-content-wrapper') || tempDiv.querySelector('.page-wrap');
+            if (newContent) {
+                pageWrap.innerHTML = newContent.innerHTML;
+            }
         }
+    };
+
+    if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.startViewTransition(() => {
+            updateCalendarDOM();
+        });
+    } else {
+        updateCalendarDOM();
+        pageWrap.classList.remove('page-enter-active');
+        requestAnimationFrame(() => {
+            pageWrap.classList.add('page-enter-active');
+        });
     }
 
     // Sync date in quick-add modal only if modal is not open and no range anchor is active
