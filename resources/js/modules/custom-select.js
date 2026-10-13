@@ -105,12 +105,19 @@ const createCustomSelect = (select) => {
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
 
-    // Connect label to trigger button instead of hidden select to avoid dead clicks & synthetic closures
-    const parentLabel = wrapper.closest('label') || (select.id ? document.querySelector(`label[for="${select.id}"]`) : null);
-    if (parentLabel) {
-        const triggerId = select.id ? `${select.id}-trigger` : `custom-select-trigger-${Math.random().toString(36).slice(2, 8)}`;
-        trigger.id = triggerId;
-        parentLabel.setAttribute('for', triggerId);
+    const triggerId = select.id ? `${select.id}-trigger` : `custom-select-trigger-${Math.random().toString(36).slice(2, 8)}`;
+    trigger.id = triggerId;
+
+    const enclosingLabel = wrapper.closest('label');
+    const externalLabel = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+
+    if (externalLabel && externalLabel !== enclosingLabel) {
+        externalLabel.setAttribute('for', triggerId);
+    }
+    if (enclosingLabel) {
+        // Enclosing <label> wraps both the trigger button and dropdown menu.
+        // Remove 'for' attribute so browser does not dispatch synthetic clicks to trigger on option selection.
+        enclosingLabel.removeAttribute('for');
     }
 
     const valueSpan = document.createElement('span');
@@ -198,6 +205,7 @@ const createCustomSelect = (select) => {
             `;
 
             optionEl.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 selectOption(opt.value);
             });
@@ -424,7 +432,12 @@ const createCustomSelect = (select) => {
         });
     }
 
-    menu.addEventListener('click', (e) => e.stopPropagation());
+    menu.addEventListener('click', (e) => {
+        if (!e.target.closest('input')) {
+            e.preventDefault();
+        }
+        e.stopPropagation();
+    });
 
     select.addEventListener('change', () => syncFromNative());
     select.addEventListener('invalid', () => {
