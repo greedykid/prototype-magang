@@ -354,6 +354,216 @@ flowchart TD
 
 ---
 
+#### 4.3.6 Activity Diagram: Pengelolaan Data Master Lembaga (LPK) & Penugasan PIC
+
+Diagram ini memodelkan proses operasional pengelolaan data master Lembaga Penilaian Kesesuaian (LPK) mulai dari pendaftaran instansi, verifikasi keunikan nomor registrasi KAN, penetapan masa berlaku akreditasi (5 tahun), hingga penugasan PIC Laboratorium penanggung jawab:
+
+```mermaid
+stateDiagram-v2
+    [*] --> BukaMenuLPK: Akses Menu Master Data LPK (/lpks)
+    BukaMenuLPK --> TampilTabelLPK: Sistem Merender Daftar Master LPK & Filter Skema KAN
+    
+    TampilTabelLPK --> BukaFormTambah: Pengguna Memilih [ + Tambah LPK Baru ] (/lpks/create)
+    BukaFormTambah --> TampilFormRegistrasi: Sistem Menyajikan Formulir Registrasi LPK
+    
+    TampilFormRegistrasi --> InputIdentitasLPK: Pengguna Mengisi No Reg, Nama Lembaga, Skema, & Tanggal SK
+    InputIdentitasLPK --> TetapkanPIC: Pengguna Menetapkan PIC Laboratorium Penanggung Jawab
+    TetapkanPIC --> SubmitFormLPK: Klik [ Simpan Data LPK ] (POST /lpks)
+    
+    state CekValidasiLPK <<choice>>
+    SubmitFormLPK --> CekValidasiLPK: Sistem Memvalidasi Format Data & Keunikan No Reg KAN
+    
+    CekValidasiLPK --> TampilFormRegistrasi: Gagal (Nomor Registrasi Duplikat / Kolom Wajib Kosong)
+    CekValidasiLPK --> SimpanKeDatabase: Berhasil (Data Terverifikasi)
+    
+    SimpanKeDatabase --> HitungMasaBerlaku: Sistem Menyimpan ke Tabel lpks & lpk_members
+    HitungMasaBerlaku --> TampilTabelLPK: Hitung expired_at (+5 Tahun) & Redirect dengan Pesan Sukses
+    TampilTabelLPK --> [*]: Master LPK Terdaftar & Masuk ke Cakupan Kerja PIC Terkait
+```
+
+<p align="center"><b>Gambar 4. 9 Activity Diagram Pengelolaan Data Master LPK & Penugasan PIC</b></p>
+
+| No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
+|:---|:---|:---|:---|
+| 1 | `BukaMenuLPK` | Ketua Tim / PIC | Pengguna mengakses rute `/lpks` melalui bilah navigasi utama sistem. |
+| 2 | `TampilTabelLPK` | Sistem SIMASADI | Sistem menampilkan tabel master LPK dengan pencarian, filter skema KAN, dan status akreditasi. |
+| 3 | `BukaFormTambah` | Ketua Tim / PIC | Pengguna menekan tombol pendaftaran LPK baru menuju rute `/lpks/create`. |
+| 4 | `TampilFormRegistrasi` | Sistem SIMASADI | Sistem merender formulir entri data master LPK lengkap dengan dropdown skema dan daftar PIC. |
+| 5 | `InputIdentitasLPK` | Pengguna | Menginputkan nomor registrasi KAN (`no_reg`), nama instansi, kategori, kota, provinsi, dan tanggal SK. |
+| 6 | `TetapkanPIC` | Pengguna | Memilih akun PIC Laboratorium (`pic_user_id`) yang bertanggung jawab mendampingi LPK. |
+| 7 | `SubmitFormLPK` | Pengguna | Mengirimkan form data via metode HTTP `POST /lpks`. |
+| 8 | `CekValidasiLPK` | Sistem SIMASADI | *Choice Node*: Validasi unik `no_reg` dan verifikasi format data input di controller. |
+| 9a | *(Alur Gagal)* | Sistem SIMASADI | Mengembalikan error validasi formulir dan mempertahankan input lama (*re-populate*). |
+| 9b | `SimpanKeDatabase` | Sistem SIMASADI | Menyimpan rekaman baru ke tabel `lpks` dan mencatat relasi tim pada `lpk_members`. |
+| 10 | `HitungMasaBerlaku` | Sistem SIMASADI | Otomasi kalkulasi tanggal kedaluwarsa (`expired_at = certificate_date + 5 Tahun`). |
+| 11 | `TampilTabelLPK` | Sistem SIMASADI | Mengarahkan kembali ke daftar master LPK dengan notifikasi toast sukses tersimpan. |
+
+---
+
+#### 4.3.7 Activity Diagram: Perencanaan & Pencatatan Asesmen Lapangan KAN
+
+Diagram ini memodelkan proses penjadwalan dan pencatatan asesmen lapangan (8 tipe skema KAN) yang secara otomatis menginisialisasi parameter batas waktu toleransi pengisian dan penegakan SLA tindakan perbaikan (TP):
+
+```mermaid
+stateDiagram-v2
+    [*] --> PilihLPK: Pengguna Membuka Detail LPK Target (/lpks/{id})
+    PilihLPK --> KlikTambahAsesmen: Klik [ Tambah Program Asesmen ] (/assessments/create)
+    KlikTambahAsesmen --> TampilFormAsesmen: Sistem Menampilkan Formulir Asesmen KAN
+    
+    TampilFormAsesmen --> InputTipeAsesmen: Pilih Tipe Asesmen (AA, S1, S2, PRL, STT, atau Re-Akreditasi)
+    InputTipeAsesmen --> InputTanggalDanAsesor: Input Tanggal Mulai, Tanggal Selesai (end_at), & Lead Assessor
+    InputTanggalDanAsesor --> SubmitAsesmen: Klik [ Simpan & Jadwalkan Asesmen ] (POST /assessments)
+    
+    state CekValidasiTanggal <<choice>>
+    SubmitAsesmen --> CekValidasiTanggal: Sistem Memvalidasi Konsistensi Tanggal (end_at >= start_at)
+    
+    CekValidasiTanggal --> TampilFormAsesmen: Gagal (Tanggal Selesai Lebih Awal dari Tanggal Mulai)
+    CekValidasiTanggal --> SimpanDanHitungSLA: Berhasil (Data Valid)
+    
+    state SimpanDanHitungSLA {
+        SetStatusAsesmen: Status Asesmen = PLANNED / ONGOING
+        SetStatusAsesmen --> KalkulasiSLATindakan: AA = 3 Bulan, Tipe Lain = 2 Bulan sejak end_at
+        KalkulasiSLATindakan --> HitungToleransiKAN: Hitung submission_due_date (Bulan ke-15 + 4 Bln)
+        HitungToleransiKAN --> GenerateKalenderEvent: Buat Rekaman Otomatis pada Tabel calendar_events
+    }
+    
+    SimpanDanHitungSLA --> DetailAsesmenBaru: Simpan ke Basis Data & Redirect ke /assessments/{id}
+    DetailAsesmenBaru --> [*]: Asesmen Terjadwal dengan Countdown SLA & Pemantauan Aktif
+```
+
+<p align="center"><b>Gambar 4. 10 Activity Diagram Perencanaan & Pencatatan Asesmen Lapangan KAN</b></p>
+
+| No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
+|:---|:---|:---|:---|
+| 1 | `PilihLPK` | Ketua Tim / PIC | Pengguna memilih entitas LPK yang akan dijadwalkan pelaksanaan asesmennya. |
+| 2 | `KlikTambahAsesmen` | Pengguna | Menekan aksi tambah asesmen untuk mengakses formulir `/assessments/create`. |
+| 3 | `TampilFormAsesmen` | Sistem SIMASADI | Sistem merender antarmuka pemilihan skema asesmen dan penugasan tim asesor. |
+| 4 | `InputTipeAsesmen` | Pengguna | Memilih salah satu dari 8 tipe asesmen KAN U-01 (Akreditasi Awal hingga Re-Akreditasi). |
+| 5 | `InputTanggalDanAsesor` | Pengguna | Mengisi rentang tanggal kunjungan lapangan (`start_at`, `end_at`) dan nama ketua tim asesor. |
+| 6 | `SubmitAsesmen` | Pengguna | Mengirim form via HTTP `POST /assessments`. |
+| 7 | `CekValidasiTanggal` | Sistem SIMASADI | *Choice Node*: Validasi bahwa tanggal selesai asesmen tidak boleh lebih kecil dari tanggal mulai. |
+| 8a | *(Alur Gagal)* | Sistem SIMASADI | Menampilkan pesan error validasi tanggal pada antarmuka pengguna. |
+| 8b | `SimpanDanHitungSLA` | Sistem SIMASADI | Memproses otomasi logika bisnis regulasi KAN. |
+| 9 | `KalkulasiSLATindakan` | Sistem SIMASADI | Menghitung `tp_due_date` (3 bulan untuk AA, 2 bulan untuk surveilen rutin). |
+| 10 | `HitungToleransiKAN` | Sistem SIMASADI | Mengkalkulasi `submission_due_date` batas waktu toleransi pengisian dokumen asesmen. |
+| 11 | `GenerateKalenderEvent` | Sistem SIMASADI | Otomasi sinkronisasi jadwal asesmen ke dalam tabel `calendar_events`. |
+| 12 | `DetailAsesmenBaru` | Sistem SIMASADI | Pengguna diarahkan ke lembar kerja detail asesmen dengan kartu pelacakan SLA aktif. |
+
+---
+
+#### 4.3.8 Activity Diagram: Verifikasi Tindakan Perbaikan (TP), Sidang EHA, dan Rilis SK (Quality Gate)
+
+Diagram ini memodelkan proses verifikasi pemenuhan tindakan perbaikan (TP), pencatatan sidang Evaluasi Hasil Asesmen (EHA), dan penegakan kunci mutu (*Quality Gate Lock*) sebelum dokumen SK resmi diterbitkan:
+
+```mermaid
+stateDiagram-v2
+    [*] --> BukaDetailAsesmen: Buka Detail Asesmen (/assessments/{id})
+    BukaDetailAsesmen --> CekStatusTP: Periksa Status Tindakan Perbaikan Temuan Asesmen
+    
+    state EvaluasiTemuanTP <<choice>>
+    CekStatusTP --> EvaluasiTemuanTP: Evaluasi Pemenuhan Perbaikan oleh Lead Assessor
+    
+    EvaluasiTemuanTP --> PengajuanPerpanjangan: Butuh Tambahan Waktu (+1 Bulan Bersurat Resmi)
+    PengajuanPerpanjangan --> UpdateDueDateExtended: Sistem Update tp_extended_due_date & Catat Nomor Surat
+    UpdateDueDateExtended --> CekStatusTP: Pantau Batas Waktu Baru
+    
+    EvaluasiTemuanTP --> VerifikasiMemenuhi: Seluruh Ketidaksesuaian Dinyatakan Memenuhi
+    VerifikasiMemenuhi --> InputTPSatisfied: Input Tanggal Pemenuhan (tp_satisfied_at)
+    InputTPSatisfied --> SimpanStatusSatisfied: Sistem Menetapkan Status TP = SATISFIED
+    
+    SimpanStatusSatisfied --> InputSidangEHA: Input Tanggal & Catatan Hasil Sidang EHA (POST .../eha)
+    InputSidangEHA --> KlikRilisSK: Ketua Tim Klik Tombol [ Rilis SK Akreditasi ]
+    
+    state QualityGateCheck <<choice>>
+    KlikRilisSK --> QualityGateCheck: Evaluasi isReleaseReady() (Status TP SATISFIED && Sudah EHA)
+    
+    QualityGateCheck --> QualityGateLocked: Syarat Belum Lengkap (HTTP 422 Lock)
+    QualityGateLocked --> BukaDetailAsesmen: Alert Peringatan: SK Terkunci Sebelum Syarat Terpenuhi
+    
+    QualityGateCheck --> QualityGatePassed: Syarat Lengkap & Terverifikasi
+    QualityGatePassed --> UpdateRilisDokumen: Set sk_number, sk_issued_at, & output_released_at = now()
+    UpdateRilisDokumen --> DasborStatusSelesai: Status Akreditasi Diperbarui & Berkas SK Resmi Aktif
+    DasborStatusSelesai --> [*]: Siklus Asesmen Selesai Sempurna (Status: COMPLETED)
+```
+
+<p align="center"><b>Gambar 4. 11 Activity Diagram Verifikasi TP, Sidang EHA, dan Rilis SK</b></p>
+
+| No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
+|:---|:---|:---|:---|
+| 1 | `BukaDetailAsesmen` | Ketua Tim / PIC | Pengguna mengakses halaman kerja detail asesmen `/assessments/{id}`. |
+| 2 | `CekStatusTP` | Pengguna | Memeriksa panel pelacakan status tindakan perbaikan dan countdown batas waktu. |
+| 3 | `EvaluasiTemuanTP` | Tim Asesor & PIC | *Choice Node*: Evaluasi apakah perbaikan butuh perpanjangan waktu atau telah tuntas. |
+| 4a | `PengajuanPerpanjangan`| PIC Laboratorium | Menginput nomor surat resmi permohonan penambahan waktu perbaikan. |
+| 4b | `UpdateDueDateExtended`| Sistem SIMASADI | Sistem menambah durasi 1 bulan kalender (`tp_extended_due_date = tp_due_date + 1 bulan`). |
+| 5a | `VerifikasiMemenuhi` | Lead Assessor | Verifikasi teknis bahwa temuan ketidaksesuaian telah diselesaikan secara sah. |
+| 5b | `InputTPSatisfied` | Pengguna | Memasukkan tanggal penyelesaian perbaikan (`tp_satisfied_at`). |
+| 5c | `SimpanStatusSatisfied`| Sistem SIMASADI | Sistem memperbarui status tindakan perbaikan menjadi `SATISFIED`. |
+| 6 | `InputSidangEHA` | Ketua Tim | Menginputkan data tanggal pelaksanaan dan ringkasan sidang Evaluasi Hasil Asesmen. |
+| 7 | `KlikRilisSK` | Ketua Tim | Pengguna menekan tombol aksi penerbitan Surat Keputusan akreditasi. |
+| 8 | `QualityGateCheck` | Sistem SIMASADI | *Choice Node*: Validasi metode `isReleaseReady()` memastikan syarat TP dan EHA terpenuhi. |
+| 9a | `QualityGateLocked` | Sistem SIMASADI | *(Syarat belum terpenuhi)* Tombol terkunci dan sistem melempar respon status 422 Unprocessable Entity. |
+| 9b | `QualityGatePassed` | Sistem SIMASADI | *(Syarat terpenuhi)* Sistem membuka gembok penerbitan dokumen. |
+| 10 | `UpdateRilisDokumen` | Sistem SIMASADI | Memperbarui `sk_number`, mencatat timestamp `output_released_at`, dan menyimpan status ke database. |
+| 11 | `DasborStatusSelesai`| Sistem SIMASADI | Status siklus asesmen bertransisi menjadi `COMPLETED` dan dokumen SK resmi dirilis ke publik/LPK. |
+
+---
+
+#### 4.3.9 Activity Diagram: Pengelolaan Agenda Kalender Kerja Akreditasi
+
+Diagram ini memodelkan alur interaksi pengguna pada modul kalender kerja terpadu SIMASADI, yang mengintegrasikan jadwal asesmen lapangan, tenggat waktu tindakan perbaikan (TP), serta pembuatan agenda kordinasi mandiri:
+
+```mermaid
+stateDiagram-v2
+    [*] --> AksesMenuKalender: Akses Menu Kalender Kerja (/calendar)
+    AksesMenuKalender --> LoadAgendaOtomatis: Sistem Mengambil Data Asesmen & Tenggat TP dari Database
+    LoadAgendaOtomatis --> RenderKalenderGrid: Sistem Menampilkan Tampilan Kalender Bulanan & Mingguan
+    
+    state InteraksiKalender <<choice>>
+    RenderKalenderGrid --> InteraksiKalender: Pengguna Memilih Aksi pada Kalender
+    
+    InteraksiKalender --> FilterKategori: Menerapkan Filter Event (Asesmen / TP / LPK Binaan)
+    FilterKategori --> RenderKalenderGrid: Tampilan Kalender Terfilter Secara Real-time
+    
+    InteraksiKalender --> KlikEventTertentu: Klik Salah Satu Kotak Event Agenda
+    KlikEventTertentu --> TampilModalDetail: Sistem Menampilkan Modal Rincian Waktu, Lokasi, & LPK
+    TampilModalDetail --> RenderKalenderGrid: Tutup Modal Rincian
+    
+    InteraksiKalender --> TambahEventBaru: Klik [ + Tambah Agenda ] (/calendar/events/create)
+    TambahEventBaru --> TampilFormEvent: Sistem Menampilkan Formulir Pembuatan Agenda
+    TampilFormEvent --> InputDataAgenda: Pengguna Mengisi Judul, Jenis Kegiatan, Rentang Waktu, & Catatan
+    InputDataAgenda --> SubmitAgenda: Klik [ Simpan Agenda ] (POST /calendar/events)
+    
+    state ValidasiAgenda <<choice>>
+    SubmitAgenda --> ValidasiAgenda: Sistem Memeriksa Kelengkapan Form & Logika Tanggal
+    
+    ValidasiAgenda --> TampilFormEvent: Gagal (Judul Kosong / Format Tanggal Tidak Valid)
+    ValidasiAgenda --> SimpanAgendaDB: Berhasil (Data Valid)
+    
+    SimpanAgendaDB --> RenderKalenderGrid: Simpan ke calendar_events & Tampilkan Event Baru di Grid
+    RenderKalenderGrid --> [*]: Seluruh Tim Memperoleh Jadwal Terkoordinasi & Tersinkronisasi
+```
+
+<p align="center"><b>Gambar 4. 12 Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi</b></p>
+
+| No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
+|:---|:---|:---|:---|
+| 1 | `AksesMenuKalender` | Ketua Tim / PIC | Pengguna membuka tautan navigasi Kalender menuju rute `/calendar`. |
+| 2 | `LoadAgendaOtomatis` | Sistem SIMASADI | Query penggabungan agenda kunjungan asesmen dan kalkulasi tenggat waktu SLA TP. |
+| 3 | `RenderKalenderGrid` | Sistem SIMASADI | Merender antarmuka kalender grid interaktif dengan penanda warna (*color-coded badge*) tiap tipe event. |
+| 4 | `InteraksiKalender` | Pengguna | *Choice Node*: Memilih aksi eksplorasi filter, melihat rincian agenda, atau membuat agenda baru. |
+| 5a | `FilterKategori` | Pengguna | Menyaring tampilan kalender berdasarkan kategori kegiatan atau LPK binaan tertentu. |
+| 5b | `KlikEventTertentu` | Pengguna | Mengetuk entri event untuk melihat modal informasi ringkas tanpa berpindah halaman. |
+| 5c | `TambahEventBaru` | Pengguna | Menekan tombol penambahan agenda kegiatan koordinasi mandiri. |
+| 6 | `TampilFormEvent` | Sistem SIMASADI | Menampilkan formulir input jadwal baru pada rute `/calendar/events/create`. |
+| 7 | `InputDataAgenda` | Pengguna | Mengisi judul agenda, jenis event, waktu mulai & selesai, serta catatan penjelasan. |
+| 8 | `SubmitAgenda` | Pengguna | Mengirim formulir via HTTP `POST /calendar/events`. |
+| 9 | `ValidasiAgenda` | Sistem SIMASADI | *Choice Node*: Validasi integritas data masukan agenda pada `CalendarEventController`. |
+| 10a | *(Alur Gagal)* | Sistem SIMASADI | Menampilkan notifikasi kesalahan validasi input data. |
+| 10b | `SimpanAgendaDB` | Sistem SIMASADI | Menyimpan rekaman agenda ke tabel basis data `calendar_events`. |
+| 11 | `RenderKalenderGrid` | Sistem SIMASADI | Memperbarui tampilan kalender grid dengan agenda baru yang telah tersinkronisasi. |
+
+---
+
 ### 4.4 Sequence Diagram
 
 #### 4.4.1 Sequence Diagram: Verifikasi Alur EHA & Quality Gate Rilis SK
@@ -391,7 +601,7 @@ sequenceDiagram
     end
 ```
 
-<p align="center"><b>Gambar 4. 9 Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK</b></p>
+<p align="center"><b>Gambar 4. 13 Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK</b></p>
 
 ---
 
@@ -511,7 +721,7 @@ erDiagram
     }
 ```
 
-<p align="center"><b>Gambar 4. 10 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
+<p align="center"><b>Gambar 4. 14 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
 
 ---
 
@@ -740,7 +950,7 @@ classDiagram
     User "1" --> "*" UserAccountLink : links
 ```
 
-<p align="center"><b>Gambar 4. 11 Class Diagram SIMASADI</b></p>
+<p align="center"><b>Gambar 4. 15 Class Diagram SIMASADI</b></p>
 
 ---
 
@@ -772,7 +982,7 @@ classDiagram
 +---------------------------------------------------------------------------------------------------+
 ```
 
-<p align="center"><b>Gambar 4. 12 Wireframe Halaman Detail Asesmen (Desktop)</b></p>
+<p align="center"><b>Gambar 4. 16 Wireframe Halaman Detail Asesmen (Desktop)</b></p>
 
 #### 4.7.2 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation & Bottom Sheet)
 ```text
@@ -805,7 +1015,7 @@ classDiagram
 +-----------------------------+
 ```
 
-<p align="center"><b>Gambar 4. 13 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation)</b></p>
+<p align="center"><b>Gambar 4. 17 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation)</b></p>
 
 #### 4.7.3 Wireframe Antarmuka Halaman Masuk (Login Canvas)
 ```text
@@ -835,4 +1045,4 @@ classDiagram
 +-----------------------------------------------------------------------------------+
 ```
 
-<p align="center"><b>Gambar 4. 14 Wireframe Antarmuka Halaman Masuk (Login Canvas)</b></p>
+<p align="center"><b>Gambar 4. 18 Wireframe Antarmuka Halaman Masuk (Login Canvas)</b></p>
