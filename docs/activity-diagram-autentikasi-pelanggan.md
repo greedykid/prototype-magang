@@ -1,6 +1,6 @@
-# Activity Diagram Autentikasi Pelanggan
+# Activity Diagram Autentikasi Pengguna (Ketua Tim & PIC)
 
-Dokumen perancangan *Activity Diagram* untuk proses autentikasi (Login, Registrasi, dan Lupa Password) dengan pemisahan jalur tanggung jawab (*swimlane*) antara **Pelanggan** dan **Sistem**, mengacu pada **Gambar 3. 9 Activity Diagram Autentikasi Pelanggan**.
+Dokumen perancangan *Activity Diagram* untuk proses autentikasi (Login dan Pemulihan Kata Sandi) pada sistem SIMASADI dengan pemisahan jalur tanggung jawab (*swimlane*) antara aktor internal (**Ketua Tim / PIC**) dan **Sistem SIMASADI**, disesuaikan dengan arsitektur 2 peran nyata aplikasi.
 
 ---
 
@@ -8,25 +8,25 @@ Dokumen perancangan *Activity Diagram* untuk proses autentikasi (Login, Registra
 
 ```mermaid
 flowchart TD
-    %% Swimlane Pelanggan
-    subgraph PELANGGAN["PELANGGAN"]
+    %% Swimlane Ketua Tim & PIC
+    subgraph PENGGUNA["KETUA TIM / PIC"]
         startNode(( ))
-        act_open["Membuka Halaman Masuk atau Daftar"]
+        act_open["Membuka Halaman Login SIMASADI"]
         dec_forgot{"Lupa Password?"}
-        act_email["Mengisi Form Email Akun"]
+        act_email["Mengisi Form Email Akun Terdaftar"]
         act_newpass["Mengisi Form Reset Password Baru"]
         merge_bar["▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"]
-        act_fill_login["Mengisi Form Login atau Daftar, atau Memakai Akun Google"]
+        act_fill_login["Mengisi Form Login (Email & Password)"]
         endNode((( )))
     end
 
-    %% Swimlane Sistem
-    subgraph SISTEM["SISTEM"]
-        act_show_login["Menampilkan Halaman Login atau Daftar"]
+    %% Swimlane Sistem SIMASADI
+    subgraph SISTEM["SISTEM SIMASADI"]
+        act_show_login["Menampilkan Halaman Login SIMASADI"]
         act_show_forgot["Menampilkan Halaman Lupa Password"]
         act_send_smtp["Mengirim Tautan Reset Password ke Email via SMTP"]
         act_db_update["Memperbarui Password di Basis Data"]
-        act_validate["Memvalidasi Data dan Membuat Sesi Login"]
+        act_validate["Memvalidasi Kredensial dan Membuat Sesi Login"]
     end
 
     %% Alur Aktivitas (Flow Transitions)
@@ -50,7 +50,7 @@ flowchart TD
     act_fill_login --> act_validate
     act_validate --> endNode
 
-    %% Styling Komponen UML
+    %% Styling Komponen UML Sesuai Standar
     style startNode fill:#000000,stroke:#000000,stroke-width:2px
     style endNode fill:#ffffff,stroke:#000000,stroke-width:3px
     style merge_bar fill:#000000,color:#000000,stroke:#000000,stroke-width:2px
@@ -66,72 +66,72 @@ flowchart TD
     style act_fill_login fill:#ffffff,stroke:#333333,stroke-width:1.5px
     style act_validate fill:#ffffff,stroke:#333333,stroke-width:1.5px
 
-    style PELANGGAN fill:#fafafa,stroke:#888888,stroke-width:1.5px
+    style PENGGUNA fill:#fafafa,stroke:#888888,stroke-width:1.5px
     style SISTEM fill:#fafafa,stroke:#888888,stroke-width:1.5px
 ```
 
-<p align="center"><b>Gambar 3. 9 Activity Diagram Autentikasi Pelanggan</b></p>
+<p align="center"><b>Gambar 3. 9 Activity Diagram Autentikasi Pengguna (Ketua Tim & PIC)</b></p>
 
 ---
 
 ## 2. Deskripsi Alur Aktivitas (*Use Case Scenario*)
 
-| No | Aktor / Partisi | Aksi / Aktivitas | Keterangan |
+| No | Aktor / Partisi | Aksi / Aktivitas | Keterangan Teknis |
 |:---|:---|:---|:---|
-| 1 | **Pelanggan** | *Initial Node* (Titik Mulai) | Memulai interaksi dengan aplikasi. |
-| 2 | **Pelanggan** | Membuka Halaman Masuk atau Daftar | Pengguna mengakses URL autentikasi aplikasi. |
-| 3 | **Sistem** | Menampilkan Halaman Login atau Daftar | Sistem memuat antarmuka formulir kredensial dan opsi login SSO Google. |
-| 4 | **Pelanggan** | *Decision Node:* Lupa Password? | Pengecekan kondisi apakah pengguna mengingat kredensialnya atau tidak. |
-| 5a | **Sistem** | Menampilkan Halaman Lupa Password | *(Kondisi: Ya)* Sistem mengarahkan ke form permintaan reset kata sandi. |
-| 5b | **Sistem** | Mengirim Tautan Reset Password ke Email via SMTP | Sistem membuat token aman dan mengirim surel verifikasi ke alamat email pelanggan. |
-| 5c | **Pelanggan** | Mengisi Form Email Akun | Pelanggan memasukkan email terdaftar untuk verifikasi akun. |
-| 5d | **Pelanggan** | Mengisi Form Reset Password Baru | Pelanggan membuka tautan dari surel dan menginputkan password baru. |
-| 5e | **Sistem** | Memperbarui Password di Basis Data | Sistem mengenkripsi kata sandi baru (bcrypt) dan menyimpannya ke tabel pengguna. |
-| 6 | **Pelanggan** | *Synchronization Bar* (Penggabungan Alur) | Titik temu alur normal (ingat password) dan alur pemulihan (password baru berhasil dibuat). |
-| 7 | **Pelanggan** | Mengisi Form Login atau Daftar, atau Memakai Akun Google | Pelanggan menginputkan kredensial masuk atau memilih Single Sign-On (OAuth Google). |
-| 8 | **Sistem** | Memvalidasi Data dan Membuat Sesi Login | Sistem memverifikasi kredensial, mencatat audit log, dan menginisialisasi sesi autentikasi. |
-| 9 | **Pelanggan** | *Activity Final Node* (Selesai) | Proses autentikasi tuntas dan pengguna dialihkan ke halaman utama / dashboard. |
+| 1 | **Ketua Tim / PIC** | *Initial Node* (Titik Mulai) | Pengguna mengakses peramban web (*browser*). |
+| 2 | **Ketua Tim / PIC** | Membuka Halaman Login SIMASADI | Pengguna mengakses URL rute `/login`. |
+| 3 | **Sistem SIMASADI** | Menampilkan Halaman Login SIMASADI | Sistem merender tampilan formulir login (`auth.login`) beserta proteksi Google reCAPTCHA. |
+| 4 | **Ketua Tim / PIC** | *Decision Node:* Lupa Password? | Pengecekan kondisi apakah pengguna mengingat kata sandinya atau memerlukan pemulihan. |
+| 5a | **Sistem SIMASADI** | Menampilkan Halaman Lupa Password | *(Kondisi: Ya)* Sistem menampilkan formulir permohonan tautan reset kata sandi. |
+| 5b | **Sistem SIMASADI** | Mengirim Tautan Reset Password ke Email via SMTP | Sistem men-generate token unik dan mengirimkan tautan reset ke alamat email resmi terdaftar melalui protokol SMTP. |
+| 5c | **Ketua Tim / PIC** | Mengisi Form Email Akun Terdaftar | Pengguna memasukkan alamat email resmi untuk menerima token verifikasi. |
+| 5d | **Ketua Tim / PIC** | Mengisi Form Reset Password Baru | Pengguna membuka tautan dari surel dan menginputkan password baru yang memenuhi syarat keamanan. |
+| 5e | **Sistem SIMASADI** | Memperbarui Password di Basis Data | Sistem mengenkripsi kata sandi baru menggunakan algoritma `bcrypt` dan memperbarui tabel `users`. |
+| 6 | **Ketua Tim / PIC** | *Synchronization Bar* (Penggabungan Alur) | Titik temu (*join bar*) antara alur langsung (ingat kata sandi) dan alur setelah kata sandi berhasil diperbarui. |
+| 7 | **Ketua Tim / PIC** | Mengisi Form Login (Email & Password) | Pengguna menginputkan alamat surel dan kata sandi pada form login utama. |
+| 8 | **Sistem SIMASADI** | Memvalidasi Kredensial dan Membuat Sesi Login | Sistem memverifikasi kredensial via `Auth::attempt()`, meregenerasi token sesi untuk keamanan anti-fixation, dan memuat peran pengguna (`admin` atau `pic`). |
+| 9 | **Ketua Tim / PIC** | *Activity Final Node* (Selesai) | Sesi autentikasi aktif dan pengguna dialihkan ke halaman utama Dasbor SIMASADI (`/dashboard`). |
 
 ---
 
 ## 3. Format Alternatif (PlantUML)
 
-Jika dokumen tugas akhir/laporan Anda menggunakan generator diagram PlantUML (misal pada VS Code atau integrasi Word):
+Jika dokumen laporan/tugas akhir Anda menggunakan generator PlantUML:
 
 ```plantuml
-@startuml Gambar_3_9_Activity_Diagram_Autentikasi_Pelanggan
+@startuml Gambar_3_9_Activity_Diagram_Autentikasi_Pengguna
 skinparam ActivityBackgroundColor #FFFFFF
 skinparam ActivityBorderColor #333333
 skinparam SwimlaneBorderColor #888888
 
-|PELANGGAN|
+|KETUA TIM / PIC|
 start
-:Membuka Halaman Masuk atau Daftar;
+:Membuka Halaman Login SIMASADI;
 
-|SISTEM|
-:Menampilkan Halaman Login atau Daftar;
+|SISTEM SIMASADI|
+:Menampilkan Halaman Login SIMASADI;
 
-|PELANGGAN|
+|KETUA TIM / PIC|
 if (Lupa Password?) then (Ya)
-  |SISTEM|
+  |SISTEM SIMASADI|
   :Menampilkan Halaman Lupa Password;
   :Mengirim Tautan Reset Password ke Email via SMTP;
-  |PELANGGAN|
-  :Mengisi Form Email Akun;
+  |KETUA TIM / PIC|
+  :Mengisi Form Email Akun Terdaftar;
   :Mengisi Form Reset Password Baru;
-  |SISTEM|
+  |SISTEM SIMASADI|
   :Memperbarui Password di Basis Data;
-  |PELANGGAN|
+  |KETUA TIM / PIC|
 else (Tidak)
 endif
 
-|PELANGGAN|
-:Mengisi Form Login atau Daftar, atau Memakai Akun Google;
+|KETUA TIM / PIC|
+:Mengisi Form Login (Email & Password);
 
-|SISTEM|
-:Memvalidasi Data dan Membuat Sesi Login;
+|SISTEM SIMASADI|
+:Memvalidasi Kredensial dan Membuat Sesi Login;
 
-|PELANGGAN|
+|KETUA TIM / PIC|
 stop
 @enduml
 ```
