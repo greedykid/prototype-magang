@@ -169,8 +169,6 @@ class GoogleSheetsReportController extends Controller
             'Tanggal Terbit Sertifikat',
             'Masa Berlaku Akreditasi',
             'Tautan Drive Dokumen (Sertifikat & Amandemen)',
-            'Total Akreditasi',
-            'Tanggal Terdaftar',
         ];
 
         return response()->stream(function () use ($columns, $ids, $user) {
@@ -178,7 +176,7 @@ class GoogleSheetsReportController extends Controller
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
-            $query = Lpk::withCount(['accreditations'])
+            $query = Lpk::query()
                 ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
                 ->orderBy('name');
 
@@ -200,8 +198,6 @@ class GoogleSheetsReportController extends Controller
                     $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-',
                     $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
                     $lpk->drive_url ?: '-',
-                    $lpk->accreditations_count,
-                    $lpk->created_at ? $lpk->created_at->format('d/m/Y') : '-',
                 ];
 
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
@@ -289,8 +285,6 @@ class GoogleSheetsReportController extends Controller
             'Tanggal Terbit Sertifikat',
             'Masa Berlaku Akreditasi',
             'Tautan Drive Dokumen (Sertifikat & Amandemen)',
-            'Total Akreditasi',
-            'Tanggal Terdaftar',
         ];
 
         $spreadsheet = new Spreadsheet();
@@ -300,7 +294,7 @@ class GoogleSheetsReportController extends Controller
         // Header
         $sheet->fromArray([$columns], null, 'A1');
 
-        $query = Lpk::withCount(['accreditations'])
+        $query = Lpk::query()
             ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
             ->orderBy('name');
 
@@ -321,8 +315,6 @@ class GoogleSheetsReportController extends Controller
                 $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-',
                 $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
                 $lpk->drive_url ?: '-',
-                $lpk->accreditations_count,
-                $lpk->created_at ? $lpk->created_at->format('d/m/Y') : '-',
             ];
 
             $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
@@ -357,7 +349,6 @@ class GoogleSheetsReportController extends Controller
         if ($lastRow >= 2) {
             $sheet->getStyle('A2:D' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle('G2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('K2:L' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
         // Lebar kolom diatur hanya mengikuti panjang teks header kolom (bukan isi data)
