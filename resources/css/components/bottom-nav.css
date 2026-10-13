@@ -404,7 +404,7 @@
 
     /* Reserve bottom space on page content so nothing is covered by bottom nav */
     .page-wrap {
-        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 24px) !important;
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 32px) !important;
     }
 }
 

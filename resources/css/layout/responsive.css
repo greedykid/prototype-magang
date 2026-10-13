@@ -95,7 +95,7 @@
         box-sizing: border-box;
         max-width: 100%;
         overflow-x: clip;
-        padding: 24px 20px calc(64px + env(safe-area-inset-bottom, 0px) + 24px);
+        padding: 24px 20px calc(64px + env(safe-area-inset-bottom, 0px) + 32px);
         width: 100%;
     }
 
@@ -426,7 +426,7 @@
    ========================================================================== */
 @media (max-width: 680px) {
     .page-wrap {
-        padding: 14px 12px 40px !important;
+        padding: 14px 12px calc(64px + env(safe-area-inset-bottom, 0px) + 32px) !important;
     }
 
     /* Mobile Topbar Compact Context */
