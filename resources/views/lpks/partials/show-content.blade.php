@@ -1063,64 +1063,9 @@
                         </span>
                     </div>
 
-                    {{-- 2. Anggota PIC Tertaut --}}
-                    @forelse($lpk->members as $member)
-                        <div class="lpk-team-member">
-                            <div class="lpk-member-info">
-                                <div class="lpk-member-avatar">
-                                    {{ $member->initials }}
-                                </div>
-                                <div class="lpk-member-details">
-                                    <span class="lpk-member-name">
-                                        {{ $member->name }}
-                                    </span>
-                                    <span class="lpk-member-email">
-                                        {{ $member->email }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="lpk-member-actions">
-                                @if($member->pivot->role === 'lead')
-                                    <span class="badge badge-pic-lead">
-                                        {{ $member->isAdmin() ? 'Ketua Tim' : 'PIC Pendamping' }}
-                                    </span>
-                                @else
-                                    <span class="badge badge-pic-viewer">
-                                        Viewer
-                                    </span>
-                                @endif
-
-                                @if($lpk->canManage(auth()->user()))
-                                    <form method="POST" action="{{ route('lpks.members.destroy', [$lpk, $member]) }}"
-                                          data-confirm-delete
-                                          data-confirm-title="Putuskan Akses Tim?"
-                                          data-confirm-text="Apakah Anda yakin ingin memutuskan akses PIC {{ $member->name }} dari LPK ini?"
-                                          data-confirm-btn="Ya, Putuskan Akses"
-                                          style="margin: 0;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--danger-text, #ef4444); display: inline-flex; align-items: center;" title="Putuskan tautan akun PIC ini">
-                                            <x-icon name="trash" size="14" />
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        @if(! $lpk->pic)
-                            <div style="font-size: 12px; color: var(--muted); padding: 10px 12px;">
-                                Belum ada penanggung jawab khusus untuk LPK ini.
-                            </div>
-                        @endif
-                    @endforelse
-
-                    {{-- 3. Viewer dari Tautan Akun PIC --}}
+                    {{-- 2. Viewer Kolaborasi dari Tautan Akun --}}
                     @if($lpk->pic && $lpk->pic->linkedViewers && $lpk->pic->linkedViewers->isNotEmpty())
-                        @php
-                            $memberIds = $lpk->members->pluck('id')->all();
-                            $accountViewers = $lpk->pic->linkedViewers->reject(fn ($v) => in_array($v->id, $memberIds));
-                        @endphp
-                        @foreach($accountViewers as $viewer)
+                        @foreach($lpk->pic->linkedViewers as $viewer)
                             <div class="lpk-team-member">
                                 <div class="lpk-member-info">
                                     <div class="lpk-member-avatar is-viewer">
@@ -1136,63 +1081,27 @@
                                     </div>
                                 </div>
                                 <div class="lpk-member-actions">
-                                    <span class="badge badge-viewer-linked" title="Memiliki akses lihat ke seluruh LPK akun ini">
-                                        Viewer (Akses Akun)
+                                    <span class="badge badge-viewer-linked" title="Memiliki akses lihat ke seluruh daftar LPK akun ini">
+                                        Viewer (Tautan Akun)
                                     </span>
                                 </div>
                             </div>
                         @endforeach
+                    @else
+                        <div style="font-size: 12px; color: var(--muted); padding: 8px 12px;">
+                            Belum ada akun viewer kolaborasi yang ditautkan ke PIC ini.
+                        </div>
                     @endif
                 </div>
 
-                {{-- Form Tautkan PIC Baru (Hanya tampil untuk Ketua Tim atau Admin) --}}
-                @if($lpk->canManage(auth()->user()))
-                    @php
-                        $linkedUserIds = $lpk->members->pluck('id')->all();
-                        if ($lpk->pic_id) {
-                            $linkedUserIds[] = $lpk->pic_id;
-                        }
-                        $availablePics = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)
-                            ->whereNotIn('id', $linkedUserIds)
-                            ->orderBy('name')
-                            ->get();
-                    @endphp
-
-                    @if($availablePics->isNotEmpty())
-                        <form method="POST" action="{{ route('lpks.members.store', $lpk) }}" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
-                            @csrf
-                            <label for="select-link-pic" style="display: block; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">
-                                Tautkan Akun PIC Lain (Per-LPK)
-                            </label>
-                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                                <select id="select-link-pic" name="user_id" required style="flex: 1; min-width: 150px; font-size: 12px; padding: 6px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
-                                    <option value="">-- Pilih PIC --</option>
-                                    @foreach($availablePics as $ap)
-                                        <option value="{{ $ap->id }}">{{ $ap->name }} ({{ $ap->email }})</option>
-                                    @endforeach
-                                </select>
-                                <select name="role" style="font-size: 12px; padding: 6px 8px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
-                                    <option value="viewer" selected>Viewer</option>
-                                    <option value="lead">PIC Pendamping</option>
-                                </select>
-                                <button type="submit" class="button secondary button-xs" style="font-size: 12px; padding: 6px 12px; font-weight: 600; white-space: nowrap;">
-                                    + Tautkan
-                                </button>
-                            </div>
-                            <span style="display: block; font-size: 11px; color: var(--muted); margin-top: 6px;">
-                                PIC berstatus <em>Viewer</em> hanya dapat melihat data LPK dan agenda terkait.
-                            </span>
-                        </form>
-                    @endif
-
-                    <div style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
-                        <span style="color: var(--muted);">Tautan Akun Kolaborasi (Seluruh LPK)</span>
-                        <a href="{{ route('account-links.index') }}" style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            <span>Kelola Tautan Akun</span>
-                            <x-icon name="arrow-right" size="12" />
-                        </a>
-                    </div>
-                @endif
+                {{-- Tautan Pengaturan Akun Kolaborasi Global --}}
+                <div style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
+                    <span style="color: var(--muted);">Tautan Akun Kolaborasi (Seluruh LPK)</span>
+                    <a href="{{ route('account-links.index') }}" style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <span>Kelola Tautan Akun</span>
+                        <x-icon name="arrow-right" size="12" />
+                    </a>
+                </div>
             </div>
 
             {{-- KARTU: Program Asesmen Surveilen --}}

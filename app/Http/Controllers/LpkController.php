@@ -191,7 +191,7 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers', 'members']);
+        $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers']);
         foreach ($lpk->assessments as $assessment) {
             $assessment->setRelation('lpk', $lpk);
         }
