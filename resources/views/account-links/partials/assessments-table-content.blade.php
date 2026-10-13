@@ -56,17 +56,19 @@
                             {{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}
                         </td>
                         <td>
-                            @php $badge = $assessment->tp_sla_badge; @endphp
-                            <div style="display: flex; flex-direction: column; gap: 3px;">
-                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['detail'] }}">
-                                    {{ $badge['label'] }}
+                            @php
+                                $badge = $assessment->tp_sla_badge;
+                                $hasDueDate = $assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE;
+                            @endphp
+                            @if($hasDueDate)
+                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['label'] }} - {{ $badge['detail'] }}">
+                                    {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
                                 </span>
-                                @if($assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE)
-                                    <small style="color: var(--muted); font-size: 11px;">
-                                        Batas: {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
-                                    </small>
-                                @endif
-                            </div>
+                            @else
+                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['detail'] }}">
+                                    -
+                                </span>
+                            @endif
                         </td>
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
