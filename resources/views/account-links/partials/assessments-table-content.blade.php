@@ -65,9 +65,7 @@
                                     {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
                                 </span>
                             @else
-                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['detail'] }}">
-                                    -
-                                </span>
+                                <span style="color: var(--muted); font-size: 13px;">-</span>
                             @endif
                         </td>
                         <td>
