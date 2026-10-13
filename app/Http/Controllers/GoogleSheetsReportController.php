@@ -112,6 +112,53 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
+     * Format label status asesmen ke bahasa Indonesia.
+     */
+    protected function formatAssessmentStatus(?string $status): string
+    {
+        return match ($status) {
+            'PLANNED' => 'Direncanakan',
+            'SCHEDULED' => 'Terjadwal',
+            'IN_PROGRESS' => 'Sedang Berlangsung',
+            'COMPLETED' => 'Selesai',
+            'SUSPENDED' => 'Dibekukan',
+            'REVOKED' => 'Dicabut',
+            'CANCELLED' => 'Dibatalkan',
+            default => Assessment::STATUS_LABELS[$status] ?? ($status ?: '-'),
+        };
+    }
+
+    /**
+     * Format label status tindakan perbaikan (TP) ke bahasa Indonesia.
+     */
+    protected function formatTpStatus(?string $tpStatus): string
+    {
+        return match ($tpStatus) {
+            'NONE' => 'Tidak Ada Temuan',
+            'IN_PROGRESS' => 'Penyusunan Perbaikan',
+            'UNDER_VERIFICATION' => 'Dalam Verifikasi',
+            'SATISFIED' => 'Dinyatakan Memenuhi',
+            'NOT_APPLICABLE', null, '' => '-',
+            default => Assessment::TP_STATUSES[$tpStatus] ?? $tpStatus,
+        };
+    }
+
+    /**
+     * Format label status operasional LPK ke bahasa Indonesia.
+     */
+    protected function formatLpkStatus(Lpk $lpk): string
+    {
+        return $lpk->dynamic_status_label ?: match ($lpk->status) {
+            'ACTIVE' => 'Aktif',
+            'INACTIVE' => 'Tidak Aktif',
+            'SUSPENDED' => 'Dibekukan',
+            'REVOKED' => 'Dicabut',
+            'EXPIRED' => 'Kedaluwarsa',
+            default => $lpk->status ?: 'Aktif',
+        };
+    }
+
+    /**
      * Sanitasi sel CSV untuk mencegah Formula / CSV Injection (CWE-1236).
      */
     protected function sanitizeCsvCell(mixed $value): string
@@ -194,9 +241,9 @@ class GoogleSheetsReportController extends Controller
                     $lpk->accreditation_type ?: 'Laboratorium Penguji',
                     $lpk->name,
                     $lpk->scope ?: '-',
-                    $lpk->status,
-                    $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-',
-                    $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
+                    $this->formatLpkStatus($lpk),
+                    $lpk->certificate_date ? $lpk->certificate_date->translatedFormat('d F Y') : '-',
+                    $lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-',
                     $lpk->drive_url ?: '-',
                 ];
 
@@ -253,11 +300,11 @@ class GoogleSheetsReportController extends Controller
                     $asm->title,
                     $asm->lpk?->name ?? '-',
                     $asm->assessment_type,
-                    $asm->start_at ? $asm->start_at->format('d/m/Y') : '-',
-                    $asm->end_at ? $asm->end_at->format('d/m/Y') : '-',
-                    $asm->status,
-                    $asm->tp_status ?? 'NOT_APPLICABLE',
-                    $asm->tp_due_date ? $asm->tp_due_date->format('d/m/Y') : '-',
+                    $asm->start_at ? $asm->start_at->translatedFormat('d F Y') : '-',
+                    $asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-',
+                    $this->formatAssessmentStatus($asm->status),
+                    $this->formatTpStatus($asm->tp_status),
+                    $asm->tp_due_date ? $asm->tp_due_date->translatedFormat('d F Y') : '-',
                 ];
 
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
@@ -311,9 +358,9 @@ class GoogleSheetsReportController extends Controller
                 $lpk->accreditation_type ?: 'Laboratorium Penguji',
                 $lpk->name,
                 $lpk->scope ?: '-',
-                $lpk->status,
-                $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-',
-                $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
+                $this->formatLpkStatus($lpk),
+                $lpk->certificate_date ? $lpk->certificate_date->translatedFormat('d F Y') : '-',
+                $lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-',
                 $lpk->drive_url ?: '-',
             ];
 
@@ -408,11 +455,11 @@ class GoogleSheetsReportController extends Controller
                 $asm->title,
                 $asm->lpk?->name ?? '-',
                 $asm->assessment_type,
-                $asm->start_at ? $asm->start_at->format('d/m/Y') : '-',
-                $asm->end_at ? $asm->end_at->format('d/m/Y') : '-',
-                $asm->status,
-                $asm->tp_status ?? 'NOT_APPLICABLE',
-                $asm->tp_due_date ? $asm->tp_due_date->format('d/m/Y') : '-',
+                $asm->start_at ? $asm->start_at->translatedFormat('d F Y') : '-',
+                $asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-',
+                $this->formatAssessmentStatus($asm->status),
+                $this->formatTpStatus($asm->tp_status),
+                $asm->tp_due_date ? $asm->tp_due_date->translatedFormat('d F Y') : '-',
             ];
 
             $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
@@ -446,7 +493,7 @@ class GoogleSheetsReportController extends Controller
         // Alignment formatting
         if ($lastRow >= 2) {
             $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('D2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('E2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
         // Lebar kolom diatur hanya mengikuti panjang teks header kolom (bukan isi data)

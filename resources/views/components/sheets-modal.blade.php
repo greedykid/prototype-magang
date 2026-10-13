@@ -61,13 +61,14 @@
                     </button>
                 </div>
 
-                {{-- Panduan 3 Langkah --}}
+                {{-- Panduan Penggunaan --}}
                 <div style="margin-top: 14px; background: var(--surface, #fafaf9); border: 1px solid var(--line); border-radius: var(--radius-md, 10px); padding: 10px 12px; font-size: 12px; color: var(--ink);">
                     <strong>Cara Penggunaan di Google Sheets:</strong>
                     <ol style="margin: 4px 0 0 16px; padding: 0; line-height: 1.6; color: var(--muted);">
                         <li>Buka spreadsheet baru di Google Drive (atau ketik <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" style="color: var(--green, #10b981); font-weight: 600; text-decoration: none;">sheets.new</a>).</li>
                         <li>Klik pada sel <strong>A1</strong>.</li>
                         <li>Tempelkan (Paste) rumus di atas, lalu tekan <strong>Enter</strong>. Tabel akan langsung terisi!</li>
+                        <li><em>Tips Tampilan Rapi:</em> Tekan <strong>Ctrl + A</strong> (pilih semua) lalu klik ganda (double-click) batas garis pemisah antar-kolom di bagian atas agar lebar kolom menyesuaikan otomatis (Auto-fit).</li>
                     </ol>
                 </div>
             </div>
