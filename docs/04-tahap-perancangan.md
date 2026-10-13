@@ -132,7 +132,187 @@ flowchart LR
 
 ### 4.3 Activity Diagram
 
-#### 4.3.1 Activity Diagram: Penegakan Siklus Hidup 3 Tahap Surveilen KAN
+Aktivitas sistem dimodelkan menggunakan diagram aktivitas berbasis pembagian jalur tanggung jawab (*swimlane*), membedakan secara tegas peran masing-masing aktor pengguna internal (**Ketua Tim** dan **PIC Laboratorium**) serta respons otomatis **Sistem SIMASADI**:
+
+---
+
+#### 4.3.1 Activity Diagram: Autentikasi Ketua Tim (Admin)
+
+Diagram ini memodelkan proses autentikasi akun Ketua Tim (Administrator Unit Akreditasi) mulai dari pembukaan halaman login, alur pemulihan kata sandi via email SMTP jika lupa password, hingga validasi kredensial dan pembuatan sesi login administratif:
+
+```mermaid
+flowchart TD
+    %% Swimlane Ketua Tim
+    subgraph KETUA_TIM["KETUA TIM (ADMIN)"]
+        kt_start(( ))
+        kt_open["Membuka Halaman Login SIMASADI"]
+        kt_dec{"Lupa Password?"}
+        kt_email["Mengisi Form Email Akun Ketua Tim"]
+        kt_newpass["Mengisi Form Reset Password Baru"]
+        kt_merge["▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"]
+        kt_fill_login["Mengisi Form Login (Email & Password)"]
+        kt_end((( )))
+    end
+
+    %% Swimlane Sistem SIMASADI
+    subgraph SISTEM_KT["SISTEM SIMASADI"]
+        kt_show_login["Menampilkan Halaman Login SIMASADI"]
+        kt_show_forgot["Menampilkan Halaman Lupa Password"]
+        kt_send_smtp["Mengirim Tautan Reset Password ke Email via SMTP"]
+        kt_db_update["Memperbarui Password di Basis Data"]
+        kt_validate["Memvalidasi Kredensial Admin & Membuka Sesi Login"]
+    end
+
+    %% Alur Aktivitas (Flow Transitions)
+    kt_start --> kt_open
+    kt_open --> kt_show_login
+    kt_show_login --> kt_dec
+
+    %% Cabang Lupa Password: Ya
+    kt_dec -- "Ya" --> kt_show_forgot
+    kt_show_forgot --> kt_send_smtp
+    kt_send_smtp --> kt_email
+    kt_email --> kt_newpass
+    kt_newpass --> kt_db_update
+    kt_db_update --> kt_merge
+
+    %% Cabang Lupa Password: Tidak
+    kt_dec -- "Tidak" --> kt_merge
+
+    %% Penggabungan (Join / Merge) menuju Form Login
+    kt_merge --> kt_fill_login
+    kt_fill_login --> kt_validate
+    kt_validate --> kt_end
+
+    %% Styling Komponen UML Sesuai Standar
+    style kt_start fill:#000000,stroke:#000000,stroke-width:2px
+    style kt_end fill:#ffffff,stroke:#000000,stroke-width:3px
+    style kt_merge fill:#000000,color:#000000,stroke:#000000,stroke-width:2px
+    style kt_dec fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    
+    style kt_open fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_show_login fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_show_forgot fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_send_smtp fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_email fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_newpass fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_db_update fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_fill_login fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style kt_validate fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+
+    style KETUA_TIM fill:#fafafa,stroke:#64748b,stroke-width:1.5px
+    style SISTEM_KT fill:#fafafa,stroke:#64748b,stroke-width:1.5px
+```
+
+<p align="center"><b>Gambar 4. 4 Activity Diagram Autentikasi Ketua Tim</b></p>
+
+| No | Aktor / Partisi | Aksi / Aktivitas | Keterangan Teknis |
+|:---|:---|:---|:---|
+| 1 | **Ketua Tim** | *Initial Node* (Titik Mulai) | Memulai akses ke peramban web (*browser*). |
+| 2 | **Ketua Tim** | Membuka Halaman Login SIMASADI | Mengakses rute URL `/login`. |
+| 3 | **Sistem SIMASADI** | Menampilkan Halaman Login SIMASADI | Sistem menyajikan formulir login kredensial beserta proteksi reCAPTCHA. |
+| 4 | **Ketua Tim** | *Decision Node:* Lupa Password? | Pengecekan kondisi apakah pengguna mengingat kredensialnya atau tidak. |
+| 5a | **Sistem SIMASADI** | Menampilkan Halaman Lupa Password | *(Kondisi: Ya)* Sistem mengarahkan ke form permintaan reset kata sandi. |
+| 5b | **Sistem SIMASADI** | Mengirim Tautan Reset Password ke Email via SMTP | Sistem membuat token aman dan mengirim surel pemulihan ke email Ketua Tim. |
+| 5c | **Ketua Tim** | Mengisi Form Email Akun Ketua Tim | Menginputkan alamat email resmi Ketua Tim yang terdaftar. |
+| 5d | **Ketua Tim** | Mengisi Form Reset Password Baru | Membuka tautan verifikasi dari email dan menginputkan password baru. |
+| 5e | **Sistem SIMASADI** | Memperbarui Password di Basis Data | Mengenkripsi password baru menggunakan `bcrypt` dan memperbarui data akun. |
+| 6 | **Ketua Tim** | *Synchronization Bar* (Penggabungan Alur) | Titik temu (*join bar*) antara alur langsung dan alur selesai reset password. |
+| 7 | **Ketua Tim** | Mengisi Form Login (Email & Password) | Memasukkan email dan password akun Ketua Tim pada form login utama. |
+| 8 | **Sistem SIMASADI** | Memvalidasi Kredensial Admin & Membuka Sesi Login | Sistem memverifikasi kredensial, mencatat sesi dengan peran `admin`, dan mengarahkan ke Dashboard Utama. |
+| 9 | **Ketua Tim** | *Activity Final Node* (Selesai) | Sesi aktif dan Ketua Tim memiliki otoritas penuh ke seluruh data LPK. |
+
+---
+
+#### 4.3.2 Activity Diagram: Autentikasi PIC Laboratorium
+
+Diagram ini memodelkan proses autentikasi akun PIC Laboratorium (Penanggung Jawab LPK Binaan) dengan alur mandiri yang menginisialisasi sesi kerja berlingkup LPK binaannya:
+
+```mermaid
+flowchart TD
+    %% Swimlane PIC Laboratorium
+    subgraph PIC["PIC LABORATORIUM"]
+        pic_start(( ))
+        pic_open["Membuka Halaman Login SIMASADI"]
+        pic_dec{"Lupa Password?"}
+        pic_email["Mengisi Form Email Akun PIC"]
+        pic_newpass["Mengisi Form Reset Password Baru"]
+        pic_merge["▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"]
+        pic_fill_login["Mengisi Form Login (Email & Password)"]
+        pic_end((( )))
+    end
+
+    %% Swimlane Sistem SIMASADI
+    subgraph SISTEM_PIC["SISTEM SIMASADI"]
+        pic_show_login["Menampilkan Halaman Login SIMASADI"]
+        pic_show_forgot["Menampilkan Halaman Lupa Password"]
+        pic_send_smtp["Mengirim Tautan Reset Password ke Email via SMTP"]
+        pic_db_update["Memperbarui Password di Basis Data"]
+        pic_validate["Memvalidasi Kredensial PIC & Membuka Sesi Login"]
+    end
+
+    %% Alur Aktivitas (Flow Transitions)
+    pic_start --> pic_open
+    pic_open --> pic_show_login
+    pic_show_login --> pic_dec
+
+    %% Cabang Lupa Password: Ya
+    pic_dec -- "Ya" --> pic_show_forgot
+    pic_show_forgot --> pic_send_smtp
+    pic_send_smtp --> pic_email
+    pic_email --> pic_newpass
+    pic_newpass --> pic_db_update
+    pic_db_update --> pic_merge
+
+    %% Cabang Lupa Password: Tidak
+    pic_dec -- "Tidak" --> pic_merge
+
+    %% Penggabungan (Join / Merge) menuju Form Login
+    pic_merge --> pic_fill_login
+    pic_fill_login --> pic_validate
+    pic_validate --> pic_end
+
+    %% Styling Komponen UML Sesuai Standar
+    style pic_start fill:#000000,stroke:#000000,stroke-width:2px
+    style pic_end fill:#ffffff,stroke:#000000,stroke-width:3px
+    style pic_merge fill:#000000,color:#000000,stroke:#000000,stroke-width:2px
+    style pic_dec fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    
+    style pic_open fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_show_login fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_show_forgot fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_send_smtp fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_email fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_newpass fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_db_update fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_fill_login fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+    style pic_validate fill:#ffffff,stroke:#1e293b,stroke-width:1.5px
+
+    style PIC fill:#fafafa,stroke:#64748b,stroke-width:1.5px
+    style SISTEM_PIC fill:#fafafa,stroke:#64748b,stroke-width:1.5px
+```
+
+<p align="center"><b>Gambar 4. 5 Activity Diagram Autentikasi PIC Laboratorium</b></p>
+
+| No | Aktor / Partisi | Aksi / Aktivitas | Keterangan Teknis |
+|:---|:---|:---|:---|
+| 1 | **PIC Laboratorium** | *Initial Node* (Titik Mulai) | Memulai akses ke peramban web (*browser*). |
+| 2 | **PIC Laboratorium** | Membuka Halaman Login SIMASADI | Mengakses rute URL `/login`. |
+| 3 | **Sistem SIMASADI** | Menampilkan Halaman Login SIMASADI | Sistem merender tampilan formulir login dan proteksi bot. |
+| 4 | **PIC Laboratorium** | *Decision Node:* Lupa Password? | Pengecekan kondisi apakah PIC mengingat kredensialnya atau tidak. |
+| 5a | **Sistem SIMASADI** | Menampilkan Halaman Lupa Password | *(Kondisi: Ya)* Sistem menampilkan halaman permohonan tautan reset. |
+| 5b | **Sistem SIMASADI** | Mengirim Tautan Reset Password ke Email via SMTP | Sistem mengirim email verifikasi ke alamat email PIC yang terdaftar. |
+| 5c | **PIC Laboratorium** | Mengisi Form Email Akun PIC | PIC memasukkan email akun terdaftar untuk verifikasi. |
+| 5d | **PIC Laboratorium** | Mengisi Form Reset Password Baru | PIC membuka email, mengklik tautan, dan menginputkan password baru. |
+| 5e | **Sistem SIMASADI** | Memperbarui Password di Basis Data | Sistem mengenkripsi kata sandi baru (`bcrypt`) dan menyimpannya ke tabel pengguna. |
+| 6 | **PIC Laboratorium** | *Synchronization Bar* (Penggabungan Alur) | Titik temu (*join bar*) antara alur langsung dan alur pasca-reset password. |
+| 7 | **PIC Laboratorium** | Mengisi Form Login (Email & Password) | Memasukkan email dan password akun PIC pada form login. |
+| 8 | **Sistem SIMASADI** | Memvalidasi Kredensial PIC & Membuka Sesi Login | Sistem memverifikasi kredensial, mencatat sesi dengan peran `pic`, dan memfilter data dasbor khusus LPK binaan PIC. |
+| 9 | **PIC Laboratorium** | *Activity Final Node* (Selesai) | Sesi aktif dan PIC diarahkan ke Dasbor SIMASADI terfilter. |
+
+---
+
+#### 4.3.3 Activity Diagram: Penegakan Siklus Hidup 3 Tahap Surveilen KAN
 Diagram ini memodelkan transisi status pengawasan dari kunjungan asesmen sampai keputusan akhir:
 
 ```mermaid
@@ -166,9 +346,11 @@ stateDiagram-v2
     CabutAkreditasi --> [*]
 ```
 
+<p align="center"><b>Gambar 4. 6 Activity Diagram Penegakan Siklus Hidup 3 Tahap Surveilen KAN</b></p>
+
 ---
 
-#### 4.3.2 Activity Diagram: Alur Pengajuan & Validasi Perpanjangan Waktu SLA Tindakan Perbaikan (TP)
+#### 4.3.4 Activity Diagram: Alur Pengajuan & Validasi Perpanjangan Waktu SLA Tindakan Perbaikan (TP)
 
 ```mermaid
 stateDiagram-v2
@@ -197,6 +379,8 @@ stateDiagram-v2
     LewatBatasExtended --> OtomatisDibekukan
 ```
 
+<p align="center"><b>Gambar 4. 7 Activity Diagram Alur Pengajuan & Validasi Perpanjangan Waktu SLA TP</b></p>
+
 ##### Ketentuan Spesifikasi Penegakan SLA Tindakan Perbaikan (TP & VTP):
 
 1. **Baseline Tanggal Realisasi Asesmen (`end_at`)**:
@@ -216,7 +400,7 @@ stateDiagram-v2
 
 ---
 
-#### 4.3.3 Activity Diagram: Alur Kerja Lengkap PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)
+#### 4.3.5 Activity Diagram: Alur Kerja Lengkap PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)
 
 Diagram ini memodelkan aktivitas PIC Laboratorium dalam mendampingi dan mengawal LPK binaannya mulai dari pendaftaran awal hingga menyelesaikan seluruh 8 tahapan dalam satu siklus akreditasi 5 tahun penuh (60 bulan) sesuai regulasi KAN U-01 dan otomasi sistem SIMASADI:
 
@@ -255,7 +439,7 @@ flowchart TD
     classDef transBox fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a,font-size:12px;
 ```
 
-<p align="center"><b>Gambar 4. 4 Activity Diagram Alur Kerja PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)</b></p>
+<p align="center"><b>Gambar 4. 8 Activity Diagram Alur Kerja PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)</b></p>
 
 ##### Ringkasan Matriks Tanggung Jawab PIC per Tahap:
 
@@ -308,6 +492,8 @@ sequenceDiagram
         View-->>Admin: Toast Sukses: SK Akreditasi Resmi Dirilis
     end
 ```
+
+<p align="center"><b>Gambar 4. 9 Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK</b></p>
 
 ---
 
@@ -427,7 +613,7 @@ erDiagram
     }
 ```
 
-<p align="center"><b>Gambar 4. 5 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
+<p align="center"><b>Gambar 4. 10 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
 
 ---
 
@@ -656,6 +842,8 @@ classDiagram
     User "1" --> "*" UserAccountLink : links
 ```
 
+<p align="center"><b>Gambar 4. 11 Class Diagram SIMASADI</b></p>
+
 ---
 
 ### 4.7 Rancangan Antarmuka Pengguna (Wireframe Desktop & Mobile)
@@ -685,6 +873,8 @@ classDiagram
 |  * Tanggal Terbit SK  : 15/07/2027             * Lead Time Terbit SK : 15 Hari                    |
 +---------------------------------------------------------------------------------------------------+
 ```
+
+<p align="center"><b>Gambar 4. 12 Wireframe Halaman Detail Asesmen (Desktop)</b></p>
 
 #### 4.7.2 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation & Bottom Sheet)
 ```text
@@ -717,6 +907,8 @@ classDiagram
 +-----------------------------+
 ```
 
+<p align="center"><b>Gambar 4. 13 Wireframe Tampilan Ponsel (Ergonomic Bottom Navigation)</b></p>
+
 #### 4.7.3 Wireframe Antarmuka Halaman Masuk (Login Canvas)
 ```text
 +-----------------------------------------------------------------------------------+
@@ -744,3 +936,5 @@ classDiagram
 |                                                                                   |
 +-----------------------------------------------------------------------------------+
 ```
+
+<p align="center"><b>Gambar 4. 14 Wireframe Antarmuka Halaman Masuk (Login Canvas)</b></p>
