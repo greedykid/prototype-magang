@@ -38,7 +38,7 @@ class GoogleSheetsIntegrationTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
         $content = $response->streamedContent();
-        $this->assertStringContainsString('Nomor Registrasi', $content);
+        $this->assertStringContainsString('No Reg LPK', $content);
         $this->assertStringContainsString('Nama Lembaga Penilaian Kesesuaian', $content);
         $this->assertStringContainsString('Lab Kalibrasi Presisi Nasional', $content);
         $this->assertStringContainsString('LK-777-IDN', $content);

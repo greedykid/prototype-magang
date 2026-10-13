@@ -160,7 +160,7 @@ class GoogleSheetsReportController extends Controller
 
         $columns = [
             'ID LPK',
-            'Nomor Registrasi / No Reg LPK',
+            'No Reg LPK',
             'No Akreditasi',
             'Jenis Akreditasi',
             'Nama Lembaga Penilaian Kesesuaian',
@@ -276,7 +276,7 @@ class GoogleSheetsReportController extends Controller
 
         $columns = [
             'ID LPK',
-            'Nomor Registrasi / No Reg LPK',
+            'No Reg LPK',
             'No Akreditasi',
             'Jenis Akreditasi',
             'Nama Lembaga Penilaian Kesesuaian',
