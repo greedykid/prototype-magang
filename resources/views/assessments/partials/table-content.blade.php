@@ -57,9 +57,7 @@
                                 $hasDueDate = $assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE;
                             @endphp
                             @if($hasDueDate)
-                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['label'] }} - {{ $badge['detail'] }}">
-                                    {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
-                                </span>
+                                <span title="{{ $badge['label'] }} - {{ $badge['detail'] }}">{{ $assessment->effective_tp_due_date->format('d/m/Y') }}</span>
                             @else
                                 <span style="color: var(--muted); font-size: 13px;">-</span>
                             @endif
