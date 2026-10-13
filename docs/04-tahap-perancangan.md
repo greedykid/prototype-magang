@@ -138,31 +138,23 @@ Aktivitas sistem dimodelkan menggunakan diagram aktivitas berbasis status dan tr
 
 #### 4.3.1 Activity Diagram: Autentikasi Ketua Tim (Admin)
 
-Diagram ini memodelkan alur aktivitas autentikasi akun Ketua Tim (Administrator Unit Akreditasi) mulai dari pembukaan halaman login, alur pemulihan kata sandi via email SMTP jika lupa password, hingga validasi kredensial dan pembukaan sesi login administratif:
+Diagram ini memodelkan alur aktivitas autentikasi akun Ketua Tim (Administrator Unit Akreditasi) sesuai implementasi controller autentikasi SIMASADI (`AuthController`), mulai dari perenderan form login, validasi input dan reCAPTCHA, verifikasi kredensial via `Auth::attempt`, hingga regenerasi sesi administratif:
 
 ```mermaid
 stateDiagram-v2
     [*] --> BukaHalamanLogin: Akses URL /login
-    BukaHalamanLogin --> TampilHalamanLogin: Sistem Merender Halaman Login SIMASADI
+    BukaHalamanLogin --> TampilFormLogin: Sistem Merender Halaman Login SIMASADI
     
-    state CekLupaPassword <<choice>>
-    TampilHalamanLogin --> CekLupaPassword: Cek Kebutuhan Pemulihan Akun
-    
-    CekLupaPassword --> FormLupaPassword: Ya (Lupa Password)
-    FormLupaPassword --> KirimTautanReset: Input Alamat Email Akun Ketua Tim
-    KirimTautanReset --> FormPasswordBaru: Sistem Mengirim Tautan Verifikasi via SMTP
-    FormPasswordBaru --> UpdatePasswordDB: Input Password Baru & Konfirmasi
-    UpdatePasswordDB --> FormLogin: Sistem Memperbarui Hash Password (bcrypt) di Basis Data
-    
-    CekLupaPassword --> FormLogin: Tidak (Ingat Password)
-    
-    FormLogin --> ValidasiKredensial: Input Email & Password Resmi Ketua Tim
+    TampilFormLogin --> SubmitKredensial: Ketua Tim Mengisi Email & Password Akun Admin
+    SubmitKredensial --> ValidasiFormat: Sistem Memvalidasi Format Input & reCAPTCHA
     
     state CekValiditasKredensial <<choice>>
-    ValidasiKredensial --> CekValiditasKredensial: Sistem Memeriksa Kredensial & reCAPTCHA
-    CekValiditasKredensial --> FormLogin: Gagal (Kredensial Tidak Sesuai)
-    CekValiditasKredensial --> DashboardAdmin: Berhasil (Kredensial Valid & Sesi Admin Aktif)
+    ValidasiFormat --> CekValiditasKredensial: Auth::attempt(credentials)
     
+    CekValiditasKredensial --> TampilFormLogin: Gagal (Kredensial Tidak Sesuai / Pesan Error)
+    CekValiditasKredensial --> InisialisasiSesi: Berhasil (Kredensial Cocok)
+    
+    InisialisasiSesi --> DashboardAdmin: Regenerasi Sesi & Buka Otoritas Role 'admin'
     DashboardAdmin --> [*]: Akses Penuh ke Seluruh Master LPK & Dasbor Eksekutif
 ```
 
@@ -171,46 +163,36 @@ stateDiagram-v2
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
 | 1 | `BukaHalamanLogin` | Ketua Tim | Pengguna membuka peramban web dan mengakses rute URL `/login`. |
-| 2 | `TampilHalamanLogin` | Sistem SIMASADI | Sistem menyajikan antarmuka form login beserta proteksi bot Google reCAPTCHA. |
-| 3 | `CekLupaPassword` | Ketua Tim | *Choice Node*: Evaluasi kondisi apakah pengguna memerlukan pemulihan kata sandi. |
-| 4a | `FormLupaPassword` | Sistem & Ketua Tim | *(Kondisi: Ya)* Sistem menampilkan halaman reset dan Ketua Tim menginputkan surel resmi terdaftar. |
-| 4b | `KirimTautanReset` | Sistem SIMASADI | Sistem membuat token verifikasi sementara dan mengirim tautan reset ke email via SMTP. |
-| 4c | `FormPasswordBaru` | Ketua Tim | Pengguna membuka tautan dari surel dan menginputkan kata sandi baru. |
-| 4d | `UpdatePasswordDB` | Sistem SIMASADI | Sistem mengenkripsi kata sandi baru (`bcrypt`) dan memperbarui rekaman di basis data. |
-| 5 | `FormLogin` | Ketua Tim | Pengguna memasukkan alamat email dan password akun Ketua Tim pada form login utama. |
-| 6 | `ValidasiKredensial` | Sistem SIMASADI | *Choice Node*: Sistem memverifikasi kecocokan email, hash password, dan token keamanan. |
-| 7 | `DashboardAdmin` | Sistem SIMASADI | Sesi dengan hak akses peran `admin` diaktifkan dan diarahkan ke Dasbor Utama SIMASADI. |
+| 2 | `TampilFormLogin` | Sistem SIMASADI | Sistem merender tampilan formulir login dan widget keamanan Google reCAPTCHA. |
+| 3 | `SubmitKredensial` | Ketua Tim | Pengguna memasukkan email dan password akun Ketua Tim (`admin@simasadi.local`). |
+| 4 | `ValidasiFormat` | Sistem SIMASADI | Sistem memvalidasi kelengkapan data masukan dan respon reCAPTCHA via `AuthController::store`. |
+| 5 | `CekValiditasKredensial` | Sistem SIMASADI | *Choice Node*: Evaluasi verifikasi kredensial menggunakan hash `bcrypt` (`Auth::attempt`). |
+| 6a | *(Alur Gagal)* | Sistem SIMASADI | Kredensial salah: sistem mengembalikan pesan error validasi dan kembali ke form login. |
+| 6b | `InisialisasiSesi` | Sistem SIMASADI | Kredensial cocok: sistem meregenerasi ID sesi (`session()->regenerate()`) untuk mencegah *session fixation*. |
+| 7 | `DashboardAdmin` | Sistem SIMASADI | Pengguna diarahkan ke dasbor eksekutif dengan hak akses penuh ke seluruh data LPK. |
 
 ---
 
 #### 4.3.2 Activity Diagram: Autentikasi PIC Laboratorium
 
-Diagram ini memodelkan alur aktivitas autentikasi akun PIC Laboratorium (Penanggung Jawab LPK Binaan) dengan alur terisolasi yang menginisialisasi sesi kerja berlingkup LPK binaannya:
+Diagram ini memodelkan alur aktivitas autentikasi akun PIC Laboratorium (Penanggung Jawab LPK Binaan) sesuai implementasi sistem nyata SIMASADI, yang menginisialisasi sesi kerja berlingkup hak akses LPK binaannya (*role scoping*):
 
 ```mermaid
 stateDiagram-v2
     [*] --> BukaHalamanLogin: Akses URL /login
-    BukaHalamanLogin --> TampilHalamanLogin: Sistem Merender Halaman Login SIMASADI
+    BukaHalamanLogin --> TampilFormLogin: Sistem Merender Halaman Login SIMASADI
     
-    state CekLupaPassword <<choice>>
-    TampilHalamanLogin --> CekLupaPassword: Cek Kebutuhan Pemulihan Akun
-    
-    CekLupaPassword --> FormLupaPassword: Ya (Lupa Password)
-    FormLupaPassword --> KirimTautanReset: Input Alamat Email Akun PIC
-    KirimTautanReset --> FormPasswordBaru: Sistem Mengirim Tautan Verifikasi via SMTP
-    FormPasswordBaru --> UpdatePasswordDB: Input Password Baru & Konfirmasi
-    UpdatePasswordDB --> FormLogin: Sistem Memperbarui Hash Password (bcrypt) di Basis Data
-    
-    CekLupaPassword --> FormLogin: Tidak (Ingat Password)
-    
-    FormLogin --> ValidasiKredensial: Input Email & Password Akun PIC
+    TampilFormLogin --> SubmitKredensial: PIC Mengisi Email & Password Akun PIC
+    SubmitKredensial --> ValidasiFormat: Sistem Memvalidasi Format Input & reCAPTCHA
     
     state CekValiditasKredensial <<choice>>
-    ValidasiKredensial --> CekValiditasKredensial: Sistem Memeriksa Kredensial & reCAPTCHA
-    CekValiditasKredensial --> FormLogin: Gagal (Kredensial Tidak Sesuai)
-    CekValiditasKredensial --> DashboardPIC: Berhasil (Kredensial Valid & Sesi PIC Aktif)
+    ValidasiFormat --> CekValiditasKredensial: Auth::attempt(credentials)
     
-    DashboardPIC --> [*]: Akses Dasbor Kerja Khusus LPK Binaan PIC
+    CekValiditasKredensial --> TampilFormLogin: Gagal (Kredensial Tidak Sesuai / Pesan Error)
+    CekValiditasKredensial --> InisialisasiSesi: Berhasil (Kredensial Cocok)
+    
+    InisialisasiSesi --> DashboardPIC: Regenerasi Sesi & Terapkan Role Scoping 'pic'
+    DashboardPIC --> [*]: Akses Dasbor Kerja Terfilter Khusus LPK Binaan PIC
 ```
 
 <p align="center"><b>Gambar 4. 5 Activity Diagram Autentikasi PIC Laboratorium</b></p>
@@ -218,15 +200,13 @@ stateDiagram-v2
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
 | 1 | `BukaHalamanLogin` | PIC Laboratorium | Pengguna membuka peramban web dan mengakses rute URL `/login`. |
-| 2 | `TampilHalamanLogin` | Sistem SIMASADI | Sistem menyajikan antarmuka form login beserta proteksi bot Google reCAPTCHA. |
-| 3 | `CekLupaPassword` | PIC Laboratorium | *Choice Node*: Evaluasi kondisi apakah pengguna memerlukan pemulihan kata sandi. |
-| 4a | `FormLupaPassword` | Sistem & PIC | *(Kondisi: Ya)* Sistem menampilkan halaman reset dan PIC menginputkan surel resmi terdaftar. |
-| 4b | `KirimTautanReset` | Sistem SIMASADI | Sistem membuat token verifikasi sementara dan mengirim tautan reset ke email PIC via SMTP. |
-| 4c | `FormPasswordBaru` | PIC Laboratorium | Pengguna membuka tautan dari surel dan menginputkan kata sandi baru. |
-| 4d | `UpdatePasswordDB` | Sistem SIMASADI | Sistem mengenkripsi kata sandi baru (`bcrypt`) dan memperbarui rekaman di basis data. |
-| 5 | `FormLogin` | PIC Laboratorium | Pengguna memasukkan alamat email dan password akun PIC pada form login utama. |
-| 6 | `ValidasiKredensial` | Sistem SIMASADI | *Choice Node*: Sistem memverifikasi kecocokan email, hash password, dan token keamanan. |
-| 7 | `DashboardPIC` | Sistem SIMASADI | Sesi dengan hak akses peran `pic` diaktifkan dan diarahkan ke Dasbor Terfilter LPK Binaan. |
+| 2 | `TampilFormLogin` | Sistem SIMASADI | Sistem merender tampilan formulir login dan widget keamanan Google reCAPTCHA. |
+| 3 | `SubmitKredensial` | PIC Laboratorium | PIC memasukkan email dan password akun PIC terdaftar (`pic@simasadi.local`). |
+| 4 | `ValidasiFormat` | Sistem SIMASADI | Sistem memvalidasi kelengkapan data masukan dan respon reCAPTCHA via `AuthController::store`. |
+| 5 | `CekValiditasKredensial` | Sistem SIMASADI | *Choice Node*: Evaluasi verifikasi kredensial menggunakan hash `bcrypt` (`Auth::attempt`). |
+| 6a | *(Alur Gagal)* | Sistem SIMASADI | Kredensial salah: sistem mengembalikan pesan error validasi dan kembali ke form login. |
+| 6b | `InisialisasiSesi` | Sistem SIMASADI | Kredensial cocok: sistem meregenerasi ID sesi (`session()->regenerate()`) dan menetapkan peran `pic`. |
+| 7 | `DashboardPIC` | Sistem SIMASADI | Pengguna diarahkan ke dasbor terfilter dengan cakupan data khusus LPK binaan PIC terkait. |
 
 ---
 
