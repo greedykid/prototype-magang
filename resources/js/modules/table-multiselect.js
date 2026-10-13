@@ -88,7 +88,7 @@ export function clearTableSelection(tableId) {
 /**
  * Handle bulk export
  */
-function handleBulkExport(bulkBar) {
+function handleBulkExport(bulkBar, format = 'xlsx') {
     const tableId = bulkBar.dataset.tableTarget;
     const exportUrl = bulkBar.dataset.exportUrl;
     const selectedSet = getSelectedSet(tableId);
@@ -119,6 +119,12 @@ function handleBulkExport(bulkBar) {
     idsInput.name = 'ids';
     idsInput.value = ids;
     form.appendChild(idsInput);
+
+    const formatInput = document.createElement('input');
+    formatInput.type = 'hidden';
+    formatInput.name = 'format';
+    formatInput.value = format;
+    form.appendChild(formatInput);
 
     document.body.appendChild(form);
     form.submit();
@@ -314,7 +320,8 @@ export function initTableMultiselect() {
         const tableId = bulkBar.dataset.tableTarget;
 
         if (action === 'export') {
-            handleBulkExport(bulkBar);
+            const format = btn.dataset.format || 'xlsx';
+            handleBulkExport(bulkBar, format);
         } else if (action === 'delete') {
             handleBulkDelete(bulkBar);
         } else if (action === 'clear') {

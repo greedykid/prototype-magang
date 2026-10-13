@@ -29,6 +29,18 @@
                 type="button"
                 class="button secondary button-sm bulk-export-trigger"
                 data-action="export"
+                data-format="xlsx"
+                title="Unduh data terpilih dalam format Excel (.xlsx)"
+            >
+                <x-icon name="export" size="14" />
+                <span>Ekspor Excel</span>
+            </button>
+
+            <button
+                type="button"
+                class="button secondary button-sm bulk-export-trigger"
+                data-action="export"
+                data-format="csv"
                 title="Unduh data terpilih dalam format CSV"
             >
                 <x-icon name="export" size="14" />

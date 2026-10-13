@@ -7,6 +7,12 @@ use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,11 +24,17 @@ class GoogleSheetsReportController extends Controller
     public const DEFAULT_FEED_KEY = 'simasadi-live';
 
     /**
-     * Download CSV Master Data LPK untuk pengguna login.
+     * Download Master Data LPK (format CSV atau XLSX) untuk pengguna login.
      */
     public function exportLpks(Request $request): StreamedResponse
     {
         $ids = $this->parseIds($request);
+        $format = strtolower((string) $request->input('format', $request->query('format', 'csv')));
+
+        if ($format === 'xlsx') {
+            return $this->generateLpksXlsx($ids, $request->user());
+        }
+
         return $this->generateLpksCsv(false, $ids, $request->user());
     }
 
@@ -46,11 +58,17 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
-     * Download CSV Rekapitulasi Program Asesmen untuk pengguna login.
+     * Download Rekapitulasi Program Asesmen (format CSV atau XLSX) untuk pengguna login.
      */
     public function exportAssessments(Request $request): StreamedResponse
     {
         $ids = $this->parseIds($request);
+        $format = strtolower((string) $request->input('format', $request->query('format', 'csv')));
+
+        if ($format === 'xlsx') {
+            return $this->generateAssessmentsXlsx($ids, $request->user());
+        }
+
         return $this->generateAssessmentsCsv(false, $ids, $request->user());
     }
 
@@ -251,5 +269,206 @@ class GoogleSheetsReportController extends Controller
 
             fclose($handle);
         }, 200, $headers);
+    }
+
+    /**
+     * Generate XLSX Data Master LPK.
+     */
+    protected function generateLpksXlsx(?array $ids = null, ?User $user = null): StreamedResponse
+    {
+        $filename = 'data-master-lpk-simasadi-' . date('Y-m-d') . '.xlsx';
+
+        $columns = [
+            'ID LPK',
+            'Nomor Registrasi / No Reg LPK',
+            'No Akreditasi',
+            'Jenis Akreditasi',
+            'Nama Lembaga Penilaian Kesesuaian',
+            'Ruang Lingkup Akreditasi',
+            'Status Operasional',
+            'Tanggal Terbit Sertifikat',
+            'Masa Berlaku Akreditasi',
+            'Tautan Drive Dokumen (Sertifikat & Amandemen)',
+            'Total Akreditasi',
+            'Tanggal Terdaftar',
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Master LPK');
+
+        // Header
+        $sheet->fromArray([$columns], null, 'A1');
+
+        $query = Lpk::withCount(['accreditations'])
+            ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
+            ->orderBy('name');
+
+        if (! empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $rowIdx = 2;
+        foreach ($query->cursor() as $lpk) {
+            $row = [
+                'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
+                $lpk->no_reg ?: $lpk->registration_number,
+                $lpk->accreditation_number ?: $lpk->registration_number,
+                $lpk->accreditation_type ?: 'Laboratorium Penguji',
+                $lpk->name,
+                $lpk->scope ?: '-',
+                $lpk->status,
+                $lpk->certificate_date ? $lpk->certificate_date->format('d/m/Y') : '-',
+                $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-',
+                $lpk->drive_url ?: '-',
+                $lpk->accreditations_count,
+                $lpk->created_at ? $lpk->created_at->format('d/m/Y') : '-',
+            ];
+
+            $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
+            $rowIdx++;
+        }
+
+        $highestColumn = Coordinate::stringFromColumnIndex(count($columns));
+        $lastRow = max(1, $rowIdx - 1);
+
+        // Header Styling
+        $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 11,
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '0075DE'],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(26);
+
+        // AutoFilter & Freeze Pane
+        $sheet->setAutoFilter('A1:' . $highestColumn . $lastRow);
+        $sheet->freezePane('A2');
+
+        // Alignment formatting
+        if ($lastRow >= 2) {
+            $sheet->getStyle('A2:D' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('G2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('K2:L' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Auto width for columns
+        for ($col = 1; $col <= count($columns); $col++) {
+            $colLetter = Coordinate::stringFromColumnIndex($col);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ]);
+    }
+
+    /**
+     * Generate XLSX Program Asesmen.
+     */
+    protected function generateAssessmentsXlsx(?array $ids = null, ?User $user = null): StreamedResponse
+    {
+        $filename = 'jadwal-asesmen-simasadi-' . date('Y-m-d') . '.xlsx';
+
+        $columns = [
+            'ID Asesmen',
+            'Judul Agenda Asesmen',
+            'Nama LPK',
+            'Jenis Asesmen',
+            'Tanggal Mulai',
+            'Tanggal Selesai',
+            'Status Pelaksanaan',
+            'Status Tindakan Perbaikan',
+            'Batas Waktu TP',
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Asesmen');
+
+        // Header
+        $sheet->fromArray([$columns], null, 'A1');
+
+        $query = Assessment::with(['lpk'])
+            ->when($user && $user->isPic(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->orderByDesc('start_at');
+
+        if (! empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $rowIdx = 2;
+        foreach ($query->cursor() as $asm) {
+            $row = [
+                'ASM-' . str_pad((string) $asm->id, 4, '0', STR_PAD_LEFT),
+                $asm->title,
+                $asm->lpk?->name ?? '-',
+                $asm->assessment_type,
+                $asm->start_at ? $asm->start_at->format('d/m/Y') : '-',
+                $asm->end_at ? $asm->end_at->format('d/m/Y') : '-',
+                $asm->status,
+                $asm->tp_status ?? 'NOT_APPLICABLE',
+                $asm->tp_due_date ? $asm->tp_due_date->format('d/m/Y') : '-',
+            ];
+
+            $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
+            $rowIdx++;
+        }
+
+        $highestColumn = Coordinate::stringFromColumnIndex(count($columns));
+        $lastRow = max(1, $rowIdx - 1);
+
+        // Header Styling
+        $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 11,
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '0075DE'],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(26);
+
+        // AutoFilter & Freeze Pane
+        $sheet->setAutoFilter('A1:' . $highestColumn . $lastRow);
+        $sheet->freezePane('A2');
+
+        // Alignment formatting
+        if ($lastRow >= 2) {
+            $sheet->getStyle('A2:A' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('D2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Auto width for columns
+        for ($col = 1; $col <= count($columns); $col++) {
+            $colLetter = Coordinate::stringFromColumnIndex($col);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ]);
     }
 }
