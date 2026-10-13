@@ -165,7 +165,8 @@
 }
 
 .gcal-select-wrapper-month {
-    width: 116px;
+    min-width: 118px;
+    width: 120px;
 }
 
 .gcal-select-wrapper-year {
@@ -262,14 +263,14 @@
 
 .gcal-select-wrapper-month .custom-select-menu {
     left: 0 !important;
-    min-width: 130px !important;
+    min-width: 148px !important;
     right: auto !important;
     width: max-content !important;
 }
 
 .gcal-select-wrapper-year .custom-select-menu {
     left: auto !important;
-    min-width: 90px !important;
+    min-width: 116px !important;
     right: 0 !important;
     width: max-content !important;
 }
@@ -280,10 +281,10 @@
     display: flex !important;
     font-size: 13.5px !important;
     font-weight: 500 !important;
-    gap: 8px !important;
+    gap: 10px !important;
     justify-content: space-between !important;
     min-height: 34px !important;
-    padding: 6px 10px !important;
+    padding: 6px 12px !important;
     white-space: nowrap !important;
     width: 100% !important;
 }
@@ -310,7 +311,8 @@
     align-items: center !important;
     flex-shrink: 0 !important;
     justify-content: center !important;
-    margin-left: 6px !important;
+    margin-left: auto !important;
+    padding-left: 12px !important;
 }
 
 .gcal-select-wrapper .custom-select-option.is-selected {
@@ -323,12 +325,13 @@
 
 /* Compact mode for Week and Day views */
 .gcal-title-selects.is-compact .gcal-select-wrapper-month {
-    width: 84px;
+    min-width: 114px;
+    width: 118px;
 }
 
 .gcal-title-selects.is-compact .gcal-select-wrapper-year {
-    min-width: 82px;
-    width: 82px;
+    min-width: 84px;
+    width: 86px;
 }
 
 .gcal-title-selects.is-compact .custom-select-trigger {
@@ -348,8 +351,9 @@
 
 .gcal-title-selects.is-compact .custom-select-option {
     font-size: 12.5px !important;
+    gap: 10px !important;
     min-height: 30px !important;
-    padding: 5px 8px !important;
+    padding: 5px 10px !important;
 }
 
 /* Fallback for native select before JS init */

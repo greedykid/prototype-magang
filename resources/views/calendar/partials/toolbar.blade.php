@@ -106,7 +106,7 @@
                             <div class="gcal-select-wrapper gcal-select-wrapper-month">
                                 <select id="gcal-select-month" class="gcal-nav-select gcal-select-month" aria-label="Lompat bulan" data-no-search="true" data-calendar-base-url="{{ route('calendar.index') }}">
                                     @foreach($indonesianMonths as $num => $name)
-                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ substr($name, 0, 3) }}</option>
+                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -129,7 +129,7 @@
                             <div class="gcal-select-wrapper gcal-select-wrapper-month">
                                 <select id="gcal-select-month" class="gcal-nav-select gcal-select-month" aria-label="Lompat bulan" data-no-search="true" data-calendar-base-url="{{ route('calendar.index') }}">
                                     @foreach($indonesianMonths as $num => $name)
-                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ substr($name, 0, 3) }}</option>
+                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>

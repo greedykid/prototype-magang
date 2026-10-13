@@ -421,7 +421,8 @@ section.has-open-select,
     display: none;
     flex-shrink: 0;
     justify-content: center;
-    margin-left: 8px;
+    margin-left: auto;
+    padding-left: 10px;
 }
 
 .custom-select-option.is-selected .custom-select-check {
