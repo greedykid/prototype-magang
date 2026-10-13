@@ -186,12 +186,12 @@ export const scheduleAdjacentCalendarPrefetch = () => {
             prefetchCalendarPartial(window.location.href);
         }
 
-        // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, serta tombol hari ini
-        const arrowLinks = document.querySelectorAll(
-            '.gcal-nav-arrows a.gcal-arrow-btn, .gcal-mini-nav a.gcal-mini-nav-btn, .gcal-nav-group a.gcal-btn-today'
+        // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, tombol hari ini, serta tab tampilan kalender
+        const prefetchLinks = document.querySelectorAll(
+            '.gcal-nav-arrows a.gcal-arrow-btn, .gcal-mini-nav a.gcal-mini-nav-btn, .gcal-nav-group a.gcal-btn-today, .gcal-view-switcher a.gcal-view-tab'
         );
-        arrowLinks.forEach((link) => {
-            if (link.href) {
+        prefetchLinks.forEach((link) => {
+            if (link.href && !link.classList.contains('is-active')) {
                 prefetchCalendarPartial(link.href);
             }
         });

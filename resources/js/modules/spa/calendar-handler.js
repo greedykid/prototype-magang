@@ -104,68 +104,76 @@ export const handleCalendarTransition = async ({ url, targetUrlObj, pageWrap, pu
         if (newStartDate) activeDateVal = newStartDate.value;
     }
 
-    const updateCalendarDOM = () => {
-        if (newShell && activeShell) {
+    const commitCalendarDOM = () => {
+        const currentShell = activeShell && activeShell.parentNode ? activeShell : document.querySelector('.gcal-shell');
+        if (newShell && currentShell) {
             newShell.classList.remove('gcal-is-updating');
-            activeShell.replaceWith(newShell);
+            currentShell.replaceWith(newShell);
         } else {
             const newContent = tempDiv.querySelector('#page-content-wrapper') || tempDiv.querySelector('.page-wrap');
             if (newContent) {
                 pageWrap.innerHTML = newContent.innerHTML;
             }
         }
+
+        // Sync date in quick-add modal only if modal is not open and no range anchor is active
+        const isModalOpen = document.getElementById('modal-quick-add-event')?.classList.contains('is-active');
+        const hasRangeAnchor = typeof window.getRangeAnchor === 'function' && (window.getRangeAnchor() || (typeof window.isRangePendingStart === 'function' && window.isRangePendingStart()));
+        if (activeDateVal && !isModalOpen && !hasRangeAnchor) {
+            const curStartDate = document.getElementById('quick-input-start-date');
+            if (curStartDate) curStartDate.value = activeDateVal;
+            const curEndDate = document.getElementById('quick-input-end-date');
+            if (curEndDate) curEndDate.value = activeDateVal;
+        }
+
+        // Update document title
+        if (pageTitleVal) {
+            document.title = pageTitleVal;
+        }
+
+        // Restore active filter checkbox states and LPK selection
+        document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
+            if (cb.dataset.filterCat in activeCatStates) {
+                cb.checked = activeCatStates[cb.dataset.filterCat];
+            }
+        });
+        const lpkSelect = document.getElementById('gcal-filter-lpk');
+        if (lpkSelect && selectedLpk !== undefined) {
+            lpkSelect.value = selectedLpk;
+        }
+        const picSelect = document.getElementById('gcal-filter-pic');
+        if (picSelect && selectedPic !== undefined) {
+            picSelect.value = selectedPic;
+        }
+
+        // Re-initialize custom dropdowns, calendar components, and pickers on newly mounted DOM
+        if (typeof initCustomSelects === 'function') initCustomSelects(document);
+        if (typeof initGcalComponents === 'function') initGcalComponents();
+        if (typeof initCustomPickers === 'function') initCustomPickers(document);
     };
 
     if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        document.startViewTransition(() => {
-            updateCalendarDOM();
-        });
+        try {
+            const transition = document.startViewTransition(() => {
+                commitCalendarDOM();
+            });
+            if (transition && transition.updateCallbackDone) {
+                await transition.updateCallbackDone;
+            }
+        } catch {
+            commitCalendarDOM();
+        }
     } else {
-        updateCalendarDOM();
+        commitCalendarDOM();
         pageWrap.classList.remove('page-enter-active');
         requestAnimationFrame(() => {
             pageWrap.classList.add('page-enter-active');
         });
     }
 
-    // Sync date in quick-add modal only if modal is not open and no range anchor is active
-    const isModalOpen = document.getElementById('modal-quick-add-event')?.classList.contains('is-active');
-    const hasRangeAnchor = typeof window.getRangeAnchor === 'function' && (window.getRangeAnchor() || (typeof window.isRangePendingStart === 'function' && window.isRangePendingStart()));
-    if (activeDateVal && !isModalOpen && !hasRangeAnchor) {
-        const curStartDate = document.getElementById('quick-input-start-date');
-        if (curStartDate) curStartDate.value = activeDateVal;
-        const curEndDate = document.getElementById('quick-input-end-date');
-        if (curEndDate) curEndDate.value = activeDateVal;
-    }
-
-    // Update document title
-    if (pageTitleVal) {
-        document.title = pageTitleVal;
-    }
-
-    // Restore active filter checkbox states and LPK selection
-    document.querySelectorAll('[data-filter-cat]').forEach((cb) => {
-        if (cb.dataset.filterCat in activeCatStates) {
-            cb.checked = activeCatStates[cb.dataset.filterCat];
-        }
-    });
-    const lpkSelect = document.getElementById('gcal-filter-lpk');
-    if (lpkSelect && selectedLpk !== undefined) {
-        lpkSelect.value = selectedLpk;
-    }
-    const picSelect = document.getElementById('gcal-filter-pic');
-    if (picSelect && selectedPic !== undefined) {
-        picSelect.value = selectedPic;
-    }
-
     if (pushState) {
         window.history.pushState({ url: targetUrl }, '', targetUrl);
     }
-
-    // Re-initialize calendar components and custom dropdowns
-    if (typeof initGcalComponents === 'function') initGcalComponents();
-    if (typeof initCustomSelects === 'function') initCustomSelects(document);
-    if (typeof initCustomPickers === 'function') initCustomPickers(document);
 
     // Firmly lock and restore the exact scroll position down to the pixel
     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
