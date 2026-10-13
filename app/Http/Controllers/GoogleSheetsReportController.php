@@ -360,10 +360,11 @@ class GoogleSheetsReportController extends Controller
             $sheet->getStyle('K2:L' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
-        // Auto width for columns
-        for ($col = 1; $col <= count($columns); $col++) {
-            $colLetter = Coordinate::stringFromColumnIndex($col);
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        // Lebar kolom diatur hanya mengikuti panjang teks header kolom (bukan isi data)
+        foreach ($columns as $idx => $headerText) {
+            $colLetter = Coordinate::stringFromColumnIndex($idx + 1);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(false);
+            $sheet->getColumnDimension($colLetter)->setWidth(max(12, mb_strlen($headerText) + 4));
         }
 
         return response()->streamDownload(function () use ($spreadsheet) {
@@ -457,10 +458,11 @@ class GoogleSheetsReportController extends Controller
             $sheet->getStyle('D2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
-        // Auto width for columns
-        for ($col = 1; $col <= count($columns); $col++) {
-            $colLetter = Coordinate::stringFromColumnIndex($col);
-            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        // Lebar kolom diatur hanya mengikuti panjang teks header kolom (bukan isi data)
+        foreach ($columns as $idx => $headerText) {
+            $colLetter = Coordinate::stringFromColumnIndex($idx + 1);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(false);
+            $sheet->getColumnDimension($colLetter)->setWidth(max(12, mb_strlen($headerText) + 4));
         }
 
         return response()->streamDownload(function () use ($spreadsheet) {
