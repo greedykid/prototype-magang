@@ -159,6 +159,22 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
+     * Format tanggal untuk CSV dengan prefix apostrof agar Google Sheets tidak mengonversi ke angka serial (46021).
+     */
+    protected function formatDateForCsv(mixed $date): string
+    {
+        if (! $date) {
+            return '-';
+        }
+
+        if ($date instanceof \DateTimeInterface) {
+            return "'" . $date->format('d/m/Y');
+        }
+
+        return "'" . (string) $date;
+    }
+
+    /**
      * Sanitasi sel CSV untuk mencegah Formula / CSV Injection (CWE-1236).
      */
     protected function sanitizeCsvCell(mixed $value): string
@@ -242,8 +258,8 @@ class GoogleSheetsReportController extends Controller
                     $lpk->name,
                     $lpk->scope ?: '-',
                     $this->formatLpkStatus($lpk),
-                    $lpk->certificate_date ? $lpk->certificate_date->translatedFormat('d F Y') : '-',
-                    $lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-',
+                    $this->formatDateForCsv($lpk->certificate_date),
+                    $this->formatDateForCsv($lpk->expired_at),
                     $lpk->drive_url ?: '-',
                 ];
 
@@ -300,11 +316,11 @@ class GoogleSheetsReportController extends Controller
                     $asm->title,
                     $asm->lpk?->name ?? '-',
                     $asm->assessment_type,
-                    $asm->start_at ? $asm->start_at->translatedFormat('d F Y') : '-',
-                    $asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-',
+                    $this->formatDateForCsv($asm->start_at),
+                    $this->formatDateForCsv($asm->end_at),
                     $this->formatAssessmentStatus($asm->status),
                     $this->formatTpStatus($asm->tp_status),
-                    $asm->tp_due_date ? $asm->tp_due_date->translatedFormat('d F Y') : '-',
+                    $this->formatDateForCsv($asm->tp_due_date),
                 ];
 
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
