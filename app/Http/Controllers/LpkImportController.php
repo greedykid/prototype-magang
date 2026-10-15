@@ -251,12 +251,56 @@ class LpkImportController extends Controller
         $currentUser = auth()->user();
         $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
 
-        // Pre-load LPKs ke dalam memory collection secara terproyeksi untuk menghemat RAM dan mengeliminasi query N+1
-        $allLpks = Lpk::select([
+        // Kumpulkan identifier unik dari baris spreadsheet untuk query selektif
+        $incomingNoRegs = [];
+        $incomingAccreds = [];
+        $incomingRegNos = [];
+
+        foreach ($rows as $item) {
+            $rowValues = $item['values'] ?? [];
+            $rowData = [];
+            foreach ($headers as $index => $key) {
+                $rowData[$key] = isset($rowValues[$index]) ? trim((string) $rowValues[$index]) : null;
+            }
+            if (! empty($rowData['no_reg'])) {
+                $incomingNoRegs[] = strtoupper($rowData['no_reg']);
+            }
+            if (! empty($rowData['accreditation_number'])) {
+                $incomingAccreds[] = strtoupper($rowData['accreditation_number']);
+            }
+            if (! empty($rowData['registration_number'])) {
+                $incomingRegNos[] = strtoupper($rowData['registration_number']);
+            }
+        }
+
+        $incomingNoRegs = array_values(array_unique($incomingNoRegs));
+        $incomingAccreds = array_values(array_unique($incomingAccreds));
+        $incomingRegNos = array_values(array_unique($incomingRegNos));
+
+        // Pre-load hanya LPKs yang cocok dengan file input secara terproyeksi
+        $allLpksQuery = Lpk::select([
             'id', 'pic_id', 'no_reg', 'accreditation_number', 'accreditation_type',
             'registration_number', 'name', 'status', 'certificate_date', 'expired_at',
             'drive_url', 'scope', 'address', 'email', 'phone', 'notes',
-        ])->with('members')->get();
+        ]);
+
+        if (! empty($incomingNoRegs) || ! empty($incomingAccreds) || ! empty($incomingRegNos)) {
+            $allLpksQuery->where(function ($q) use ($incomingNoRegs, $incomingAccreds, $incomingRegNos) {
+                if (! empty($incomingNoRegs)) {
+                    $q->whereIn('no_reg', $incomingNoRegs);
+                }
+                if (! empty($incomingAccreds)) {
+                    $q->orWhereIn('accreditation_number', $incomingAccreds);
+                }
+                if (! empty($incomingRegNos)) {
+                    $q->orWhereIn('registration_number', $incomingRegNos);
+                }
+            });
+        } else {
+            $allLpksQuery->whereRaw('1 = 0');
+        }
+
+        $allLpks = $allLpksQuery->with('members')->get();
         $lpksByNoReg = $allLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
         $lpksByAccreditation = $allLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
         $lpksByRegNo = $allLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
@@ -402,6 +446,10 @@ class LpkImportController extends Controller
                         'drive_url' => $driveUrl,
                         'notes' => $data['notes'] ?? null,
                     ]);
+
+                    if ($createdLpk->certificate_date || $createdLpk->expired_at) {
+                        $createdLpk->generateSurveillanceAssessments($currentUser?->id);
+                    }
 
                     // Perbarui in-memory lookup cache untuk baris berikutnya
                     if ($createdLpk->no_reg) {

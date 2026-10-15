@@ -37,7 +37,7 @@
         @include('layouts.partials.topbar')
 
         <div class="page-wrap" id="page-content-wrapper">
-            @if(!empty($globalSurveillanceAlerts))
+            @if(!empty($globalSurveillanceAlerts) && !request()->routeIs(['assessments.show', 'lpks.show', 'account-links.show', 'account-links.assessments.show', 'account-links.lpks.show']))
                 <aside id="persistent-surveillance-banner" class="persistent-surveillance-banner" aria-label="Peringatan Siklus Pengawasan Akreditasi">
                     <div class="persistent-surveillance-banner-inner">
                         <div class="persistent-surveillance-banner-main">

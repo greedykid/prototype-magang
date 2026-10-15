@@ -221,7 +221,7 @@
                                 <div class="surveillance-alert-actions">
                                     <a href="{{ route('calendar.index', [
                                         'view' => 'month',
-                                        'date' => ($assessment->effective_tp_due_date ?: $assessment->start_at)->format('Y-m-d'),
+                                        'date' => ($assessment->effective_tp_due_date ?: $assessment->start_at)?->format('Y-m-d') ?: now()->format('Y-m-d'),
                                         'highlight' => 'tp_' . $assessment->id,
                                         'selected' => 1,
                                     ]) }}" class="button ghost button-sm" title="Lihat batas waktu TP di kalender">

@@ -44,7 +44,7 @@ class Assessment extends Model
     public const TP_STATUS_SATISFIED = 'SATISFIED';
 
     public const TP_STATUSES = [
-        self::TP_STATUS_NONE => 'Nihil / Tidak Ada Temuan',
+        self::TP_STATUS_NONE => 'Belum Ditentukan',
         self::TP_STATUS_IN_PROGRESS => 'Penyusunan Perbaikan oleh LPK',
         self::TP_STATUS_UNDER_VERIFICATION => 'Dalam Verifikasi Tim Asesor',
         self::TP_STATUS_SATISFIED => 'Dinyatakan Memenuhi (Selesai)',
@@ -87,7 +87,8 @@ class Assessment extends Model
         bool $tpHasExtension = false,
         ?int $tpExtensionMonths = 0,
         ?Carbon $tpSatisfiedAt = null,
-        ?string $assessmentType = null
+        ?string $assessmentType = null,
+        ?Carbon $tpExtensionDate = null
     ): string {
         return app(AssessmentStatusService::class)->determineStatusFromDates(
             $startAt,
@@ -101,7 +102,8 @@ class Assessment extends Model
             $tpHasExtension,
             $tpExtensionMonths,
             $tpSatisfiedAt,
-            $assessmentType
+            $assessmentType,
+            $tpExtensionDate
         );
     }
 
@@ -381,15 +383,17 @@ class Assessment extends Model
                 || str_contains(strtolower($assessment->title ?: ''), 're-akreditasi')
                 || str_contains(strtolower($assessment->title ?: ''), 'reakreditasi');
 
-            if ($isRa && $assessment->status === 'COMPLETED' && ! empty($assessment->sk_number)) {
-                $assessment->lpk?->renewAccreditationCycleFromAssessment($assessment);
+            if ($isRa && $assessment->status === 'COMPLETED' && ! empty($assessment->sk_number) && $assessment->lpk) {
+                \Illuminate\Support\Facades\DB::transaction(function () use ($assessment): void {
+                    $assessment->lpk->renewAccreditationCycleFromAssessment($assessment);
+                });
             }
 
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
 
         static::deleted(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
     }
 
@@ -412,8 +416,13 @@ class Assessment extends Model
                                         $subExt->where(function ($ext0) {
                                             $ext0->where('tp_has_extension', false)
                                                 ->whereDate('tp_due_date', '<', now());
+                                        })->orWhere(function ($extDate) {
+                                            $extDate->where('tp_has_extension', true)
+                                                ->whereNotNull('tp_extension_date')
+                                                ->whereDate('tp_extension_date', '<', now());
                                         })->orWhere(function ($ext1) {
                                             $ext1->where('tp_has_extension', true)
+                                                ->whereNull('tp_extension_date')
                                                 ->whereDate('tp_due_date', '<', now()->subMonth());
                                         });
                                     });
@@ -424,10 +433,36 @@ class Assessment extends Model
                                     ->where(function ($subEnd) {
                                         $subEnd->where(function ($initialQ) {
                                             $initialQ->whereIn('assessment_type', [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'])
-                                                ->whereDate('end_at', '<', now()->subMonths(3));
+                                                ->where(function ($extQ) {
+                                                    $extQ->where(function ($ext0) {
+                                                        $ext0->where('tp_has_extension', false)
+                                                            ->whereDate('end_at', '<', now()->subMonths(3));
+                                                    })->orWhere(function ($extDate) {
+                                                        $extDate->where('tp_has_extension', true)
+                                                            ->whereNotNull('tp_extension_date')
+                                                            ->whereDate('tp_extension_date', '<', now());
+                                                    })->orWhere(function ($ext1) {
+                                                        $ext1->where('tp_has_extension', true)
+                                                            ->whereNull('tp_extension_date')
+                                                            ->whereDate('end_at', '<', now()->subMonths(4));
+                                                    });
+                                                });
                                         })->orWhere(function ($otherQ) {
                                             $otherQ->whereNotIn('assessment_type', [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'])
-                                                ->whereDate('end_at', '<', now()->subMonths(2));
+                                                ->where(function ($extQ) {
+                                                    $extQ->where(function ($ext0) {
+                                                        $ext0->where('tp_has_extension', false)
+                                                            ->whereDate('end_at', '<', now()->subMonths(2));
+                                                    })->orWhere(function ($extDate) {
+                                                        $extDate->where('tp_has_extension', true)
+                                                            ->whereNotNull('tp_extension_date')
+                                                            ->whereDate('tp_extension_date', '<', now());
+                                                    })->orWhere(function ($ext1) {
+                                                        $ext1->where('tp_has_extension', true)
+                                                            ->whereNull('tp_extension_date')
+                                                            ->whereDate('end_at', '<', now()->subMonths(3));
+                                                    });
+                                                });
                                         });
                                     });
                             });
@@ -442,16 +477,70 @@ class Assessment extends Model
         $target = now()->addDays($days);
 
         return $query->whereNotIn('tp_status', [self::TP_STATUS_NONE, self::TP_STATUS_SATISFIED])
-            ->whereNotNull('tp_due_date')
             ->where(function ($q) use ($now, $target): void {
-                $q->where(function ($sub) use ($now, $target): void {
-                    $sub->where('tp_has_extension', false)
-                        ->whereDate('tp_due_date', '>=', $now)
-                        ->whereDate('tp_due_date', '<=', $target);
-                })->orWhere(function ($sub) use ($now, $target): void {
-                    $sub->where('tp_has_extension', true)
-                        ->whereDate('tp_due_date', '>=', $now->copy()->subMonth())
-                        ->whereDate('tp_due_date', '<=', $target->copy()->subMonth());
+                $q->where(function ($hasDueDate) use ($now, $target): void {
+                    $hasDueDate->whereNotNull('tp_due_date')
+                        ->where(function ($sub) use ($now, $target): void {
+                            $sub->where(function ($ext0) use ($now, $target): void {
+                                $ext0->where('tp_has_extension', false)
+                                    ->whereDate('tp_due_date', '>=', $now)
+                                    ->whereDate('tp_due_date', '<=', $target);
+                            })->orWhere(function ($extDate) use ($now, $target): void {
+                                $extDate->where('tp_has_extension', true)
+                                    ->whereNotNull('tp_extension_date')
+                                    ->whereDate('tp_extension_date', '>=', $now)
+                                    ->whereDate('tp_extension_date', '<=', $target);
+                            })->orWhere(function ($ext1) use ($now, $target): void {
+                                $ext1->where('tp_has_extension', true)
+                                    ->whereNull('tp_extension_date')
+                                    ->whereDate('tp_due_date', '>=', $now->copy()->subMonth())
+                                    ->whereDate('tp_due_date', '<=', $target->copy()->subMonth());
+                            });
+                        });
+                })->orWhere(function ($noDueDate) use ($now, $target): void {
+                    $noDueDate->whereNull('tp_due_date')
+                        ->whereNotNull('end_at')
+                        ->where(function ($typeQ) use ($now, $target): void {
+                            $typeQ->where(function ($initialQ) use ($now, $target): void {
+                                $initialQ->whereIn('assessment_type', [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'])
+                                    ->where(function ($subExt) use ($now, $target): void {
+                                        $subExt->where(function ($ext0) use ($now, $target): void {
+                                            $ext0->where('tp_has_extension', false)
+                                                ->whereDate('end_at', '>=', $now->copy()->subMonths(3))
+                                                ->whereDate('end_at', '<=', $target->copy()->subMonths(3));
+                                        })->orWhere(function ($extDate) use ($now, $target): void {
+                                            $extDate->where('tp_has_extension', true)
+                                                ->whereNotNull('tp_extension_date')
+                                                ->whereDate('tp_extension_date', '>=', $now)
+                                                ->whereDate('tp_extension_date', '<=', $target);
+                                        })->orWhere(function ($ext1) use ($now, $target): void {
+                                            $ext1->where('tp_has_extension', true)
+                                                ->whereNull('tp_extension_date')
+                                                ->whereDate('end_at', '>=', $now->copy()->subMonths(4))
+                                                ->whereDate('end_at', '<=', $target->copy()->subMonths(4));
+                                        });
+                                    });
+                            })->orWhere(function ($otherQ) use ($now, $target): void {
+                                $otherQ->whereNotIn('assessment_type', [self::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'])
+                                    ->where(function ($subExt) use ($now, $target): void {
+                                        $subExt->where(function ($ext0) use ($now, $target): void {
+                                            $ext0->where('tp_has_extension', false)
+                                                ->whereDate('end_at', '>=', $now->copy()->subMonths(2))
+                                                ->whereDate('end_at', '<=', $target->copy()->subMonths(2));
+                                        })->orWhere(function ($extDate) use ($now, $target): void {
+                                            $extDate->where('tp_has_extension', true)
+                                                ->whereNotNull('tp_extension_date')
+                                                ->whereDate('tp_extension_date', '>=', $now)
+                                                ->whereDate('tp_extension_date', '<=', $target);
+                                        })->orWhere(function ($ext1) use ($now, $target): void {
+                                            $ext1->where('tp_has_extension', true)
+                                                ->whereNull('tp_extension_date')
+                                                ->whereDate('end_at', '>=', $now->copy()->subMonths(3))
+                                                ->whereDate('end_at', '<=', $target->copy()->subMonths(3));
+                                        });
+                                    });
+                            });
+                        });
                 });
             });
     }
@@ -551,5 +640,22 @@ class Assessment extends Model
         }
 
         return $this->lpk->canManage($user);
+    }
+
+    public function canView(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (! $this->lpk) {
+            return (int) $this->created_by === (int) $user->id;
+        }
+
+        return $this->lpk->canView($user);
     }
 }

@@ -19,12 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class GoogleSheetsReportController extends Controller
 {
     /**
-     * Kunci akses publik untuk bot crawler Google Sheets (=IMPORTDATA).
-     */
-    public const DEFAULT_FEED_KEY = 'simasadi-live';
-
-    /**
-     * Download Master Data LPK (format CSV atau XLSX) untuk pengguna login.
+     * Unduh Master Data LPK (format CSV atau XLSX) untuk pengguna login.
      */
     public function exportLpks(Request $request): StreamedResponse
     {
@@ -43,10 +38,9 @@ class GoogleSheetsReportController extends Controller
      */
     public function feedLpks(Request $request): Response|StreamedResponse
     {
-        if (! $this->isValidFeedKey($request)) {
-            return response("Unauthorized: Parameter '?key=' tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
-                'Content-Type' => 'text/plain; charset=UTF-8',
-            ]);
+        $validationResult = $this->checkFeedAccess($request);
+        if ($validationResult !== null) {
+            return $validationResult;
         }
 
         Log::info('Google Sheets live feed accessed: LPKs', [
@@ -77,10 +71,9 @@ class GoogleSheetsReportController extends Controller
      */
     public function feedAssessments(Request $request): Response|StreamedResponse
     {
-        if (! $this->isValidFeedKey($request)) {
-            return response("Unauthorized: Parameter '?key=' tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
-                'Content-Type' => 'text/plain; charset=UTF-8',
-            ]);
+        $validationResult = $this->checkFeedAccess($request);
+        if ($validationResult !== null) {
+            return $validationResult;
         }
 
         Log::info('Google Sheets live feed accessed: Assessments', [
@@ -92,23 +85,27 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
-     * Validasi key feed Google Sheets dengan perbandingan konstan waktu (timing-safe).
+     * Validasi otorisasi live feed Google Sheets.
      */
-    protected function isValidFeedKey(Request $request): bool
+    protected function checkFeedAccess(Request $request): ?Response
     {
-        $configured = (string) config('services.sheets.feed_key', self::DEFAULT_FEED_KEY);
+        $configured = trim((string) config('services.sheets.feed_key', ''));
 
-        if ($configured === '') {
-            $configured = self::DEFAULT_FEED_KEY;
+        // Tolak jika belum dikonfigurasi atau masih menggunakan token default/dummy yang tidak aman
+        if ($configured === '' || in_array($configured, ['simasadi-live', 'ganti-dengan-token-rahasia-acak'], true)) {
+            return response("Forbidden: Live feed Google Sheets dinonaktifkan. Harap atur SHEETS_FEED_KEY dengan token rahasia di file .env server.\n", 403, [
+                'Content-Type' => 'text/plain; charset=UTF-8',
+            ]);
         }
 
         $provided = (string) $request->query('key', '');
-
-        if ($provided === '') {
-            return false;
+        if ($provided === '' || ! hash_equals($configured, $provided)) {
+            return response("Unauthorized: Parameter '?key=' tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
+                'Content-Type' => 'text/plain; charset=UTF-8',
+            ]);
         }
 
-        return hash_equals($configured, $provided);
+        return null;
     }
 
     /**
@@ -239,7 +236,13 @@ class GoogleSheetsReportController extends Controller
             fputs($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns);
 
-            $query = Lpk::query()
+            $query = Lpk::with(['assessments' => function ($q) {
+                $q->select([
+                    'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
+                    'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                    'report_date', 'eha_date', 'sk_number',
+                ]);
+            }])
                 ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
                 ->orderBy('name');
 
@@ -250,6 +253,9 @@ class GoogleSheetsReportController extends Controller
             $lpks = $query->cursor();
 
             foreach ($lpks as $lpk) {
+                foreach ($lpk->assessments as $asm) {
+                    $asm->setRelation('lpk', $lpk);
+                }
                 $row = [
                     'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
                     $lpk->no_reg ?: $lpk->registration_number,
@@ -320,7 +326,7 @@ class GoogleSheetsReportController extends Controller
                     $this->formatDateForCsv($asm->end_at),
                     $this->formatAssessmentStatus($asm->status),
                     $this->formatTpStatus($asm->tp_status),
-                    $this->formatDateForCsv($asm->tp_due_date),
+                    $this->formatDateForCsv($asm->effective_tp_due_date),
                 ];
 
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
@@ -357,7 +363,13 @@ class GoogleSheetsReportController extends Controller
         // Header
         $sheet->fromArray([$columns], null, 'A1');
 
-        $query = Lpk::query()
+        $query = Lpk::with(['assessments' => function ($q) {
+            $q->select([
+                'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
+                'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                'report_date', 'eha_date', 'sk_number',
+            ]);
+        }])
             ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
             ->orderBy('name');
 
@@ -367,6 +379,9 @@ class GoogleSheetsReportController extends Controller
 
         $rowIdx = 2;
         foreach ($query->cursor() as $lpk) {
+            foreach ($lpk->assessments as $asm) {
+                $asm->setRelation('lpk', $lpk);
+            }
             $row = [
                 'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
                 $lpk->no_reg ?: $lpk->registration_number,
@@ -475,7 +490,7 @@ class GoogleSheetsReportController extends Controller
                 $asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-',
                 $this->formatAssessmentStatus($asm->status),
                 $this->formatTpStatus($asm->tp_status),
-                $asm->tp_due_date ? $asm->tp_due_date->translatedFormat('d F Y') : '-',
+                $asm->effective_tp_due_date ? $asm->effective_tp_due_date->translatedFormat('d F Y') : '-',
             ];
 
             $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);

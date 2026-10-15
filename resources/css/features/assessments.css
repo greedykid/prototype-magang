@@ -455,6 +455,466 @@ html[data-theme="dark"] .assessment-list-sk {
     }
 }
 
+/* Assessment Show Redesign: Header Hero, Pipeline Stepper, & Unified TP Hero Card */
+/* ========================================================================== */
 
+.assessment-header-hero .lpk-header-row {
+    align-items: flex-start;
+}
 
+.assessment-header-title-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+}
 
+.assessment-title {
+    color: var(--ink);
+    font-size: clamp(20px, 2.5vw, 24px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.assessment-header-meta {
+    align-items: center;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 13px;
+    gap: 8px 12px;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+.assessment-meta-item {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+}
+
+.assessment-meta-item svg {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+/* Header Hero LPK Highlight */
+.assessment-header-lpk-row {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.assessment-lpk-meta-value {
+    width: 100%;
+}
+
+.lpk-meta-value a.assessment-lpk-highlight-link,
+.assessment-lpk-highlight-link {
+    align-items: center !important;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 8px);
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 14px;
+    justify-content: space-between !important;
+    max-width: 100%;
+    padding: 10px 14px;
+    text-decoration: none;
+    transition: all 150ms ease;
+    width: 100% !important;
+}
+
+.assessment-lpk-highlight-link:hover {
+    background: #ffffff;
+    border-color: var(--primary, #0284c7);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+}
+
+.assessment-lpk-content {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.assessment-lpk-badge {
+    align-items: center;
+    background: rgba(2, 132, 199, 0.08);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+    border-radius: 6px;
+    color: var(--primary, #0284c7);
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 6px;
+    letter-spacing: 0.02em;
+    padding: 3px 9px;
+}
+
+.assessment-lpk-name {
+    color: var(--ink);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.assessment-lpk-highlight-link:hover .assessment-lpk-name {
+    color: var(--primary, #0284c7);
+}
+
+.assessment-lpk-arrow {
+    align-self: center;
+    color: var(--muted);
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: transform 150ms ease, color 150ms ease;
+}
+
+.assessment-lpk-highlight-link:hover .assessment-lpk-arrow {
+    color: var(--primary, #0284c7);
+    transform: translateX(3px);
+}
+
+.meta-dot {
+    color: var(--line-strong, #cbd5e1);
+    font-size: 11px;
+    user-select: none;
+}
+
+/* Stepper Pipeline Milestone Progress Card */
+.assessment-pipeline-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl, 16px);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    padding: 18px 22px;
+}
+
+.pipeline-header {
+    align-items: center;
+    border-bottom: 1px solid var(--line-subtle, #f1f5f9);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+}
+
+.pipeline-kicker {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pipeline-progress-text {
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pipeline-track {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+}
+
+.pipeline-step {
+    align-items: flex-start;
+    display: flex;
+    flex: 1 1 0%;
+    gap: 10px;
+    min-width: 0;
+}
+
+.pipeline-node {
+    align-items: center;
+    border-radius: var(--radius-pill, 9999px);
+    display: flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    height: 30px;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 180ms ease;
+    width: 30px;
+}
+
+.pipeline-step.step-completed .pipeline-node {
+    background: var(--green, #16a34a);
+    color: #ffffff;
+}
+
+.pipeline-step.step-current .pipeline-node {
+    background: var(--primary, #0284c7);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+    color: #ffffff;
+}
+
+.pipeline-step.step-alert .pipeline-node {
+    background: #e11d48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
+    color: #ffffff;
+}
+
+.pipeline-step.step-pending .pipeline-node,
+.pipeline-step.step-upcoming .pipeline-node {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    color: var(--muted);
+}
+
+.pipeline-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.pipeline-title {
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: normal;
+}
+
+.pipeline-sub {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 2px;
+    white-space: normal;
+    word-break: normal;
+}
+
+.pipeline-step.step-completed .pipeline-sub {
+    color: var(--green, #15803d);
+    font-weight: 500;
+}
+
+.pipeline-step.step-alert .pipeline-sub {
+    color: #e11d48;
+    font-weight: 600;
+}
+
+.pipeline-line {
+    background: var(--line);
+    flex: 0 0 28px;
+    height: 2px;
+    margin: 15px 4px 0;
+    min-width: 16px;
+}
+
+.pipeline-line.line-active {
+    background: var(--green, #16a34a);
+}
+
+@media (max-width: 768px) {
+    .pipeline-track {
+        display: grid;
+        gap: 14px 12px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pipeline-line {
+        display: none;
+    }
+}
+
+/* TP Single Source of Truth Hero Card */
+.tp-hero-card {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    padding: 20px 22px;
+}
+
+.tp-hero-card-satisfied {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.tp-hero-header {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.tp-hero-icon-title {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+}
+
+.tp-hero-check-circle {
+    align-items: center;
+    background: var(--green, #16a34a);
+    border-radius: var(--radius-pill, 9999px);
+    color: #ffffff;
+    display: flex;
+    flex-shrink: 0;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+}
+
+.tp-hero-pending-circle {
+    align-items: center;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill, 9999px);
+    color: var(--muted);
+    display: flex;
+    flex-shrink: 0;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+}
+
+.tp-hero-kicker {
+    color: var(--muted);
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.tp-hero-title {
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 3px 0 0;
+}
+
+.tp-hero-metrics-row {
+    border-top: 1px solid rgba(16, 185, 129, 0.2);
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-top: 16px;
+    padding-top: 16px;
+}
+
+.tp-hero-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tp-hero-metric-label {
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+.tp-hero-metric-value {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.tp-hero-footer-note {
+    align-items: center;
+    border-top: 1px dashed rgba(16, 185, 129, 0.25);
+    color: var(--muted);
+    display: flex;
+    font-size: 12px;
+    gap: 8px;
+    line-height: 1.45;
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.tp-hero-footer-note svg {
+    color: var(--primary, #0284c7);
+    flex-shrink: 0;
+}
+
+/* TP Standard / Overdue Metric Cards */
+.tp-metric-card {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 20px;
+}
+
+.tp-metric-card.tp-card-alert {
+    background: rgba(225, 29, 72, 0.03);
+    border-color: rgba(225, 29, 72, 0.35);
+}
+
+.tp-metric-card-kicker {
+    color: var(--muted);
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tp-metric-card-title {
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.tp-metric-card-desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.tp-metric-card-footer {
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.4;
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.tp-metric-card-footer strong {
+    color: var(--ink);
+}
+
+/* Assessment Notes Box inside Card 1 */
+.assessment-notes-box {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 8px);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 10px 14px;
+    white-space: pre-line;
+    width: 100%;
+}

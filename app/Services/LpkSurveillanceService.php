@@ -832,15 +832,13 @@ class LpkSurveillanceService
             return false;
         }
 
-        // Update LPK ke siklus 5 tahun berikutnya secara atomik
+        // Update LPK ke siklus 5 tahun berikutnya secara atomik (model event updated otomatis sinkronisasi agenda asesmen)
         return DB::transaction(function () use ($lpk, $newCertDate, $newExpDate): bool {
             $lpk->update([
                 'certificate_date' => $newCertDate->toDateString(),
                 'expired_at' => $newExpDate->toDateString(),
                 'status' => 'ACTIVE',
             ]);
-
-            $this->generateAssessments($lpk);
 
             return true;
         });

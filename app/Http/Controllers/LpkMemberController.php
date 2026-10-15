@@ -6,6 +6,8 @@ use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class LpkMemberController extends Controller
 {
@@ -43,7 +45,11 @@ class LpkMemberController extends Controller
         }
 
         $role = $validated['role'] ?? 'viewer';
-        $lpk->members()->attach($targetUser->id, ['role' => $role]);
+
+        DB::transaction(function () use ($lpk, $targetUser, $role) {
+            $lpk->members()->attach($targetUser->id, ['role' => $role]);
+            Cache::put('simasadi_surveillance_version', microtime(true));
+        });
 
         $roleLabel = $role === 'lead' ? ($targetUser->isAdmin() ? 'Ketua Tim' : 'PIC Pendamping') : 'Viewer (Hanya Lihat)';
         return back()->with('success', "Akun PIC {$targetUser->name} berhasil ditautkan sebagai {$roleLabel}.");
@@ -64,7 +70,10 @@ class LpkMemberController extends Controller
             return back()->with('error', "PIC {$user->name} tidak terdaftar dalam tim kolaborasi LPK ini.");
         }
 
-        $lpk->members()->detach($user->id);
+        DB::transaction(function () use ($lpk, $user) {
+            $lpk->members()->detach($user->id);
+            Cache::put('simasadi_surveillance_version', microtime(true));
+        });
 
         return back()->with('success', "Akses PIC {$user->name} berhasil diputuskan dari LPK ini.");
     }

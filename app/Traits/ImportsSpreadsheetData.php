@@ -17,30 +17,47 @@ trait ImportsSpreadsheetData
             return ['error' => 'Berkas atau spreadsheet tidak memiliki data untuk diimpor.'];
         }
 
-        $lines = preg_split('/\r\n|\r|\n/', $csvContent);
-        if (empty($lines)) {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $csvContent);
+        rewind($stream);
+
+        // Deteksi delimiter dari baris pertama
+        $firstLine = fgets($stream);
+        if ($firstLine === false || trim($firstLine) === '') {
+            fclose($stream);
             return ['error' => 'Format data spreadsheet tidak dikenali.'];
         }
 
-        $firstLine = $lines[0];
         $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
+        rewind($stream);
 
-        $headerRaw = str_getcsv(array_shift($lines), $delimiter, '"', '\\');
+        $headerRaw = fgetcsv($stream, 0, $delimiter, '"', '\\');
+        if (! is_array($headerRaw) || empty($headerRaw)) {
+            fclose($stream);
+            return ['error' => 'Gagal membaca judul kolom spreadsheet.'];
+        }
+
         $headers = $this->normalizeHeaders($headerRaw);
 
         $rows = [];
         $lineNum = 1;
-        foreach ($lines as $line) {
+        while (($rowValues = fgetcsv($stream, 0, $delimiter, '"', '\\')) !== false) {
             $lineNum++;
-            if (trim($line) === '') {
+            // Lewati baris kosong
+            if (count($rowValues) === 1 && $rowValues[0] === null) {
                 continue;
             }
-            $rowValues = str_getcsv($line, $delimiter, '"', '\\');
+            if (empty(array_filter($rowValues, fn ($v) => $v !== null && trim((string) $v) !== ''))) {
+                continue;
+            }
+
             $rows[] = [
                 'row_number' => $lineNum,
                 'values' => $rowValues,
             ];
         }
+
+        fclose($stream);
 
         return [
             'headers' => $headers,

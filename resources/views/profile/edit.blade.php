@@ -209,7 +209,8 @@
         </section>
     </div>
 
-    {{-- KARTU 3: Tautan Akun Kolaborasi (Account Linking) --}}
+    {{-- KARTU 3: Tautan Akun Kolaborasi (Account Linking Khusus PIC) --}}
+    @if($user->isPic())
     <section class="profile-links-card" id="account-links" aria-labelledby="profile-links-heading">
         <div class="profile-links-header">
             <div class="profile-links-header-left">
@@ -340,5 +341,6 @@
             </div>
         </div>
     </section>
+    @endif
 </div>
 @endsection

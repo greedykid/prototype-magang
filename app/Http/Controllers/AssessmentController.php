@@ -107,9 +107,13 @@ class AssessmentController extends Controller
             return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage', 'sort', 'direction'));
         }
 
+        $filterLpks = ($user && $user->isAdmin())
+            ? DB::table('lpks')->select(['id', 'registration_number', 'name'])->orderBy('registration_number')->get()
+            : Lpk::primaryFor($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']);
+
         return view('assessments.index', array_merge([
             'assessments' => $assessments,
-            'lpks' => Lpk::primaryFor($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']),
+            'lpks' => $filterLpks,
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
             'linkedOwnersCount' => $linkedOwnersCount,
@@ -136,22 +140,12 @@ class AssessmentController extends Controller
                 $alertCode = strtoupper((string) $request->input('alert_code', ''));
                 $targetDateStr = $request->input('target_date');
 
-                if ($alertCode === 'S1') {
-                    $assessment->assessment_type = Assessment::TYPE_SURVEILEN_1;
-                    $assessment->title = 'Surveilen 1 Siklus KAN - ' . $lpk->name;
-                } elseif ($alertCode === 'S2') {
-                    $assessment->assessment_type = Assessment::TYPE_SURVEILEN_2;
-                    $assessment->title = 'Surveilen 2 Siklus KAN - ' . $lpk->name;
-                } elseif ($alertCode === 'RA') {
-                    $assessment->assessment_type = Assessment::TYPE_RE_AKREDITASI;
-                    $assessment->title = 'Re-asesmen Siklus KAN - ' . $lpk->name;
-                } elseif ($request->filled('assessment_type')) {
-                    $assessment->assessment_type = Assessment::normalizeType($request->input('assessment_type'), (string) $request->input('title', ''));
-                    $assessment->title = ($assessment->assessment_type ?: 'Asesmen') . ' - ' . $lpk->name;
-                } else {
-                    $assessment->assessment_type = Assessment::TYPE_SURVEILEN_1;
-                    $assessment->title = 'Asesmen Surveilen KAN - ' . $lpk->name;
-                }
+                $normalizedType = Assessment::normalizeType(
+                    $alertCode ?: (string) $request->input('assessment_type', ''),
+                    (string) $request->input('title', '')
+                );
+                $assessment->assessment_type = $normalizedType;
+                $assessment->title = ($normalizedType ?: 'Asesmen') . ' - ' . $lpk->name;
 
                 if ($targetDateStr) {
                     try {
@@ -250,7 +244,7 @@ class AssessmentController extends Controller
     public function show(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canView($user)) {
+        if (! $assessment->canView($user)) {
             abort(403, 'Anda tidak memiliki hak untuk melihat program asesmen ini.');
         }
 
@@ -260,7 +254,7 @@ class AssessmentController extends Controller
     public function edit(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
         }
 
@@ -270,7 +264,7 @@ class AssessmentController extends Controller
     public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
         }
 
@@ -302,7 +296,7 @@ class AssessmentController extends Controller
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
     {
         $user = request()->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk memperbarui status tindakan perbaikan pada asesmen ini.');
         }
 
@@ -315,7 +309,7 @@ class AssessmentController extends Controller
     public function destroy(Assessment $assessment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
         }
 
@@ -373,10 +367,11 @@ class AssessmentController extends Controller
             return back()->with('error', 'Tidak ada program asesmen yang dapat dihapus.');
         }
 
-        DB::transaction(function () use ($records) {
-            foreach ($records as $record) {
-                $record->delete();
-            }
+        $idsToDelete = $records->pluck('id')->all();
+
+        DB::transaction(function () use ($idsToDelete) {
+            Assessment::whereIn('id', $idsToDelete)->delete();
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
 
         Log::info('Assessments bulk deleted', [

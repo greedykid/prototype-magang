@@ -395,7 +395,7 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
     font-weight: 600;
 }
 
-.lpk-meta-value a {
+.lpk-meta-value a:not(.assessment-lpk-highlight-link) {
     align-items: center;
     display: inline-flex;
     flex-wrap: wrap;

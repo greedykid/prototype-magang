@@ -12,7 +12,7 @@
                 $isPic = auth()->user()?->isPic();
                 $menuTitle = match (true) {
                     request()->routeIs('dashboard') => 'Dasbor',
-                    request()->routeIs('lpks.*', 'accreditations.*') => $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)',
+                    request()->routeIs('lpks.*') => $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)',
                     request()->routeIs('assessments.*') => $isPic ? 'Jadwal Asesmen' : 'Program Asesmen',
                     request()->routeIs('calendar.*') => $isPic ? 'Kalender Pengawasan' : 'Kalender',
                     request()->routeIs('users.*') => 'Manajemen Anggota',

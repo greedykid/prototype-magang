@@ -39,6 +39,17 @@
         @if($availableUsers->isNotEmpty())
             <form method="POST" action="{{ route('account-links.store') }}" style="background: var(--surface-subtle, var(--surface)); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); padding: 14px; margin-bottom: 18px;">
                 @csrf
+                @if(auth()->user()?->isAdmin() && isset($allPics) && $allPics->isNotEmpty())
+                    <label for="owner-select" style="display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">
+                        Pilih PIC Pemilik Data (Owner)
+                    </label>
+                    <select id="owner-select" name="owner_id" required style="width: 100%; margin-bottom: 10px; font-size: 12.5px; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
+                        <option value="">-- Pilih PIC Pemilik Data --</option>
+                        @foreach($allPics as $op)
+                            <option value="{{ $op->id }}">{{ $op->name }} ({{ $op->email }})</option>
+                        @endforeach
+                    </select>
+                @endif
                 <label for="viewer-select" style="display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px;">
                     Tautkan PIC Baru sebagai Viewer
                 </label>

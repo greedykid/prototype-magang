@@ -229,13 +229,19 @@ class CalendarEventController extends Controller
     {
         if (str_starts_with($highlightParam, 'tp_')) {
             $tpId = (int) substr($highlightParam, 3);
-            $tpAss = Assessment::find($tpId);
+            if ($tpId <= 0) {
+                return null;
+            }
+            $tpAss = Assessment::select(['id', 'lpk_id', 'assessment_type', 'start_at', 'end_at', 'tp_due_date', 'tp_has_extension', 'tp_extension_months', 'tp_extension_date'])->find($tpId);
             return ($tpAss?->effective_tp_due_date ?: $tpAss?->start_at)?->toDateString();
         }
 
         if (str_starts_with($highlightParam, 'reminder_tp_')) {
             $tpId = (int) substr($highlightParam, 12);
-            $tpAss = Assessment::find($tpId);
+            if ($tpId <= 0) {
+                return null;
+            }
+            $tpAss = Assessment::select(['id', 'assessment_type', 'title', 'end_at'])->find($tpId);
             if ($tpAss && $tpAss->end_at) {
                 $remDate = $tpAss->calculateDefaultTpReminderDate();
                 return $remDate ? CarbonImmutable::parse($remDate)->toDateString() : null;
@@ -245,7 +251,10 @@ class CalendarEventController extends Controller
 
         if (str_starts_with($highlightParam, 'reminder_sk_')) {
             $skId = (int) substr($highlightParam, 12);
-            $skAss = Assessment::find($skId);
+            if ($skId <= 0) {
+                return null;
+            }
+            $skAss = Assessment::select(['id', 'assessment_type', 'tp_satisfied_at'])->find($skId);
             if ($skAss) {
                 $skDate = $skAss->calculateDefaultSkReminderDate();
                 return $skDate ? CarbonImmutable::parse($skDate)->toDateString() : null;
@@ -259,7 +268,10 @@ class CalendarEventController extends Controller
                 $type = $parts[1];
                 $code = $parts[2];
                 $lpkId = (int) $parts[3];
-                $lpkItem = Lpk::find($lpkId);
+                if ($lpkId <= 0) {
+                    return null;
+                }
+                $lpkItem = Lpk::select(['id', 'status', 'certificate_date', 'expired_at'])->find($lpkId);
                 if ($lpkItem) {
                     $ms = $lpkItem->surveillance_milestones[$code] ?? null;
                     if ($ms) {
@@ -273,21 +285,27 @@ class CalendarEventController extends Controller
 
         if (str_starts_with($highlightParam, 'lpk_exp_')) {
             $lpkId = (int) substr($highlightParam, 8);
-            $lpkItem = Lpk::find($lpkId);
-            return $lpkItem?->expired_at ? CarbonImmutable::parse($lpkItem->expired_at)->toDateString() : null;
+            if ($lpkId <= 0) {
+                return null;
+            }
+            $expDate = Lpk::where('id', $lpkId)->value('expired_at');
+            return $expDate ? CarbonImmutable::parse($expDate)->toDateString() : null;
         }
 
         if (str_starts_with($highlightParam, 'event-')) {
             $cevId = (int) substr($highlightParam, 6);
-            $cev = CalendarEvent::find($cevId);
-            return $cev?->start_at?->toDateString();
+            if ($cevId <= 0) {
+                return null;
+            }
+            $startAt = CalendarEvent::where('id', $cevId)->value('start_at');
+            return $startAt ? CarbonImmutable::parse($startAt)->toDateString() : null;
         }
 
         $cleanHighlight = str_replace('assessment-', '', $highlightParam);
         if (is_numeric($cleanHighlight) && (int) $cleanHighlight > 0) {
             $assId = (int) $cleanHighlight;
-            $ass = Assessment::find($assId);
-            return $ass?->start_at?->toDateString();
+            $startAt = Assessment::where('id', $assId)->value('start_at');
+            return $startAt ? CarbonImmutable::parse($startAt)->toDateString() : null;
         }
 
         return null;
@@ -594,18 +612,31 @@ class CalendarEventController extends Controller
     protected function fetchLpkMilestoneEvents(CarbonImmutable $queryStart, CarbonImmutable $queryEnd, ?\App\Models\User $user, ?string $picFilter): Collection
     {
         $isAdmin = $user && $user->isAdmin();
-        $cycleMinDate = $queryStart->subMonths(60)->toDateString();
-        $cycleMaxDate = $queryEnd->addMonths(2)->toDateString();
-        $expiredMinDate = $queryStart->subMonths(6)->toDateString();
-        $expiredMaxDate = $queryEnd->addMonths(12)->toDateString();
+        $qStartStr = $queryStart->toDateString();
+        $qEndStr = $queryEnd->toDateString();
 
         $lpksWithMilestones = Lpk::accessibleBy($user)
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
             ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'tp_satisfied_at', 'sk_number'])])
             ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
-            ->where(function ($q) use ($cycleMinDate, $cycleMaxDate, $expiredMinDate, $expiredMaxDate) {
-                $q->whereBetween('certificate_date', [$cycleMinDate, $cycleMaxDate])
-                    ->orWhereBetween('expired_at', [$expiredMinDate, $expiredMaxDate]);
+            ->where(function ($q) use ($queryStart, $queryEnd, $qStartStr, $qEndStr) {
+                // 1. Kedaluwarsa akreditasi pada bulan kalender aktif
+                $q->whereBetween('expired_at', [$qStartStr, $qEndStr])
+                    // 2. Siklus S1 (reminder bulan ke-13 s.d. target bulan ke-18)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(19)->toDateString(),
+                        $queryEnd->subMonths(12)->toDateString(),
+                    ])
+                    // 3. Siklus S2 (reminder bulan ke-34 s.d. target bulan ke-39)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(40)->toDateString(),
+                        $queryEnd->subMonths(33)->toDateString(),
+                    ])
+                    // 4. Siklus RA (reminder bulan ke-48 s.d. target bulan ke-51)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(52)->toDateString(),
+                        $queryEnd->subMonths(47)->toDateString(),
+                    ]);
             })
             ->get();
 

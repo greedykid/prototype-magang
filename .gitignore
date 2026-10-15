@@ -44,4 +44,6 @@ Thumbs.db
 *.bak
 /.github
 /anti-slop
+/.codegraph
+
 

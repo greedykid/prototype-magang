@@ -34,23 +34,29 @@ class AccountLinkController extends Controller
         $ownerIds = $linkedOwners->pluck('id')->all();
         $assessmentCounts = [];
         if (! empty($ownerIds)) {
-            $ownerAssessmentMap = DB::table('assessments')
+            $leadCounts = DB::table('assessments')
                 ->join('lpks', 'assessments.lpk_id', '=', 'lpks.id')
                 ->whereIn('lpks.pic_id', $ownerIds)
-                ->select('lpks.pic_id as user_id', 'assessments.id as assessment_id')
-                ->union(
-                    DB::table('assessments')
-                        ->join('lpk_members', 'assessments.lpk_id', '=', 'lpk_members.lpk_id')
-                        ->whereIn('lpk_members.user_id', $ownerIds)
-                        ->select('lpk_members.user_id', 'assessments.id as assessment_id')
-                );
+                ->selectRaw('lpks.pic_id as user_id, count(assessments.id) as total')
+                ->groupBy('lpks.pic_id')
+                ->pluck('total', 'user_id');
 
-            $assessmentCounts = DB::query()
-                ->fromSub($ownerAssessmentMap, 'owner_assessments')
-                ->groupBy('user_id')
-                ->selectRaw('user_id, count(distinct assessment_id) as total')
-                ->pluck('total', 'user_id')
-                ->all();
+            $memberCounts = DB::table('assessments')
+                ->join('lpk_members', 'assessments.lpk_id', '=', 'lpk_members.lpk_id')
+                ->whereIn('lpk_members.user_id', $ownerIds)
+                ->whereNotExists(function ($sub) {
+                    $sub->select(DB::raw(1))
+                        ->from('lpks')
+                        ->whereColumn('lpks.id', 'assessments.lpk_id')
+                        ->whereColumn('lpks.pic_id', 'lpk_members.user_id');
+                })
+                ->selectRaw('lpk_members.user_id, count(assessments.id) as total')
+                ->groupBy('lpk_members.user_id')
+                ->pluck('total', 'user_id');
+
+            foreach ($ownerIds as $ownerId) {
+                $assessmentCounts[$ownerId] = ($leadCounts[$ownerId] ?? 0) + ($memberCounts[$ownerId] ?? 0);
+            }
         }
 
         foreach ($linkedOwners as $owner) {
@@ -64,7 +70,11 @@ class AccountLinkController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('account-links.index', compact('user', 'linkedViewers', 'linkedOwners', 'availableUsers'));
+        $allPics = $user->isAdmin()
+            ? User::where('role', User::ROLE_PIC)->orderBy('name')->get()
+            : collect();
+
+        return view('account-links.index', compact('user', 'linkedViewers', 'linkedOwners', 'availableUsers', 'allPics'));
     }
 
     /**
@@ -94,13 +104,24 @@ class AccountLinkController extends Controller
             $perPage = 10;
         }
 
-        $totalLpkCount = Lpk::primaryFor($owner)->count();
-        $activeLpkCount = Lpk::primaryFor($owner)->where('status', 'ACTIVE')->count();
-        $totalAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->count();
-        $activeAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->whereIn('status', ['SCHEDULED', 'IN_PROGRESS'])->count();
-        $completedAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->where('status', 'COMPLETED')->count();
-        $ownerLpks = Lpk::primaryFor($owner)->orderBy('name')->get();
+        $isPartial = $request->ajax() && $request->hasHeader('X-Partial-Content');
+
+        $totalLpkCount = 0;
+        $activeLpkCount = 0;
+        $totalAssessmentCount = 0;
+        $activeAssessmentCount = 0;
+        $completedAssessmentCount = 0;
+        $ownerLpks = collect();
         $assessmentTypes = Assessment::TYPES;
+
+        if (! $isPartial) {
+            $totalLpkCount = Lpk::primaryFor($owner)->count();
+            $activeLpkCount = Lpk::primaryFor($owner)->where('status', 'ACTIVE')->count();
+            $totalAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->count();
+            $activeAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->whereIn('status', ['SCHEDULED', 'IN_PROGRESS'])->count();
+            $completedAssessmentCount = Assessment::whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))->where('status', 'COMPLETED')->count();
+            $ownerLpks = Lpk::primaryFor($owner)->orderBy('name')->get();
+        }
 
         if ($tab === 'assessments') {
             $search = $request->string('search')->trim()->toString();
@@ -175,11 +196,7 @@ class AccountLinkController extends Controller
         $expiry = $request->string('expiry')->toString();
 
         // Query khusus LPK milik akun tertaut ini saja (terpisah dari daftar LPK utama)
-        $query = Lpk::query()
-            ->where(function ($q) use ($owner) {
-                $q->where('lpks.pic_id', $owner->id)
-                  ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $owner->id));
-            })
+        $query = Lpk::primaryFor($owner)
             ->when($search, fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
@@ -213,34 +230,85 @@ class AccountLinkController extends Controller
         $needsSurveillanceFilter = ! empty($surveillance);
 
         if ($needsDynamicStatusFilter || $needsSurveillanceFilter) {
-            $candidateLpks = (clone $query)->with('assessments')->get();
-            foreach ($candidateLpks as $candidate) {
-                foreach ($candidate->assessments as $asm) {
-                    $asm->setRelation('lpk', $candidate);
-                }
-            }
+            $candidateQuery = (clone $query)
+                ->select(['id', 'status', 'certificate_date', 'expired_at', 'last_surveillance_notified_at'])
+                ->with(['assessments' => function ($q) {
+                    $q->select([
+                        'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
+                        'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                        'report_date', 'eha_date', 'sk_number', 'created_at',
+                    ]);
+                }]);
 
-            if ($needsDynamicStatusFilter) {
-                $candidateLpks = $candidateLpks->filter(fn (Lpk $lpk) => $lpk->dynamic_status === $status);
-            }
-
-            if ($needsSurveillanceFilter) {
-                $candidateLpks = $candidateLpks->filter(function (Lpk $lpk) use ($surveillance) {
-                    $alerts = $lpk->getActiveSurveillanceAlerts();
-                    $milestones = $lpk->surveillance_milestones;
-
-                    return match ($surveillance) {
-                        'NEEDS_ACTION' => count($alerts) > 0,
-                        'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
-                        'OVERDUE' => collect($alerts)->contains('is_urgent', true),
-                        default => true,
-                    };
+            // Pre-filter level database untuk memangkas footprint RAM dan jumlah kandidat
+            if ($status === 'EXPIRED') {
+                $candidateQuery->whereNotNull('expired_at')->where('expired_at', '<', now());
+            } elseif ($status === 'ACTIVE') {
+                $candidateQuery->where('status', '!=', 'INACTIVE');
+            } elseif ($status === 'GRACE_PERIOD') {
+                $candidateQuery->whereNotNull('expired_at')
+                    ->where('expired_at', '<', now())
+                    ->where('expired_at', '>=', now()->subMonths(6));
+            } elseif ($status === 'REVOKED') {
+                $candidateQuery->where(function ($q) {
+                    $q->whereIn('status', ['REVOKED', 'DICABUT'])
+                        ->orWhere('expired_at', '<', now()->subMonths(6))
+                        ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'REVOKED'));
                 });
+            } elseif ($status === 'SUSPENDED') {
+                $candidateQuery->where(function ($q) {
+                    $q->where('status', 'SUSPENDED')
+                        ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'SUSPENDED')->orWhere('tp_status', 'IN_PROGRESS'));
+                });
+            } elseif (in_array($status, ['SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE'], true)) {
+                $candidateQuery->whereNotNull('certificate_date')->where('status', '!=', 'INACTIVE');
             }
 
-            $validIds = $candidateLpks->pluck('id')->all();
+            if (in_array($surveillance, ['DUE_S1', 'DUE_S2', 'OVERDUE'], true)) {
+                $candidateQuery->whereNotNull('certificate_date');
+            } elseif ($surveillance === 'DUE_RA') {
+                $candidateQuery->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
+            }
+
+            $validIds = [];
+            $candidateQuery->chunkById(150, function ($candidateChunk) use (
+                &$validIds,
+                $needsDynamicStatusFilter,
+                $status,
+                $needsSurveillanceFilter,
+                $surveillance
+            ) {
+                foreach ($candidateChunk as $candidate) {
+                    foreach ($candidate->assessments as $asm) {
+                        $asm->setRelation('lpk', $candidate);
+                    }
+
+                    if ($needsDynamicStatusFilter && $candidate->dynamic_status !== $status) {
+                        continue;
+                    }
+
+                    if ($needsSurveillanceFilter) {
+                        $alerts = $candidate->getActiveSurveillanceAlerts();
+                        $milestones = $candidate->surveillance_milestones;
+
+                        $matched = match ($surveillance) {
+                            'NEEDS_ACTION' => count($alerts) > 0,
+                            'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                            'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                            'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
+                            'OVERDUE' => collect($alerts)->contains('is_urgent', true),
+                            default => true,
+                        };
+
+                        if (! $matched) {
+                            continue;
+                        }
+                    }
+
+                    $validIds[] = $candidate->id;
+                }
+            });
+
             if (empty($validIds)) {
                 $query->whereRaw('1 = 0');
             } else {
@@ -248,7 +316,7 @@ class AccountLinkController extends Controller
             }
         }
 
-        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments', 'pic'])->latest()->paginate($perPage)->withQueryString();
         foreach ($lpks as $lpk) {
             foreach ($lpk->assessments as $assessment) {
                 $assessment->setRelation('lpk', $lpk);

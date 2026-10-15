@@ -295,7 +295,7 @@
                     Status TP (Batas Waktu)
                     <select id="filter-asm-tp-status" name="tp_status">
                         <option value="">Semua status TP</option>
-                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
+                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Belum Ditentukan</option>
                         <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
                         <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (<= 14 Hari)</option>
                         <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
@@ -331,7 +331,7 @@
                     'CANCELLED' => 'Dibatalkan',
                 ];
                 $tpLabels = [
-                    'NONE' => 'Nihil / Belum Ada Temuan',
+                    'NONE' => 'Belum Ditentukan',
                     'ACTIVE' => 'Sedang Perbaikan / Verifikasi',
                     'DUE_SOON' => 'Jatuh Tempo (<= 14 Hari)',
                     'OVERDUE' => 'Melewati Batas Waktu (Dibekukan)',

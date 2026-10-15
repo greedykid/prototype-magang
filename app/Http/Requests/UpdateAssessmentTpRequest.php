@@ -100,6 +100,7 @@ class UpdateAssessmentTpRequest extends FormRequest
             $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
             $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
             $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);
+            $tpExtensionDate = ! empty($validated['tp_extension_date']) ? Carbon::parse($validated['tp_extension_date']) : $assessment->tp_extension_date;
             $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : $assessment->tp_satisfied_at;
 
             $validated['status'] = Assessment::determineStatusFromDates(
@@ -114,7 +115,8 @@ class UpdateAssessmentTpRequest extends FormRequest
                 $tpHasExtension,
                 $tpExtensionMonths,
                 $tpSatisfiedAt,
-                $assessment->assessment_type
+                $assessment->assessment_type,
+                $tpExtensionDate
             );
         }
 

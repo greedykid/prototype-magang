@@ -74,10 +74,6 @@
                     <x-icon name="users" size="18" />
                     <span class="nav-label">Manajemen Anggota</span>
                 </a>
-                <a href="{{ route('account-links.index') }}" class="{{ request()->routeIs('account-links.*') ? 'active' : '' }}" data-tooltip="Tautan Akun">
-                    <x-icon name="link" size="18" />
-                    <span class="nav-label">Tautan Akun</span>
-                </a>
             </div>
         @endif
     </nav>

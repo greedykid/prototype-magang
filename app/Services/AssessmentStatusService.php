@@ -24,7 +24,8 @@ class AssessmentStatusService
         bool $tpHasExtension = false,
         ?int $tpExtensionMonths = 0,
         ?Carbon $tpSatisfiedAt = null,
-        ?string $assessmentType = null
+        ?string $assessmentType = null,
+        ?Carbon $tpExtensionDate = null
     ): string {
         if ($currentStatus === 'CANCELLED') {
             return 'CANCELLED';
@@ -47,10 +48,14 @@ class AssessmentStatusService
             if ($baseDueDate) {
                 $effectiveDueDate = $baseDueDate->copy()->startOfDay();
                 if ($tpHasExtension && (int) $tpExtensionMonths > 0) {
-                    $defaultBase = Assessment::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
-                    $extMonths = min(1, max(1, (int) $tpExtensionMonths));
-                    if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonths($extMonths)->toDateString())) {
-                        $effectiveDueDate->addMonths($extMonths);
+                    if ($tpExtensionDate && $tpExtensionDate->gt($baseDueDate)) {
+                        $effectiveDueDate = $tpExtensionDate->copy()->startOfDay();
+                    } else {
+                        $defaultBase = Assessment::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
+                        $extMonths = min(1, max(1, (int) $tpExtensionMonths));
+                        if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonths($extMonths)->toDateString())) {
+                            $effectiveDueDate->addMonths($extMonths);
+                        }
                     }
                 }
 
@@ -195,7 +200,7 @@ class AssessmentStatusService
      */
     public function calculateDefaultSubmissionDueDate(Assessment $assessment): ?Carbon
     {
-        $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : $assessment->lpk()->first();
+        $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : ($assessment->lpk_id ? $assessment->lpk : null);
         $cycleEnd = $lpk?->expired_at ?: ($lpk?->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
         $cycleStart = $lpk?->certificate_date ?: ($cycleEnd ? $cycleEnd->copy()->subYears(5) : null);
 
@@ -276,7 +281,7 @@ class AssessmentStatusService
      */
     public function isPastSurveillanceForActiveLpk(Assessment $assessment): bool
     {
-        $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : $assessment->lpk()->first();
+        $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : ($assessment->lpk_id ? $assessment->lpk : null);
         if (! $lpk || $lpk->getRawOriginal('status') !== 'ACTIVE') {
             return false;
         }

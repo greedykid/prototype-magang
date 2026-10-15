@@ -39,7 +39,7 @@
                     <label style="display: block;">
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Status Asesmen</span>
                         <select name="unified_status" id="modal_unified_status_select" required onchange="const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}'); if(this.value === 'COMPLETED' && satInput && !satInput.value){ satInput.value = new Date().toISOString().split('T')[0]; }" style="width: 100%; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink); font-size: 13px;">
-                            <option value="SCHEDULED" @selected($selectedUnified === 'SCHEDULED')>Terjadwal (Nihil / Belum Ada Temuan)</option>
+                            <option value="SCHEDULED" @selected($selectedUnified === 'SCHEDULED')>Terjadwal (Batas Waktu TP Belum Ditentukan)</option>
                             <option value="IN_PROGRESS_TP" @selected($selectedUnified === 'IN_PROGRESS_TP')>Sedang Berlangsung: Penyusunan Perbaikan oleh LPK</option>
                             <option value="UNDER_VERIFICATION" @selected($selectedUnified === 'UNDER_VERIFICATION')>Sedang Berlangsung: Dalam Verifikasi Tim Asesor</option>
                             <option value="SUSPENDED" @selected($selectedUnified === 'SUSPENDED')>Dibekukan (Melewati Batas Waktu TP)</option>

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AccountLinkController;
-use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
 use App\Http\Controllers\AuthController;
@@ -91,8 +90,5 @@ Route::middleware('auth')->group(function (): void {
         // Manajemen Anggota (Pengguna & Hak Akses PIC / Admin)
         Route::resource('users', UserController::class);
         Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
-
-        Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');
-        Route::get('/accreditations/{accreditation}', [AccreditationController::class, 'show'])->name('accreditations.show');
     });
 });

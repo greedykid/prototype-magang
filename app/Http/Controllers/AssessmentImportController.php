@@ -217,15 +217,50 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs dan Asesmen terproyeksi untuk performa (hanya LPK yang memiliki hak kelola bagi PIC / Admin)
+        // Kumpulkan identifier dari baris input untuk query selektif hemat RAM
+        $incomingRegs = [];
+        $incomingNames = [];
+        foreach ($rows as $rowItem) {
+            $rowValues = $rowItem['values'] ?? [];
+            $rowData = [];
+            foreach ($headers as $colIdx => $colName) {
+                if (isset($rowValues[$colIdx])) {
+                    $rowData[$colName] = trim((string) $rowValues[$colIdx]);
+                }
+            }
+            if (! empty($rowData['registration_number'])) {
+                $incomingRegs[] = strtoupper($rowData['registration_number']);
+            }
+            if (! empty($rowData['lpk_name'])) {
+                $incomingNames[] = strtolower($rowData['lpk_name']);
+            }
+        }
+        $incomingRegs = array_values(array_unique(array_filter($incomingRegs)));
+        $incomingNames = array_values(array_unique(array_filter($incomingNames)));
+
+        // Cache LPKs dan Asesmen terproyeksi hanya untuk LPK yang cocok dengan file input
         $user = auth()->user();
-        $accessibleLpks = Lpk::manageableBy($user)
-            ->select(['id', 'registration_number', 'name', 'address', 'pic_id'])
-            ->get();
+        $accessibleLpksQuery = Lpk::manageableBy($user)
+            ->select(['id', 'registration_number', 'name', 'address', 'pic_id']);
+
+        if (! empty($incomingRegs) || ! empty($incomingNames)) {
+            $accessibleLpksQuery->where(function ($q) use ($incomingRegs, $incomingNames) {
+                if (! empty($incomingRegs)) {
+                    $q->whereIn('registration_number', $incomingRegs);
+                }
+                if (! empty($incomingNames)) {
+                    $q->orWhereIn('name', $incomingNames);
+                }
+            });
+        } else {
+            $accessibleLpksQuery->whereRaw('1 = 0');
+        }
+
+        $accessibleLpks = $accessibleLpksQuery->get();
         $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        // Pre-load existing assessments terproyeksi untuk mengeliminasi query N+1
+        // Pre-load existing assessments terproyeksi hanya untuk LPK yang relevan
         $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))
             ->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'created_by'])
             ->get();

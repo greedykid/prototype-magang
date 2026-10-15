@@ -76,7 +76,8 @@ class LpkController extends Controller
             if ($status === 'EXPIRED') {
                 $candidateQuery->whereNotNull('expired_at')->where('expired_at', '<', now());
             } elseif ($status === 'ACTIVE') {
-                $candidateQuery->where('status', '!=', 'INACTIVE');
+                $candidateQuery->where('status', '!=', 'INACTIVE')
+                    ->where(fn ($q) => $q->whereNull('expired_at')->orWhere('expired_at', '>=', now()));
             } elseif ($status === 'GRACE_PERIOD') {
                 $candidateQuery->whereNotNull('expired_at')
                     ->where('expired_at', '<', now())
@@ -102,34 +103,44 @@ class LpkController extends Controller
                 $candidateQuery->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
             }
 
-            $candidateLpks = $candidateQuery->get();
-            foreach ($candidateLpks as $candidate) {
-                foreach ($candidate->assessments as $asm) {
-                    $asm->setRelation('lpk', $candidate);
+            $validIds = [];
+            $candidateQuery->chunkById(150, function ($candidateChunk) use (
+                &$validIds,
+                $needsDynamicStatusFilter,
+                $status,
+                $needsSurveillanceFilter,
+                $surveillance
+            ) {
+                foreach ($candidateChunk as $candidate) {
+                    foreach ($candidate->assessments as $asm) {
+                        $asm->setRelation('lpk', $candidate);
+                    }
+
+                    if ($needsDynamicStatusFilter && $candidate->dynamic_status !== $status) {
+                        continue;
+                    }
+
+                    if ($needsSurveillanceFilter) {
+                        $alerts = $candidate->getActiveSurveillanceAlerts();
+                        $milestones = $candidate->surveillance_milestones;
+
+                        $matched = match ($surveillance) {
+                            'NEEDS_ACTION' => count($alerts) > 0,
+                            'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                            'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                            'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
+                            'OVERDUE' => collect($alerts)->contains('is_urgent', true),
+                            default => true,
+                        };
+
+                        if (! $matched) {
+                            continue;
+                        }
+                    }
+
+                    $validIds[] = $candidate->id;
                 }
-            }
-
-            if ($needsDynamicStatusFilter) {
-                $candidateLpks = $candidateLpks->filter(fn (Lpk $lpk) => $lpk->dynamic_status === $status);
-            }
-
-            if ($needsSurveillanceFilter) {
-                $candidateLpks = $candidateLpks->filter(function (Lpk $lpk) use ($surveillance) {
-                    $alerts = $lpk->getActiveSurveillanceAlerts();
-                    $milestones = $lpk->surveillance_milestones;
-
-                    return match ($surveillance) {
-                        'NEEDS_ACTION' => count($alerts) > 0,
-                        'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
-                        'OVERDUE' => collect($alerts)->contains('is_urgent', true),
-                        default => true,
-                    };
-                });
-            }
-
-            $validIds = $candidateLpks->pluck('id')->all();
+            });
             if (empty($validIds)) {
                 $query->whereRaw('1 = 0');
             } else {
@@ -147,7 +158,7 @@ class LpkController extends Controller
             $query->latest();
         }
 
-        $lpks = $query->with(['assessments', 'pic', 'members'])->withCount(['accreditations'])->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments', 'pic', 'members'])->paginate($perPage)->withQueryString();
         foreach ($lpks as $lpk) {
             foreach ($lpk->assessments as $assessment) {
                 $assessment->setRelation('lpk', $lpk);
@@ -191,7 +202,7 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers']);
+        $lpk->load(['assessments', 'pic.linkedViewers']);
         foreach ($lpk->assessments as $assessment) {
             $assessment->setRelation('lpk', $lpk);
         }
@@ -308,10 +319,14 @@ class LpkController extends Controller
             return back()->with('error', 'Tidak ada data LPK yang dapat dihapus.');
         }
 
-        DB::transaction(function () use ($records) {
-            foreach ($records as $record) {
-                $record->delete();
-            }
+        $idsToDelete = $records->pluck('id')->all();
+
+        DB::transaction(function () use ($idsToDelete) {
+            \App\Models\Assessment::whereIn('lpk_id', $idsToDelete)->delete();
+            DB::table('lpk_members')->whereIn('lpk_id', $idsToDelete)->delete();
+            DB::table('calendar_events')->whereIn('lpk_id', $idsToDelete)->delete();
+            Lpk::whereIn('id', $idsToDelete)->delete();
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
 
         Log::info('LPKs bulk deleted', [
@@ -344,8 +359,26 @@ class LpkController extends Controller
                 return back()->with('error', 'Tidak ada jadwal notifikasi pengawasan (S1, S2, atau Re-Akreditasi) yang sedang aktif untuk LPK ini.');
             }
 
-            // Alur Opsi 2: Notifikasi kerja internal ditujukan ke staf/PIC internal Unit Akreditasi Lab BSN
-            $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+            // Alur Opsi 2: Prioritaskan pengiriman notifikasi kerja ke PIC penanggung jawab LPK ini
+            $assignedEmails = [];
+            if ($lpk->pic && ! empty($lpk->pic->email)) {
+                $assignedEmails[] = $lpk->pic->email;
+            }
+
+            $leadMemberEmails = $lpk->members()
+                ->wherePivot('role', 'lead')
+                ->pluck('email')
+                ->filter()
+                ->all();
+
+            $assignedEmails = array_values(array_unique(array_filter(array_merge($assignedEmails, $leadMemberEmails))));
+
+            // Fallback: Jika LPK belum memiliki PIC yang ditugaskan, kirim ke seluruh PIC unit atau Admin
+            if (! empty($assignedEmails)) {
+                $picEmails = $assignedEmails;
+            } else {
+                $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+            }
 
             // Jika belum ada pengguna ber-peran PIC, fallback ke admin sistem atau user yang sedang login
             if (empty($picEmails)) {
@@ -400,14 +433,14 @@ class LpkController extends Controller
                 ];
             }
 
-            \Illuminate\Support\Facades\Mail::to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
+            \Illuminate\Support\Facades\Mail::to($recipientEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
 
             $lpk->update(['last_surveillance_notified_at' => now()]);
 
             $recipientCount = count($recipientEmails);
             $recipientSummary = $recipientCount === 1 ? $recipientEmails[0] : "{$recipientCount} PIC Unit (" . implode(', ', $recipientEmails) . ')';
             $prefix = $isSimulation ? 'Simulasi email pengingat' : 'Email pengingat';
-            return back()->with('success', "{$prefix} jadwal {$targetAlert['name']} untuk {$lpk->name} berhasil dikirimkan ke PIC internal unit BSN ({$recipientSummary}).");
+            return back()->with('success', "{$prefix} jadwal {$targetAlert['name']} untuk {$lpk->name} berhasil dimasukkan ke antrean pengiriman ke PIC internal unit BSN ({$recipientSummary}).");
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Surveillance Reminder Mail Error: ' . $e->getMessage(), [
                 'exception' => $e,

@@ -14,36 +14,51 @@
         @endif
     </div>
 
-    {{-- Header Card dengan Judul, Badges & Tombol Aksi --}}
-    <div class="lpk-show-header">
+    {{-- Header Card dengan Judul, Status & Tombol Aksi --}}
+    <div class="lpk-show-header assessment-header-hero">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
-                <h1>{{ $assessment->display_title }}</h1>
-                <div class="lpk-header-badges">
-                    @if(isset($owner))
-                        <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="lpk-badge-reg" style="text-decoration: none; color: var(--ink);" title="Buka detail LPK milik {{ $owner->name }}">
-                            {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
-                        </a>
-                    @else
-                        <a href="{{ route('lpks.show', $assessment->lpk) }}" class="lpk-badge-reg" style="text-decoration: none; color: var(--ink);" title="Buka detail LPK">
-                            {{ $assessment->lpk->registration_number }} - {{ $assessment->lpk->name }}
-                        </a>
-                    @endif
-                    <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
-                    @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                        <span class="status status-revoked" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
-                            Dicabut (Lewat 1 Tahun)
+                <div class="assessment-header-title-row">
+                    <h1 class="assessment-title">{{ $assessment->display_title }}</h1>
+                    <div class="assessment-status-badge">
+                        @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
+                            <span class="status status-revoked" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
+                                Dicabut (Lewat 1 Tahun)
+                            </span>
+                        @elseif($assessment->is_submission_overdue)
+                            <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
+                                Dibekukan (Toleransi Terlampaui)
+                            </span>
+                        @else
+                            <x-status :value="$assessment->status" />
+                        @endif
+                    </div>
+                </div>
+
+                <div class="assessment-header-meta">
+                    <span class="assessment-meta-item">
+                        <x-icon name="calendar" size="14" />
+                        <span>
+                            @if($assessment->start_at->isSameDay($assessment->end_at))
+                                {{ $assessment->start_at->format('d M Y') }}
+                            @else
+                                {{ $assessment->start_at->format('d M') }} &ndash; {{ $assessment->end_at->format('d M Y') }}
+                            @endif
                         </span>
-                    @elseif($assessment->is_submission_overdue)
-                        <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
-                            Dibekukan (Toleransi Terlampaui)
+                    </span>
+
+                    @if($assessment->location)
+                        <span class="meta-dot">&bull;</span>
+                        <span class="assessment-meta-item">
+                            <x-icon name="map-pin" size="14" />
+                            <span>{{ $assessment->location }}</span>
                         </span>
-                    @else
-                        <x-status :value="$assessment->status" />
                     @endif
+
                     @if(isset($owner))
-                        <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill, 9999px);">
-                            Mode Pemantauan (Viewer) - Milik Akun: {{ $owner->name }}
+                        <span class="meta-dot">&bull;</span>
+                        <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: var(--radius-pill, 9999px);">
+                            Viewer: {{ $owner->name }}
                         </span>
                     @endif
                 </div>
@@ -144,32 +159,38 @@
                     </div>
                     <div class="lpk-card-header-text">
                         <h2>Informasi Agenda &amp; Pelaksanaan</h2>
-                        <p>Tanggal pelaksanaan, lokasi kunjungan, dan status pelaksanaan asesmen.</p>
+                        <p>LPK terakreditasi, tanggal pelaksanaan, lokasi, dan tim asesor asesmen.</p>
                     </div>
                 </div>
 
                 <div class="lpk-meta-grid">
-                    <div class="lpk-meta-item full-width">
+                    {{-- LPK Terakreditasi Highlight Card --}}
+                    <div class="lpk-meta-item full-width" style="margin-bottom: 6px;">
                         <span class="lpk-meta-label">LPK Terakreditasi</span>
-                        <div class="lpk-meta-value">
+                        <div class="lpk-meta-value assessment-lpk-meta-value" style="width: 100%;">
                             @if(isset($owner))
-                                <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; flex-wrap: wrap; word-break: break-word; gap: 4px; text-decoration: none;">
-                                    <span>{{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}</span>
-                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink: 0;"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                                <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK milik {{ $owner->name }}" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box;">
+                                    <div class="assessment-lpk-content" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 1 auto; min-width: 0;">
+                                        <div class="assessment-lpk-badge">
+                                            <x-icon name="building" size="14" />
+                                            <span>{{ $assessment->lpk->registration_number }}</span>
+                                        </div>
+                                        <span class="assessment-lpk-name">{{ $assessment->lpk->name }}</span>
+                                    </div>
+                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" style="flex: 0 0 auto; flex-shrink: 0; align-self: center; margin-left: 12px;" />
                                 </a>
                             @else
-                                <a href="{{ route('lpks.show', $assessment->lpk) }}" style="font-weight: 600; color: var(--primary, #0284c7); display: inline-flex; align-items: center; flex-wrap: wrap; word-break: break-word; gap: 4px; text-decoration: none;">
-                                    <span>{{ $assessment->lpk->registration_number }} &middot; {{ $assessment->lpk->name }}</span>
-                                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="flex-shrink: 0;"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+                                <a href="{{ route('lpks.show', $assessment->lpk) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box;">
+                                    <div class="assessment-lpk-content" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 1 auto; min-width: 0;">
+                                        <div class="assessment-lpk-badge">
+                                            <x-icon name="building" size="14" />
+                                            <span>{{ $assessment->lpk->registration_number }}</span>
+                                        </div>
+                                        <span class="assessment-lpk-name">{{ $assessment->lpk->name }}</span>
+                                    </div>
+                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" style="flex: 0 0 auto; flex-shrink: 0; align-self: center; margin-left: 12px;" />
                                 </a>
                             @endif
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Status Pelaksanaan</span>
-                        <div class="lpk-meta-value" style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                            <x-status :value="$assessment->status" />
                         </div>
                     </div>
 
@@ -180,7 +201,7 @@
                         </div>
                     </div>
 
-                    <div class="lpk-meta-item full-width">
+                    <div class="lpk-meta-item">
                         <span class="lpk-meta-label">Tanggal Pelaksanaan</span>
                         <div class="lpk-meta-value">
                             @if($assessment->start_at->isSameDay($assessment->end_at))
@@ -220,6 +241,15 @@
                                         &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->format('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
                                     </div>
                                 @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($assessment->notes)
+                        <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
+                            <span class="lpk-meta-label">Catatan Pelaksanaan</span>
+                            <div class="assessment-notes-box">
+                                {{ $assessment->notes }}
                             </div>
                         </div>
                     @endif
@@ -287,7 +317,7 @@
                                     @endif
                                     @if($assessment->sk_lead_time_label)
                                         <span class="badge-tp badge-tp-neutral" style="font-size: 11px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
-                                            Rentang Proses: {{ $assessment->sk_lead_time_label }}
+                                             Rentang Proses: {{ $assessment->sk_lead_time_label }}
                                         </span>
                                     @endif
                                 </div>
@@ -297,23 +327,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {{-- KARTU 3: Catatan Pelaksanaan --}}
-            <div class="lpk-form-card">
-                <div class="lpk-form-card-header">
-                    <div class="lpk-card-icon-wrap icon-wrap-slate">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </div>
-                    <div class="lpk-card-header-text">
-                        <h2>Catatan</h2>
-                        <p>Catatan khusus pelaksanaan agenda asesmen di lapangan.</p>
-                    </div>
-                </div>
-
-                <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; white-space: pre-line;">{{ $assessment->notes ?: 'Belum ada catatan.' }}</div>
             </div>
         </div>
 

@@ -124,11 +124,11 @@ class Lpk extends Model
         });
 
         static::saved(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
 
         static::deleted(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', time());
+            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
         });
     }
 
@@ -668,11 +668,6 @@ class Lpk extends Model
               })
               ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id));
         })->distinct();
-    }
-
-    public function accreditations(): HasMany
-    {
-        return $this->hasMany(Accreditation::class);
     }
 
     public function calendarEvents(): HasMany

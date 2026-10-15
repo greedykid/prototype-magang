@@ -18,6 +18,15 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        if ($user && $user->isAdmin()) {
+            return view('profile.edit', [
+                'user' => $user,
+                'linkedViewers' => collect(),
+                'linkedOwners' => collect(),
+                'availableUsers' => collect(),
+            ]);
+        }
+
         $linkedViewers = $user->linkedViewers()
             ->withCount('lpks')
             ->orderBy('name')
