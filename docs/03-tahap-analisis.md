@@ -20,30 +20,9 @@ Analisis masalah operasional pengelolaan akreditasi LPK dilakukan menggunakan me
 
 #### 3.1.2 Fishbone Diagram (Analisis Sebab-Akibat Masalah)
 
-```mermaid
-graph LR
-    subgraph Manusia ["Faktor Manusia"]
-        M1["Koordinasi manual perpanjangan waktu"]
-        M2["Kurang visibilitas status pengawasan lintas PIC"]
-    end
-    subgraph Metode ["Faktor Regulasi & Metode"]
-        T1["Penegakan SLA TP KAN belum otomatis"]
-        T2["Aturan toleransi pengisian belum tersistem"]
-    end
-    subgraph Sistem ["Faktor Sistem / Alat"]
-        S1["Belum ada kontrol Quality Gate SK"]
-        S2["Tampilan kaku dan rawan salah input status"]
-    end
-    subgraph Data ["Faktor Data"]
-        D1["Data surveilen lampau berstatus menggantung"]
-        D2["Pencatatan riwayat asesmen terpisah-pisah"]
-    end
+[![Fishbone Diagram Sebab-Akibat SIMASADI](diagrams/03-fishbone-analisis-masalah.svg)](diagrams/03-fishbone-analisis-masalah.html "Buka diagram interaktif")
 
-    M1 & M2 --> MasalahUtama["Risiko Keterlambatan Siklus Akreditasi & Ketidakpatuhan Regulasi KAN U-01"]
-    T1 & T2 --> MasalahUtama
-    S1 & S2 --> MasalahUtama
-    D1 & D2 --> MasalahUtama
-```
+> *Gambar 3.1: Diagram Sebab-Akibat (Ishikawa) Masalah Keterlambatan Siklus Akreditasi KAN* — [Buka Versi Interaktif HTML](diagrams/03-fishbone-analisis-masalah.html)
 
 ---
 

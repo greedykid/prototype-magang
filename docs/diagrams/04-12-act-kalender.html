@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi · SIMASADI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --color-purple:  #7c3aed;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .frame { max-width: 1160px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.4vw + 0.75rem, 2.15rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">DIAGRAM 4.12 · ACTIVITY DIAGRAM</p>
+    <h1>Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d12-title d12-desc">
+        <title id="d12-title">Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi</title>
+        <desc id="d12-desc">Alur interaksi modul kalender terpadu: sinkronisasi otomatis jadwal asesmen dan tenggat SLA TP, filter kategori event, inspeksi detail via modal, serta alur penambahan agenda koordinasi mandiri.</desc>
+        <defs>
+          <marker id="d12-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#475569"/></marker>
+          <marker id="d12-arrow-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0284c7"/></marker>
+          <marker id="d12-arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#16a34a"/></marker>
+          <marker id="d12-arrow-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#e11d48"/></marker>
+        </defs>
+
+        <rect width="1060" height="620" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+
+        <!-- Start Node -->
+        <circle cx="60" cy="90" r="14" fill="#0f172a"/>
+        <circle cx="60" cy="90" r="8" fill="#ffffff"/>
+
+        <path d="M74 90 L110 90" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d12-arrow)"/>
+
+        <!-- Step 1: Akses Menu Kalender -->
+        <g transform="translate(110, 60)">
+          <rect width="160" height="60" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="80" y="25" font-family="'Geist', sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle">Akses Menu Kalender</text>
+          <text x="80" y="43" font-family="'Geist Mono', monospace" font-size="10" fill="#64748b" text-anchor="middle">GET /calendar</text>
+        </g>
+
+        <!-- Line to Step 2 -->
+        <path d="M270 90 L310 90" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d12-arrow)"/>
+
+        <!-- Step 2: Load Agenda Otomatis -->
+        <g transform="translate(310, 60)">
+          <rect width="190" height="60" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="95" y="24" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">Load Agenda Otomatis</text>
+          <text x="95" y="42" font-family="'Geist', sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Query Asesmen, TP, &amp; Event</text>
+        </g>
+
+        <!-- Line to Step 3 -->
+        <path d="M500 90 L540 90" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d12-arrow)"/>
+
+        <!-- Step 3: Render Kalender Grid -->
+        <g transform="translate(540, 56)">
+          <rect width="200" height="68" rx="8" fill="#eff6ff" stroke="#0284c7" stroke-width="1.75"/>
+          <text x="100" y="27" font-family="'Geist', sans-serif" font-size="12" font-weight="600" fill="#0369a1" text-anchor="middle">Render Kalender Grid</text>
+          <text x="100" y="45" font-family="'Geist', sans-serif" font-size="10" fill="#475569" text-anchor="middle">Tampilan Bulanan &amp; Mingguan</text>
+          <text x="100" y="58" font-family="'Geist Mono', monospace" font-size="9" fill="#0284c7" text-anchor="middle">5 Color-Coded Badges</text>
+        </g>
+
+        <!-- Line to Decision Hub -->
+        <path d="M640 124 L640 180" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d12-arrow)"/>
+
+        <!-- Decision Hub: Interaksi Pengguna -->
+        <g transform="translate(640, 220)">
+          <polygon points="0 -32, 60 0, 0 32, -60 0" fill="#f1f5f9" stroke="#475569" stroke-width="1.75"/>
+          <text x="0" y="-4" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Interaksi</text>
+          <text x="0" y="12" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Pengguna?</text>
+        </g>
+
+        <!-- Branch 1: Filter Kategori (Left) -->
+        <path d="M580 220 L220 220 L220 270" fill="none" stroke="#0284c7" stroke-width="1.75" marker-end="url(#d12-arrow-blue)"/>
+        <rect x="360" y="204" width="130" height="20" rx="4" fill="#e0f2fe"/>
+        <text x="425" y="218" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">[ 1. Filter Kategori ]</text>
+
+        <g transform="translate(130, 270)">
+          <rect width="180" height="66" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="90" y="25" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#0369a1" text-anchor="middle">Filter Kategori Event</text>
+          <text x="90" y="43" font-family="'Geist', sans-serif" font-size="10" fill="#475569" text-anchor="middle">Asesmen / TP / LPK Binaan</text>
+          <text x="90" y="57" font-family="'Geist', sans-serif" font-size="9.5" fill="#64748b" text-anchor="middle">Update Tampilan Real-time</text>
+        </g>
+
+        <!-- Loop back from Filter to Grid -->
+        <path d="M220 336 L220 360 L510 360 L510 100 L538 100" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#d12-arrow)"/>
+
+        <!-- Branch 2: Klik Event Tertentu (Middle) -->
+        <path d="M640 252 L640 290" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d12-arrow)"/>
+        <rect x="580" y="260" width="120" height="18" rx="4" fill="#f1f5f9"/>
+        <text x="640" y="273" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#334155" text-anchor="middle">[ 2. Klik Item Event ]</text>
+
+        <g transform="translate(540, 290)">
+          <rect width="200" height="66" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+          <text x="100" y="24" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">Modal Rincian Agenda</text>
+          <text x="100" y="42" font-family="'Geist', sans-serif" font-size="10" fill="#475569" text-anchor="middle">Waktu, Lokasi, Narahubung</text>
+          <text x="100" y="56" font-family="'Geist', sans-serif" font-size="9.5" fill="#64748b" text-anchor="middle">Tutup Modal &amp; Kembali</text>
+        </g>
+
+        <!-- Loop back from Modal to Grid -->
+        <path d="M740 323 L760 323 L760 100 L742 100" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#d12-arrow)"/>
+
+        <!-- Branch 3: Tambah Event Baru (Right) -->
+        <path d="M700 220 L890 220 L890 270" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d12-arrow-green)"/>
+        <rect x="740" y="204" width="130" height="20" rx="4" fill="#dcfce7"/>
+        <text x="805" y="218" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#15803d" text-anchor="middle">[ 3. + Tambah Agenda ]</text>
+
+        <g transform="translate(800, 270)">
+          <rect width="180" height="66" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="90" y="24" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#15803d" text-anchor="middle">Form Tambah Agenda</text>
+          <text x="90" y="42" font-family="'Geist Mono', monospace" font-size="9.5" fill="#475569" text-anchor="middle">/calendar/events/create</text>
+          <text x="90" y="56" font-family="'Geist', sans-serif" font-size="9.5" fill="#64748b" text-anchor="middle">Input Judul, Waktu, Lokasi</text>
+        </g>
+
+        <!-- Down to Submit & Validation -->
+        <path d="M890 336 L890 380" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d12-arrow-green)"/>
+
+        <g transform="translate(890, 416)">
+          <polygon points="0 -28, 50 0, 0 28, -50 0" fill="#eff6ff" stroke="#0284c7" stroke-width="1.75"/>
+          <text x="0" y="-3" font-family="'Geist', sans-serif" font-size="10.5" font-weight="600" fill="#0369a1" text-anchor="middle">Validasi</text>
+          <text x="0" y="11" font-family="'Geist', sans-serif" font-size="10.5" font-weight="600" fill="#0369a1" text-anchor="middle">Data Form?</text>
+        </g>
+
+        <!-- Fail: Loop back to Form -->
+        <path d="M940 416 L990 416 L990 303 L982 303" fill="none" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#d12-arrow-red)"/>
+        <text x="996" y="360" font-family="'Geist Mono', monospace" font-size="8.5" fill="#be123c">Gagal</text>
+
+        <!-- Success: Save DB -->
+        <path d="M840 416 L760 416" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d12-arrow-green)"/>
+        <rect x="772" y="398" width="56" height="18" rx="4" fill="#dcfce7"/>
+        <text x="800" y="411" font-family="'Geist Mono', monospace" font-size="8.5" font-weight="600" fill="#15803d" text-anchor="middle">Valid</text>
+
+        <g transform="translate(560, 390)">
+          <rect width="200" height="56" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="100" y="24" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#15803d" text-anchor="middle">Simpan ke Basis Data</text>
+          <text x="100" y="42" font-family="'Geist Mono', monospace" font-size="9.5" fill="#475569" text-anchor="middle">INSERT calendar_events</text>
+        </g>
+
+        <!-- From Save DB back to Grid -->
+        <path d="M660 446 L660 520 L480 520 L480 126" fill="none" stroke="#16a34a" stroke-width="1.5" marker-end="url(#d12-arrow-green)"/>
+        <text x="560" y="512" font-family="'Geist Mono', monospace" font-size="9" fill="#15803d">Event Baru Tampil di Grid</text>
+
+        <!-- End Goal Banner -->
+        <g transform="translate(60, 540)">
+          <rect width="940" height="50" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <circle cx="88" cy="25" r="10" fill="#16a34a"/>
+          <path d="M84 25 L87 28 L93 22" fill="none" stroke="#ffffff" stroke-width="2"/>
+          <text x="110" y="29" font-family="'Geist', sans-serif" font-size="11.5" font-weight="600" fill="#0f172a">Hasil Operasional:</text>
+          <text x="235" y="29" font-family="'Geist', sans-serif" font-size="11" fill="#475569">Jadwal seluruh tim tersinkronisasi, visualisasi tenggat SLA transparan, dan koordinasi lapangan efektif.</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

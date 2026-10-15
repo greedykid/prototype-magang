@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1080 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d3-title d3-desc" id="d-04-03-use-case-rbac-root">
+        <title id="d3-title">Use Case Diagram: Pembagian Hak Akses 2 Peran Nyata</title>
+        <desc id="d3-desc">Diagram Use Case UML memetakan hak akses fitur Ketua Tim (Admin) dan PIC Laboratorium dalam batas sistem SIMASADI.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-04-03-use-case-rbac-root { --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #d-04-03-use-case-rbac-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #d-04-03-use-case-rbac-root .diagram-container { width: 100%; overflow-x: auto; }
+      #d-04-03-use-case-rbac-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="d-04-03-use-case-rbac-d3-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+        </defs>
+
+        <rect width="1080" height="580" fill="#f8fafc" rx="8"/>
+
+        <!-- Boundary Box -->
+        <rect x="220" y="30" width="640" height="520" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="240" y="56" fill="#0284c7" font-size="9" font-family="'Geist Mono', monospace" font-weight="700" letter-spacing="0.14em">BATAS SISTEM: SIMASADI PROTOTYPE</text>
+
+        <!-- Actor 1: Ketua Tim (Left) -->
+        <g transform="translate(40, 200)">
+          <rect width="140" height="110" rx="8" fill="#0284c7" stroke="#0284c7" stroke-width="1.6" fill-opacity="0.06"/>
+          <circle cx="70" cy="35" r="16" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.4"/>
+          <text x="70" y="40" fill="#0284c7" font-size="13" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">👤</text>
+          <text x="70" y="68" fill="#0f172a" font-size="12" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">Ketua Tim</text>
+          <text x="70" y="82" fill="#0284c7" font-size="9" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">Role: admin</text>
+          <text x="70" y="96" fill="#64748b" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">Hak Penuh &amp; Rilis SK</text>
+        </g>
+
+        <!-- Actor 2: PIC Lab (Right) -->
+        <g transform="translate(900, 200)">
+          <rect width="140" height="110" rx="8" fill="#16a34a" stroke="#16a34a" stroke-width="1.6" fill-opacity="0.06"/>
+          <circle cx="70" cy="35" r="16" fill="#f1f5f9" stroke="#16a34a" stroke-width="1.4"/>
+          <text x="70" y="40" fill="#16a34a" font-size="13" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">👤</text>
+          <text x="70" y="68" fill="#0f172a" font-size="12" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">PIC Lab</text>
+          <text x="70" y="82" fill="#16a34a" font-size="9" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">Role: pic</text>
+          <text x="70" y="96" fill="#64748b" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">Pendamping Binaan</text>
+        </g>
+
+        <!-- Association Lines from Left Actor (Ketua Tim) -->
+        <line x1="180" y1="230" x2="260" y2="85" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="240" x2="260" y2="135" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="250" x2="260" y2="185" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="260" x2="260" y2="235" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="270" x2="260" y2="285" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="280" x2="260" y2="335" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="290" x2="260" y2="385" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="300" x2="260" y2="435" stroke="#0284c7" stroke-width="1"/>
+        <line x1="180" y1="305" x2="260" y2="485" stroke="#0284c7" stroke-width="1"/>
+
+        <!-- Association Lines from Right Actor (PIC Lab) -->
+        <line x1="900" y1="230" x2="620" y2="85" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="240" x2="620" y2="135" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="250" x2="620" y2="185" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="265" x2="620" y2="285" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="275" x2="620" y2="335" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="285" x2="620" y2="435" stroke="#16a34a" stroke-width="1"/>
+        <line x1="900" y1="295" x2="620" y2="485" stroke="#16a34a" stroke-width="1"/>
+
+        <!-- Use Cases inside boundary (9 Rows) -->
+        <!-- UC 1: Login & Profil -->
+        <g transform="translate(260, 70)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-01: Melakukan Login Sesi &amp; Kelola Profil</text>
+        </g>
+
+        <!-- UC 2: Dashboard & Alert -->
+        <g transform="translate(260, 120)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-02: Memantau Dashboard &amp; Alert Persisten Pengawasan</text>
+        </g>
+
+        <!-- UC 3: Master LPK -->
+        <g transform="translate(260, 170)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-03: Mengelola Data Master Lembaga (LPK) &amp; Ruang Lingkup</text>
+        </g>
+
+        <!-- UC 4: Impor Massal (Admin Only) -->
+        <g transform="translate(260, 220)">
+          <rect width="360" height="32" rx="16" fill="#0284c7" stroke="#0284c7" stroke-width="1.3" fill-opacity="0.06"/>
+          <text x="180" y="20" fill="#0284c7" font-size="10.5" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">UC-04: Mengimpor Massal LPK / Asesmen &amp; Live Feed (Admin)</text>
+        </g>
+
+        <!-- UC 5: 8 Tipe Asesmen -->
+        <g transform="translate(260, 270)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-05: Menjadwalkan &amp; Mengelola 8 Tipe Asesmen KAN U-01</text>
+        </g>
+
+        <!-- UC 6: SLA TP & VTP -->
+        <g transform="translate(260, 320)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-06: Mengawal Batas SLA Tindakan Perbaikan (TP &amp; VTP)</text>
+        </g>
+
+        <!-- UC 7: Sidang EHA & Quality Gate (Admin Only) -->
+        <g transform="translate(260, 370)">
+          <rect width="360" height="32" rx="16" fill="#0284c7" stroke="#0284c7" stroke-width="1.3" fill-opacity="0.06"/>
+          <text x="180" y="20" fill="#0284c7" font-size="10.5" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">UC-07: Sidang EHA &amp; Penerbitan SK (Quality Gate Lock - Admin)</text>
+        </g>
+
+        <!-- UC 8: Kalender Kerja -->
+        <g transform="translate(260, 420)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-08: Mengelola Agenda Kalender Interaktif 5 Tipe Event</text>
+        </g>
+
+        <!-- UC 9: Kolaborasi Akun PIC -->
+        <g transform="translate(260, 470)">
+          <rect width="360" height="32" rx="16" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="180" y="20" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600" text-anchor="middle">UC-09: Penautan Relasi Akun Tim &amp; Hak Akses Viewer PIC</text>
+        </g>
+
+        <!-- Legend / Footer -->
+        <g transform="translate(240, 520)">
+          <rect width="10" height="10" rx="2" fill="#0284c7" stroke="#0284c7" stroke-width="1" fill-opacity="0.1"/>
+          <text x="16" y="9" fill="#0284c7" font-size="8.5" font-family="'Geist Mono', monospace">Eksklusif Ketua Tim (Admin)</text>
+          <rect x="220" y="0" width="10" height="10" rx="2" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="236" y="9" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Dapat Diakses Kedua Peran (PIC Scoped)</text>
+        </g>
+      </svg>

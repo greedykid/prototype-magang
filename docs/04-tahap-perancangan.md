@@ -11,67 +11,17 @@ Struktur navigasi menggambarkan alur perpindahan antarmuka pengguna dalam mengak
 
 #### 4.1.1 Struktur Navigasi Tingkat Utama (Ketua Tim & PIC)
 
-```mermaid
-graph TD
-    UserLogin["Login (/login)"] <--> Dashboard["Dashboard (/dashboard)"]
+[![Gambar 4. 1 Struktur Navigasi Utama SIMASADI](diagrams/04-01-navigasi-utama.svg)](diagrams/04-01-navigasi-utama.html "Buka diagram interaktif")
 
-    Dashboard --- BusTrunk[" "]
-    style BusTrunk width:0px,height:0px,stroke:none,fill:none
-
-    BusTrunk --- M1["Data Master LPK"]
-    BusTrunk --- M2["Program Asesmen"]
-    BusTrunk --- M3["Kalender Pengawasan"]
-    BusTrunk --- M4["Manajemen Pengguna"]
-
-    M1 <--> M2
-    M2 <--> M3
-    M3 <--> M4
-
-    classDef navBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:13px;
-    classDef invisibleTrunk fill:none,stroke:none;
-    class UserLogin,Dashboard,M1,M2,M3,M4 navBox;
-    class BusTrunk invisibleTrunk;
-```
-
-<p align="center"><b>Gambar 4. 1 Struktur Navigasi Utama SIMASADI</b></p>
+> *Gambar 4. 1: Struktur Navigasi Utama SIMASADI (Ketua Tim & PIC Laboratorium)* — [Buka Versi Interaktif HTML](diagrams/04-01-navigasi-utama.html)
 
 ---
 
 #### 4.1.2 Struktur Navigasi Hierarki Sub-Halaman Lengkap
 
-```mermaid
-graph TD
-    Login["Halaman Login (/login)"] <--> Dash["Dashboard (/dashboard)"]
+[![Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI](diagrams/04-02-navigasi-hierarki.svg)](diagrams/04-02-navigasi-hierarki.html "Buka diagram interaktif")
 
-    Dash --> LPK["Data LPK (/lpks)"]
-    LPK <--> LPK_Add["Tambah LPK (/lpks/create)"]
-    LPK <--> LPK_Import["Impor LPK (/lpks/import)"]
-    LPK <--> LPK_Detail["Detail Profil LPK (/lpks/{id})"]
-    LPK_Detail <--> LPK_Edit["Ubah Profil LPK (/lpks/{id}/edit)"]
-
-    Dash --> ASM["Program Asesmen (/assessments)"]
-    ASM <--> ASM_Add["Jadwalkan Asesmen (/assessments/create)"]
-    ASM <--> ASM_Import["Impor Asesmen (/assessments/import)"]
-    ASM <--> ASM_Detail["Detail Asesmen (/assessments/{id})"]
-    ASM_Detail <--> ASM_Edit["Ubah Asesmen (/assessments/{id}/edit)"]
-    ASM_Detail <--> ASM_TP["Pelacakan Tindakan Perbaikan (SLA)"]
-    ASM_Detail <--> ASM_EHA["Evaluasi Hasil Asesmen (EHA)"]
-
-    Dash --> CAL["Kalender Pengawasan (/calendar)"]
-    CAL <--> CAL_Add["Klik Tanggal -> Tambah Agenda (/calendar/events/create)"]
-    CAL <--> CAL_Detail["Detail Agenda Event (/calendar/events/{id})"]
-
-    Dash --> USR["Manajemen Pengguna (/users)"]
-    USR <--> USR_Add["Tambah Pengguna (/users/create)"]
-    USR <--> USR_Edit["Ubah Pengguna (/users/{id}/edit)"]
-
-    Dash --> ACC_LINKS["Kolaborasi Tim & Tautan Akun (/account-links)"]
-
-    classDef pageBox fill:#ffffff,stroke:#2b2b2b,stroke-width:1.5px,color:#111111,font-size:12px;
-    class Login,Dash,LPK,LPK_Add,LPK_Import,LPK_Detail,LPK_Edit,ASM,ASM_Add,ASM_Import,ASM_Detail,ASM_Edit,ASM_TP,ASM_EHA,CAL,CAL_Add,CAL_Detail,USR,USR_Add,USR_Edit,ACC_LINKS pageBox;
-```
-
-<p align="center"><b>Gambar 4. 2 Struktur Navigasi Hierarki Sub-Halaman SIMASADI</b></p>
+> *Gambar 4. 2: Struktur Navigasi Hierarki Sub-Halaman SIMASADI* — [Buka Versi Interaktif HTML](diagrams/04-02-navigasi-hierarki.html)
 
 ---
 
@@ -81,52 +31,9 @@ Diagram Use Case memodelkan fungsi-fungsi sistem dari sudut pandang 2 peran peng
 * **Ketua Tim (Admin Unit Akreditasi)** (`admin`): Pengelola sistem dengan akses penuh terhadap seluruh fitur administrasi, master LPK, asesmen, rilis SK, dan manajemen pengguna.
 * **PIC Laboratorium** (`pic`): Pendamping teknis operasional dengan fokus pada pengelolaan LPK binaan, pemantauan pengawasan, pelacakan tindakan perbaikan, dan agenda kalender.
 
-```mermaid
-flowchart LR
-    %% Definisi Aktor
-    Admin["👤 Ketua Tim (Admin Unit)"]:::actorBox
-    PIC["👤 PIC Laboratorium"]:::actorBox
+[![Gambar 4. 3 Use Case Diagram Sistem SIMASADI](diagrams/04-03-use-case-rbac.svg)](diagrams/04-03-use-case-rbac.html "Buka diagram interaktif")
 
-    %% Use Case Kelompok Utama
-    UC_Login(["Melakukan Login Sesi"]):::ucMain
-    UC_Dash(["Melihat Dashboard & Alert Persisten"]):::ucMain
-    UC_LPK_Manage(["Mengelola Data Master LPK"]):::ucMain
-    UC_LPK_Import(["Mengimpor Massal LPK & Asesmen"]):::ucMain
-    UC_Asm_Manage(["Mengelola 8 Tipe Asesmen KAN"]):::ucMain
-    UC_Tolerance(["Memantau Toleransi 3 Tahap & Pembekuan"]):::ucMain
-    UC_TP_SLA(["Mengelola SLA Tindakan Perbaikan (TP & VTP)"]):::ucMain
-    UC_EHA(["Mencatat Alur Sidang EHA & Lead Time SK"]):::ucMain
-    UC_Cal(["Mengelola Kalender Interaktif 5 Event"]):::ucMain
-    UC_Release(["Penerbitan Dokumen SK & Quality Gate"]):::ucMain
-    UC_User_Mgmt(["Mengelola Pengguna & Pembatasan 1 Ketua Tim"]):::ucMain
-
-    %% Relasi Admin
-    Admin --- UC_Login
-    Admin --- UC_Dash
-    Admin --- UC_LPK_Manage
-    Admin --- UC_LPK_Import
-    Admin --- UC_Asm_Manage
-    Admin --- UC_Tolerance
-    Admin --- UC_TP_SLA
-    Admin --- UC_EHA
-    Admin --- UC_Cal
-    Admin --- UC_Release
-    Admin --- UC_User_Mgmt
-
-    %% Relasi PIC
-    PIC --- UC_Login
-    PIC --- UC_Dash
-    PIC --- UC_LPK_Manage
-    PIC --- UC_Asm_Manage
-    PIC --- UC_Tolerance
-    PIC --- UC_TP_SLA
-    PIC --- UC_Cal
-
-    classDef actorBox fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a,font-weight:bold;
-    classDef ucMain fill:#ffffff,stroke:#4f46e5,stroke-width:1.5px,color:#1e1b4b,font-size:12px;
-```
-
-<p align="center"><b>Gambar 4. 3 Use Case Diagram Sistem SIMASADI</b></p>
+> *Gambar 4. 3: Use Case Diagram Sistem SIMASADI (2 Peran Pengguna)* — [Buka Versi Interaktif HTML](diagrams/04-03-use-case-rbac.html)
 
 ---
 
@@ -140,25 +47,9 @@ Aktivitas sistem dimodelkan menggunakan diagram aktivitas berbasis status dan tr
 
 Diagram ini memodelkan alur aktivitas autentikasi akun Ketua Tim (Administrator Unit Akreditasi) sesuai implementasi controller autentikasi SIMASADI (`AuthController`), mulai dari perenderan form login, validasi input dan reCAPTCHA, verifikasi kredensial via `Auth::attempt`, hingga regenerasi sesi administratif:
 
-```mermaid
-stateDiagram-v2
-    [*] --> BukaHalamanLogin: Akses URL /login
-    BukaHalamanLogin --> TampilFormLogin: Sistem Merender Halaman Login SIMASADI
-    
-    TampilFormLogin --> SubmitKredensial: Ketua Tim Mengisi Email & Password Akun Admin
-    SubmitKredensial --> ValidasiFormat: Sistem Memvalidasi Format Input & reCAPTCHA
-    
-    state CekValiditasKredensial <<choice>>
-    ValidasiFormat --> CekValiditasKredensial: Auth::attempt(credentials)
-    
-    CekValiditasKredensial --> TampilFormLogin: Gagal (Kredensial Tidak Sesuai / Pesan Error)
-    CekValiditasKredensial --> InisialisasiSesi: Berhasil (Kredensial Cocok)
-    
-    InisialisasiSesi --> DashboardAdmin: Regenerasi Sesi & Buka Otoritas Role 'admin'
-    DashboardAdmin --> [*]: Akses Penuh ke Seluruh Master LPK & Dasbor Eksekutif
-```
+[![Gambar 4. 4 Activity Diagram Autentikasi Ketua Tim](diagrams/04-04-act-auth-ketua-tim.svg)](diagrams/04-04-act-auth-ketua-tim.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 4 Activity Diagram Autentikasi Ketua Tim</b></p>
+> *Gambar 4. 4: Activity Diagram Autentikasi Ketua Tim (Admin Unit Akreditasi)* — [Buka Versi Interaktif HTML](diagrams/04-04-act-auth-ketua-tim.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -177,25 +68,9 @@ stateDiagram-v2
 
 Diagram ini memodelkan alur aktivitas autentikasi akun PIC Laboratorium (Penanggung Jawab LPK Binaan) sesuai implementasi sistem nyata SIMASADI, yang menginisialisasi sesi kerja berlingkup hak akses LPK binaannya (*role scoping*):
 
-```mermaid
-stateDiagram-v2
-    [*] --> BukaHalamanLogin: Akses URL /login
-    BukaHalamanLogin --> TampilFormLogin: Sistem Merender Halaman Login SIMASADI
-    
-    TampilFormLogin --> SubmitKredensial: PIC Mengisi Email & Password Akun PIC
-    SubmitKredensial --> ValidasiFormat: Sistem Memvalidasi Format Input & reCAPTCHA
-    
-    state CekValiditasKredensial <<choice>>
-    ValidasiFormat --> CekValiditasKredensial: Auth::attempt(credentials)
-    
-    CekValiditasKredensial --> TampilFormLogin: Gagal (Kredensial Tidak Sesuai / Pesan Error)
-    CekValiditasKredensial --> InisialisasiSesi: Berhasil (Kredensial Cocok)
-    
-    InisialisasiSesi --> DashboardPIC: Regenerasi Sesi & Terapkan Role Scoping 'pic'
-    DashboardPIC --> [*]: Akses Dasbor Kerja Terfilter Khusus LPK Binaan PIC
-```
+[![Gambar 4. 5 Activity Diagram Autentikasi PIC Laboratorium](diagrams/04-05-act-auth-pic.svg)](diagrams/04-05-act-auth-pic.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 5 Activity Diagram Autentikasi PIC Laboratorium</b></p>
+> *Gambar 4. 5: Activity Diagram Autentikasi PIC Laboratorium (Role Scoping)* — [Buka Versi Interaktif HTML](diagrams/04-05-act-auth-pic.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -213,71 +88,17 @@ stateDiagram-v2
 #### 4.3.3 Activity Diagram: Penegakan Siklus Hidup 3 Tahap Surveilen KAN
 Diagram ini memodelkan transisi status pengawasan dari kunjungan asesmen sampai keputusan akhir:
 
-```mermaid
-stateDiagram-v2
-    [*] --> KunjunganAsesmen: Asesmen Lapangan Selesai (end_at)
-    KunjunganAsesmen --> HitungToleransi: submission_due_date = 4 bulan dari bulan ke-15 / input tanggal
-    
-    state CekBulanKunjungan <<choice>>
-    HitungToleransi --> CekBulanKunjungan: Evaluasi Tanggal Saat Ini
-    CekBulanKunjungan --> StatusNormal: Tanggal <= submission_due_date
-    StatusNormal --> SelesaiNormal: Dokumen Asesmen Diselesaikan (Status: COMPLETED)
-    SelesaiNormal --> [*]
-    
-    CekBulanKunjungan --> StatusDibekukan: Tanggal > submission_due_date & Belum Selesai
-    
-    state TahapPembekuan {
-        StatusDibekukan --> AktifkanSuspension: Status LPK & Asesmen = SUSPENDED (Badge Ungu)
-        AktifkanSuspension --> BeriJendela1Tahun: suspension_deadline = submission_due_date + 1 Tahun
-        BeriJendela1Tahun --> HitungMundur: Tampilkan countdown hari & bulan tersisa
-        
-        state CekPenyelesaian1Tahun <<choice>>
-        HitungMundur --> CekPenyelesaian1Tahun: Apakah LPK Menyelesaikan Kewajiban?
-        CekPenyelesaian1Tahun --> PemulihanAkreditasi: Ya, Asesmen Selesai
-        PemulihanAkreditasi --> StatusAktifKembali: Status Pulih Menjadi ACTIVE
-        StatusAktifKembali --> [*]
-        
-        CekPenyelesaian1Tahun --> BatasWaktuHabis: Tidak (Waktu > 1 Tahun)
-    }
-    
-    BatasWaktuHabis --> CabutAkreditasi: Status LPK Berubah Otomatis Menjadi REVOKED (Badge Merah)
-    CabutAkreditasi --> [*]
-```
+[![Gambar 4. 6 Activity Diagram Penegakan Siklus Hidup 3 Tahap Surveilen KAN](diagrams/04-06-state-surveilen.svg)](diagrams/04-06-state-surveilen.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 6 Activity Diagram Penegakan Siklus Hidup 3 Tahap Surveilen KAN</b></p>
+> *Gambar 4. 6: State Diagram Siklus Hidup 3 Tahap Pengawasan Surveilen KAN* — [Buka Versi Interaktif HTML](diagrams/04-06-state-surveilen.html)
 
 ---
 
 #### 4.3.4 Activity Diagram: Alur Pengajuan & Validasi Perpanjangan Waktu SLA Tindakan Perbaikan (TP)
 
-```mermaid
-stateDiagram-v2
-    [*] --> AsesmenSelesai: Laporan Asesmen Diserahkan
-    AsesmenSelesai --> HitungSLA: Tentukan SLA Dasar (AA: 3 Bulan, Lainnya: 2 Bulan)
-    HitungSLA --> StatusBerlangsung: Status TP Otomatis "Sedang Berlangsung"
-    
-    state CekProgresTemuan <<choice>>
-    StatusBerlangsung --> CekProgresTemuan: Menjelang Batas SLA, Ada Permohonan Perpanjangan?
-    
-    CekProgresTemuan --> TolakPerpanjangan: Tidak Ada Perbaikan Sama Sekali (Kosong)
-    TolakPerpanjangan --> OtomatisDibekukan: Perpanjangan Ditolak -> Status Menjadi SUSPENDED (Badge Ungu)
-    OtomatisDibekukan --> [*]
-    
-    CekProgresTemuan --> IzinkanPerpanjangan: Ada Bukti Perbaikan Sebagian Temuan + Surat Resmi
-    IzinkanPerpanjangan --> InputNomorSurat: Input tp_extension_letter_no & Aktifkan Perpanjangan 1 Bulan
-    InputNomorSurat --> SLAExtended: tp_extended_due_date = tp_due_date + 1 Bulan
-    
-    state CekPemenuhan <<choice>>
-    SLAExtended --> CekPemenuhan: Evaluasi Tanggal Pemenuhan (tp_satisfied_at)
-    CekPemenuhan --> StatusMemenuhi: Tanggal Terisi -> Status Otomatis "Memenuhi / Selesai"
-    StatusMemenuhi --> HitungLeadTimeSK: Trigger Pengingat SK 10 Hari
-    HitungLeadTimeSK --> [*]
-    
-    CekPemenuhan --> LewatBatasExtended: Tanggal Kosong & Melewati SLA Perpanjangan
-    LewatBatasExtended --> OtomatisDibekukan
-```
+[![Gambar 4. 7 Activity Diagram Alur Pengajuan & Validasi Perpanjangan Waktu SLA TP](diagrams/04-07-act-sla-tp.svg)](diagrams/04-07-act-sla-tp.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 7 Activity Diagram Alur Pengajuan & Validasi Perpanjangan Waktu SLA TP</b></p>
+> *Gambar 4. 7: Activity Diagram Alur Pengajuan & Validasi Perpanjangan Waktu SLA TP (+1 Bulan Bersurat)* — [Buka Versi Interaktif HTML](diagrams/04-07-act-sla-tp.html)
 
 ##### Ketentuan Spesifikasi Penegakan SLA Tindakan Perbaikan (TP & VTP):
 
@@ -302,42 +123,9 @@ stateDiagram-v2
 
 Diagram ini memodelkan aktivitas PIC Laboratorium dalam mendampingi dan mengawal LPK binaannya mulai dari pendaftaran awal hingga menyelesaikan seluruh 8 tahapan dalam satu siklus akreditasi 5 tahun penuh (60 bulan) sesuai regulasi KAN U-01 dan otomasi sistem SIMASADI:
 
-```mermaid
-flowchart TD
-    Start(["Mulai: Onboarding & Pendaftaran LPK"]):::nodeStart --> Stage1["1. Akreditasi Awal (Initial Accreditation)<br/>• Waktu: Bulan ke-0<br/>• Asesmen Lapangan Awal<br/>• Batas Waktu Dasar TP: 3 Bulan<br/>• Terbit SK 5 Tahun (Status: ACTIVE)"]:::stageBox
+[![Gambar 4. 8 Activity Diagram Alur Kerja PIC dalam 1 Siklus Akreditasi Penuh](diagrams/04-08-flow-siklus-8-tahap.svg)](diagrams/04-08-flow-siklus-8-tahap.html "Buka diagram interaktif")
 
-    Stage1 --> EvalY1{"Evaluasi Pengawasan Tahun Ke-1<br/>(Bulan 13 - 24)"}:::decisionBox
-
-    EvalY1 -- "Pengawasan Rutin Saja" --> Stage2["2. Survailen 1 (S1)<br/>• Evaluasi sistem mutu tahun ke-1<br/>• Batas waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Terbit SK Konfirmasi Survailen 1"]:::stageBox
-    EvalY1 -- "Ada Usulan Tambah Lingkup" --> Stage3["3. Survailen 1 + PRL<br/>• Audit rutin + asesmen lingkup baru<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK S1 & Adendum Lingkup KAN"]:::stageBox
-
-    Stage2 --> EvalY3{"Evaluasi Pengawasan Tahun Ke-3<br/>(Bulan 34 - 48)"}:::decisionBox
-    Stage3 --> EvalY3
-
-    EvalY3 -- "Pengawasan Rutin Saja" --> Stage4["4. Survailen 2 (S2)<br/>• Audit sistem manajemen tahun ke-3<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK Konfirmasi Survailen 2"]:::stageBox
-    EvalY3 -- "Ada Usulan Tambah Lingkup" --> Stage5["5. Survailen 2 + PRL<br/>• Audit S2 + uji unjuk kerja lingkup baru<br/>• Batas waktu TP: 2 Bulan<br/>• Terbit SK S2 & Adendum Lingkup KAN"]:::stageBox
-
-    Stage4 --> TrackReAkreditasi["Persiapan Menuju Re-Akreditasi<br/>(Bulan ke-54)"]:::transBox
-    Stage5 --> TrackReAkreditasi
-
-    subgraph Insidental["Jalur Khusus / Kapan Saja Selama Siklus 5 Tahun"]
-        Stage6["6. Survailen Tidak Terjadwal (STT)<br/>• Pemicu: Aduan, relokasi lab, pergantian personel kunci, atau verifikasi pemulihan status DIBEKUKAN<br/>• Batas waktu TP: Maksimal 2 Bulan<br/>• Rekomendasi: Pemulihan / Pencabutan"]:::sideBox
-        Stage7["7. Perluasan Ruang Lingkup (PRL Mandiri)<br/>• Pemicu: Permohonan adendum lingkup di luar jadwal surveilen rutin<br/>• Asesmen teknis metode baru<br/>• Terbit Adendum Lampiran Ruang Lingkup"]:::sideBox
-    end
-
-    TrackReAkreditasi --> Stage8["8. Re-Akreditasi (Akreditasi Ulang)<br/>• Reminder Kritis Bulan ke-54<br/>• Full Re-Assessment (Seluruh Sistem & Lingkup)<br/>• Batas Waktu TP: 2 Bulan (+1 bln bersyarat)<br/>• Quality Gate: Pemenuhan TP & Sidang EHA Lengkap<br/>• Terbit Sertifikat Baru 5 Tahun"]:::stageBox
-
-    Stage8 --> EndNode(["Selesai: Siklus 1 Selesai Penuh (COMPLETED)<br/>Reset & Mulai Siklus Baru 5 Tahun Berikutnya"]):::nodeEnd
-
-    classDef stageBox fill:#ffffff,stroke:#1e293b,stroke-width:1.5px,color:#0f172a,font-size:12px;
-    classDef decisionBox fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-size:12px;
-    classDef sideBox fill:#f8fafc,stroke:#475569,stroke-dasharray: 4 4,stroke-width:1.5px,color:#0f172a,font-size:12px;
-    classDef nodeStart fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-weight:bold;
-    classDef nodeEnd fill:#f1f5f9,stroke:#0f172a,stroke-width:1.5px,color:#0f172a,font-weight:bold;
-    classDef transBox fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a,font-size:12px;
-```
-
-<p align="center"><b>Gambar 4. 8 Activity Diagram Alur Kerja PIC dalam 1 Siklus Akreditasi Penuh (8 Tahapan KAN)</b></p>
+> *Gambar 4. 8: Alur Kerja 1 Siklus Penuh Akreditasi 8 Skema KAN (60 Bulan)* — [Buka Versi Interaktif HTML](diagrams/04-08-flow-siklus-8-tahap.html)
 
 ##### Ringkasan Matriks Tanggung Jawab PIC per Tahap:
 
@@ -358,30 +146,9 @@ flowchart TD
 
 Diagram ini memodelkan proses operasional pengelolaan data master Lembaga Penilaian Kesesuaian (LPK) mulai dari pendaftaran instansi, verifikasi keunikan nomor registrasi KAN, penetapan masa berlaku akreditasi (5 tahun), hingga penugasan PIC Laboratorium penanggung jawab:
 
-```mermaid
-stateDiagram-v2
-    [*] --> BukaMenuLPK: Akses Menu Master Data LPK (/lpks)
-    BukaMenuLPK --> TampilTabelLPK: Sistem Merender Daftar Master LPK & Filter Skema KAN
-    
-    TampilTabelLPK --> BukaFormTambah: Pengguna Memilih [ + Tambah LPK Baru ] (/lpks/create)
-    BukaFormTambah --> TampilFormRegistrasi: Sistem Menyajikan Formulir Registrasi LPK
-    
-    TampilFormRegistrasi --> InputIdentitasLPK: Pengguna Mengisi No Reg, Nama Lembaga, Skema, & Tanggal SK
-    InputIdentitasLPK --> TetapkanPIC: Pengguna Menetapkan PIC Laboratorium Penanggung Jawab
-    TetapkanPIC --> SubmitFormLPK: Klik [ Simpan Data LPK ] (POST /lpks)
-    
-    state CekValidasiLPK <<choice>>
-    SubmitFormLPK --> CekValidasiLPK: Sistem Memvalidasi Format Data & Keunikan No Reg KAN
-    
-    CekValidasiLPK --> TampilFormRegistrasi: Gagal (Nomor Registrasi Duplikat / Kolom Wajib Kosong)
-    CekValidasiLPK --> SimpanKeDatabase: Berhasil (Data Terverifikasi)
-    
-    SimpanKeDatabase --> HitungMasaBerlaku: Sistem Menyimpan ke Tabel lpks & lpk_members
-    HitungMasaBerlaku --> TampilTabelLPK: Hitung expired_at (+5 Tahun) & Redirect dengan Pesan Sukses
-    TampilTabelLPK --> [*]: Master LPK Terdaftar & Masuk ke Cakupan Kerja PIC Terkait
-```
+[![Gambar 4. 9 Activity Diagram Pengelolaan Data Master LPK & Penugasan PIC](diagrams/04-09-act-master-lpk.svg)](diagrams/04-09-act-master-lpk.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 9 Activity Diagram Pengelolaan Data Master LPK & Penugasan PIC</b></p>
+> *Gambar 4. 9: Activity Diagram Pengelolaan Data Master LPK & Penugasan PIC* — [Buka Versi Interaktif HTML](diagrams/04-09-act-master-lpk.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -404,34 +171,9 @@ stateDiagram-v2
 
 Diagram ini memodelkan proses penjadwalan dan pencatatan asesmen lapangan (8 tipe skema KAN) yang secara otomatis menginisialisasi parameter batas waktu toleransi pengisian dan penegakan SLA tindakan perbaikan (TP):
 
-```mermaid
-stateDiagram-v2
-    [*] --> PilihLPK: Pengguna Membuka Detail LPK Target (/lpks/{id})
-    PilihLPK --> KlikTambahAsesmen: Klik [ Tambah Program Asesmen ] (/assessments/create)
-    KlikTambahAsesmen --> TampilFormAsesmen: Sistem Menampilkan Formulir Asesmen KAN
-    
-    TampilFormAsesmen --> InputTipeAsesmen: Pilih Tipe Asesmen (AA, S1, S2, PRL, STT, atau Re-Akreditasi)
-    InputTipeAsesmen --> InputTanggalDanAsesor: Input Tanggal Mulai, Tanggal Selesai (end_at), & Lead Assessor
-    InputTanggalDanAsesor --> SubmitAsesmen: Klik [ Simpan & Jadwalkan Asesmen ] (POST /assessments)
-    
-    state CekValidasiTanggal <<choice>>
-    SubmitAsesmen --> CekValidasiTanggal: Sistem Memvalidasi Konsistensi Tanggal (end_at >= start_at)
-    
-    CekValidasiTanggal --> TampilFormAsesmen: Gagal (Tanggal Selesai Lebih Awal dari Tanggal Mulai)
-    CekValidasiTanggal --> SimpanDanHitungSLA: Berhasil (Data Valid)
-    
-    state SimpanDanHitungSLA {
-        SetStatusAsesmen: Status Asesmen = PLANNED / ONGOING
-        SetStatusAsesmen --> KalkulasiSLATindakan: AA = 3 Bulan, Tipe Lain = 2 Bulan sejak end_at
-        KalkulasiSLATindakan --> HitungToleransiKAN: Hitung submission_due_date (Bulan ke-15 + 4 Bln)
-        HitungToleransiKAN --> GenerateKalenderEvent: Buat Rekaman Otomatis pada Tabel calendar_events
-    }
-    
-    SimpanDanHitungSLA --> DetailAsesmenBaru: Simpan ke Basis Data & Redirect ke /assessments/{id}
-    DetailAsesmenBaru --> [*]: Asesmen Terjadwal dengan Countdown SLA & Pemantauan Aktif
-```
+[![Gambar 4. 10 Activity Diagram Perencanaan & Pencatatan Asesmen Lapangan KAN](diagrams/04-10-act-penjadwalan-asesmen.svg)](diagrams/04-10-act-penjadwalan-asesmen.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 10 Activity Diagram Perencanaan & Pencatatan Asesmen Lapangan KAN</b></p>
+> *Gambar 4. 10: Activity Diagram Penjadwalan & Pencatatan 8 Tipe Asesmen KAN* — [Buka Versi Interaktif HTML](diagrams/04-10-act-penjadwalan-asesmen.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -455,38 +197,9 @@ stateDiagram-v2
 
 Diagram ini memodelkan proses verifikasi pemenuhan tindakan perbaikan (TP), pencatatan sidang Evaluasi Hasil Asesmen (EHA), dan penegakan kunci mutu (*Quality Gate Lock*) sebelum dokumen SK resmi diterbitkan:
 
-```mermaid
-stateDiagram-v2
-    [*] --> BukaDetailAsesmen: Buka Detail Asesmen (/assessments/{id})
-    BukaDetailAsesmen --> CekStatusTP: Periksa Status Tindakan Perbaikan Temuan Asesmen
-    
-    state EvaluasiTemuanTP <<choice>>
-    CekStatusTP --> EvaluasiTemuanTP: Evaluasi Pemenuhan Perbaikan oleh Lead Assessor
-    
-    EvaluasiTemuanTP --> PengajuanPerpanjangan: Butuh Tambahan Waktu (+1 Bulan Bersurat Resmi)
-    PengajuanPerpanjangan --> UpdateDueDateExtended: Sistem Update tp_extended_due_date & Catat Nomor Surat
-    UpdateDueDateExtended --> CekStatusTP: Pantau Batas Waktu Baru
-    
-    EvaluasiTemuanTP --> VerifikasiMemenuhi: Seluruh Ketidaksesuaian Dinyatakan Memenuhi
-    VerifikasiMemenuhi --> InputTPSatisfied: Input Tanggal Pemenuhan (tp_satisfied_at)
-    InputTPSatisfied --> SimpanStatusSatisfied: Sistem Menetapkan Status TP = SATISFIED
-    
-    SimpanStatusSatisfied --> InputSidangEHA: Input Tanggal & Catatan Hasil Sidang EHA (POST .../eha)
-    InputSidangEHA --> KlikRilisSK: Ketua Tim Klik Tombol [ Rilis SK Akreditasi ]
-    
-    state QualityGateCheck <<choice>>
-    KlikRilisSK --> QualityGateCheck: Evaluasi isReleaseReady() (Status TP SATISFIED && Sudah EHA)
-    
-    QualityGateCheck --> QualityGateLocked: Syarat Belum Lengkap (HTTP 422 Lock)
-    QualityGateLocked --> BukaDetailAsesmen: Alert Peringatan: SK Terkunci Sebelum Syarat Terpenuhi
-    
-    QualityGateCheck --> QualityGatePassed: Syarat Lengkap & Terverifikasi
-    QualityGatePassed --> UpdateRilisDokumen: Set sk_number, sk_issued_at, & output_released_at = now()
-    UpdateRilisDokumen --> DasborStatusSelesai: Status Akreditasi Diperbarui & Berkas SK Resmi Aktif
-    DasborStatusSelesai --> [*]: Siklus Asesmen Selesai Sempurna (Status: COMPLETED)
-```
+[![Gambar 4. 11 Activity Diagram Verifikasi TP, Sidang EHA, dan Rilis SK](diagrams/04-11-act-quality-gate-sk.svg)](diagrams/04-11-act-quality-gate-sk.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 11 Activity Diagram Verifikasi TP, Sidang EHA, dan Rilis SK</b></p>
+> *Gambar 4. 11: Activity Diagram Verifikasi TP, Sidang EHA, dan Quality Gate Rilis SK* — [Buka Versi Interaktif HTML](diagrams/04-11-act-quality-gate-sk.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -512,38 +225,9 @@ stateDiagram-v2
 
 Diagram ini memodelkan alur interaksi pengguna pada modul kalender kerja terpadu SIMASADI, yang mengintegrasikan jadwal asesmen lapangan, tenggat waktu tindakan perbaikan (TP), serta pembuatan agenda kordinasi mandiri:
 
-```mermaid
-stateDiagram-v2
-    [*] --> AksesMenuKalender: Akses Menu Kalender Kerja (/calendar)
-    AksesMenuKalender --> LoadAgendaOtomatis: Sistem Mengambil Data Asesmen & Tenggat TP dari Database
-    LoadAgendaOtomatis --> RenderKalenderGrid: Sistem Menampilkan Tampilan Kalender Bulanan & Mingguan
-    
-    state InteraksiKalender <<choice>>
-    RenderKalenderGrid --> InteraksiKalender: Pengguna Memilih Aksi pada Kalender
-    
-    InteraksiKalender --> FilterKategori: Menerapkan Filter Event (Asesmen / TP / LPK Binaan)
-    FilterKategori --> RenderKalenderGrid: Tampilan Kalender Terfilter Secara Real-time
-    
-    InteraksiKalender --> KlikEventTertentu: Klik Salah Satu Kotak Event Agenda
-    KlikEventTertentu --> TampilModalDetail: Sistem Menampilkan Modal Rincian Waktu, Lokasi, & LPK
-    TampilModalDetail --> RenderKalenderGrid: Tutup Modal Rincian
-    
-    InteraksiKalender --> TambahEventBaru: Klik [ + Tambah Agenda ] (/calendar/events/create)
-    TambahEventBaru --> TampilFormEvent: Sistem Menampilkan Formulir Pembuatan Agenda
-    TampilFormEvent --> InputDataAgenda: Pengguna Mengisi Judul, Jenis Kegiatan, Rentang Waktu, & Catatan
-    InputDataAgenda --> SubmitAgenda: Klik [ Simpan Agenda ] (POST /calendar/events)
-    
-    state ValidasiAgenda <<choice>>
-    SubmitAgenda --> ValidasiAgenda: Sistem Memeriksa Kelengkapan Form & Logika Tanggal
-    
-    ValidasiAgenda --> TampilFormEvent: Gagal (Judul Kosong / Format Tanggal Tidak Valid)
-    ValidasiAgenda --> SimpanAgendaDB: Berhasil (Data Valid)
-    
-    SimpanAgendaDB --> RenderKalenderGrid: Simpan ke calendar_events & Tampilkan Event Baru di Grid
-    RenderKalenderGrid --> [*]: Seluruh Tim Memperoleh Jadwal Terkoordinasi & Tersinkronisasi
-```
+[![Gambar 4. 12 Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi](diagrams/04-12-act-kalender.svg)](diagrams/04-12-act-kalender.html "Buka diagram interaktif")
 
-<p align="center"><b>Gambar 4. 12 Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi</b></p>
+> *Gambar 4. 12: Activity Diagram Pengelolaan Agenda Kalender Kerja Akreditasi* — [Buka Versi Interaktif HTML](diagrams/04-12-act-kalender.html)
 
 | No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
 |:---|:---|:---|:---|
@@ -568,40 +252,9 @@ stateDiagram-v2
 
 #### 4.4.1 Sequence Diagram: Verifikasi Alur EHA & Quality Gate Rilis SK
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as Admin Unit Lab
-    participant View as Detail Page (Blade)
-    participant Ctrl as AssessmentController
-    participant Model as Assessment / Accreditation
-    participant DB as SQLite Database
+[![Gambar 4. 13 Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK](diagrams/04-13-seq-eha-quality-gate.svg)](diagrams/04-13-seq-eha-quality-gate.html "Buka diagram interaktif")
 
-    Admin->>View: Buka Detail Asesmen / Akreditasi
-    Admin->>View: Input Hasil Sidang EHA & Tanggal Pelaksanaan
-    View->>Ctrl: POST /assessments/{id}/eha (eha_date, notes)
-    Ctrl->>Model: Assessment::update(eha_date, eha_status: SUDAH_EHA)
-    Model->>DB: UPDATE assessments
-    DB-->>Ctrl: Saved
-    Ctrl-->>View: Tampilkan Status Sidang EHA Terkonfirmasi
-
-    Note over Admin,DB: Pengujian Quality Gate Kesiapan Terbit Dokumen SK
-    Admin->>View: Klik [ Rilis SK Akreditasi ]
-    View->>Ctrl: POST /accreditations/{id}/release
-    Ctrl->>Ctrl: isReleaseReady() (Cek: Status TP SATISFIED && Sidang EHA Terlaksana)
-    alt Syarat Belum Lengkap
-        Ctrl-->>View: Return 422: SK Terkunci (Quality Gate Lock)
-        View-->>Admin: Pop-up SweetAlert2: Syarat EHA atau Perbaikan Belum Lengkap
-    else Syarat Lengkap
-        Ctrl->>Model: Model->update(sk_number, sk_issued_at: now())
-        Model->>DB: UPDATE accreditations SET output_released_at = now()
-        DB-->>Ctrl: Saved
-        Ctrl-->>View: Status Rilis Dokumen SK Aktif
-        View-->>Admin: Toast Sukses: SK Akreditasi Resmi Dirilis
-    end
-```
-
-<p align="center"><b>Gambar 4. 13 Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK</b></p>
+> *Gambar 4. 13: Sequence Diagram Verifikasi Alur EHA & Quality Gate Rilis SK* — [Buka Versi Interaktif HTML](diagrams/04-13-seq-eha-quality-gate.html)
 
 ---
 
@@ -609,119 +262,9 @@ sequenceDiagram
 
 Skema basis data SIMASADI terdiri dari 6 entitas tabel relasional terpadu yang memadukan data master lembaga, agenda lapangan, penegakan regulasi KAN U-01, penetapan dokumen akreditasi, serta jejak audit:
 
-```mermaid
-erDiagram
-    USERS ||--o{ LPKS : "assigned_as_pic"
-    USERS ||--o{ ASSESSMENTS : "creates"
-    USERS ||--o{ CALENDAR_EVENTS : "creates"
-    USERS ||--o{ BACKUPS : "records"
+[![Gambar 4. 14 Entity Relationship Diagram (ERD) SIMASADI](diagrams/04-14-erd-basis-data.svg)](diagrams/04-14-erd-basis-data.html "Buka diagram interaktif")
 
-    LPKS ||--o{ ASSESSMENTS : "undergoes"
-    LPKS ||--o{ ACCREDITATIONS : "possesses"
-    LPKS ||--o{ CALENDAR_EVENTS : "associated_with"
-
-    USERS {
-        int id PK
-        string name
-        string email
-        string password
-        string role "admin | pic | assessor | lpk"
-        datetime created_at
-    }
-
-    LPKS {
-        int id PK
-        string no_reg "Nomor Registrasi KAN unik"
-        string registration_number
-        string name
-        string kan_schema "Skema Akreditasi KAN"
-        text scope "Ruang Lingkup Akreditasi"
-        string category
-        string city
-        string province
-        string address
-        string email
-        string phone
-        string status "ACTIVE | SUSPENDED | REVOKED | INACTIVE"
-        date certificate_date
-        date expired_at
-        string drive_url
-        int pic_user_id FK "Relasi ke Users"
-        datetime last_surveillance_notified_at
-        text notes
-        datetime created_at
-    }
-
-    ASSESSMENTS {
-        int id PK
-        int lpk_id FK
-        int created_by FK
-        string title
-        string assessment_type "8 Tipe KAN U-01"
-        datetime start_at
-        datetime end_at
-        string location
-        string lead_assessor
-        string status "PLANNED | IN_PROGRESS | SUSPENDED | COMPLETED | CANCELLED"
-        text notes
-        int tp_sla_months "3 bln AA, 2 bln lainnya"
-        date tp_due_date "Batas Waktu Awal SLA"
-        boolean tp_has_extension
-        int tp_extension_months "Max 1 bulan"
-        string tp_extension_letter_no
-        date tp_extended_due_date
-        date tp_submitted_at
-        date tp_satisfied_at "Tanggal Pemenuhan TP"
-        text tp_unresolved_notes
-        date sk_issued_at
-        string sk_number
-        int sk_lead_time_days
-        date eha_scheduled_date
-        date eha_completed_at
-        text eha_notes
-        datetime created_at
-    }
-
-    ACCREDITATIONS {
-        int id PK
-        int lpk_id FK
-        date start_date
-        date pantek_at
-        date target_date
-        date target_output_at
-        date output_released_at
-        string pic
-        string status
-        text notes
-        datetime created_at
-    }
-
-    CALENDAR_EVENTS {
-        int id PK
-        int lpk_id FK
-        int created_by FK
-        string title
-        string event_type "assessment | surveillance_reminder | tp_reminder | tp_overdue | sk_reminder"
-        datetime start_at
-        datetime end_at
-        string location
-        boolean is_all_day
-        text notes
-        datetime created_at
-    }
-
-    BACKUPS {
-        int id PK
-        int recorded_by FK
-        string filename
-        int size_bytes
-        boolean is_successful
-        text notes
-        datetime created_at
-    }
-```
-
-<p align="center"><b>Gambar 4. 14 Entity Relationship Diagram (ERD) SIMASADI Terkini</b></p>
+> *Gambar 4. 14: Entity Relationship Diagram (ERD) SIMASADI Terkini* — [Buka Versi Interaktif HTML](diagrams/04-14-erd-basis-data.html)
 
 ---
 
@@ -857,100 +400,9 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 
 Class diagram menggambarkan arsitektur berbasis objek pada layer Model dan Controller di Laravel:
 
-```mermaid
-classDiagram
-    class User {
-        +int id
-        +string name
-        +string email
-        +string role
-        +isAdmin() bool
-        +isPic() bool
-        +isAssessor() bool
-        +isLpk() bool
-        +lpks() HasMany
-        +assessments() HasMany
-    }
+[![Gambar 4. 15 Class Diagram SIMASADI](diagrams/04-15-class-diagram-mvc.svg)](diagrams/04-15-class-diagram-mvc.html "Buka diagram interaktif")
 
-    class Lpk {
-        +int id
-        +string no_reg
-        +string name
-        +string kan_schema
-        +date certificate_date
-        +date expired_at
-        +int pic_user_id
-        +scopeAccessibleBy(query, user) Builder
-        +scopeManageableBy(query, user) Builder
-        +canManage(user) bool
-        +canView(user) bool
-        +getDynamicStatusAttribute() string
-        +getDynamicKeteranganAttribute() string
-        +getSurveillanceMilestonesAttribute() array
-        +assessments() HasMany
-        +picUser() BelongsTo
-    }
-
-    class Assessment {
-        +int id
-        +string assessment_type
-        +datetime start_at
-        +datetime end_at
-        +string status
-        +int tp_sla_months
-        +date tp_due_date
-        +date tp_satisfied_at
-        +getEffectiveTpDueDateAttribute() Carbon
-        +getIsTpOverdueAttribute() bool
-        +getTpDynamicStatusAttribute() string
-        +getIsSubmissionOverdueAttribute() bool
-        +getIsSuspensionExpiredAttribute() bool
-        +lpk() BelongsTo
-    }
-
-    class Accreditation {
-        +int id
-        +string status
-        +isReleaseReady() bool
-        +lpk() BelongsTo
-    }
-
-    class CalendarEvent {
-        +int id
-        +string event_type
-        +datetime start_at
-        +datetime end_at
-        +lpk() BelongsTo
-    }
-
-    class LpkMember {
-        +int id
-        +int lpk_id
-        +int user_id
-        +string role
-        +lpk() BelongsTo
-        +user() BelongsTo
-    }
-
-    class UserAccountLink {
-        +int id
-        +int user_id
-        +int viewer_id
-        +user() BelongsTo
-        +viewer() BelongsTo
-    }
-
-    User "1" --> "*" Lpk : assigns
-    User "1" --> "*" Assessment : creates
-    Lpk "1" --> "*" Assessment : undergoes
-    Lpk "1" --> "*" Accreditation : holds
-    Accreditation "1" --> "*" CalendarEvent : schedules
-    Lpk "1" --> "*" LpkMember : includes
-    User "1" --> "*" LpkMember : memberOf
-    User "1" --> "*" UserAccountLink : links
-```
-
-<p align="center"><b>Gambar 4. 15 Class Diagram SIMASADI</b></p>
+> *Gambar 4. 15: Class Diagram Arsitektur SIMASADI (Laravel MVC)* — [Buka Versi Interaktif HTML](diagrams/04-15-class-diagram-mvc.html)
 
 ---
 

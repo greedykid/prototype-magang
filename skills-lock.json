@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "diagram-design": {
+      "source": "cathrynlavery/diagram-design",
+      "sourceType": "github",
+      "skillPath": "skills/diagram-design/SKILL.md",
+      "computedHash": "402251a5d13057edba3c4a9f3e294bfcbeeb01baf857551e8b80175d2533b31f"
+    },
     "docx": {
       "source": "smithery.ai",
       "sourceUrl": "https://smithery.ai/skills/anthropics/docx",

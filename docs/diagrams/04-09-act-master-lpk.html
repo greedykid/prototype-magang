@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Diagram: Pengelolaan Data Master LPK & Penugasan PIC · SIMASADI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --color-purple:  #7c3aed;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .frame { max-width: 1160px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.4vw + 0.75rem, 2.15rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">ACTIVITY DIAGRAM · MASTER LPK</p>
+    <h1>Activity Diagram: Pengelolaan Data Master LPK & Penugasan PIC</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1020 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d9-title d9-desc">
+        <title id="d9-title">Activity Diagram: Pengelolaan Data Master LPK &amp; Penugasan PIC</title>
+        <desc id="d9-desc">Diagram alur aktivitas pendaftaran entitas laboratorium baru, validasi keunikan nomor registrasi KAN, penetapan PIC pendamping, dan kalkulasi masa berlaku sertifikat 5 tahun.</desc>
+        <defs>
+          <marker id="d9-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#475569"/></marker>
+          <marker id="d9-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0284c7"/></marker>
+          <marker id="d9-arrow-danger" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#e11d48"/></marker>
+        </defs>
+
+        <rect width="1020" height="480" fill="#f8fafc" rx="8"/>
+
+        <!-- Flow Lines Top -->
+        <line x1="80" y1="120" x2="110" y2="120" stroke="#475569" stroke-width="1.2" marker-end="url(#d9-arrow)"/>
+        <line x1="240" y1="120" x2="270" y2="120" stroke="#475569" stroke-width="1.2" marker-end="url(#d9-arrow)"/>
+        <line x1="400" y1="120" x2="430" y2="120" stroke="#475569" stroke-width="1.2" marker-end="url(#d9-arrow)"/>
+        <line x1="570" y1="120" x2="600" y2="120" stroke="#475569" stroke-width="1.2" marker-end="url(#d9-arrow)"/>
+        <line x1="740" y1="120" x2="770" y2="120" stroke="#475569" stroke-width="1.2" marker-end="url(#d9-arrow)"/>
+
+        <!-- Choice: Validasi Keunikan No Reg (Center: 820, 120) -->
+        <!-- Choice -> Gagal (Top loop back to Form) -->
+        <path d="M 820 75 L 820 40 Q 820 32 812 32 L 358 32 Q 350 32 350 40 L 350 85" fill="none" stroke="#e11d48" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#d9-arrow-danger)"/>
+        <rect x="520" y="24" width="170" height="16" rx="3" fill="#f8fafc"/>
+        <text x="605" y="36" fill="#e11d48" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">GAGAL: NO REG DUPLIKAT</text>
+
+        <!-- Choice -> Berhasil (Down to Bottom Row) -->
+        <line x1="820" y1="165" x2="820" y2="240" stroke="#0284c7" stroke-width="1.6" marker-end="url(#d9-arrow-accent)"/>
+        <rect x="740" y="195" width="160" height="16" rx="3" fill="#f8fafc"/>
+        <text x="820" y="207" fill="#0284c7" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">BERHASIL (TERVALIDASI)</text>
+
+        <!-- Bottom Flow (Right to Left) -->
+        <line x1="720" y1="280" x2="670" y2="280" stroke="#0284c7" stroke-width="1.4" marker-end="url(#d9-arrow-accent)"/>
+        <line x1="470" y1="280" x2="420" y2="280" stroke="#0284c7" stroke-width="1.4" marker-end="url(#d9-arrow-accent)"/>
+        <line x1="220" y1="280" x2="170" y2="280" stroke="#16a34a" stroke-width="1.5" marker-end="url(#d9-arrow)"/>
+
+        <!-- NODES TOP ROW -->
+        <!-- Start -->
+        <g transform="translate(40, 105)"><circle cx="15" cy="15" r="14" fill="#0f172a"/></g>
+
+        <!-- Step 1: Akses Menu LPK -->
+        <g transform="translate(110, 85)">
+          <rect width="130" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="10" y="20" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 1</text>
+          <text x="10" y="38" fill="#0f172a" font-size="11" font-family="'Geist', sans-serif" font-weight="600">Akses /lpks</text>
+          <text x="10" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Tabel Master LPK</text>
+        </g>
+
+        <!-- Step 2: Form Tambah -->
+        <g transform="translate(270, 85)">
+          <rect width="130" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="10" y="20" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 2</text>
+          <text x="10" y="38" fill="#0f172a" font-size="11" font-family="'Geist', sans-serif" font-weight="600">Formulir LPK</text>
+          <text x="10" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">/lpks/create</text>
+        </g>
+
+        <!-- Step 3: Input Identitas & Skema KAN -->
+        <g transform="translate(430, 85)">
+          <rect width="140" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="10" y="20" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 3</text>
+          <text x="10" y="38" fill="#0f172a" font-size="11" font-family="'Geist', sans-serif" font-weight="600">Input Data Legalitas</text>
+          <text x="10" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">No Reg &bull; Nama &bull; Skema</text>
+        </g>
+
+        <!-- Step 4: Tetapkan PIC Lab -->
+        <g transform="translate(600, 85)">
+          <rect width="140" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="10" y="20" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 4</text>
+          <text x="10" y="38" fill="#0f172a" font-size="11" font-family="'Geist', sans-serif" font-weight="600">Tetapkan PIC Lab</text>
+          <text x="10" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">pic_user_id Penanggung</text>
+        </g>
+
+        <!-- Choice: Validasi Keunikan (Center: 820, 120) -->
+        <g transform="translate(820, 120)">
+          <polygon points="0,-45 50,0 0,45 -50,0" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="0" y="-8" fill="#0284c7" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">VALIDASI</text>
+          <text x="0" y="8" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">No Reg Unik?</text>
+          <text x="0" y="20" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Database Check</text>
+        </g>
+
+        <!-- NODES BOTTOM ROW -->
+        <!-- Step 5: Simpan ke DB (720, 245) -->
+        <g transform="translate(720, 245)">
+          <rect width="200" height="70" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.2"/>
+          <text x="12" y="20" fill="#0284c7" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 5 &bull; PERSISTENSI</text>
+          <text x="12" y="38" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="700">Simpan ke Basis Data</text>
+          <text x="12" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Tabel lpks &amp; lpk_members</text>
+        </g>
+
+        <!-- Step 6: Hitung Masa Berlaku 5 Tahun (470, 245) -->
+        <g transform="translate(470, 245)">
+          <rect width="200" height="70" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.2"/>
+          <text x="12" y="20" fill="#0284c7" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 6 &bull; SIKLUS HIDUP</text>
+          <text x="12" y="38" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="700">Hitung expired_at</text>
+          <text x="12" y="52" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">certificate_date + 5 Tahun</text>
+        </g>
+
+        <!-- Step 7: Tampil Tabel & Masuk Cakupan PIC (220, 240) -->
+        <g transform="translate(220, 240)">
+          <rect width="200" height="80" rx="8" fill="rgba(22,163,74,0.06)" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="14" y="22" fill="#16a34a" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="700">SELESAI TERDAFTAR</text>
+          <text x="14" y="42" fill="#14532d" font-size="12" font-family="'Geist', sans-serif" font-weight="700">Masuk Cakupan PIC</text>
+          <text x="14" y="56" fill="#15803d" font-size="8.5" font-family="'Geist Mono', monospace">Tampil di Dasbor &amp; Kalender</text>
+          <text x="14" y="68" fill="#475569" font-size="8" font-family="'Geist Mono', monospace">Redirect dengan Toast Sukses</text>
+        </g>
+
+        <!-- Terminal End -->
+        <g transform="translate(130, 265)">
+          <circle cx="15" cy="15" r="15" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+          <circle cx="15" cy="15" r="10" fill="#16a34a"/>
+        </g>
+
+        <!-- Footer -->
+        <text x="40" y="440" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace">PENGELOLAAN MASTER LPK &bull; NOMOR REGISTRASI KAN HARUS UNIK SECARA GLOBAL &bull; OTOMASI RELASI TIM LPK_MEMBERS</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

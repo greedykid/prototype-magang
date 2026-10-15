@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1120 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d2-title d2-desc" id="d-04-02-navigasi-hierarki-root">
+        <title id="d2-title">Struktur Navigasi Hierarki Sub-Halaman SIMASADI</title>
+        <desc id="d2-desc">Diagram pohon sitemap lengkap memetakan rute dari Dashboard ke seluruh sub-halaman: modul LPK, asesmen, kalender pengawasan, profil kolaborasi, dan impor data.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-04-02-navigasi-hierarki-root { --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #d-04-02-navigasi-hierarki-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #d-04-02-navigasi-hierarki-root .diagram-container { width: 100%; overflow-x: auto; }
+      #d-04-02-navigasi-hierarki-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="d-04-02-navigasi-hierarki-d2-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+        </defs>
+
+        <rect width="1120" height="540" fill="#f8fafc" rx="8"/>
+
+        <!-- Root Node: Dashboard -->
+        <g transform="translate(40, 220)">
+          <rect width="180" height="80" rx="8" fill="#0284c7" stroke="#0284c7" stroke-width="1.8" fill-opacity="0.08"/>
+          <text x="14" y="24" fill="#0284c7" font-size="8" font-family="'Geist Mono', monospace" font-weight="700" letter-spacing="0.14em">AKAR SISTEM</text>
+          <text x="14" y="46" fill="#0f172a" font-size="14" font-family="'Geist', sans-serif" font-weight="700">Dashboard</text>
+          <text x="14" y="62" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace">/dashboard</text>
+        </g>
+
+        <!-- Connecting Lines: Root -> 4 Level 1 Hubs -->
+        <path d="M 220 260 L 260 260 L 260 70 L 300 70" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <path d="M 220 260 L 260 260 L 260 190 L 300 190" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <path d="M 220 260 L 260 260 L 260 330 L 300 330" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <path d="M 220 260 L 260 260 L 260 460 L 300 460" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+
+        <!-- Hub 1: LPK (/lpks) -->
+        <g transform="translate(300, 40)">
+          <rect width="180" height="60" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" letter-spacing="0.1em">MASTER DATA</text>
+          <text x="12" y="40" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Data LPK</text>
+          <text x="12" y="52" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">/lpks</text>
+        </g>
+        <!-- LPK Sub-pages -->
+        <path d="M 480 70 L 530 70" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <path d="M 530 30 L 530 110" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="530" y1="30" x2="570" y2="30" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="70" x2="570" y2="70" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="110" x2="570" y2="110" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+
+        <g transform="translate(570, 16)">
+          <rect width="240" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Tambah LPK Baru (/lpks/create)</text>
+        </g>
+        <g transform="translate(570, 56)">
+          <rect width="240" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Impor Massal LPK (/lpks/import)</text>
+        </g>
+        <g transform="translate(570, 96)">
+          <rect width="240" height="28" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.2"/>
+          <text x="10" y="18" fill="#0284c7" font-size="10" font-family="'Geist', sans-serif" font-weight="700">Detail LPK (/lpks/{id}) • Ubah Profil</text>
+        </g>
+
+        <!-- Hub 2: Asesmen (/assessments) -->
+        <g transform="translate(300, 160)">
+          <rect width="180" height="60" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" letter-spacing="0.1em">AGENDA KAN</text>
+          <text x="12" y="40" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Program Asesmen</text>
+          <text x="12" y="52" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">/assessments</text>
+        </g>
+        <!-- Asesmen Sub-pages -->
+        <path d="M 480 190 L 530 190" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <path d="M 530 150 L 530 250" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="530" y1="150" x2="570" y2="150" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="185" x2="570" y2="185" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="218" x2="570" y2="218" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="250" x2="570" y2="250" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+
+        <g transform="translate(570, 136)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Jadwalkan 8 Tipe KAN (/create)</text>
+        </g>
+        <g transform="translate(570, 171)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Impor Asesmen &amp; Live Feed (/import)</text>
+        </g>
+        <g transform="translate(570, 204)">
+          <rect width="260" height="28" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.2"/>
+          <text x="10" y="18" fill="#0284c7" font-size="10" font-family="'Geist', sans-serif" font-weight="700">Detail Asesmen (/assessments/{id})</text>
+        </g>
+        <g transform="translate(570, 236)">
+          <rect width="260" height="28" rx="4" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+          <text x="10" y="18" fill="#475569" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Pelacakan SLA TP • Sidang EHA • Rilis SK</text>
+        </g>
+
+        <!-- Hub 3: Kalender (/calendar) -->
+        <g transform="translate(300, 300)">
+          <rect width="180" height="60" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" letter-spacing="0.1em">JADWAL INTEGRASI</text>
+          <text x="12" y="40" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Kalender Kerja</text>
+          <text x="12" y="52" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">/calendar</text>
+        </g>
+        <!-- Kalender Sub-pages -->
+        <path d="M 480 330 L 530 330" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <path d="M 530 305 L 530 355" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="530" y1="305" x2="570" y2="305" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="355" x2="570" y2="355" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+
+        <g transform="translate(570, 291)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Grid Kalender Bulanan/Mingguan</text>
+        </g>
+        <g transform="translate(570, 341)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Modal Rincian • Tambah Agenda Cepat</text>
+        </g>
+
+        <!-- Hub 4: Profil & Kolaborasi (/profile, /account-links) -->
+        <g transform="translate(300, 430)">
+          <rect width="180" height="60" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" letter-spacing="0.1em">TIM &amp; AKUN</text>
+          <text x="12" y="40" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Profil &amp; Kolaborasi</text>
+          <text x="12" y="52" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">/profile • /account-links</text>
+        </g>
+        <!-- Profil Sub-pages -->
+        <path d="M 480 460 L 530 460" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <path d="M 530 435 L 530 485" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        <line x1="530" y1="435" x2="570" y2="435" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+        <line x1="530" y1="485" x2="570" y2="485" stroke="#64748b" stroke-width="1" marker-end="url(#d-04-02-navigasi-hierarki-d2-arrow)"/>
+
+        <g transform="translate(570, 421)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Ubah Profil &amp; Password (/profile)</text>
+        </g>
+        <g transform="translate(570, 471)">
+          <rect width="260" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="10" y="18" fill="#0f172a" font-size="10" font-family="'Geist', sans-serif" font-weight="600">Tautan Akun • Kolaborasi PIC (/account-links)</text>
+        </g>
+
+        <!-- Right Side Highlight Card -->
+        <g transform="translate(860, 160)">
+          <rect width="220" height="220" rx="8" fill="#0284c7" stroke="#0284c7" stroke-width="1.4" fill-opacity="0.04"/>
+          <text x="16" y="28" fill="#0284c7" font-size="8" font-family="'Geist Mono', monospace" font-weight="700" letter-spacing="0.14em">ROLE SCOPING</text>
+          <text x="16" y="50" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Dua Peran Nyata</text>
+          <text x="16" y="72" fill="#16a34a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600">• Ketua Tim (admin)</text>
+          <text x="24" y="88" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">Akses penuh seluruh data</text>
+          <text x="16" y="112" fill="#0284c7" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600">• PIC Lab (pic)</text>
+          <text x="24" y="128" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">Terfilter khusus binaan</text>
+          <text x="16" y="152" fill="#64748b" font-size="10.5" font-family="'Geist', sans-serif" font-weight="600">• Kolaborasi Antar-PIC</text>
+          <text x="24" y="168" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">Akses read-only LPK rekan</text>
+          <line x1="16" y1="184" x2="204" y2="184" stroke="#0284c7" stroke-width="1" stroke-opacity="0.2"/>
+          <text x="16" y="202" fill="#0284c7" font-size="8.5" font-family="'Geist Mono', monospace">RESTful • 100% Tested Routes</text>
+        </g>
+
+        <!-- Footer -->
+        <text x="40" y="520" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace">SIMASADI HIERARCHY TREE • SELURUH ENDPOINT MEMATUHI RBAC LARAVEL • ROUTE-LEVEL AUTHORIZATION</text>
+      </svg>

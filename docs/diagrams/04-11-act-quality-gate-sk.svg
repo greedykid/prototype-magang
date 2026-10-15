@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d11-title d11-desc" id="d-04-11-act-quality-gate-sk-root">
+        <title id="d11-title">Activity Diagram Verifikasi TP, Sidang EHA, dan Quality Gate Rilis SK</title>
+        <desc id="d11-desc">Alur verifikasi pemenuhan tindakan perbaikan, opsi perpanjangan waktu bersurat resmi, pencatatan sidang EHA, dan validasi Quality Gate Lock sebelum dokumen SK resmi dirilis.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #d-04-11-act-quality-gate-sk-root { --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --color-purple:  #7c3aed;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #d-04-11-act-quality-gate-sk-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #d-04-11-act-quality-gate-sk-root .diagram-container { width: 100%; overflow-x: auto; }
+      #d-04-11-act-quality-gate-sk-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="d-04-11-act-quality-gate-sk-d11-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#475569"/></marker>
+          <marker id="d-04-11-act-quality-gate-sk-d11-arrow-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0284c7"/></marker>
+          <marker id="d-04-11-act-quality-gate-sk-d11-arrow-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#e11d48"/></marker>
+          <marker id="d-04-11-act-quality-gate-sk-d11-arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#16a34a"/></marker>
+          <marker id="d-04-11-act-quality-gate-sk-d11-arrow-amber" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#d97706"/></marker>
+        </defs>
+
+        <rect width="1060" height="620" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+
+        <!-- Phase Swimlanes / Section Bands -->
+        <rect x="24" y="24" width="480" height="572" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="44" y="52" font-family="'Geist Mono', monospace" font-size="11" font-weight="600" fill="#0284c7" letter-spacing="0.1em">FASE 1: VERIFIKASI TINDAKAN PERBAIKAN (TP)</text>
+
+        <rect x="524" y="24" width="512" height="572" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="544" y="52" font-family="'Geist Mono', monospace" font-size="11" font-weight="600" fill="#7c3aed" letter-spacing="0.1em">FASE 2: SIDANG EHA &amp; QUALITY GATE RILIS SK</text>
+
+        <!-- Initial Node -->
+        <circle cx="80" cy="110" r="14" fill="#0f172a"/>
+        <circle cx="80" cy="110" r="8" fill="#ffffff"/>
+
+        <path d="M94 110 L120 110" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+
+        <!-- Step 1: Buka Detail Asesmen -->
+        <g transform="translate(120, 78)">
+          <rect width="170" height="64" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="85" y="26" font-family="'Geist', sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle">Buka Detail Asesmen</text>
+          <text x="85" y="44" font-family="'Geist Mono', monospace" font-size="10" fill="#64748b" text-anchor="middle">GET /assessments/{id}</text>
+        </g>
+
+        <!-- Line to Step 2 -->
+        <path d="M290 110 L320 110" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+
+        <!-- Step 2: Cek Status TP -->
+        <g transform="translate(320, 78)">
+          <rect width="160" height="64" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="80" y="26" font-family="'Geist', sans-serif" font-size="12" font-weight="600" fill="#0f172a" text-anchor="middle">Cek Status TP</text>
+          <text x="80" y="44" font-family="'Geist', sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Pantau SLA &amp; Temuan</text>
+        </g>
+
+        <!-- Line to Decision 1 -->
+        <path d="M400 142 L400 190" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+
+        <!-- Decision 1: Evaluasi Temuan TP -->
+        <g transform="translate(400, 240)">
+          <polygon points="0 -32, 50 0, 0 32, -50 0" fill="#eff6ff" stroke="#0284c7" stroke-width="1.75"/>
+          <text x="0" y="-4" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#0369a1" text-anchor="middle">Evaluasi</text>
+          <text x="0" y="12" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#0369a1" text-anchor="middle">Temuan?</text>
+        </g>
+
+        <!-- Branch 1A: Butuh Waktu (+1 Bulan) -> Left -->
+        <path d="M350 240 L200 240 L200 270" fill="none" stroke="#d97706" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-amber)"/>
+        <rect x="220" y="224" width="114" height="20" rx="4" fill="#fef3c7"/>
+        <text x="277" y="238" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">[ Butuh Tambahan Waktu ]</text>
+
+        <!-- Box: Pengajuan Perpanjangan -->
+        <g transform="translate(100, 270)">
+          <rect width="200" height="70" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="100" y="24" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#92400e" text-anchor="middle">Pengajuan Perpanjangan</text>
+          <text x="100" y="42" font-family="'Geist', sans-serif" font-size="10" fill="#475569" text-anchor="middle">+1 Bulan Bersurat Resmi</text>
+          <text x="100" y="58" font-family="'Geist Mono', monospace" font-size="9" fill="#64748b" text-anchor="middle">Max 1x Perpanjangan</text>
+        </g>
+
+        <!-- Down to Update Due Date Extended -->
+        <path d="M200 340 L200 376" fill="none" stroke="#d97706" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-amber)"/>
+
+        <g transform="translate(100, 376)">
+          <rect width="200" height="70" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="1.5"/>
+          <text x="100" y="24" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#92400e" text-anchor="middle">Update Extended Due Date</text>
+          <text x="100" y="42" font-family="'Geist Mono', monospace" font-size="9.5" fill="#475569" text-anchor="middle">tp_extended_due_date</text>
+          <text x="100" y="58" font-family="'Geist', sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Catat Nomor Surat Resmi</text>
+        </g>
+
+        <!-- Loop back from extended to Cek Status TP -->
+        <path d="M100 411 L60 411 L60 110 L118 110" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+        <text x="70" y="260" font-family="'Geist Mono', monospace" font-size="9" fill="#64748b">Pantau Ulang Batas SLA</text>
+
+        <!-- Branch 1B: Memenuhi -> Down -->
+        <path d="M400 272 L400 320" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-green)"/>
+        <rect x="408" y="284" width="70" height="18" rx="4" fill="#dcfce7"/>
+        <text x="443" y="297" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#15803d" text-anchor="middle">[ Memenuhi ]</text>
+
+        <!-- Box: Input TP Satisfied -->
+        <g transform="translate(310, 320)">
+          <rect width="180" height="66" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="90" y="24" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#15803d" text-anchor="middle">Verifikasi Memenuhi</text>
+          <text x="90" y="42" font-family="'Geist Mono', monospace" font-size="9.5" fill="#475569" text-anchor="middle">Set tp_satisfied_at</text>
+          <text x="90" y="58" font-family="'Geist Mono', monospace" font-size="9.5" font-weight="600" fill="#15803d" text-anchor="middle">tp_status = SATISFIED</text>
+        </g>
+
+        <!-- Transition to Phase 2 (Across border) -->
+        <path d="M490 353 L560 353" fill="none" stroke="#0284c7" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-blue)"/>
+
+        <!-- Step 3: Input Sidang EHA -->
+        <g transform="translate(560, 320)">
+          <rect width="180" height="66" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+          <text x="90" y="24" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#6d28d9" text-anchor="middle">Input Sidang EHA</text>
+          <text x="90" y="42" font-family="'Geist', sans-serif" font-size="10" fill="#475569" text-anchor="middle">POST .../eha</text>
+          <text x="90" y="58" font-family="'Geist Mono', monospace" font-size="9.5" fill="#7c3aed" text-anchor="middle">eha_status = SUDAH_EHA</text>
+        </g>
+
+        <!-- Line to Step 4 -->
+        <path d="M740 353 L780 353" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+
+        <!-- Step 4: Klik Rilis SK -->
+        <g transform="translate(780, 320)">
+          <rect width="160" height="66" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="80" y="26" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Klik [ Rilis SK ]</text>
+          <text x="80" y="44" font-family="'Geist Mono', monospace" font-size="9.5" fill="#64748b" text-anchor="middle">POST .../release</text>
+          <text x="80" y="58" font-family="'Geist', sans-serif" font-size="9.5" fill="#0284c7" text-anchor="middle">Trigger Quality Gate</text>
+        </g>
+
+        <!-- Down to Decision 2: Quality Gate -->
+        <path d="M860 386 L860 424" fill="none" stroke="#475569" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow)"/>
+
+        <g transform="translate(860, 464)">
+          <polygon points="0 -36, 60 0, 0 36, -60 0" fill="#fdf2f8" stroke="#db2777" stroke-width="1.75"/>
+          <text x="0" y="-8" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#9d174d" text-anchor="middle">Quality Gate</text>
+          <text x="0" y="8" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#9d174d" text-anchor="middle">isReleaseReady()</text>
+          <text x="0" y="22" font-family="'Geist', sans-serif" font-size="8.5" fill="#64748b" text-anchor="middle">TP &amp; EHA Valid?</text>
+        </g>
+
+        <!-- Decision 2: False (Locked) -> Right & Loop Up -->
+        <path d="M920 464 L980 464 L980 110 L292 110" fill="none" stroke="#e11d48" stroke-width="1.75" stroke-dasharray="4 4" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-red)"/>
+        <rect x="926" y="444" width="56" height="18" rx="4" fill="#ffe4e6"/>
+        <text x="954" y="457" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#be123c" text-anchor="middle">[ FALSE ]</text>
+
+        <g transform="translate(870, 180)">
+          <rect width="150" height="54" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1.2"/>
+          <text x="75" y="22" font-family="'Geist', sans-serif" font-size="10" font-weight="600" fill="#be123c" text-anchor="middle">HTTP 422: SK Terkunci</text>
+          <text x="75" y="40" font-family="'Geist', sans-serif" font-size="9" fill="#881337" text-anchor="middle">Peringatan Syarat Belum Siap</text>
+        </g>
+
+        <!-- Decision 2: True (Passed) -> Down -->
+        <path d="M860 500 L860 528" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-green)"/>
+        <rect x="868" y="504" width="52" height="18" rx="4" fill="#dcfce7"/>
+        <text x="894" y="517" font-family="'Geist Mono', monospace" font-size="9" font-weight="600" fill="#15803d" text-anchor="middle">[ TRUE ]</text>
+
+        <!-- Box: Update Rilis Dokumen SK -->
+        <g transform="translate(680, 528)">
+          <rect width="210" height="54" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="105" y="20" font-family="'Geist', sans-serif" font-size="11" font-weight="600" fill="#15803d" text-anchor="middle">Update Rilis Dokumen SK</text>
+          <text x="105" y="36" font-family="'Geist Mono', monospace" font-size="9" fill="#475569" text-anchor="middle">sk_number, sk_issued_at</text>
+          <text x="105" y="48" font-family="'Geist Mono', monospace" font-size="8.5" fill="#64748b" text-anchor="middle">output_released_at = now()</text>
+        </g>
+
+        <!-- Line to End Node -->
+        <path d="M890 555 L930 555" fill="none" stroke="#16a34a" stroke-width="1.75" marker-end="url(#d-04-11-act-quality-gate-sk-d11-arrow-green)"/>
+
+        <!-- Final Node -->
+        <g transform="translate(930, 535)">
+          <rect width="80" height="40" rx="20" fill="#16a34a"/>
+          <text x="40" y="24" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">COMPLETED</text>
+        </g>
+      </svg>

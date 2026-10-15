@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Diagram: Autentikasi PIC Laboratorium · SIMASADI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #f1f5f9;
+      --color-ink:     #0f172a;
+      --color-muted:   #475569;
+      --color-soft:    #64748b;
+      --color-rule:    rgba(15, 23, 42, 0.12);
+      --color-accent:  #0284c7;
+      --color-success: #16a34a;
+      --color-warning: #d97706;
+      --color-danger:  #e11d48;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .frame { max-width: 1160px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.6rem, 2.4vw + 0.75rem, 2.15rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.25rem;
+    }
+
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">ACTIVITY DIAGRAM · AUTH PIC</p>
+    <h1>Activity Diagram: Autentikasi PIC Laboratorium</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d5-title d5-desc">
+        <title id="d5-title">Activity Diagram: Autentikasi PIC Laboratorium</title>
+        <desc id="d5-desc">Diagram aktivitas alur autentikasi peran PIC Laboratorium dengan inisialisasi sesi berlingkup khusus LPK binaan (role scoping).</desc>
+        <defs>
+          <marker id="d5-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+          <marker id="d5-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#16a34a"/>
+          </marker>
+          <marker id="d5-arrow-danger" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#e11d48"/>
+          </marker>
+        </defs>
+
+        <rect width="1000" height="480" fill="#f8fafc" rx="8"/>
+
+        <!-- Flow Lines -->
+        <line x1="80" y1="160" x2="120" y2="160" stroke="#475569" stroke-width="1.2" marker-end="url(#d5-arrow)"/>
+        <line x1="260" y1="160" x2="300" y2="160" stroke="#475569" stroke-width="1.2" marker-end="url(#d5-arrow)"/>
+        <line x1="440" y1="160" x2="480" y2="160" stroke="#475569" stroke-width="1.2" marker-end="url(#d5-arrow)"/>
+        <line x1="620" y1="160" x2="660" y2="160" stroke="#475569" stroke-width="1.2" marker-end="url(#d5-arrow)"/>
+
+        <!-- Decision Diamond Exit 1: Gagal -> Loop back -->
+        <path d="M 710 115 L 710 56 Q 710 48 702 48 L 198 48 Q 190 48 190 56 L 190 125" fill="none" stroke="#e11d48" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#d5-arrow-danger)"/>
+        <rect x="400" y="40" width="180" height="16" rx="3" fill="#f8fafc"/>
+        <text x="490" y="52" fill="#e11d48" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">GAGAL: KREDENSIAL TIDAK COCOK</text>
+
+        <!-- Decision Diamond Exit 2: Berhasil -> Role Scoping -->
+        <line x1="710" y1="205" x2="710" y2="280" stroke="#16a34a" stroke-width="1.6" marker-end="url(#d5-arrow-accent)"/>
+        <rect x="640" y="235" width="140" height="16" rx="3" fill="#f8fafc"/>
+        <text x="710" y="247" fill="#16a34a" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">BERHASIL (ROLE: PIC)</text>
+
+        <!-- Step 4 -> Step 5 -> End -->
+        <line x1="610" y1="320" x2="560" y2="320" stroke="#16a34a" stroke-width="1.4" marker-end="url(#d5-arrow-accent)"/>
+        <line x1="350" y1="320" x2="300" y2="320" stroke="#16a34a" stroke-width="1.4" marker-end="url(#d5-arrow-accent)"/>
+
+        <!-- Start Node -->
+        <g transform="translate(40, 140)">
+          <circle cx="20" cy="20" r="14" fill="#0f172a"/>
+          <text x="20" y="48" fill="#64748b" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">MULAI</text>
+        </g>
+
+        <!-- Step 1: Akses /login -->
+        <g transform="translate(120, 125)">
+          <rect width="140" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 1</text>
+          <text x="12" y="40" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="600">Akses URL /login</text>
+          <text x="12" y="54" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Formulir Otentikasi</text>
+        </g>
+
+        <!-- Step 2: Submit Kredensial PIC -->
+        <g transform="translate(300, 125)">
+          <rect width="140" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 2</text>
+          <text x="12" y="40" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="600">Submit Akun PIC</text>
+          <text x="12" y="54" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Email &amp; Pass PIC Lab</text>
+        </g>
+
+        <!-- Step 3: Validasi Masukan -->
+        <g transform="translate(480, 125)">
+          <rect width="140" height="70" rx="6" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+          <text x="12" y="22" fill="#64748b" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 3</text>
+          <text x="12" y="40" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="600">Validasi Masukan</text>
+          <text x="12" y="54" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">AuthController@store</text>
+        </g>
+
+        <!-- Decision Diamond: Choice Node (Center: 710, 160) -->
+        <g transform="translate(710, 160)">
+          <polygon points="0,-45 50,0 0,45 -50,0" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="0" y="-8" fill="#16a34a" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">VERIFIKASI</text>
+          <text x="0" y="8" fill="#0f172a" font-size="10.5" font-family="'Geist', sans-serif" font-weight="700" text-anchor="middle">Auth::attempt()</text>
+          <text x="0" y="20" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">Role == 'pic'</text>
+        </g>
+
+        <!-- Step 4: Role Scoping & Sesi ID (y = 285) -->
+        <g transform="translate(610, 285)">
+          <rect width="190" height="70" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.2"/>
+          <text x="12" y="22" fill="#16a34a" font-size="7.5" font-family="'Geist Mono', monospace" font-weight="600">LANGKAH 4 · SCOPING</text>
+          <text x="12" y="40" fill="#0f172a" font-size="11.5" font-family="'Geist', sans-serif" font-weight="700">Terapkan Role Scoping</text>
+          <text x="12" y="54" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Scope: accessibleBy(user)</text>
+        </g>
+
+        <!-- Step 5: Dashboard PIC (Focal Hero) -->
+        <g transform="translate(350, 280)">
+          <rect width="210" height="80" rx="8" fill="rgba(22,163,74,0.06)" stroke="#16a34a" stroke-width="1.6"/>
+          <text x="14" y="24" fill="#16a34a" font-size="8" font-family="'Geist Mono', monospace" font-weight="700" letter-spacing="0.12em">CAKUPAN BINAAN</text>
+          <text x="14" y="44" fill="#0f172a" font-size="13" font-family="'Geist', sans-serif" font-weight="700">Dashboard PIC Laboratorium</text>
+          <text x="14" y="60" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">Terfilter Khusus LPK Binaan</text>
+          <text x="14" y="72" fill="#0284c7" font-size="8.5" font-family="'Geist Mono', monospace">Akses Pengawasan &amp; Tindakan</text>
+        </g>
+
+        <!-- Terminal End Node -->
+        <g transform="translate(250, 305)">
+          <circle cx="20" cy="15" r="15" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+          <circle cx="20" cy="15" r="10" fill="#0f172a"/>
+          <text x="20" y="44" fill="#64748b" font-size="8.5" font-family="'Geist Mono', monospace" font-weight="600" text-anchor="middle">SELESAI</text>
+        </g>
+
+        <!-- Footer -->
+        <text x="40" y="440" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace">ACTIVITY DIAGRAM AUTENTIKASI PIC &bull; ROLE SCOPING MEMASTIKAN ISOLASI DATA ANTAR-LABORATORIUM &bull; RBAC SIMASADI</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
