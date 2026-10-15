@@ -45,9 +45,17 @@ class UserController extends Controller
             return view('users.partials.table-content', compact('users', 'search', 'role', 'perPage'));
         }
 
-        $totalCount = User::count();
-        $adminCount = User::where('role', User::ROLE_ADMIN)->count();
-        $picCount = User::where('role', User::ROLE_PIC)->count();
+        $userStats = User::query()
+            ->selectRaw("
+                count(*) as total,
+                count(case when role = '" . User::ROLE_ADMIN . "' then 1 end) as admin_count,
+                count(case when role = '" . User::ROLE_PIC . "' then 1 end) as pic_count
+            ")
+            ->first();
+
+        $totalCount = (int) ($userStats->total ?? 0);
+        $adminCount = (int) ($userStats->admin_count ?? 0);
+        $picCount = (int) ($userStats->pic_count ?? 0);
 
         return view('users.index', compact(
             'users',

@@ -426,7 +426,6 @@ class LpkImportController extends Controller
                         'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
                         'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
                     ]);
-                    $existing->generateSurveillanceAssessments();
                     $updatedCount++;
                 } else {
                     $createdLpk = Lpk::create([
@@ -446,10 +445,6 @@ class LpkImportController extends Controller
                         'drive_url' => $driveUrl,
                         'notes' => $data['notes'] ?? null,
                     ]);
-
-                    if ($createdLpk->certificate_date || $createdLpk->expired_at) {
-                        $createdLpk->generateSurveillanceAssessments($currentUser?->id);
-                    }
 
                     // Perbarui in-memory lookup cache untuk baris berikutnya
                     if ($createdLpk->no_reg) {

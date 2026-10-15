@@ -48,31 +48,7 @@ class AssessmentController extends Controller
             }))
             ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
             ->when($assessmentType, fn ($query) => $query->forAssessmentType($assessmentType))
-            ->when($status, function ($query, $status) {
-                if ($status === 'SUSPENDED') {
-                    $query->where(function ($q) {
-                        $q->where('status', 'SUSPENDED')
-                            ->orWhere(fn ($sub) => $sub->tpOverdue());
-                    });
-                } elseif ($status === 'IN_PROGRESS') {
-                    $query->where('status', 'IN_PROGRESS')
-                        ->where('tp_status', '!=', Assessment::TP_STATUS_SATISFIED)
-                        ->whereNull('sk_number')
-                        ->whereNotIn('id', Assessment::select('id')->tpOverdue());
-                } elseif ($status === 'PLANNED') {
-                    $query->where('status', 'PLANNED')
-                        ->where('tp_status', '!=', Assessment::TP_STATUS_SATISFIED)
-                        ->whereNull('sk_number');
-                } elseif ($status === 'COMPLETED') {
-                    $query->where(function ($q) {
-                        $q->where('status', 'COMPLETED')
-                            ->orWhere('tp_status', Assessment::TP_STATUS_SATISFIED)
-                            ->orWhereNotNull('sk_number');
-                    });
-                } else {
-                    $query->where('status', $status);
-                }
-            })
+            ->when($status, fn ($query, $st) => $query->forStatusFilter($st))
             ->when($tpFilter, function ($query) use ($tpFilter) {
                 if ($tpFilter === 'OVERDUE') {
                     $query->tpOverdue();
@@ -371,7 +347,7 @@ class AssessmentController extends Controller
 
         DB::transaction(function () use ($idsToDelete) {
             Assessment::whereIn('id', $idsToDelete)->delete();
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache();
         });
 
         Log::info('Assessments bulk deleted', [

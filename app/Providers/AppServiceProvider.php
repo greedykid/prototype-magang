@@ -95,8 +95,7 @@ class AppServiceProvider extends ServiceProvider
                         }, $list);
                     };
 
-                    $version = \Illuminate\Support\Facades\Cache::get('simasadi_surveillance_version', 1);
-                    $cacheKey = "simasadi_alerts_{$userId}_v{$version}";
+                    $cacheKey = \App\Services\LpkSurveillanceService::getAlertsCacheKey($user);
 
                     $rawAlerts = \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($computeAlerts) {
                         return $computeAlerts();

@@ -867,4 +867,42 @@ class LpkSurveillanceService
 
         return $this->renewAccreditationCycle($lpk, $latestRa);
     }
+
+    /**
+     * Dapatkan cache key notifikasi surveilen yang terisolasi per peran & PIC.
+     */
+    public static function getAlertsCacheKey(?User $user): string
+    {
+        $epoch = (int) \Illuminate\Support\Facades\Cache::get('simasadi_alerts_epoch', 1);
+        if ($user && $user->isAdmin()) {
+            return "simasadi_alerts_admin_e{$epoch}";
+        }
+
+        $userId = $user ? $user->id : 'guest';
+        return "simasadi_alerts_user_{$userId}_e{$epoch}";
+    }
+
+    /**
+     * Invalidate cache notifikasi secara terarah (targeted).
+     */
+    public static function invalidateAlertsCache(?Lpk $lpk = null, ?User $user = null): void
+    {
+        $epoch = (int) \Illuminate\Support\Facades\Cache::get('simasadi_alerts_epoch', 1);
+        \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_admin_e{$epoch}");
+
+        if ($lpk && $lpk->pic_id) {
+            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$lpk->pic_id}_e{$epoch}");
+            if ($lpk->relationLoaded('members')) {
+                foreach ($lpk->members as $member) {
+                    \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$member->id}_e{$epoch}");
+                }
+            }
+        } elseif ($user) {
+            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$user->id}_e{$epoch}");
+        } else {
+            // Jika LPK tidak spesifik (misal bulk import atau artisan sync), naikkan epoch
+            \Illuminate\Support\Facades\Cache::put('simasadi_alerts_epoch', $epoch + 1);
+        }
+    }
 }
+

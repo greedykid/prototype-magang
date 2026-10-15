@@ -48,7 +48,7 @@ class LpkMemberController extends Controller
 
         DB::transaction(function () use ($lpk, $targetUser, $role) {
             $lpk->members()->attach($targetUser->id, ['role' => $role]);
-            Cache::put('simasadi_surveillance_version', microtime(true));
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk, $targetUser);
         });
 
         $roleLabel = $role === 'lead' ? ($targetUser->isAdmin() ? 'Ketua Tim' : 'PIC Pendamping') : 'Viewer (Hanya Lihat)';
@@ -72,7 +72,7 @@ class LpkMemberController extends Controller
 
         DB::transaction(function () use ($lpk, $user) {
             $lpk->members()->detach($user->id);
-            Cache::put('simasadi_surveillance_version', microtime(true));
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk, $user);
         });
 
         return back()->with('success', "Akses PIC {$user->name} berhasil diputuskan dari LPK ini.");

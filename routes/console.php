@@ -177,7 +177,7 @@ Artisan::command('assessments:sync-overdue-status', function () {
             }
         });
 
-    \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+    \App\Services\LpkSurveillanceService::invalidateAlertsCache();
 
     $this->info("Sinkronisasi status selesai: {$count} asesmen yang melewati batas waktu KAN diperbarui menjadi SUSPENDED.");
 })->purpose('Menyinkronkan status asesmen yang melewati batas waktu tindakan perbaikan menjadi SUSPENDED.');

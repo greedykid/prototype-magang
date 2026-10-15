@@ -86,6 +86,33 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
+  scheduler:
+    image: simasadi-app:latest
+    container_name: simasadi-scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    environment: *simasadi-env
+    volumes:
+      - simasadi-data:/var/www/data
+      - simasadi-storage:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+      - ./app:/var/www/html/app:ro
+      - ./routes:/var/www/html/routes:ro
+      - ./config:/var/www/html/config:ro
+      - ./database:/var/www/html/database:ro
+      - ./resources/views:/var/www/html/resources/views:ro
+      - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/99-opcache.ini:ro
+    depends_on:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
     networks:
       - simasadi-net
 

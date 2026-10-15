@@ -388,12 +388,11 @@ class Assessment extends Model
                     $assessment->lpk->renewAccreditationCycleFromAssessment($assessment);
                 });
             }
-
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($assessment->lpk);
         });
 
-        static::deleted(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+        static::deleted(function (Assessment $assessment): void {
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($assessment->lpk);
         });
     }
 
@@ -613,6 +612,46 @@ class Assessment extends Model
         } else {
             return $query->where('assessment_type', $assessmentType);
         }
+    }
+
+    public function scopeForStatusFilter($query, ?string $status)
+    {
+        if (empty($status)) {
+            return $query;
+        }
+
+        if ($status === 'SUSPENDED') {
+            return $query->where(function ($q) {
+                $q->where('status', 'SUSPENDED')
+                    ->orWhere(fn ($sub) => $sub->tpOverdue());
+            });
+        }
+
+        if ($status === 'IN_PROGRESS') {
+            return $query->where('status', 'IN_PROGRESS')
+                ->where('tp_status', '!=', self::TP_STATUS_SATISFIED)
+                ->whereNull('sk_number')
+                ->where(function ($q) {
+                    $q->whereNull('tp_due_date')
+                        ->orWhereDate('tp_due_date', '>=', now());
+                });
+        }
+
+        if ($status === 'PLANNED') {
+            return $query->where('status', 'PLANNED')
+                ->where('tp_status', '!=', self::TP_STATUS_SATISFIED)
+                ->whereNull('sk_number');
+        }
+
+        if ($status === 'COMPLETED') {
+            return $query->where(function ($q) {
+                $q->where('status', 'COMPLETED')
+                    ->orWhere('tp_status', self::TP_STATUS_SATISFIED)
+                    ->orWhereNotNull('sk_number');
+            });
+        }
+
+        return $query->where('status', $status);
     }
 
     public function lpk(): BelongsTo

@@ -341,6 +341,8 @@ class GoogleSheetsReportController extends Controller
      */
     protected function generateLpksXlsx(?array $ids = null, ?User $user = null): StreamedResponse
     {
+        @ini_set('memory_limit', '512M');
+
         $filename = 'data-master-lpk-simasadi-' . date('Y-m-d') . '.xlsx';
 
         $columns = [
@@ -439,6 +441,8 @@ class GoogleSheetsReportController extends Controller
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
@@ -450,6 +454,8 @@ class GoogleSheetsReportController extends Controller
      */
     protected function generateAssessmentsXlsx(?array $ids = null, ?User $user = null): StreamedResponse
     {
+        @ini_set('memory_limit', '512M');
+
         $filename = 'jadwal-asesmen-simasadi-' . date('Y-m-d') . '.xlsx';
 
         $columns = [
@@ -537,6 +543,8 @@ class GoogleSheetsReportController extends Controller
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',

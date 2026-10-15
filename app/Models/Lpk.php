@@ -123,33 +123,41 @@ class Lpk extends Model
             }
         });
 
-        static::saved(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+        static::saved(function (Lpk $lpk): void {
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
         });
 
-        static::deleted(function (): void {
-            \Illuminate\Support\Facades\Cache::put('simasadi_surveillance_version', microtime(true));
+        static::deleting(function (Lpk $lpk): void {
+            $lpk->calendarEvents()->delete();
+            $lpk->assessments()->delete();
+            $lpk->members()->detach();
+        });
+
+        static::deleted(function (Lpk $lpk): void {
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
         });
     }
 
     public static function generateNextNoReg(): string
     {
-        $driver = \Illuminate\Support\Facades\DB::getDriverName();
-        $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
-        if ($driver === 'sqlite') {
-            $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
-        } elseif ($driver === 'pgsql') {
-            $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
-        } else {
-            $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
-        }
+        return \Illuminate\Support\Facades\Cache::lock('lpk_generate_next_no_reg', 10)->block(5, function () {
+            $driver = \Illuminate\Support\Facades\DB::getDriverName();
+            $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
+            if ($driver === 'sqlite') {
+                $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
+            } elseif ($driver === 'pgsql') {
+                $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
+            } else {
+                $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
+            }
 
-        $candidate = (int) ($maxNoReg ? $maxNoReg + 1 : 3340);
-        while (\Illuminate\Support\Facades\DB::table('lpks')->where('no_reg', (string) $candidate)->exists()) {
-            $candidate++;
-        }
+            $candidate = (int) ($maxNoReg ? $maxNoReg + 1 : 3340);
+            while (\Illuminate\Support\Facades\DB::table('lpks')->where('no_reg', (string) $candidate)->exists()) {
+                $candidate++;
+            }
 
-        return (string) $candidate;
+            return (string) $candidate;
+        });
     }
 
     public function save(array $options = [])
@@ -161,9 +169,14 @@ class Lpk extends Model
             } catch (\Illuminate\Database\QueryException $e) {
                 $msg = $e->getMessage();
                 $isUniqueViolation = str_contains($msg, 'lpks.no_reg')
-                    || str_contains($msg, 'UNIQUE constraint failed: lpks.no_reg');
+                    || str_contains($msg, 'UNIQUE constraint failed: lpks.no_reg')
+                    || str_contains($msg, 'lpks.registration_number')
+                    || str_contains($msg, 'UNIQUE constraint failed: lpks.registration_number');
                 if ($isUniqueViolation && $attempts < 2) {
                     $this->no_reg = static::generateNextNoReg();
+                    if (empty($this->registration_number) || $this->registration_number === $this->getOriginal('no_reg')) {
+                        $this->registration_number = $this->no_reg;
+                    }
                     $attempts++;
                     continue;
                 }
@@ -197,78 +210,28 @@ class Lpk extends Model
      */
     public function getActiveOrUpcomingAssessment(): ?Assessment
     {
-        if ($this->relationLoaded('assessments')) {
-            $assessments = $this->assessments;
-            foreach ($assessments as $a) {
-                if (! $a->relationLoaded('lpk')) {
-                    $a->setRelation('lpk', $this);
-                }
+        if (! $this->relationLoaded('assessments')) {
+            $this->load(['assessments' => function ($query) {
+                $query->orderBy('start_at');
+            }]);
+        }
+
+        $assessments = $this->assessments;
+        foreach ($assessments as $a) {
+            if (! $a->relationLoaded('lpk')) {
+                $a->setRelation('lpk', $this);
             }
-
-            // 1. Sedang berlangsung, dicabut, dibekukan, TP aktif, tahap EHA berjalan
-            $inProgress = $assessments
-                ->filter(function (Assessment $a) {
-                    return in_array($a->status, ['IN_PROGRESS', 'SUSPENDED', 'REVOKED'], true)
-                        || in_array($a->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true)
-                        || $a->is_tp_overdue
-                        || (! empty($a->eha_status) && $a->eha_status !== Assessment::EHA_STATUS_BELUM && empty($a->sk_number));
-                })
-                ->sortBy('start_at')
-                ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
-
-            if ($inProgress) {
-                return $inProgress;
-            }
-
-            // 2. Lewat jadwal pelaksanaan dan belum selesai (kecuali yang otomatis terealisasi)
-            $now = now();
-            $overdue = $assessments
-                ->filter(function (Assessment $a) use ($now) {
-                    return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
-                        && $a->end_at
-                        && $a->end_at < $now;
-                })
-                ->sortBy('start_at')
-                ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
-
-            if ($overdue) {
-                return $overdue;
-            }
-
-            // 3. Asesmen mendatang terdekat (upcoming)
-            $upcoming = $assessments
-                ->filter(function (Assessment $a) use ($now) {
-                    return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
-                        && $a->start_at
-                        && $a->start_at >= $now;
-                })
-                ->sortBy('start_at')
-                ->first();
-
-            if ($upcoming) {
-                return $upcoming;
-            }
-
-            // 4. Asesmen terakhir
-            return $assessments
-                ->sortByDesc('start_at')
-                ->first();
         }
 
         // 1. Sedang berlangsung, dicabut, dibekukan, TP aktif, tahap EHA berjalan
-        $inProgress = $this->assessments()
-            ->where(function ($q) {
-                $q->whereIn('status', ['IN_PROGRESS', 'SUSPENDED', 'REVOKED'])
-                    ->orWhereIn('tp_status', [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION])
-                    ->orWhere(fn ($sub) => $sub->tpOverdue())
-                    ->orWhere(function ($eq) {
-                        $eq->whereNotNull('eha_status')
-                            ->where('eha_status', '!=', Assessment::EHA_STATUS_BELUM)
-                            ->whereNull('sk_number');
-                    });
+        $inProgress = $assessments
+            ->filter(function (Assessment $a) {
+                return in_array($a->status, ['IN_PROGRESS', 'SUSPENDED', 'REVOKED'], true)
+                    || in_array($a->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true)
+                    || $a->is_tp_overdue
+                    || (! empty($a->eha_status) && $a->eha_status !== Assessment::EHA_STATUS_BELUM && empty($a->sk_number));
             })
-            ->orderBy('start_at')
-            ->get()
+            ->sortBy('start_at')
             ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
 
         if ($inProgress) {
@@ -276,11 +239,14 @@ class Lpk extends Model
         }
 
         // 2. Lewat jadwal pelaksanaan dan belum selesai (kecuali yang otomatis terealisasi)
-        $overdue = $this->assessments()
-            ->whereIn('status', ['PLANNED', 'SCHEDULED'])
-            ->where('end_at', '<', now())
-            ->orderBy('start_at')
-            ->get()
+        $now = now();
+        $overdue = $assessments
+            ->filter(function (Assessment $a) use ($now) {
+                return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
+                    && $a->end_at
+                    && $a->end_at < $now;
+            })
+            ->sortBy('start_at')
             ->first(fn (Assessment $a) => ! $a->isPastSurveillanceForActiveLpk());
 
         if ($overdue) {
@@ -288,10 +254,13 @@ class Lpk extends Model
         }
 
         // 3. Asesmen mendatang terdekat (upcoming)
-        $upcoming = $this->assessments()
-            ->whereIn('status', ['PLANNED', 'SCHEDULED'])
-            ->where('start_at', '>=', now())
-            ->orderBy('start_at')
+        $upcoming = $assessments
+            ->filter(function (Assessment $a) use ($now) {
+                return in_array($a->status, ['PLANNED', 'SCHEDULED'], true)
+                    && $a->start_at
+                    && $a->start_at >= $now;
+            })
+            ->sortBy('start_at')
             ->first();
 
         if ($upcoming) {
@@ -299,8 +268,8 @@ class Lpk extends Model
         }
 
         // 4. Asesmen terakhir
-        return $this->assessments()
-            ->orderByDesc('start_at')
+        return $assessments
+            ->sortByDesc('start_at')
             ->first();
     }
 
@@ -668,6 +637,108 @@ class Lpk extends Model
               })
               ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id));
         })->distinct();
+    }
+
+    /**
+     * Scope untuk menyaring data LPK berdasarkan status dinamis operasional
+     * dan status surveilen secara terpadu tanpa duplikasi kode antar-controller.
+     */
+    public function scopeFilterDynamicStatusAndSurveillance(Builder $query, ?string $status, ?string $surveillance): Builder
+    {
+        $needsDynamicStatusFilter = in_array($status, [
+            'GRACE_PERIOD', 'REVOKED', 'SUSPENDED', 'SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE', 'EXPIRED', 'ACTIVE',
+        ], true);
+        $needsSurveillanceFilter = ! empty($surveillance);
+
+        if (! $needsDynamicStatusFilter && ! $needsSurveillanceFilter) {
+            return $query;
+        }
+
+        $candidateQuery = (clone $query)
+            ->select(['lpks.id', 'lpks.status', 'lpks.certificate_date', 'lpks.expired_at', 'lpks.last_surveillance_notified_at'])
+            ->with(['assessments' => function ($q) {
+                $q->select([
+                    'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
+                    'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                    'report_date', 'eha_date', 'sk_number', 'created_at',
+                ]);
+            }]);
+
+        // Pre-filter level database untuk memangkas footprint RAM dan jumlah kandidat
+        if ($status === 'EXPIRED') {
+            $candidateQuery->whereNotNull('expired_at')->where('expired_at', '<', now());
+        } elseif ($status === 'ACTIVE') {
+            $candidateQuery->where('status', '!=', 'INACTIVE')
+                ->where(fn ($q) => $q->whereNull('expired_at')->orWhere('expired_at', '>=', now()));
+        } elseif ($status === 'GRACE_PERIOD') {
+            $candidateQuery->whereNotNull('expired_at')
+                ->where('expired_at', '<', now())
+                ->where('expired_at', '>=', now()->subMonths(6));
+        } elseif ($status === 'REVOKED') {
+            $candidateQuery->where(function ($q) {
+                $q->whereIn('status', ['REVOKED', 'DICABUT'])
+                    ->orWhere('expired_at', '<', now()->subMonths(6))
+                    ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'REVOKED'));
+            });
+        } elseif ($status === 'SUSPENDED') {
+            $candidateQuery->where(function ($q) {
+                $q->where('status', 'SUSPENDED')
+                    ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'SUSPENDED')->orWhere('tp_status', 'IN_PROGRESS'));
+            });
+        } elseif (in_array($status, ['SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE'], true)) {
+            $candidateQuery->whereNotNull('certificate_date')->where('status', '!=', 'INACTIVE');
+        }
+
+        if (in_array($surveillance, ['DUE_S1', 'DUE_S2', 'OVERDUE'], true)) {
+            $candidateQuery->whereNotNull('certificate_date');
+        } elseif ($surveillance === 'DUE_RA') {
+            $candidateQuery->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
+        }
+
+        $validIds = [];
+        $candidateQuery->chunkById(150, function ($candidateChunk) use (
+            &$validIds,
+            $needsDynamicStatusFilter,
+            $status,
+            $needsSurveillanceFilter,
+            $surveillance
+        ) {
+            foreach ($candidateChunk as $candidate) {
+                foreach ($candidate->assessments as $asm) {
+                    $asm->setRelation('lpk', $candidate);
+                }
+
+                if ($needsDynamicStatusFilter && $candidate->dynamic_status !== $status) {
+                    continue;
+                }
+
+                if ($needsSurveillanceFilter) {
+                    $alerts = $candidate->getActiveSurveillanceAlerts();
+                    $milestones = $candidate->surveillance_milestones;
+
+                    $matched = match ($surveillance) {
+                        'NEEDS_ACTION' => count($alerts) > 0,
+                        'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                        'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
+                        'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
+                        'OVERDUE' => collect($alerts)->contains('is_urgent', true),
+                        default => true,
+                    };
+
+                    if (! $matched) {
+                        continue;
+                    }
+                }
+
+                $validIds[] = $candidate->id;
+            }
+        });
+
+        if (empty($validIds)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIntegerInRaw('lpks.id', $validIds);
     }
 
     public function calendarEvents(): HasMany
