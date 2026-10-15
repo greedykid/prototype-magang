@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\AssessmentStatusService;
 use App\Services\AssessmentTpService;
 use Database\Factories\AssessmentFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -697,4 +698,81 @@ class Assessment extends Model
 
         return $this->lpk->canView($user);
     }
+
+    public function isPrimaryFor(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($this->lpk && $this->lpk->isPrimaryFor($user)) {
+            return true;
+        }
+
+        return (int) $this->created_by === (int) $user->id;
+    }
+
+    /**
+     * Lingkup asesmen yang berhak dikelola/dihapus oleh pengguna (Admin atau PIC pengelola LPK).
+     */
+    public function scopeManageableBy(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->whereHas('lpk', fn ($lq) => $lq->manageableBy($user))
+              ->orWhere(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $user->id));
+        });
+    }
+
+    /**
+     * Filter daftar asesmen berdasarkan parameter pencarian, status, jenis, SLA, dan tanggal.
+     */
+    public function scopeFilterByCriteria(Builder $query, array $criteria): Builder
+    {
+        $search = $criteria['search'] ?? null;
+        $lpkId = $criteria['lpk_id'] ?? null;
+        $assessmentType = $criteria['assessment_type'] ?? null;
+        $status = $criteria['status'] ?? null;
+        $tpFilter = $criteria['tp_status'] ?? null;
+        $startFrom = $criteria['start_from'] ?? null;
+        $startTo = $criteria['start_to'] ?? null;
+
+        return $query
+            ->when($search, fn ($q) => $q->where(function ($sub) use ($search) {
+                $sub->where('title', 'like', "%{$search}%")
+                    ->orWhere('sk_number', 'like', "%{$search}%")
+                    ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('registration_number', 'like', "%{$search}%")
+                    );
+            }))
+            ->when($lpkId, fn ($q) => $q->where('lpk_id', $lpkId))
+            ->when($assessmentType, fn ($q) => $q->forAssessmentType($assessmentType))
+            ->when($status, fn ($q, $st) => $q->forStatusFilter($st))
+            ->when($tpFilter, function ($q) use ($tpFilter) {
+                if ($tpFilter === 'OVERDUE') {
+                    $q->tpOverdue();
+                } elseif ($tpFilter === 'DUE_SOON') {
+                    $q->tpDueSoon();
+                } elseif ($tpFilter === 'ACTIVE') {
+                    $q->tpActive();
+                } else {
+                    $q->where('tp_status', $tpFilter);
+                }
+            })
+            ->when($startFrom, fn ($q) => $q->where('start_at', '>=', "{$startFrom} 00:00:00"))
+            ->when($startTo, fn ($q) => $q->where('start_at', '<=', "{$startTo} 23:59:59"));
+    }
 }
+

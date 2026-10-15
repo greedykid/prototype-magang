@@ -594,5 +594,38 @@ class AccountLinkTest extends TestCase
         $respAssessments->assertSee('data-href="' . $expectedAsmUrl . '"', false);
         $respAssessments->assertSee('href="' . $expectedAsmUrl . '"', false);
     }
+
+    public function test_linked_viewer_can_view_lpk_and_assessment_when_linked_owner_is_admin(): void
+    {
+        $admin = User::factory()->admin()->create(['name' => 'Budi Admin']);
+        $viewer = User::factory()->pic()->create(['name' => 'Rizki PIC Viewer']);
+        $otherPic = User::factory()->pic()->create(['name' => 'PIC Lain']);
+
+        $admin->linkedViewers()->attach($viewer->id);
+
+        $lpk = Lpk::factory()->create([
+            'name' => 'Laboratorium Kalibrasi BRIN',
+            'registration_number' => 'LK-BRIN-01',
+            'pic_id' => $otherPic->id,
+        ]);
+
+        $assessment = Assessment::factory()->create([
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Re-Akreditasi (RA)',
+            'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
+        ]);
+
+        // 1. Viewer can view LPK show page under admin account link
+        $respLpk = $this->actingAs($viewer)->get(route('account-links.lpks.show', [$admin, $lpk]));
+        $respLpk->assertOk();
+        $respLpk->assertViewIs('account-links.lpks.show');
+        $respLpk->assertSee('Laboratorium Kalibrasi BRIN');
+
+        // 2. Viewer can view assessment show page under admin account link
+        $respAsm = $this->actingAs($viewer)->get(route('account-links.assessments.show', [$admin, $assessment]));
+        $respAsm->assertOk();
+        $respAsm->assertViewIs('account-links.assessments.show');
+        $respAsm->assertSee('Asesmen Re-Akreditasi (RA)');
+    }
 }
 

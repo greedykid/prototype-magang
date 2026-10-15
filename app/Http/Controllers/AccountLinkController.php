@@ -147,35 +147,21 @@ class AccountLinkController extends Controller
             $startFrom = $request->input('start_from');
             $startTo = $request->input('start_to');
 
-            $assessmentQuery = Assessment::query()
+            $assessments = Assessment::query()
                 ->with(['lpk'])
                 ->whereHas('lpk', fn ($lq) => $lq->primaryFor($owner))
-                ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('sk_number', 'like', "%{$search}%")
-                      ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
-                          ->where('name', 'like', "%{$search}%")
-                          ->orWhere('registration_number', 'like', "%{$search}%")
-                      );
-                }))
-                ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
-                ->when($assessmentType, fn ($query) => $query->forAssessmentType($assessmentType))
-                ->when($status, fn ($query, $st) => $query->forStatusFilter($st))
-                ->when($tpFilter, function ($query) use ($tpFilter) {
-                    if ($tpFilter === 'OVERDUE') {
-                        $query->tpOverdue();
-                    } elseif ($tpFilter === 'DUE_SOON') {
-                        $query->tpDueSoon();
-                    } elseif ($tpFilter === 'ACTIVE') {
-                        $query->tpActive();
-                    } else {
-                        $query->where('tp_status', $tpFilter);
-                    }
-                })
-                ->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))
-                ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo));
-
-            $assessments = $assessmentQuery->latest('start_at')->paginate($perPage)->withQueryString();
+                ->filterByCriteria([
+                    'search' => $search,
+                    'lpk_id' => $lpkId,
+                    'assessment_type' => $assessmentType,
+                    'status' => $status,
+                    'tp_status' => $tpFilter,
+                    'start_from' => $startFrom,
+                    'start_to' => $startTo,
+                ])
+                ->latest('start_at')
+                ->paginate($perPage)
+                ->withQueryString();
 
             if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
                 return view('account-links.partials.assessments-table-content', compact(
@@ -284,10 +270,7 @@ class AccountLinkController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk memantau data akun ini.');
         }
 
-        $isOwnerLpk = (int) $lpk->pic_id === (int) $user->id
-            || $lpk->members()->where('users.id', $user->id)->exists();
-
-        if (! $isOwnerLpk) {
+        if (! $lpk->isPrimaryFor($user)) {
             abort(404, 'Laboratorium tidak ditemukan pada akun tertaut ini.');
         }
 
@@ -318,10 +301,7 @@ class AccountLinkController extends Controller
 
         $assessment->load(['lpk.members', 'lpk.pic']);
 
-        $isOwnerAssessment = (int) $assessment->lpk?->pic_id === (int) $user->id
-            || ($assessment->lpk && $assessment->lpk->members->contains('id', $user->id));
-
-        if (! $isOwnerAssessment) {
+        if (! $assessment->isPrimaryFor($user)) {
             abort(404, 'Agenda asesmen tidak ditemukan pada akun tertaut ini.');
         }
 

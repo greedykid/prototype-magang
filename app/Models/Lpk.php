@@ -586,6 +586,27 @@ class Lpk extends Model
         return $this->members()->where('lpk_members.user_id', $user->id)->exists();
     }
 
+    public function isPrimaryFor(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($this->pic_id !== null && (int) $this->pic_id === (int) $user->id) {
+            return true;
+        }
+
+        if ($this->relationLoaded('members')) {
+            return $this->members->contains('id', $user->id);
+        }
+
+        return $this->members()->where('lpk_members.user_id', $user->id)->exists();
+    }
+
     public function scopePrimaryFor(Builder $query, ?User $user): Builder
     {
         if (! $user) {

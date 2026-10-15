@@ -32,14 +32,10 @@ class LpkController extends Controller
             ->primaryFor($user)
             ->when($search, fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
+                ->orWhere('registration_number', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
                 ->orWhere('accreditation_number', 'like', "%{$search}%")
                 ->orWhere('accreditation_type', 'like', "%{$search}%")
-                ->orWhere('registration_number', 'like', "%{$search}%")
-                ->orWhere('scope', 'like', "%{$search}%")
-                ->orWhere('address', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%")
             ));
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
@@ -208,15 +204,7 @@ class LpkController extends Controller
             return back()->with('error', 'Tidak ada data LPK yang dipilih.');
         }
 
-        $query = Lpk::whereIn('id', $ids);
-        if ($user && $user->isPic()) {
-            $query->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        $records = $query->get();
+        $records = Lpk::manageableBy($user)->whereIn('id', $ids)->get();
         $count = $records->count();
 
         if ($count === 0) {

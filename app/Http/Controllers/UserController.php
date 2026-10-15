@@ -248,6 +248,9 @@ class UserController extends Controller
         $userId = $user->id;
         $userEmail = $user->email;
         $userName = $user->name;
+
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
+
         $user->delete();
 
         Log::info('User account deleted', [

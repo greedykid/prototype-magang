@@ -39,7 +39,7 @@
                     </div>
                 </div>
             </div>
-            @if(! $assessment->lpk || $assessment->lpk->canManage(auth()->user()))
+            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
                 <button type="button" class="button secondary tp-manage-btn" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
                     <x-icon name="edit" size="14" />
                     <span>Kelola Status TP</span>
@@ -167,11 +167,11 @@
                 <div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
                         <span class="tp-metric-card-kicker">Status Tindakan Perbaikan</span>
-                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">
+                        <span class="badge-tp badge-tp-neutral">
                             Belum Dimulai
                         </span>
                     </div>
-                    <div class="tp-metric-card-title" style="color: var(--muted);">
+                    <div class="tp-metric-card-title">
                         Belum Dimulai
                     </div>
                     <p class="tp-metric-card-desc">
@@ -193,10 +193,10 @@
             <div class="tp-metric-card">
                 <div>
                     <span class="tp-metric-card-kicker">Batas Waktu Tindakan Perbaikan</span>
-                    <div class="tp-metric-card-title" style="color: var(--muted);">
+                    <div class="tp-metric-card-title">
                         Belum Ditentukan
                     </div>
-                    <div style="font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 4px;">
+                    <div class="tp-metric-highlight-text">
                         @if(in_array($assessment->assessment_type, ['Asesmen Awal', 'INITIAL'], true))
                             Maksimal 3 bulan setelah asesmen lapangan selesai
                         @else

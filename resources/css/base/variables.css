@@ -1,6 +1,6 @@
 :root {
-    /* Typographic System Tokens (Notion Design System - DESIGN.md) */
-    --font-sans: NotionInter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji', Arial, sans-serif, 'Segoe UI Emoji', 'Segoe UI Symbol';
+    /* Typographic System Tokens (Notion Design System with Crisp Instrument Sans) */
+    --font-sans: 'Instrument Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     --font-serif: 'Lyon Text', Georgia, YuMincho, 'Songti SC', serif;
     --font-mono: 'iA Writer Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
@@ -52,14 +52,15 @@
     --radius-full: 9999px;
     --radius-pill: 9999px;
 
-    /* Notion Multi-tier Elevation & Micro-Shadow System */
-    --shadow-xs: rgba(0, 0, 0, 0.04) 0px 1px 2px 0px;
-    --shadow-sm: rgba(0, 0, 0, 0.04) 0px 1px 3px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
-    --shadow-card: rgba(0, 0, 0, 0.04) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
-    --shadow-md: rgba(0, 0, 0, 0.05) 0px 3px 6px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
-    --shadow-lg: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+    /* Crisp Notion Borders & Zero-Blur Elevation */
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-card: none;
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.12);
+    --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.12);
     --shadow-focus: rgba(0, 117, 222, 0.25) 0px 0px 0px 3px, #0075de 0px 0px 0px 1px;
-    --shadow-inset: rgba(0, 0, 0, 0.03) 0px 1px 0px 0px inset;
+    --shadow-inset: none;
 
     /* Motion Tokens */
     --motion-duration-fast: 100ms;
@@ -72,75 +73,75 @@
 
 :root,
 html[data-theme="light"] {
-    /* Notion Neutral Palette (Light) */
+    /* Notion Neutral Palette (Light - Bold High Contrast) */
     --paper: #ffffff;
     --surface: #ffffff;
     --surface-subtle: #f6f5f4;   /* Notion iconic warm stone background */
     --surface-hover: #efeeeb;    /* Notion list row hover */
-    --ink: #191918;              /* Notion rich charcoal black */
-    --ink-secondary: #31302e;
-    --muted: #615d59;            /* Notion secondary text */
-    --muted-subtle: #a39e98;     /* Notion meta text & placeholders */
-    --line: #dfdcd9;             /* Notion warm gray border */
-    --line-subtle: #f6f5f4;
-    --line-strong: #a39e98;
+    --ink: #000000;              /* Bold black text (DESIGN.md #000000) */
+    --ink-secondary: #1a1918;
+    --muted: #4a4744;            /* Dark, readable secondary text */
+    --muted-subtle: #736f6a;
+    --line: #dcd8d3;             /* Crisp defined border, no blur */
+    --line-subtle: #f0eeea;
+    --line-strong: #8c8781;
 
     /* Notion Primary Brand Colors */
     --primary: #0075de;          /* Notion action blue */
     --primary-hover: #005bab;
     --primary-active: #00396b;
-    --primary-subtle: #f2f9ff;
-    --primary-border: #93cdfe;
+    --primary-subtle: #f0f7fe;
+    --primary-border: #7dbef7;
     --primary-gradient: none;
 
-    --secondary: #191918;
-    --secondary-hover: #31302e;
+    --secondary: #000000;
+    --secondary-hover: #222222;
     --secondary-surface: #f6f5f4;
 
     --accent: #097fe8;
     --accent-muted: #e6f3fe;
 
-    /* Semantic Notion Status Tokens (DESIGN.md) */
-    --info-bg: #f2f9ff;
-    --info-text: #0075de;
-    --info-border: #bde6e4;
+    /* Semantic Notion Status Tokens - Bold, High-Contrast & Crisp */
+    --info-bg: #e8f3fc;
+    --info-text: #0066c0;
+    --info-border: #aed5f7;
     --info-gradient: none;
 
-    --success-bg: #f0faf2;
-    --success-text: #14832b;
-    --success-border: #d0f4d8;
+    --success-bg: #e6f7ec;
+    --success-text: #0d6824;
+    --success-border: #9ee0b1;
     --success-gradient: none;
 
-    --warning-bg: #fff5e0;
-    --warning-text: #c78600;
-    --warning-border: #ffe4af;
+    --warning-bg: #fef3d6;
+    --warning-text: #9a5b00;
+    --warning-border: #fcd77f;
     --warning-gradient: none;
 
-    --danger-bg: #fef3f1;
-    --danger-text: #e32d14;
-    --danger-border: #fdd3cd;
+    --danger-bg: #feebe8;
+    --danger-text: #c5220f;
+    --danger-border: #fca89d;
     --danger-gradient: none;
 
-    --purple-bg: #f8f5fc;
-    --purple-text: #7237ae;
-    --purple-border: #eadbfa;
+    --purple-bg: #f3ecfb;
+    --purple-text: #662d9e;
+    --purple-border: #dac5f5;
     --purple-gradient: none;
 
-    --orange-bg: #fff5ed;
-    --orange-text: #dd5b00;
-    --orange-border: #ffdec4;
+    --orange-bg: #fff0e5;
+    --orange-text: #c84e00;
+    --orange-border: #ffd1b3;
 
-    --brown-bg: #fcf8f5;
-    --brown-text: #9c7054;
-    --brown-border: #ebd5c5;
+    --brown-bg: #f7efe9;
+    --brown-text: #825a40;
+    --brown-border: #dfc8b9;
 
-    --neutral-chip-bg: #f6f5f4;
-    --neutral-chip-text: #615d59;
-    --neutral-chip-border: #dfdcd9;
+    --neutral-chip-bg: #ebe8e4;
+    --neutral-chip-text: #191918;
+    --neutral-chip-border: #d0ccc7;
 
-    --drive-btn-bg: #f6f5f4;
-    --drive-btn-text: #191918;
-    --drive-btn-border: #dfdcd9;
+    --drive-btn-bg: #f2f0ec;
+    --drive-btn-text: #000000;
+    --drive-btn-border: #d0ccc7;
 
     /* UI Surfaces */
     --topbar-bg: rgba(255, 255, 255, 0.95);
@@ -234,12 +235,12 @@ html[data-theme="dark"] {
     --input-bg: #252525;
     --input-border: rgba(255, 255, 255, 0.12);
 
-    /* Notion Dark Shadows */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    /* Notion Dark Shadows - Zero Blur */
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-card: none;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6);
     --shadow-focus: 0 0 0 3px rgba(98, 174, 240, 0.35);
     --shadow-inset: none;
 

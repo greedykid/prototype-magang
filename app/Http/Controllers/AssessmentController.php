@@ -38,30 +38,15 @@ class AssessmentController extends Controller
         $query = Assessment::query()
             ->with(['lpk'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
-            ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('sk_number', 'like', "%{$search}%")
-                  ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
-                      ->where('name', 'like', "%{$search}%")
-                      ->orWhere('registration_number', 'like', "%{$search}%")
-                  );
-            }))
-            ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
-            ->when($assessmentType, fn ($query) => $query->forAssessmentType($assessmentType))
-            ->when($status, fn ($query, $st) => $query->forStatusFilter($st))
-            ->when($tpFilter, function ($query) use ($tpFilter) {
-                if ($tpFilter === 'OVERDUE') {
-                    $query->tpOverdue();
-                } elseif ($tpFilter === 'DUE_SOON') {
-                    $query->tpDueSoon();
-                } elseif ($tpFilter === 'ACTIVE') {
-                    $query->tpActive();
-                } else {
-                    $query->where('tp_status', $tpFilter);
-                }
-            })
-            ->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))
-            ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo));
+            ->filterByCriteria([
+                'search' => $search,
+                'lpk_id' => $lpkId,
+                'assessment_type' => $assessmentType,
+                'status' => $status,
+                'tp_status' => $tpFilter,
+                'start_from' => $startFrom,
+                'start_to' => $startTo,
+            ]);
 
         $sort = $request->input('sort');
         $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -322,15 +307,7 @@ class AssessmentController extends Controller
             return back()->with('error', 'Tidak ada program asesmen yang dipilih.');
         }
 
-        $query = Assessment::with('lpk')->whereIn('id', $ids);
-        if ($user && $user->isPic()) {
-            $query->whereHas('lpk', function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        $records = $query->get();
+        $records = Assessment::with('lpk')->manageableBy($user)->whereIn('id', $ids)->get();
         $count = $records->count();
 
         if ($count === 0) {

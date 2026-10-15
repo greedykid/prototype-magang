@@ -93,14 +93,24 @@ class GoogleSheetsReportController extends Controller
 
         // Tolak jika belum dikonfigurasi atau masih menggunakan token default/dummy yang tidak aman
         if ($configured === '' || in_array($configured, ['simasadi-live', 'ganti-dengan-token-rahasia-acak'], true)) {
-            return response("Forbidden: Live feed Google Sheets dinonaktifkan. Harap atur SHEETS_FEED_KEY dengan token rahasia di file .env server.\n", 403, [
+            return response("Unauthorized: Live feed Google Sheets dinonaktifkan atau belum dikonfigurasi di file .env server.\n", 401, [
                 'Content-Type' => 'text/plain; charset=UTF-8',
             ]);
         }
 
-        $provided = (string) $request->query('key', '');
+        // Dukung otorisasi via URL bertanda tangan (HMAC), header aman, atau parameter ?key=
+        if ($request->hasValidSignature()) {
+            return null;
+        }
+
+        $provided = (string) (
+            $request->header('X-Feed-Key')
+            ?: $request->bearerToken()
+            ?: $request->query('key', '')
+        );
+
         if ($provided === '' || ! hash_equals($configured, $provided)) {
-            return response("Unauthorized: Parameter '?key=' tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
+            return response("Unauthorized: Parameter '?key=' atau header otorisasi tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
                 'Content-Type' => 'text/plain; charset=UTF-8',
             ]);
         }
@@ -379,7 +389,10 @@ class GoogleSheetsReportController extends Controller
             $query->whereIn('id', $ids);
         }
 
+        $batch = [];
+        $batchStartRow = 2;
         $rowIdx = 2;
+
         foreach ($query->cursor() as $lpk) {
             foreach ($lpk->assessments as $asm) {
                 $asm->setRelation('lpk', $lpk);
@@ -397,8 +410,18 @@ class GoogleSheetsReportController extends Controller
                 $lpk->drive_url ?: '-',
             ];
 
-            $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
+            $batch[] = array_map([$this, 'sanitizeCsvCell'], $row);
             $rowIdx++;
+
+            if (count($batch) >= 200) {
+                $sheet->fromArray($batch, null, 'A' . $batchStartRow);
+                $batchStartRow = $rowIdx;
+                $batch = [];
+            }
+        }
+
+        if (! empty($batch)) {
+            $sheet->fromArray($batch, null, 'A' . $batchStartRow);
         }
 
         $highestColumn = Coordinate::stringFromColumnIndex(count($columns));
@@ -485,7 +508,10 @@ class GoogleSheetsReportController extends Controller
             $query->whereIn('id', $ids);
         }
 
+        $batch = [];
+        $batchStartRow = 2;
         $rowIdx = 2;
+
         foreach ($query->cursor() as $asm) {
             $row = [
                 'ASM-' . str_pad((string) $asm->id, 4, '0', STR_PAD_LEFT),
@@ -499,8 +525,18 @@ class GoogleSheetsReportController extends Controller
                 $asm->effective_tp_due_date ? $asm->effective_tp_due_date->translatedFormat('d F Y') : '-',
             ];
 
-            $sheet->fromArray([array_map([$this, 'sanitizeCsvCell'], $row)], null, 'A' . $rowIdx);
+            $batch[] = array_map([$this, 'sanitizeCsvCell'], $row);
             $rowIdx++;
+
+            if (count($batch) >= 200) {
+                $sheet->fromArray($batch, null, 'A' . $batchStartRow);
+                $batchStartRow = $rowIdx;
+                $batch = [];
+            }
+        }
+
+        if (! empty($batch)) {
+            $sheet->fromArray($batch, null, 'A' . $batchStartRow);
         }
 
         $highestColumn = Coordinate::stringFromColumnIndex(count($columns));
