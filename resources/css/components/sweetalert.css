@@ -12,8 +12,8 @@ div:where(.swal2-container),
 .swal2-container .swal2-popup:not(.swal2-toast) {
     background: var(--surface) !important;
     border: 1px solid var(--line) !important;
-    border-radius: var(--radius-2xl, 24px) !important;
-    box-shadow: var(--shadow-lg) !important;
+    border-radius: var(--radius-2xl, 12px) !important;
+    box-shadow: var(--shadow-modal) !important;
     font-family: var(--font-sans) !important;
     padding: 24px 24px 22px !important;
     width: min(440px, calc(100vw - 32px)) !important;
@@ -27,8 +27,8 @@ div:where(.swal2-container),
 .swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar-container,
 .swal2-container:not(.swal2-toast-shown) .swal2-timer-progress-bar-container {
     background: rgba(0, 0, 0, 0.04) !important;
-    border-bottom-right-radius: var(--radius-2xl, 24px) !important;
-    border-bottom-left-radius: var(--radius-2xl, 24px) !important;
+    border-bottom-right-radius: var(--radius-2xl, 12px) !important;
+    border-bottom-left-radius: var(--radius-2xl, 12px) !important;
     bottom: 0 !important;
     height: 3px !important;
     left: 0 !important;
@@ -65,9 +65,9 @@ html[data-theme="dark"] .swal2-container:not(.swal2-toast-shown) .swal2-timer-pr
 
 .simasadi-swal-btn {
     align-items: center !important;
-    background: var(--primary-gradient) !important;
-    border: 1px solid var(--primary-border, #3d7fde) !important;
-    border-radius: var(--radius-md, 12px) !important;
+    background: var(--primary, #0075de) !important;
+    border: 1px solid var(--primary, #0075de) !important;
+    border-radius: var(--radius-md, 6px) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
     color: #ffffff !important;
     cursor: pointer !important;

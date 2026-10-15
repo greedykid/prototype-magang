@@ -1,102 +1,104 @@
 .button {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--radius-lg, 12px);
+    border-radius: var(--radius-md, 6px);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--font-sans);
     font-size: var(--text-base);
     font-weight: var(--font-medium);
-    gap: 8px;
+    gap: 7px;
     justify-content: center;
     line-height: var(--leading-none);
-    min-height: 40px;
-    padding: 8px 18px;
+    min-height: 36px;
+    padding: 7px 14px;
     text-decoration: none;
-    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, filter 150ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, filter 140ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 }
 .button svg { flex-shrink: 0; }
 
 .button:active {
-    transform: scale(0.975);
+    transform: scale(0.98);
     transition-duration: 70ms;
 }
 
-/* 1. Primary Action: Crisp Electric Blue Gradient, crisp elevation & highlight */
+/* 1. Primary Action: Notion Interactive Blue */
 .button.primary {
-    background: var(--primary-gradient);
-    border-color: var(--primary-border, #3d7fde);
+    background: var(--primary, #0075de);
+    border-color: var(--primary, #0075de);
     color: #ffffff;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .button.primary:hover {
-    filter: brightness(1.08);
-    border-color: #034bb3;
+    background: var(--primary-hover, #005bab);
+    border-color: var(--primary-hover, #005bab);
     color: #ffffff;
-    box-shadow: 0 3px 6px rgba(25, 114, 245, 0.25), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
-    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 117, 222, 0.2);
+    transform: translateY(-0.5px);
 }
 .button.primary:active {
-    transform: scale(0.975);
-    box-shadow: 0 1px 2px rgba(25, 114, 245, 0.2);
+    background: var(--primary-active, #00396b);
+    border-color: var(--primary-active, #00396b);
+    transform: scale(0.98);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-/* 2. Secondary Action: Crisp Card Outline Button */
+/* 2. Secondary Action: Notion Document Outline Button */
 .button.secondary {
     background: var(--surface, #ffffff);
-    border-color: var(--line, #eaecf5);
-    color: var(--ink, #030d26);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    border-color: var(--line, #dfdcd9);
+    color: var(--ink, #191918);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .button.secondary:hover {
-    background: var(--surface-hover, #f0f2f8);
-    border-color: var(--line-subtle, #dcdfea);
-    color: var(--ink, #030d26);
-    box-shadow: 0 2px 4px rgba(16, 24, 40, 0.06);
-    transform: translateY(-1px);
+    background: var(--surface-subtle, #f6f5f4);
+    border-color: var(--line-strong, #a39e98);
+    color: var(--ink, #191918);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transform: translateY(-0.5px);
 }
 .button.secondary:active {
-    transform: scale(0.975);
-    background: var(--surface-subtle, #f8f8fc);
+    transform: scale(0.98);
+    background: var(--surface-hover, #efeeeb);
 }
 
-/* 3. Ghost / Tertiary Action: Crisp borderless action */
+/* 3. Ghost / Tertiary Action: Notion Clean Borderless Action */
 .button.ghost {
     background: transparent;
     border-color: transparent;
-    color: var(--muted, #5d6b98);
+    color: var(--muted, #615d59);
     box-shadow: none;
 }
 .button.ghost:hover {
-    background: var(--surface-hover, #f0f2f8);
+    background: var(--surface-subtle, #f6f5f4);
     border-color: transparent;
-    color: var(--ink, #030d26);
+    color: var(--ink, #191918);
     box-shadow: none;
 }
 .button.ghost:active {
-    transform: scale(0.975);
-    background: var(--surface-subtle, #f8f8fc);
+    transform: scale(0.98);
+    background: var(--surface-hover, #efeeeb);
 }
 
-/* 4. Danger Action: Crisp Crimson Red */
+/* 4. Danger Action: Notion Red Action */
 .button.danger {
-    background: var(--danger-text, #bc081f);
-    border-color: var(--danger-text, #bc081f);
+    background: var(--danger-text, #e32d14);
+    border-color: var(--danger-text, #e32d14);
     color: #ffffff;
-    box-shadow: 0 1px 2px rgba(188, 8, 31, 0.16);
+    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.16);
 }
 .button.danger:hover {
-    background: #990619;
-    border-color: #990619;
+    background: #b01601;
+    border-color: #b01601;
     color: #ffffff;
-    box-shadow: 0 3px 6px rgba(188, 8, 31, 0.25);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(227, 45, 20, 0.25);
+    transform: translateY(-0.5px);
 }
 .button.danger:active {
-    background: #7a0514;
-    border-color: #7a0514;
-    transform: scale(0.975);
-    box-shadow: 0 1px 2px rgba(188, 8, 31, 0.16);
+    background: #6f0d00;
+    border-color: #6f0d00;
+    transform: scale(0.98);
+    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.16);
 }
 
 /* 5. Link Action: Clean inline text link */
@@ -106,7 +108,7 @@
     background: transparent;
     border-color: transparent;
     box-shadow: none;
-    color: var(--primary, #1972f5);
+    color: var(--primary, #0075de);
     font-weight: 500;
     min-height: auto;
     padding: 2px 4px;
@@ -118,19 +120,19 @@
     background: transparent;
     border-color: transparent;
     box-shadow: none;
-    text-decoration: none;
-    color: var(--primary-hover, #0456ce);
+    text-decoration: underline;
+    color: var(--primary-hover, #005bab);
 }
 
 .button.button-drive {
-    background: var(--drive-btn-bg, #edf5ff);
-    border-color: var(--drive-btn-border, rgba(25, 114, 245, 0.25));
-    color: var(--drive-btn-text, #1972f5);
+    background: var(--surface-subtle, #f6f5f4);
+    border-color: var(--line, #dfdcd9);
+    color: var(--ink, #191918);
 }
 .button.button-drive:hover {
-    background: #e0eeff;
-    border-color: var(--primary, #1972f5);
-    color: var(--primary-active, #033da8);
+    background: var(--surface-hover, #efeeeb);
+    border-color: var(--line-strong, #a39e98);
+    color: var(--primary, #0075de);
 }
 
 .button.pill {
@@ -393,16 +395,16 @@ button.is-loading > svg:not(.btn-spinner svg),
 
 /* Dark Mode Overrides for All Button Tiers */
 html[data-theme="dark"] .button.primary {
-    background: var(--primary-gradient);
-    border-color: var(--primary-border, #3d7fde);
-    color: #ffffff;
+    background: var(--primary, #62aef0);
+    border-color: var(--primary, #62aef0);
+    color: #191918;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 html[data-theme="dark"] .button.primary:hover {
-    filter: brightness(1.12);
-    border-color: var(--primary-border, #3d7fde);
-    color: #ffffff;
+    filter: brightness(1.1);
+    border-color: var(--primary-hover, #93cdfe);
+    color: #191918;
     box-shadow: var(--shadow-sm);
 }
 

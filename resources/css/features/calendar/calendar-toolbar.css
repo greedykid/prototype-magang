@@ -2,7 +2,7 @@
 .gcal-main {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     min-width: 0;
     overflow: visible;
@@ -14,8 +14,8 @@
     align-items: center;
     background: var(--surface, #ffffff);
     border-bottom: 1px solid var(--line);
-    border-top-left-radius: var(--radius-2xl, 24px);
-    border-top-right-radius: var(--radius-2xl, 24px);
+    border-top-left-radius: var(--radius-2xl, 12px);
+    border-top-right-radius: var(--radius-2xl, 12px);
     display: flex;
     flex-wrap: wrap;
     gap: 10px 14px;

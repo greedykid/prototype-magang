@@ -58,8 +58,8 @@
 .login-card {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
-    box-shadow: 0 24px 64px -12px rgba(3, 13, 38, 0.28), 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-2xl, 12px);
+    box-shadow: var(--shadow-modal);
     box-sizing: border-box;
     margin: 0 auto;
     max-width: 460px;

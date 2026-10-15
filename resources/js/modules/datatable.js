@@ -114,6 +114,25 @@ export const sortTableByColumn = (table, colIndex, targetTh) => {
         sortInput.value = sortField;
         dirInput.value = nextSort === 'ascending' ? 'asc' : 'desc';
 
+        // Preserve active per_page
+        const tableWrap = table.closest('.table-wrap');
+        const toolbarSelect = tableWrap?.previousElementSibling?.querySelector('.table-length-select') ||
+                              document.querySelector('.table-length-select');
+        const currentPerPage = toolbarSelect?.value ||
+                               new URLSearchParams(window.location.search).get('per_page') ||
+                               filterForm.querySelector('input[name="per_page"]')?.value;
+
+        if (currentPerPage) {
+            let perPageInput = filterForm.querySelector('input[name="per_page"]');
+            if (!perPageInput) {
+                perPageInput = document.createElement('input');
+                perPageInput.type = 'hidden';
+                perPageInput.name = 'per_page';
+                filterForm.appendChild(perPageInput);
+            }
+            perPageInput.value = currentPerPage;
+        }
+
         executePartialFilter(filterForm, true);
         return;
     }
@@ -220,6 +239,21 @@ export const initTableToolbar = (tableWrap) => {
     const url = new URL(window.location.href);
     const currentPerPage = url.searchParams.get('per_page') || '10';
 
+    // Ensure active table filters maintain the initial per_page value
+    const filterForm = tableWrap.parentElement?.querySelector('.table-filters') ||
+                       tableWrap.closest('.panel')?.querySelector('.table-filters') ||
+                       document.querySelector('.table-filters');
+    if (filterForm) {
+        let hiddenPerPage = filterForm.querySelector('input[name="per_page"]');
+        if (!hiddenPerPage) {
+            hiddenPerPage = document.createElement('input');
+            hiddenPerPage.type = 'hidden';
+            hiddenPerPage.name = 'per_page';
+            filterForm.appendChild(hiddenPerPage);
+        }
+        hiddenPerPage.value = currentPerPage;
+    }
+
     const toolbar = document.createElement('div');
     toolbar.className = 'table-toolbar';
 
@@ -244,16 +278,23 @@ export const initTableToolbar = (tableWrap) => {
         const val = select.value;
 
         // Ensure active table filters maintain the chosen per_page value
-        const filterForm = tableWrap.parentElement?.querySelector('.table-filters') || document.querySelector('.table-filters');
-        if (filterForm) {
-            let hiddenPerPage = filterForm.querySelector('input[name="per_page"]');
+        const targetForm = tableWrap.parentElement?.querySelector('.table-filters') ||
+                           tableWrap.closest('.panel')?.querySelector('.table-filters') ||
+                           document.querySelector('.table-filters');
+        if (targetForm) {
+            let hiddenPerPage = targetForm.querySelector('input[name="per_page"]');
             if (!hiddenPerPage) {
                 hiddenPerPage = document.createElement('input');
                 hiddenPerPage.type = 'hidden';
                 hiddenPerPage.name = 'per_page';
-                filterForm.appendChild(hiddenPerPage);
+                targetForm.appendChild(hiddenPerPage);
             }
             hiddenPerPage.value = val;
+
+            if (targetForm.dataset.partialFilter === 'true') {
+                executePartialFilter(targetForm, true);
+                return;
+            }
         }
 
         const newUrl = new URL(window.location.href);

@@ -97,8 +97,9 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
 
 /* User Role Badges */
 .badge-role {
-    text-transform: uppercase;
-    letter-spacing: .02em;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 500;
 }
 .drawer-account .badge-role { font-size: 10px; padding: 2px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge-role-admin { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }

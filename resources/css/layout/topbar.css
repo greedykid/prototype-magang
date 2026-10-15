@@ -21,7 +21,7 @@
     align-items: center;
     background: transparent;
     border: none;
-    border-radius: var(--radius-lg, 12px);
+    border-radius: var(--radius-md, 6px);
     box-sizing: border-box;
     cursor: pointer;
     display: inline-flex;
@@ -163,8 +163,8 @@
 .user-dropdown-menu {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg, 12px);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-dropdown);
     display: none;
     max-height: calc(100vh - 96px);
     max-height: calc(100dvh - 96px);
@@ -394,8 +394,8 @@
 .notif-dropdown {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius-xl, 18px);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-2xl, 12px);
+    box-shadow: var(--shadow-dropdown);
     display: none;
     flex-direction: column;
     max-height: calc(100vh - 96px);
@@ -790,9 +790,9 @@
 
 .notif-primary-cta {
     align-items: center;
-    background: var(--primary-gradient);
-    border: 1px solid var(--primary-border, #3d7fde);
-    border-radius: var(--radius-md, 10px);
+    background: var(--primary, #0075de);
+    border: 1px solid var(--primary, #0075de);
+    border-radius: var(--radius-md, 6px);
     box-sizing: border-box;
     color: #ffffff;
     display: inline-flex;

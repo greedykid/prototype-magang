@@ -19,7 +19,7 @@
 .lpk-show-header {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
@@ -250,7 +250,7 @@
 .lpk-form-card {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     box-sizing: border-box;
     padding: 24px 26px;
@@ -520,7 +520,7 @@
     align-items: center;
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
@@ -536,7 +536,7 @@
     align-items: center;
     background: var(--danger-bg, #fef3f2);
     border: 1px solid var(--danger-border, #fecdca);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;

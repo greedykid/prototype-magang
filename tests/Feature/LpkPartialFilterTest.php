@@ -59,4 +59,29 @@ class LpkPartialFilterTest extends TestCase
         $response->assertSee('LPK Cepat Pintar');
         $response->assertDontSee('Balai Latihan Kerja Mandiri');
     }
+
+    public function test_form_and_partial_sort_preserves_per_page(): void
+    {
+        $user = User::factory()->create();
+        Lpk::factory()->count(15)->create();
+
+        // 1. Full page request has hidden input with per_page
+        $fullResponse = $this->actingAs($user)->get(route('lpks.index', ['per_page' => 25]));
+        $fullResponse->assertStatus(200);
+        $fullResponse->assertSee('<input type="hidden" name="per_page" value="25">', false);
+
+        // 2. Partial sort request with per_page=25 returns all 15 items on page 1 without capping at 10
+        $partialResponse = $this->actingAs($user)->get(route('lpks.index', [
+            'per_page' => 25,
+            'sort' => 'name',
+            'direction' => 'asc',
+        ]), [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Partial-Content' => 'table',
+        ]);
+
+        $partialResponse->assertStatus(200);
+        $partialResponse->assertViewIs('lpks.partials.table-content');
+        $this->assertCount(15, $partialResponse->viewData('lpks'));
+    }
 }

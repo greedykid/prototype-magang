@@ -5,16 +5,16 @@
 .simasadi-subcard {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     margin-top: 20px;
     padding: 24px 26px;
-    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .simasadi-subcard:hover {
     border-color: var(--line-subtle);
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+    box-shadow: var(--shadow-dropdown);
 }
 
 .simasadi-subcard-header {

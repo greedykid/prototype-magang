@@ -32,14 +32,33 @@ export const executePartialFilter = async (form, pushHistory = false) => {
     const formData = new FormData(form);
     let hasActiveFilter = false;
 
+    // Preserve per_page from formData, toolbar select, or current URL
+    const tableWrap = container.querySelector('.table-wrap') || document.querySelector(targetSelector)?.closest('.panel')?.querySelector('.table-wrap');
+    const selectPerPage = tableWrap?.previousElementSibling?.querySelector('.table-length-select')?.value ||
+                          document.querySelector('.table-length-select')?.value;
+    const currentParams = new URLSearchParams(window.location.search);
+    const resolvedPerPage = formData.get('per_page') || selectPerPage || currentParams.get('per_page');
+
+    if (resolvedPerPage) {
+        url.searchParams.set('per_page', resolvedPerPage);
+        let hiddenPerPage = form.querySelector('input[name="per_page"]');
+        if (!hiddenPerPage) {
+            hiddenPerPage = document.createElement('input');
+            hiddenPerPage.type = 'hidden';
+            hiddenPerPage.name = 'per_page';
+            form.appendChild(hiddenPerPage);
+        }
+        hiddenPerPage.value = resolvedPerPage;
+    }
+
     for (const [key, val] of formData.entries()) {
         const trimmed = typeof val === 'string' ? val.trim() : '';
         if (trimmed) {
             url.searchParams.set(key, trimmed);
-            if (key !== 'page') {
+            if (key !== 'page' && key !== 'per_page') {
                 hasActiveFilter = true;
             }
-        } else {
+        } else if (key !== 'per_page') {
             url.searchParams.delete(key);
         }
     }
@@ -118,6 +137,15 @@ export const executePaginationClick = async (link, targetContainer) => {
     const url = new URL(link.href, window.location.origin);
     const form = targetContainer.closest('.panel')?.querySelector('form[data-partial-filter="true"]') || document.querySelector('form[data-partial-filter="true"]');
     const formId = form ? (form.id || 'default-form') : 'pagination';
+
+    // Preserve per_page if missing from link
+    if (!url.searchParams.has('per_page')) {
+        const formPerPage = form?.querySelector('input[name="per_page"]')?.value;
+        const currentPerPage = formPerPage || new URLSearchParams(window.location.search).get('per_page');
+        if (currentPerPage) {
+            url.searchParams.set('per_page', currentPerPage);
+        }
+    }
 
     if (activeAbortControllers.has(formId)) {
         activeAbortControllers.get(formId).abort();

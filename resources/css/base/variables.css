@@ -1,21 +1,21 @@
 :root {
-    /* Typographic System Tokens (Crisp Design System) */
-    --font-sans: 'Aeonik Pro', 'Instrument Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-serif: Georgia, YuMincho, 'Songti SC', serif;
-    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+    /* Typographic System Tokens (Notion Design System - DESIGN.md) */
+    --font-sans: NotionInter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji', Arial, sans-serif, 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-serif: 'Lyon Text', Georgia, YuMincho, 'Songti SC', serif;
+    --font-mono: 'iA Writer Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
-    /* Crisp Type Scale */
+    /* Notion Type Scale */
     --text-2xs: 0.6875rem;   /* 11px */
     --text-xs: 0.75rem;      /* 12px */
     --text-sm: 0.8125rem;    /* 13px */
-    --text-base: 0.9063rem;  /* 14.5px - Crisp standard body */
-    --text-md: 1rem;         /* 16px */
-    --text-lg: 1.125rem;     /* 18px */
+    --text-base: 0.875rem;   /* 14px - Notion standard body */
+    --text-md: 0.9375rem;    /* 15px */
+    --text-lg: 1rem;         /* 16px */
     --text-xl: 1.25rem;      /* 20px */
-    --text-2xl: 1.625rem;    /* 26px */
-    --text-3xl: 2rem;        /* 32px */
-    --text-4xl: 2.5rem;      /* 40px */
-    --text-5xl: 3rem;        /* 48px */
+    --text-2xl: 1.375rem;    /* 22px */
+    --text-3xl: 1.625rem;    /* 26px */
+    --text-4xl: 2rem;        /* 32px */
+    --text-5xl: 2.625rem;    /* 42px */
 
     /* Type Weights */
     --font-normal: 400;
@@ -25,14 +25,14 @@
 
     /* Leading / Line Heights */
     --leading-none: 1;
-    --leading-tight: 1.2;
+    --leading-tight: 1.25;
     --leading-snug: 1.35;
     --leading-normal: 1.5;
     --leading-relaxed: 1.625;
 
-    /* Crisp Tight Letter Spacing */
+    /* Letter Spacing */
     --tracking-tighter: -0.035em;
-    --tracking-tight: -0.015em;
+    --tracking-tight: -0.012em;
     --tracking-normal: 0em;
     --tracking-wide: 0.015em;
     --tracking-wider: 0.04em;
@@ -41,30 +41,30 @@
     --measure-prose: 68ch;
     --measure-narrow: 48ch;
 
-    /* Crisp Radii System (Buttons 12px, Cards 20-28px, Pills 9999px) */
-    --radius-xs: 6px;
-    --radius-sm: 8px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-xl: 18px;
-    --radius-2xl: 24px;
-    --radius-3xl: 28px;
+    /* Notion Radii System (Buttons 6-8px, Cards 8-12px, Pills 9999px) */
+    --radius-xs: 3px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+    --radius-2xl: 12px;
+    --radius-3xl: 16px;
     --radius-full: 9999px;
     --radius-pill: 9999px;
 
-    /* Crisp Multi-tier Elevation & Inset Shadow System */
-    --shadow-xs: rgba(16, 24, 40, 0.05) 0px 1px 2px 0px;
-    --shadow-sm: rgba(16, 24, 40, 0.05) 0px 1px 3px 0px, rgb(234, 236, 245) 0px 0px 0px 1px;
-    --shadow-card: rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgb(234, 236, 245) 0px 0px 0px 1px;
-    --shadow-md: rgba(16, 24, 40, 0.05) 0px 3px 6px 0px;
-    --shadow-lg: rgba(0, 0, 0, 0.08) 0px 2px 8px 0px, rgba(0, 0, 0, 0.1) 0px 8px 40px 0px;
-    --shadow-focus: rgba(25, 114, 245, 0.14) 0px 0px 0px 4px, rgb(25, 114, 245) 0px 0px 0px 1px;
-    --shadow-inset: rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset;
+    /* Notion Multi-tier Elevation & Micro-Shadow System */
+    --shadow-xs: rgba(0, 0, 0, 0.04) 0px 1px 2px 0px;
+    --shadow-sm: rgba(0, 0, 0, 0.04) 0px 1px 3px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
+    --shadow-card: rgba(0, 0, 0, 0.04) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+    --shadow-md: rgba(0, 0, 0, 0.05) 0px 3px 6px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
+    --shadow-lg: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+    --shadow-focus: rgba(0, 117, 222, 0.25) 0px 0px 0px 3px, #0075de 0px 0px 0px 1px;
+    --shadow-inset: rgba(0, 0, 0, 0.03) 0px 1px 0px 0px inset;
 
-    /* Crisp Motion Tokens */
+    /* Motion Tokens */
     --motion-duration-fast: 100ms;
     --motion-duration-normal: 150ms;
-    --motion-duration-slow: 250ms;
+    --motion-duration-slow: 200ms;
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-decel: cubic-bezier(0, 0, 0.2, 1);
@@ -72,176 +72,184 @@
 
 :root,
 html[data-theme="light"] {
-    /* Crisp Neutral Palette (Light) */
-    --paper: #fcfcfd;
+    /* Notion Neutral Palette (Light) */
+    --paper: #ffffff;
     --surface: #ffffff;
-    --surface-subtle: #f8f8fc;
-    --surface-hover: #f0f2f8;
-    --ink: #030d26;
-    --ink-secondary: #242f47;
-    --muted: #5d6b98;
-    --muted-subtle: #828ea1;
-    --line: #eaecf5;
-    --line-subtle: #f0f2f8;
-    --line-strong: #dcdfea;
+    --surface-subtle: #f6f5f4;   /* Notion iconic warm stone background */
+    --surface-hover: #efeeeb;    /* Notion list row hover */
+    --ink: #191918;              /* Notion rich charcoal black */
+    --ink-secondary: #31302e;
+    --muted: #615d59;            /* Notion secondary text */
+    --muted-subtle: #a39e98;     /* Notion meta text & placeholders */
+    --line: #dfdcd9;             /* Notion warm gray border */
+    --line-subtle: #f6f5f4;
+    --line-strong: #a39e98;
 
-    /* Crisp Brand Colors */
-    --primary: #1972f5;
-    --primary-hover: #0456ce;
-    --primary-active: #033da8;
-    --primary-subtle: #edf5ff;
-    --primary-border: #3d7fde;
-    --primary-gradient: linear-gradient(180deg, #1972f5 0%, #0456ce 100%);
+    /* Notion Primary Brand Colors */
+    --primary: #0075de;          /* Notion action blue */
+    --primary-hover: #005bab;
+    --primary-active: #00396b;
+    --primary-subtle: #f2f9ff;
+    --primary-border: #93cdfe;
+    --primary-gradient: none;
 
-    --secondary: #030d26;
-    --secondary-hover: #15254c;
-    --secondary-surface: #242f47;
+    --secondary: #191918;
+    --secondary-hover: #31302e;
+    --secondary-surface: #f6f5f4;
 
-    --accent: #69abf8;
-    --accent-muted: #edf5ff;
+    --accent: #097fe8;
+    --accent-muted: #e6f3fe;
 
-    /* Semantic Crisp Status Tokens */
-    --info-bg: #edf5ff;
-    --info-text: #1972f5;
-    --info-border: rgba(25, 114, 245, 0.25);
-    --info-gradient: linear-gradient(180deg, rgb(226, 235, 255) 0%, rgb(192, 211, 253) 100%);
+    /* Semantic Notion Status Tokens (DESIGN.md) */
+    --info-bg: #f2f9ff;
+    --info-text: #0075de;
+    --info-border: #bde6e4;
+    --info-gradient: none;
 
-    --success-bg: #eefbf0;
-    --success-text: #156f08;
-    --success-border: rgba(21, 111, 8, 0.25);
-    --success-gradient: linear-gradient(180deg, rgb(230, 250, 227) 0%, rgb(200, 242, 195) 100%);
+    --success-bg: #f0faf2;
+    --success-text: #14832b;
+    --success-border: #d0f4d8;
+    --success-gradient: none;
 
-    --warning-bg: #fff6ea;
-    --warning-text: #a14300;
-    --warning-border: rgba(161, 67, 0, 0.25);
-    --warning-gradient: linear-gradient(180deg, rgba(255, 225, 68, 0.1) 0%, rgba(255, 145, 0, 0.1) 100%);
+    --warning-bg: #fff5e0;
+    --warning-text: #c78600;
+    --warning-border: #ffe4af;
+    --warning-gradient: none;
 
-    --danger-bg: #fff0f2;
-    --danger-text: #bc081f;
-    --danger-border: rgba(188, 8, 31, 0.25);
-    --danger-gradient: linear-gradient(180deg, rgb(254, 227, 231) 0%, rgb(252, 195, 203) 100%);
+    --danger-bg: #fef3f1;
+    --danger-text: #e32d14;
+    --danger-border: #fdd3cd;
+    --danger-gradient: none;
 
-    --purple-bg: #f5edff;
-    --purple-text: #5a28b0;
-    --purple-border: rgba(90, 40, 176, 0.25);
-    --purple-gradient: linear-gradient(180deg, rgb(240, 231, 254) 0%, rgb(220, 202, 252) 100%);
+    --purple-bg: #f8f5fc;
+    --purple-text: #7237ae;
+    --purple-border: #eadbfa;
+    --purple-gradient: none;
 
-    --neutral-chip-bg: #f8f8fc;
-    --neutral-chip-text: #5d6b98;
-    --neutral-chip-border: #eaecf5;
+    --orange-bg: #fff5ed;
+    --orange-text: #dd5b00;
+    --orange-border: #ffdec4;
 
-    --drive-btn-bg: #edf5ff;
-    --drive-btn-text: #1972f5;
-    --drive-btn-border: rgba(25, 114, 245, 0.25);
+    --brown-bg: #fcf8f5;
+    --brown-text: #9c7054;
+    --brown-border: #ebd5c5;
+
+    --neutral-chip-bg: #f6f5f4;
+    --neutral-chip-text: #615d59;
+    --neutral-chip-border: #dfdcd9;
+
+    --drive-btn-bg: #f6f5f4;
+    --drive-btn-text: #191918;
+    --drive-btn-border: #dfdcd9;
 
     /* UI Surfaces */
-    --topbar-bg: rgba(255, 255, 255, 0.98);
-    --sidebar-bg: #ffffff;
-    --sidebar-border: #eaecf5;
+    --topbar-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-bg: #f6f5f4;       /* Notion desktop warm sidebar */
+    --sidebar-border: #dfdcd9;
     --card-bg: #ffffff;
     --modal-bg: #ffffff;
     --input-bg: #ffffff;
-    --input-border: #eaecf5;
+    --input-border: #dfdcd9;
 
     /* Legacy mapping for backward compatibility */
-    --maroon: #1972f5;
-    --maroon-dark: #0456ce;
-    --terracotta: #242f47;
-    --green: #156f08;
-    --amber: #a14300;
-    --lavender: #f5edff;
-    --peach: #fff6ea;
-    --mint: #eefbf0;
+    --maroon: #0075de;
+    --maroon-dark: #005bab;
+    --terracotta: #191918;
+    --green: #14832b;
+    --amber: #c78600;
+    --lavender: #f8f5fc;
+    --peach: #fff5ed;
+    --mint: #f0faf2;
 }
 
 html[data-theme="dark"] {
-    /* Crisp Charcoal / Modern Zinc Palette (Dark Grey) */
-    --paper: #09090b;
-    --surface: #18181b;
-    --surface-subtle: #121215;
-    --surface-hover: #27272a;
-    --ink: #fafafa;
-    --ink-secondary: #e4e4e7;
-    --muted: #a1a1aa;
-    --muted-subtle: #71717a;
-    --line: #2e2e34;
-    --line-subtle: #232328;
-    --line-strong: #3f3f46;
+    /* Notion Dark Theme (DESIGN.md) */
+    --paper: #191918;            /* Notion dark true base */
+    --surface: #202020;          /* Notion dark card surface */
+    --surface-subtle: #252525;
+    --surface-hover: #2f2f2f;
+    --ink: #ffffff;
+    --ink-secondary: #e6e6e6;
+    --muted: #a39e98;
+    --muted-subtle: #78736f;
+    --line: rgba(255, 255, 255, 0.09);
+    --line-subtle: rgba(255, 255, 255, 0.05);
+    --line-strong: rgba(255, 255, 255, 0.18);
 
-    /* Crisp Brand Colors (Dark) */
-    --primary: #3b82f6;
-    --primary-hover: #60a5fa;
-    --primary-active: #2563eb;
-    --primary-subtle: rgba(59, 130, 246, 0.18);
-    --primary-border: #3b82f6;
-    --primary-gradient: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    /* Notion Dark Brand Colors */
+    --primary: #62aef0;
+    --primary-hover: #93cdfe;
+    --primary-active: #097fe8;
+    --primary-subtle: rgba(98, 174, 240, 0.15);
+    --primary-border: #62aef0;
+    --primary-gradient: none;
 
-    --secondary: #fafafa;
-    --secondary-hover: #e4e4e7;
-    --secondary-surface: #27272a;
+    --secondary: #ffffff;
+    --secondary-hover: #e6e6e6;
+    --secondary-surface: #2f2f2f;
 
-    --accent: #3b82f6;
-    --accent-muted: rgba(59, 130, 246, 0.18);
+    --accent: #62aef0;
+    --accent-muted: rgba(98, 174, 240, 0.15);
 
-    /* Semantic Crisp Status Tokens (Dark Contrast) */
-    --info-bg: rgba(59, 130, 246, 0.18);
-    --info-text: #60a5fa;
-    --info-border: rgba(96, 165, 250, 0.4);
-    --info-gradient: linear-gradient(180deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%);
+    /* Semantic Notion Dark Status Tokens */
+    --info-bg: rgba(98, 174, 240, 0.15);
+    --info-text: #93cdfe;
+    --info-border: rgba(98, 174, 240, 0.3);
+    --info-gradient: none;
 
-    --success-bg: rgba(16, 185, 129, 0.18);
-    --success-text: #34d399;
-    --success-border: rgba(52, 211, 153, 0.4);
-    --success-gradient: linear-gradient(180deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%);
+    --success-bg: rgba(104, 206, 126, 0.15);
+    --success-text: #68ce7e;
+    --success-border: rgba(104, 206, 126, 0.3);
+    --success-gradient: none;
 
-    --warning-bg: rgba(245, 158, 11, 0.2);
-    --warning-text: #fbbf24;
-    --warning-border: rgba(251, 191, 36, 0.45);
-    --warning-gradient: linear-gradient(180deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.35) 100%);
+    --warning-bg: rgba(255, 177, 16, 0.15);
+    --warning-text: #ffc95e;
+    --warning-border: rgba(255, 177, 16, 0.3);
+    --warning-gradient: none;
 
-    --danger-bg: rgba(239, 68, 68, 0.2);
-    --danger-text: #f87171;
-    --danger-border: rgba(248, 113, 113, 0.45);
-    --danger-gradient: linear-gradient(180deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.35) 100%);
+    --danger-bg: rgba(246, 73, 50, 0.15);
+    --danger-text: #ff8b7c;
+    --danger-border: rgba(246, 73, 50, 0.3);
+    --danger-gradient: none;
 
-    --purple-bg: rgba(168, 85, 247, 0.18);
-    --purple-text: #c084fc;
-    --purple-border: rgba(192, 132, 252, 0.4);
-    --purple-gradient: linear-gradient(180deg, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.35) 100%);
+    --purple-bg: rgba(173, 109, 237, 0.15);
+    --purple-text: #d6b6f6;
+    --purple-border: rgba(173, 109, 237, 0.3);
+    --purple-gradient: none;
 
-    --neutral-chip-bg: #222226;
+    --neutral-chip-bg: #252525;
     --neutral-chip-text: #d4d4d8;
     --neutral-chip-border: #323238;
 
-    --drive-btn-bg: rgba(59, 130, 246, 0.18);
-    --drive-btn-text: #60a5fa;
-    --drive-btn-border: rgba(96, 165, 250, 0.4);
+    --drive-btn-bg: rgba(98, 174, 240, 0.15);
+    --drive-btn-text: #93cdfe;
+    --drive-btn-border: rgba(98, 174, 240, 0.3);
 
     /* UI Surfaces */
-    --topbar-bg: rgba(24, 24, 27, 0.95);
-    --sidebar-bg: #0d0d10;
-    --sidebar-border: #27272a;
-    --card-bg: #18181b;
-    --modal-bg: #18181b;
-    --input-bg: #121215;
-    --input-border: #323238;
+    --topbar-bg: rgba(25, 25, 24, 0.95);
+    --sidebar-bg: #191918;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --card-bg: #202020;
+    --modal-bg: #202020;
+    --input-bg: #252525;
+    --input-border: rgba(255, 255, 255, 0.12);
 
-    /* Crisp Dark Elevation Tokens (Pure Dark Depth, Zero White Rings) */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.7);
-    --shadow-lg: 0 14px 30px -4px rgba(0, 0, 0, 0.8), 0 4px 14px -2px rgba(0, 0, 0, 0.5);
-    --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.4);
+    /* Notion Dark Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-focus: 0 0 0 3px rgba(98, 174, 240, 0.35);
     --shadow-inset: none;
 
     /* Legacy mapping for backward compatibility */
-    --maroon: #3b82f6;
-    --maroon-dark: #60a5fa;
-    --terracotta: #a1a1aa;
-    --green: #34d399;
-    --amber: #fbbf24;
-    --lavender: rgba(168, 85, 247, 0.18);
-    --peach: rgba(245, 158, 11, 0.2);
-    --mint: rgba(16, 185, 129, 0.18);
+    --maroon: #62aef0;
+    --maroon-dark: #93cdfe;
+    --terracotta: #a39e98;
+    --green: #68ce7e;
+    --amber: #ffc95e;
+    --lavender: rgba(173, 109, 237, 0.15);
+    --peach: rgba(255, 177, 16, 0.15);
+    --mint: rgba(104, 206, 126, 0.15);
 }

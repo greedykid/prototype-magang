@@ -197,11 +197,15 @@
                         Belum Ditentukan
                     </div>
                     <div style="font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 4px;">
-                        Sesuai regulasi KAN U-01
+                        @if(in_array($assessment->assessment_type, ['Asesmen Awal', 'INITIAL'], true))
+                            Maksimal 3 bulan setelah asesmen lapangan selesai
+                        @else
+                            Maksimal 2 bulan setelah asesmen lapangan selesai
+                        @endif
                     </div>
                 </div>
                 <div class="tp-metric-card-footer">
-                    <span>Dihitung setelah closing meeting asesmen</span>
+                    <span>Dihitung otomatis saat pelaksanaan asesmen selesai</span>
                 </div>
             </div>
 

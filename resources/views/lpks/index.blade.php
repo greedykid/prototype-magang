@@ -40,6 +40,7 @@
 
 <section class="panel table-panel-borderless">
     <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
+        <input type="hidden" name="per_page" value="{{ $perPage }}">
         <div class="table-filter-grid">
             <label for="filter-lpk-search">
                 Cari LPK

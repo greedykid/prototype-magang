@@ -310,8 +310,18 @@
         </div>
     @endif
 
+    @php
+        $filteredActiveAlerts = collect($activeAlerts)->filter(function ($a) use ($lpk) {
+            // Jika LPK sedang dalam masa tenggang, alert RA sudah ditangani secara khusus oleh banner oranye di atas
+            if ($lpk->isInGracePeriod() && strtoupper($a['code'] ?? '') === 'RA') {
+                return false;
+            }
+            return true;
+        })->values()->all();
+    @endphp
+
     {{-- Alert Persisten Pengawasan KAN --}}
-    @if(!empty($activeAlerts))
+    @if(!empty($filteredActiveAlerts))
         <div class="lpk-alert-callout">
             <div class="lpk-alert-callout-content">
                 <div class="lpk-alert-callout-head">
@@ -320,7 +330,7 @@
                 </div>
                 <p class="lpk-alert-callout-desc">
                     Notifikasi aktif untuk 
-                    @foreach($activeAlerts as $a)
+                    @foreach($filteredActiveAlerts as $a)
                         <span class="lpk-alert-tag">{{ $a['name'] }} ({{ $a['status_label'] }})</span>@if(!$loop->last) @endif
                     @endforeach
                     . Peringatan ini aktif sampai agenda kunjungan asesmen tercatat.
@@ -334,7 +344,7 @@
             </div>
             <div class="lpk-alert-callout-actions">
                 @if($lpk->canManage(auth()->user()))
-                    @foreach($activeAlerts as $a)
+                    @foreach($filteredActiveAlerts as $a)
                         @php
                             $alertCode = strtoupper($a['code'] ?? 'S1');
                             $alertTarget = ($a['visit_target_date'] ?? $a['target_date'])?->format('Y-m-d');
@@ -649,8 +659,16 @@
 
                     {{-- Primary Target Date --}}
                     <div class="lpk-milestone-primary-target">
-                        <span class="lpk-target-label">Batas Permohonan Lengkap (Bulan 51)</span>
-                        <span class="lpk-target-value">{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</span>
+                        @if($lpk->isInGracePeriod() && $lpk->grace_period_deadline)
+                            <span class="lpk-target-label" style="color: var(--warning-text, #b45309);">Batas Akhir Toleransi (Masa Tenggang)</span>
+                            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                                <span class="lpk-target-value" style="color: #b91c1c;">{{ $lpk->grace_period_deadline->format('d M Y') }}</span>
+                                <span class="status status-warn" style="font-size: 11px; padding: 1px 7px;">Sisa {{ $lpk->days_remaining_grace_period }} hari</span>
+                            </div>
+                        @else
+                            <span class="lpk-target-label">Batas Permohonan Lengkap (Bulan 51)</span>
+                            <span class="lpk-target-value">{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</span>
+                        @endif
                     </div>
 
                     {{-- Supporting Metadata Dates --}}
@@ -659,6 +677,12 @@
                             <span class="lpk-subdate-label">Pengumuman Permohonan RA:</span>
                             <strong class="lpk-subdate-val">{{ $ra['notice_date'] ? $ra['notice_date']->format('d M Y') : '-' }}</strong>
                         </div>
+                        @if($lpk->isInGracePeriod())
+                            <div class="lpk-subdate-row">
+                                <span class="lpk-subdate-label">Batas Permohonan (Bulan 51):</span>
+                                <strong class="lpk-subdate-val">{{ $ra['target_date'] ? $ra['target_date']->format('d M Y') : '-' }}</strong>
+                            </div>
+                        @endif
                         <div class="lpk-subdate-row">
                             <span class="lpk-subdate-label">Target Asesmen Lapangan (Bulan 54):</span>
                             <strong class="lpk-subdate-val">{{ ($ra['visit_target_date'] ?? null) ? $ra['visit_target_date']->format('d M Y') : '-' }}</strong>
@@ -668,8 +692,8 @@
                             <strong class="lpk-subdate-val">{{ ($ra['tolerance_date'] ?? null) ? $ra['tolerance_date']->format('d M Y') : '-' }}</strong>
                         </div>
                         @if($lpk->isInGracePeriod() && $lpk->grace_period_deadline)
-                            <div class="lpk-subdate-row" style="color: var(--warning-text, #b45309);">
-                                <span class="lpk-subdate-label">Batas Masa Tenggang (6 Bulan):</span>
+                            <div class="lpk-subdate-row lpk-grace-subdate-highlight">
+                                <span class="lpk-subdate-label">Batas Akhir Masa Tenggang:</span>
                                 <strong class="lpk-subdate-val">{{ $lpk->grace_period_deadline->format('d M Y') }}</strong>
                             </div>
                         @endif
@@ -746,14 +770,14 @@
 
                 <div class="lpk-meta-grid">
                     <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">No Reg LPK (ID KAN)</span>
+                        <span class="lpk-meta-label">No. Registrasi LPK (ID KAN)</span>
                         <div class="lpk-meta-value">
                             <strong style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: 13.5px; color: var(--ink);">{{ $lpk->no_reg ?: $lpk->registration_number }}</strong>
                         </div>
                     </div>
 
                     <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">No Akreditasi KAN</span>
+                        <span class="lpk-meta-label">Nomor Akreditasi KAN</span>
                         <div class="lpk-meta-value">
                             @if($lpk->accreditation_number)
                                 <strong style="color: var(--ink); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 13.5px;">{{ $lpk->accreditation_number }}</strong>
@@ -795,7 +819,7 @@
 
                     @if($lpk->drive_url)
                         <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
-                            <span class="lpk-meta-label">Link Dokumen Google Drive</span>
+                            <span class="lpk-meta-label">Dokumen Akreditasi (Google Drive)</span>
                             <div class="lpk-meta-value" style="display: flex; align-items: center; gap: 8px;">
                                 <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button button-drive button-xs" style="display: inline-flex; align-items: center; gap: 6px;">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>

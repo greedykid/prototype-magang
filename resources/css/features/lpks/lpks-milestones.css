@@ -414,10 +414,10 @@
 
 .lpk-target-label {
     color: var(--muted, #64748b);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
 }
 
 .lpk-target-value {
@@ -439,10 +439,10 @@
 
 .lpk-key-target-header {
     color: var(--muted, #64748b);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
 }
 
 .lpk-key-target-date {
@@ -459,18 +459,18 @@
     border-top: 1px dashed var(--line);
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 6px;
-    padding-top: 8px;
+    gap: 9px;
+    margin-top: 8px;
+    padding-top: 10px;
 }
 
 .lpk-subdate-row {
     align-items: center;
     color: var(--muted, #64748b);
     display: flex;
-    font-size: 11.5px;
+    font-size: 12px;
     justify-content: space-between;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 
 .lpk-subdate-val {
@@ -478,6 +478,24 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     text-align: right;
+}
+
+.lpk-grace-subdate-highlight {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    border-radius: var(--radius-sm, 6px);
+    margin-top: 2px;
+    padding: 5px 8px;
+}
+
+.lpk-grace-subdate-highlight .lpk-subdate-label {
+    color: var(--warning-text, #b45309);
+    font-weight: 700;
+}
+
+.lpk-grace-subdate-highlight .lpk-subdate-val {
+    color: #b91c1c;
+    font-weight: 750;
 }
 
 .lpk-delay-penalty-banner {

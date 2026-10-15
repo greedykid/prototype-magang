@@ -97,6 +97,7 @@
     <section class="panel table-panel-borderless">
         <form id="linked-lpk-filter-form" class="table-filters" method="GET" action="{{ route('account-links.show', $owner) }}" data-partial-filter="true" data-target="#linked-lpk-table-container">
             <input type="hidden" name="tab" value="lpks">
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
             <div class="table-filter-grid">
                 <label for="filter-lpk-search">
                     Cari LPK
@@ -257,6 +258,7 @@
     <section class="panel table-panel-borderless">
         <form id="linked-asm-filter-form" class="table-filters" method="GET" action="{{ route('account-links.show', $owner) }}" data-partial-filter="true" data-target="#linked-assessment-table-container">
             <input type="hidden" name="tab" value="assessments">
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
             <div class="table-filter-grid">
                 <label for="filter-asm-search">
                     Cari Agenda

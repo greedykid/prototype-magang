@@ -83,10 +83,10 @@
 }
 
 .pagination-item.pagination-active {
-    background: var(--primary-gradient);
-    border-color: var(--primary-border, #3d7fde);
+    background: var(--primary, #0075de);
+    border-color: var(--primary, #0075de);
     box-shadow: var(--shadow-xs);
-    color: #ffffff;
+    color: #ffffff !important;
     cursor: default;
     font-weight: 600;
 }
@@ -159,4 +159,10 @@ html[data-theme="dark"] .pagination-item.pagination-disabled {
 
 html[data-theme="dark"] .pagination-item.pagination-disabled svg {
     color: var(--color-gray-500, #78736f);
+}
+
+html[data-theme="dark"] .pagination-item.pagination-active {
+    background: var(--primary, #62aef0);
+    border-color: var(--primary, #62aef0);
+    color: #191918 !important;
 }

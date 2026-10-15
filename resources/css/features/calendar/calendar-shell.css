@@ -19,7 +19,7 @@
 .gcal-sidebar {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     padding: 20px 18px;
     display: flex;
     flex-direction: column;

@@ -16,7 +16,7 @@
 .lpk-show-header {
     background: var(--surface, #ffffff);
     border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--radius-2xl, 12px);
     box-shadow: var(--shadow-card);
     box-sizing: border-box;
     display: flex;
@@ -31,8 +31,8 @@
     align-items: stretch;
     background: var(--danger-bg, #fef3f2);
     border: 1px solid var(--danger-border, #fecdca);
-    border-radius: var(--radius-xl, 18px);
-    box-shadow: 0 4px 16px rgba(240, 68, 56, 0.08);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: none;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -375,10 +375,10 @@ html[data-theme="dark"] .lpk-assessment-scroll-list::-webkit-scrollbar-thumb:hov
 
 .lpk-meta-label {
     color: var(--muted);
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
 }
 
 .lpk-meta-value {
