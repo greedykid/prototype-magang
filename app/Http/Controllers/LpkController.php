@@ -119,7 +119,7 @@ class LpkController extends Controller
     public function edit(Lpk $lpk, Request $request): View
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user)) {
+        if ($user && ! $lpk->canManage($user) && ! empty($lpk->pic_id)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
         }
 
@@ -131,7 +131,7 @@ class LpkController extends Controller
     public function update(UpdateLpkRequest $request, Lpk $lpk): RedirectResponse
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user)) {
+        if ($user && ! $lpk->canManage($user) && ! empty($lpk->pic_id)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
         }
 
@@ -172,7 +172,8 @@ class LpkController extends Controller
         $lpkId = $lpk->id;
         $name = $lpk->name;
         $reg = $lpk->registration_number;
-        $lpk->delete();
+
+        DB::transaction(fn () => $lpk->delete());
 
         Log::info('LPK deleted', [
             'lpk_id' => $lpkId,

@@ -187,20 +187,32 @@ class User extends Authenticatable
      */
     public function getAccessiblePics()
     {
-        if ($this->isAdmin()) {
-            return static::where('role', static::ROLE_PIC)->orderBy('name')->get();
+        $req = request();
+        $cacheKey = 'req_user_' . $this->id . '_accessible_pics';
+        if ($req && $req->attributes->has($cacheKey)) {
+            return $req->attributes->get($cacheKey);
         }
 
-        $ownerIds = $this->linkedOwners()->pluck('users.id')->all();
-        $viewerIds = $this->linkedViewers()->pluck('users.id')->all();
-        $memberPicIds = Lpk::whereHas('members', fn ($m) => $m->where('users.id', $this->id))
-            ->whereNotNull('pic_id')
-            ->pluck('pic_id')
-            ->all();
+        if ($this->isAdmin()) {
+            $pics = static::where('role', static::ROLE_PIC)->orderBy('name')->get();
+        } else {
+            $ownerIds = $this->linkedOwners()->pluck('users.id')->all();
+            $viewerIds = $this->linkedViewers()->pluck('users.id')->all();
+            $memberPicIds = Lpk::whereHas('members', fn ($m) => $m->where('users.id', $this->id))
+                ->whereNotNull('pic_id')
+                ->pluck('pic_id')
+                ->all();
 
-        $allPicIds = array_unique(array_filter(array_merge([$this->id], $ownerIds, $viewerIds, $memberPicIds)));
+            $allPicIds = array_unique(array_filter(array_merge([$this->id], $ownerIds, $viewerIds, $memberPicIds)));
 
-        return static::whereIn('id', $allPicIds)->orderBy('name')->get();
+            $pics = static::whereIn('id', $allPicIds)->orderBy('name')->get();
+        }
+
+        if ($req) {
+            $req->attributes->set($cacheKey, $pics);
+        }
+
+        return $pics;
     }
 
     /**

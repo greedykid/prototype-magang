@@ -160,8 +160,14 @@ class CalendarEventController extends Controller
     public function show(CalendarEvent $event, Request $request): View
     {
         $user = $request->user();
-        if ($user && $event->lpk && ! $event->lpk->canView($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+        if ($user) {
+            if ($event->lpk_id && $event->lpk) {
+                if (! $event->lpk->canView($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+                }
+            } elseif (! $user->isAdmin() && (int) $event->created_by !== (int) $user->id) {
+                abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+            }
         }
 
         return view('calendar.show', ['event' => $event->load(['lpk', 'creator'])]);
@@ -323,7 +329,7 @@ class CalendarEventController extends Controller
 
         $calendarEvents = CalendarEvent::with('lpk')
             ->when($isPic, fn ($q) => $q->where(function ($sub) use ($user) {
-                $sub->whereNull('lpk_id')
+                $sub->where(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $user->id))
                     ->orWhereHas('lpk', fn ($lq) => $lq->accessibleBy($user));
             }))
             ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {

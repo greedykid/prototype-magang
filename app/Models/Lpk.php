@@ -711,9 +711,11 @@ class Lpk extends Model
         }
 
         if (in_array($surveillance, ['DUE_S1', 'DUE_S2', 'OVERDUE'], true)) {
-            $candidateQuery->whereNotNull('certificate_date');
+            $candidateQuery->where('status', '!=', 'INACTIVE')->whereNotNull('certificate_date');
         } elseif ($surveillance === 'DUE_RA') {
-            $candidateQuery->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
+            $candidateQuery->where('status', '!=', 'INACTIVE')->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
+        } elseif ($surveillance === 'NEEDS_ACTION') {
+            $candidateQuery->where('status', '!=', 'INACTIVE')->where(fn ($q) => $q->whereNotNull('certificate_date')->orWhereNotNull('expired_at'));
         }
 
         $validIds = [];

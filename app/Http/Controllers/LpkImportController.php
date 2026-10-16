@@ -247,6 +247,7 @@ class LpkImportController extends Controller
         $createdCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
+        $unauthorizedLpks = [];
 
         $currentUser = auth()->user();
         $picId = $currentUser && $currentUser->isPic() ? $currentUser->id : null;
@@ -316,7 +317,8 @@ class LpkImportController extends Controller
             $lpksByRegNo,
             &$createdCount,
             &$updatedCount,
-            &$skippedCount
+            &$skippedCount,
+            &$unauthorizedLpks
         ) {
             foreach ($rows as $item) {
                 $excelRowNumber = $item['row_number'];
@@ -403,9 +405,15 @@ class LpkImportController extends Controller
                 }
 
                 if ($existing) {
-                    // Otorisasi keamanan: pastikan pengguna berhak memperbarui LPK ini (Admin atau PIC pengelola)
-                    if ($currentUser && ! $currentUser->isAdmin() && ! $existing->canManage($currentUser)) {
+                    // Otorisasi keamanan: perbolehkan jika Admin, pengelola terdaftar, atau LPK belum memiliki PIC (pool terbuka)
+                    $canClaimOrManage = ! $currentUser
+                        || $currentUser->isAdmin()
+                        || empty($existing->pic_id)
+                        || $existing->canManage($currentUser);
+
+                    if (! $canClaimOrManage) {
                         $skippedCount++;
+                        $unauthorizedLpks[] = ($existing->accreditation_number ?: $existing->registration_number) ?: $existing->name;
                         continue;
                     }
 
@@ -474,7 +482,16 @@ class LpkImportController extends Controller
 
         $msg = "Impor data LPK selesai: {$createdCount} LPK baru ditambahkan, {$updatedCount} diperbarui";
         if ($skippedCount > 0) {
-            $msg .= ", dan {$skippedCount} baris dilewati (kosong/tidak valid).";
+            $msg .= ", dan {$skippedCount} baris dilewati";
+            if (! empty($unauthorizedLpks)) {
+                $uniqueUnauthorized = array_values(array_unique($unauthorizedLpks));
+                $sample = implode(', ', array_slice($uniqueUnauthorized, 0, 3));
+                if (count($uniqueUnauthorized) > 3) {
+                    $sample .= ' dst.';
+                }
+                $msg .= " (milik PIC/Admin lain: {$sample})";
+            }
+            $msg .= '.';
         } else {
             $msg .= '.';
         }

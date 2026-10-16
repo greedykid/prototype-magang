@@ -278,6 +278,31 @@
 }
 
 /* Dashboard Status & TP Panel (Alert State) */
+.dashboard-status-panel,
+#surveillance-heading,
+#surveillance-section {
+    scroll-margin-top: 80px;
+}
+
+.dashboard-status-panel.surveillance-jump-pulse {
+    animation: surveillanceJumpPulse 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes surveillanceJumpPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6);
+        transform: translateY(-2px);
+    }
+    30% {
+        box-shadow: 0 0 0 6px rgba(225, 29, 72, 0.25);
+        transform: translateY(-2px);
+    }
+    100% {
+        box-shadow: 0 1px 3px rgba(225, 29, 72, 0.05);
+        transform: translateY(0);
+    }
+}
+
 .dashboard-status-panel.has-alerts {
     background: #fff8f8 !important;
     border-color: #fecdd3 !important;

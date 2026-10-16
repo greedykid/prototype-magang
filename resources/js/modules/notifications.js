@@ -96,5 +96,34 @@ export function initPersistentSurveillanceBanner() {
     } catch {
         // Ignore storage exceptions
     }
+
+    if (!window._surveillanceJumpHandlerAttached) {
+        window._surveillanceJumpHandlerAttached = true;
+        document.addEventListener('click', (event) => {
+            const jumpBtn = event.target.closest('.persistent-surveillance-banner-jump-btn');
+            if (!jumpBtn) return;
+
+            const href = jumpBtn.getAttribute('href');
+            if (!href || !href.startsWith('#')) return;
+
+            const targetId = href.slice(1);
+            const targetEl = document.getElementById(targetId) ||
+                             document.getElementById('surveillance-section') ||
+                             document.getElementById('surveillance-heading');
+
+            if (targetEl) {
+                event.preventDefault();
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                const panel = targetEl.closest('.dashboard-status-panel') || targetEl;
+                panel.classList.remove('surveillance-jump-pulse');
+                void panel.offsetWidth;
+                panel.classList.add('surveillance-jump-pulse');
+                setTimeout(() => {
+                    panel.classList.remove('surveillance-jump-pulse');
+                }, 2000);
+            }
+        });
+    }
 }
 

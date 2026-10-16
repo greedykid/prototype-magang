@@ -98,7 +98,8 @@ class GlobalSearchController extends Controller
                 ]);
         } elseif ($isPic) {
             $accounts = User::query()
-                ->where('role', 'LPK')
+                ->where('role', User::ROLE_PIC)
+                ->when($user, fn ($query) => $query->where('id', '!=', $user->id))
                 ->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");

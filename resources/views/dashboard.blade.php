@@ -102,11 +102,11 @@
             $actionCount = count($surveillanceList) + $tpItems->count();
         @endphp
         {{-- Kolom 1: Perlu Tindak Lanjut --}}
-        <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" aria-labelledby="status-pengawasan-heading">
+        <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" id="surveillance-section" aria-labelledby="surveillance-heading">
             <div class="panel-head">
                 <div class="dashboard-panel-title-wrap">
                     <div class="dashboard-panel-title-row">
-                        <h2 id="status-pengawasan-heading">{{ $hasSurveillanceAlerts ? 'Perlu Tindak Lanjut' : 'Status Pengawasan' }}</h2>
+                        <h2 id="surveillance-heading">{{ $hasSurveillanceAlerts ? 'Perlu Tindak Lanjut' : 'Status Pengawasan' }}</h2>
                         @if($hasSurveillanceAlerts && $actionCount > 0)
                             <span class="dashboard-panel-count-badge" title="{{ $actionCount }} item perlu tindak lanjut">{{ $actionCount }}</span>
                         @endif

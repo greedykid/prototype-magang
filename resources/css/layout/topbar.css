@@ -1131,12 +1131,13 @@ input.topbar-search-input::placeholder {
 
 .notif-item-card.is-urgent {
     background: var(--danger-bg);
-    border-left-color: var(--danger-text);
     border-color: var(--danger-border);
+    border-left: 3px solid var(--danger-text);
 }
 
 .notif-item-card.is-urgent:hover {
     border-color: var(--danger-border);
+    border-left-color: var(--danger-text);
     box-shadow: var(--shadow-sm);
 }
 
@@ -1169,13 +1170,13 @@ input.topbar-search-input::placeholder {
 .badge-milestone-urgent {
     background-color: var(--danger-bg);
     border-color: var(--danger-border);
-    color: var(--danger-fg);
+    color: var(--danger-text, #b91c1c);
 }
 
 .badge-milestone-warning {
     background-color: var(--warning-bg);
     border-color: var(--warning-border);
-    color: var(--warning-fg);
+    color: var(--warning-text, #b45309);
 }
 
 .notif-milestone-label {
@@ -1186,7 +1187,7 @@ input.topbar-search-input::placeholder {
 
 .notif-item-date {
     align-items: center;
-    color: #b45309;
+    color: var(--warning-text, #b45309);
     display: inline-flex;
     font-size: 11px;
     font-weight: 600;
@@ -1195,7 +1196,7 @@ input.topbar-search-input::placeholder {
 }
 
 .notif-item-date.is-urgent {
-    color: #b91c1c;
+    color: var(--danger-text, #b91c1c);
 }
 
 .notif-item-content {
@@ -1304,7 +1305,7 @@ input.topbar-search-input::placeholder {
     border: 1px solid var(--primary, #0075de);
     border-radius: var(--radius-md, 6px);
     box-sizing: border-box;
-    color: #ffffff;
+    color: #ffffff !important;
     display: inline-flex;
     font-size: 12px;
     font-weight: 600;
@@ -1313,13 +1314,20 @@ input.topbar-search-input::placeholder {
     padding: 9px 14px;
     text-align: center;
     text-decoration: none;
-    transition: background-color 150ms ease, box-shadow 150ms ease;
+    transition: background-color 150ms ease, box-shadow 150ms ease, border-color 150ms ease, color 150ms ease;
     width: 100%;
 }
 
 .notif-primary-cta:hover {
-    background: var(--primary-hover);
+    background: var(--primary-hover, #005bab);
+    border-color: var(--primary-hover, #005bab);
+    color: #ffffff !important;
     box-shadow: var(--shadow-sm);
+}
+
+.notif-primary-cta span,
+.notif-primary-cta svg {
+    color: inherit !important;
 }
 
 .notif-footer-link {
@@ -1723,18 +1731,32 @@ html[data-theme="dark"] .notif-close-btn:hover {
 }
 
 html[data-theme="dark"] .notif-summary-banner {
-    background: var(--surface-subtle);
-    border-color: var(--line);
+    background: rgba(255, 177, 16, 0.08);
+    border-color: rgba(255, 177, 16, 0.25);
 }
 
 html[data-theme="dark"] .notif-item-card {
-    background: var(--surface-subtle);
-    border-color: var(--line);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--primary, #62aef0);
 }
 
 html[data-theme="dark"] .notif-item-card:hover {
     background: var(--surface-hover);
-    border-color: var(--line-subtle);
+    border-color: var(--line-strong);
+    border-left-color: var(--primary-hover, #93cdfe);
+}
+
+html[data-theme="dark"] .notif-item-card.is-urgent {
+    background: rgba(246, 73, 50, 0.12);
+    border-color: var(--danger-border);
+    border-left: 3px solid var(--danger-text, #ff8b7c);
+}
+
+html[data-theme="dark"] .notif-item-card.is-urgent:hover {
+    background: rgba(246, 73, 50, 0.18);
+    border-color: rgba(246, 73, 50, 0.5);
+    border-left-color: #ffa194;
 }
 
 html[data-theme="dark"] .notif-item-name {
@@ -1742,7 +1764,41 @@ html[data-theme="dark"] .notif-item-name {
 }
 
 html[data-theme="dark"] .notif-item-date {
-    color: var(--muted);
+    color: var(--warning-text, #ffc95e);
+}
+
+html[data-theme="dark"] .notif-item-date.is-urgent {
+    color: var(--danger-text, #ff8b7c);
+}
+
+html[data-theme="dark"] .badge-milestone-urgent {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-text, #ff8b7c);
+}
+
+html[data-theme="dark"] .badge-milestone-warning {
+    background-color: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning-text, #ffc95e);
+}
+
+html[data-theme="dark"] .notif-primary-cta {
+    background: var(--primary, #62aef0);
+    border-color: var(--primary, #62aef0);
+    color: #191918 !important;
+    font-weight: 700;
+}
+
+html[data-theme="dark"] .notif-primary-cta:hover {
+    background: var(--primary-hover, #93cdfe);
+    border-color: var(--primary-hover, #93cdfe);
+    color: #191918 !important;
+}
+
+html[data-theme="dark"] .notif-primary-cta span,
+html[data-theme="dark"] .notif-primary-cta svg {
+    color: inherit !important;
 }
 
 html[data-theme="dark"] .notif-dropdown-title {
