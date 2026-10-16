@@ -2169,6 +2169,32 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 .table-filter-grid select {
     font-size: 13.5px;
     font-weight: 400;
+    min-height: 42px;
+}
+.table-filter-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+}
+.table-filter-search-wrap .table-filter-search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    flex-shrink: 0;
+    transition: color 150ms ease;
+    z-index: 1;
+}
+.table-filter-search-wrap:focus-within .table-filter-search-icon {
+    color: var(--primary);
+}
+.table-filter-search-wrap input[type="search"],
+.table-filter-search-wrap input {
+    padding-left: 38px !important;
 }
 .table-filter-actions {
     align-items: center;

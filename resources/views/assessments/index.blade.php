@@ -42,7 +42,13 @@
     <form id="assessment-filter-form" class="table-filters" method="GET" action="{{ route('assessments.index') }}" data-partial-filter="true" data-target="#assessment-table-container">
         <input type="hidden" name="per_page" value="{{ $perPage }}">
         <div class="table-filter-grid">
-            <label for="filter-asm-search">Cari agenda<input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off"></label>
+            <label for="filter-asm-search">
+                Cari agenda
+                <div class="table-filter-search-wrap">
+                    <x-icon name="search" size="16" class="table-filter-search-icon" />
+                    <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off">
+                </div>
+            </label>
             <label for="filter-asm-lpk">LPK<select id="filter-asm-lpk" name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
             <label for="filter-asm-type">Jenis<select id="filter-asm-type" name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
             <label for="filter-asm-status">Status Pelaksanaan<select id="filter-asm-status" name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>

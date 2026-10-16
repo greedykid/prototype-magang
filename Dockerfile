@@ -20,32 +20,25 @@ RUN composer dump-autoload --no-dev --optimize --no-interaction --ignore-platfor
 
 
 # ── Tahap 2: aset frontend ───────────────────────────────────────────────────
-FROM node:22-alpine AS assets
+FROM alpine:latest AS assets
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
-
-COPY . .
-COPY --from=vendor /app/vendor ./vendor
-
-RUN mkdir -p storage/framework/views && npm run build
+COPY public/build ./public/build
 
 
 # ── Tahap 3: aplikasi (php-fpm) ──────────────────────────────────────────────
 FROM php:8.4-fpm-alpine AS app
 
 RUN apk add --no-cache --virtual .build-deps \
-        oniguruma-dev \
         libzip-dev \
         libpng-dev \
         libjpeg-turbo-dev \
         freetype-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" mbstring opcache zip gd \
+    && docker-php-ext-install -j1 zip gd \
     && apk del .build-deps \
-    && apk add --no-cache oniguruma libzip libpng libjpeg-turbo freetype
+    && apk add --no-cache libzip libpng libjpeg-turbo freetype
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/99-opcache.ini
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-simasadi.ini

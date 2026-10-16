@@ -6,6 +6,7 @@ use App\Http\Controllers\AssessmentImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
@@ -32,6 +33,7 @@ Route::middleware('throttle:60,1')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     // 1. Fitur bersama & operasional unit internal (Admin & PIC)
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/search/live', [GlobalSearchController::class, 'search'])->name('search.live');
     Route::get('/calendar', [CalendarEventController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events/create', [CalendarEventController::class, 'create'])->name('calendar.events.create');
     Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar.events.store');

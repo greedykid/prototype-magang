@@ -2,24 +2,24 @@
 .agenda-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    flex: 1;
+    gap: 8px;
+    flex: 0 0 auto;
 }
 
 .agenda-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
+    align-items: flex-start;
+    padding: 9px 11px;
     background: var(--surface-subtle, #f6f5f4);
-    border: 1px solid var(--line, #dfdcd9);
-    border-radius: var(--radius-lg, 8px);
-    gap: 14px;
+    border: 1px solid var(--line-subtle, #eaecf5);
+    border-radius: var(--radius-lg, 12px);
+    gap: 9px;
     transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
     text-decoration: none;
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
+    flex: 0 0 auto;
 }
 
 .agenda-card:hover {
@@ -35,32 +35,87 @@
     align-items: center;
     justify-content: center;
     min-width: 48px;
-    padding: 6px 10px;
+    width: 48px;
+    padding: 6px 4px;
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md, 6px);
+    border: 1px solid var(--line-subtle, var(--line));
+    border-radius: var(--radius-md, 8px);
     text-align: center;
     flex-shrink: 0;
 }
 
 .agenda-card-date .day {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--primary, #0075de);
     line-height: 1;
 }
 
 .agenda-card-date .month {
-    font-size: 10.5px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     color: var(--muted, #615d59);
     text-transform: uppercase;
-    margin-top: 2px;
+    margin-top: 3px;
+    line-height: 1.1;
+}
+
+.agenda-card-date .year {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted, #615d59);
+    letter-spacing: 0.02em;
+    margin-top: 1px;
+    line-height: 1.1;
 }
 
 .agenda-card-main {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.agenda-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.agenda-card-type {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface-hover, #f0f2f8);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm, 6px);
+    border: none;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.agenda-card-lpk-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink, #191918);
+    line-height: 1.35;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.agenda-card-sub {
+    font-size: 11.5px;
+    color: var(--muted, #615d59);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .agenda-card-title {
@@ -173,30 +228,25 @@
 .dashboard-lpk-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    flex: 1;
-}
-
-/* Ketika list terisi penuh 5 item, distribusikan ruang secara harmonis agar kedua kartu sejajar hingga baris terakhir */
-.dashboard-lpk-list:has(> :nth-child(5)) > .dashboard-lpk-item,
-.agenda-list:has(> :nth-child(5)) > .agenda-card {
-    flex: 1;
+    gap: 8px;
+    flex: 0 0 auto;
 }
 
 .dashboard-lpk-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 9px 11px;
     background: var(--surface-subtle, #f8f8fc);
     border: 1px solid var(--line, #eaecf5);
     border-radius: var(--radius-lg, 12px);
-    gap: 12px;
+    gap: 8px;
     text-decoration: none;
     transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 160ms ease, background-color 160ms ease;
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
+    flex: 0 0 auto;
 }
 
 .dashboard-lpk-item:hover {
@@ -211,45 +261,57 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    overflow: hidden;
 }
 
 .dashboard-lpk-item-top {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px 6px;
     flex-wrap: wrap;
+    min-width: 0;
+}
+
+.dashboard-lpk-item-top .status,
+.dashboard-lpk-item-top .badge {
+    font-size: 11px;
+    padding: 1.5px 6.5px;
 }
 
 .dashboard-lpk-reg {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--muted-strong);
+    font-size: 10.5px;
+    font-weight: 600;
+    font-family: var(--font-mono, monospace);
+    color: var(--muted);
     background: var(--surface-hover, #f0f2f8);
-    padding: 2px 8px;
+    padding: 1px 5px;
     border-radius: var(--radius-sm, 6px);
-    border: 1px solid var(--line);
+    border: none;
+    line-height: 1.35;
+    white-space: nowrap;
 }
 
 .dashboard-lpk-name {
-    font-size: 13.5px;
+    font-size: 12.5px;
     font-weight: 600;
     color: var(--ink);
-    line-height: 1.4;
+    line-height: 1.35;
     word-break: break-word;
-    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .dashboard-lpk-meta {
     display: flex;
     align-items: center;
-    gap: 4px 6px;
-    font-size: 12px;
+    gap: 3px 6px;
+    font-size: 11px;
     color: var(--muted);
     flex-wrap: wrap;
-    line-height: 1.35;
-    word-break: break-word;
-    white-space: normal;
+    line-height: 1.3;
 }
 
 .dashboard-lpk-arrow {
@@ -257,6 +319,7 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    margin-top: 3px;
     transition: transform 160ms ease, color 160ms ease;
 }
 
@@ -266,16 +329,18 @@
 }
 
 .dashboard-more-link {
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--primary);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     text-decoration: none;
-    padding: 6px 10px;
-    border-radius: var(--radius-md, 8px);
-    min-height: 32px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm, 6px);
+    line-height: 1.3;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: color 150ms ease, background-color 150ms ease;
 }
 

@@ -4,7 +4,26 @@
             <a href="{{ route('dashboard') }}" class="brand-mark" title="SIMASADI - Badan Standardisasi Nasional">
                 <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img" width="34" height="34">
             </a>
-            <div class="brand-text"><strong>SIMASADI</strong><small>Unit Akreditasi Lab KAN</small></div>
+            <div class="brand-text"><strong>SIMASADI</strong><small>Akreditasi Laboratorium</small></div>
+        </div>
+    </div>
+    {{-- Widget Waktu Operasional Real-time (Hari, Tanggal, Jam WIB) --}}
+    @php
+        $nowJakarta = now()->setTimezone('Asia/Jakarta');
+        $initialDate = $nowJakarta->translatedFormat('l, d F Y');
+        $initialTime = $nowJakarta->format('H:i:s') . ' WIB';
+    @endphp
+    <div class="sidebar-datetime-card" id="sidebar-datetime-card" title="{{ $initialDate }} &bull; {{ $initialTime }}">
+        <div class="sidebar-datetime-icon" aria-hidden="true">
+            <x-icon name="clock" size="15" />
+        </div>
+        <div class="sidebar-datetime-content">
+            <div class="sidebar-clock-row">
+                <span class="sidebar-clock-time" id="sidebar-clock-time">{{ $initialTime }}</span>
+            </div>
+            <div class="sidebar-date-row">
+                <span class="sidebar-date-text" id="sidebar-date-text">{{ $initialDate }}</span>
+            </div>
         </div>
     </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>

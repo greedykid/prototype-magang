@@ -39,9 +39,9 @@
 .status-in_progress, .status-open { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); }
 .status-completed, .status-pelaksanaan, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--success-bg, #eefbf0); border-color: var(--success-border, rgba(21, 111, 8, 0.25)); color: var(--success-text, #156f08); font-weight: 600; }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: var(--neutral-chip-bg, #f8f8fc); border-color: var(--neutral-chip-border, #eaecf5); color: var(--neutral-chip-text, #5d6b98); }
-.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-grace_period, .status-reminder, .status-warn { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); font-weight: 600; }
+.status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-due, .status-grace_period, .status-reminder, .status-warn { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); font-weight: 600; }
 .status-batas-tp { background: var(--purple-bg, #f5edff); border-color: var(--purple-border, rgba(90, 40, 176, 0.25)); color: var(--purple-text, #5a28b0); font-weight: 600; }
-.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: var(--danger-bg, #fff0f2); border-color: var(--danger-border, rgba(188, 8, 31, 0.25)); color: var(--danger-text, #bc081f); font-weight: 600; }
+.status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: var(--danger-bg, #fff0f2); border-color: var(--danger-border, rgba(188, 8, 31, 0.25)); color: var(--danger-text, #bc081f); font-weight: 600; }
 .status-suspended, .status-dibekukan { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(25, 114, 245, 0.25)); color: var(--info-text, #1972f5); font-weight: 600; }
 
 /* Dark Mode Status Badges */
@@ -72,6 +72,7 @@ html[data-theme="dark"] .status-pending_verification,
 html[data-theme="dark"] .status-waiting_output,
 html[data-theme="dark"] .status-under_review,
 html[data-theme="dark"] .status-surveillance_due,
+html[data-theme="dark"] .status-due,
 html[data-theme="dark"] .status-grace_period,
 html[data-theme="dark"] .status-reminder,
 html[data-theme="dark"] .status-warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
@@ -81,6 +82,7 @@ html[data-theme="dark"] .status-rejected,
 html[data-theme="dark"] .status-expired,
 html[data-theme="dark"] .status-cancelled,
 html[data-theme="dark"] .status-surveillance_overdue,
+html[data-theme="dark"] .status-overdue,
 html[data-theme="dark"] .status-revoked,
 html[data-theme="dark"] .status-dicabut,
 html[data-theme="dark"] .status-jt,

@@ -101,7 +101,10 @@
             <div class="table-filter-grid">
                 <label for="filter-lpk-search">
                     Cari LPK
-                    <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                    </div>
                 </label>
                 <label for="filter-lpk-status">
                     Status LPK
@@ -262,7 +265,10 @@
             <div class="table-filter-grid">
                 <label for="filter-asm-search">
                     Cari Agenda
-                    <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda atau no. SK..." autocomplete="off">
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda atau no. SK..." autocomplete="off">
+                    </div>
                 </label>
                 <label for="filter-asm-lpk">
                     LPK Terpilih

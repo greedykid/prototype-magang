@@ -92,6 +92,79 @@
     white-space: nowrap;
 }
 
+/* Sidebar Real-time Operational Date & Clock Widget */
+.sidebar-datetime-card {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 9px;
+    margin: 4px 4px 10px 4px;
+    background: var(--surface-subtle, #f0f2f5);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: var(--radius-lg, 10px);
+    box-sizing: border-box;
+    transition: background-color 150ms ease, border-color 150ms ease, width 180ms ease, padding 180ms ease;
+    user-select: none;
+}
+
+.sidebar-datetime-card:hover {
+    background: var(--surface-hover, #e8ebf0);
+    border-color: var(--line-subtle, #cbd5e1);
+}
+
+.sidebar-datetime-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-md, 6px);
+    background: var(--surface, #ffffff);
+    color: var(--primary, #0075de);
+    border: 1px solid var(--line, #e2e8f0);
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-datetime-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar-clock-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.sidebar-clock-time {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink, #0f172a);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+.sidebar-date-row {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-date-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted, #64748b);
+    line-height: 1.25;
+}
+
 /* Navigation Links & Sections */
 .sidebar nav {
     display: flex;
@@ -139,18 +212,19 @@
 
 .sidebar nav a {
     align-items: center;
-    border-radius: var(--radius-md, 6px);
+    border-radius: var(--radius-lg, 10px);
     color: var(--sidebar-text, var(--ink));
     display: flex;
-    min-height: 38px;
-    padding: 8px 12px;
+    min-height: 40px;
+    padding: 8px 14px;
     position: relative;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
-    gap: 10px;
+    gap: 12px;
     border: 1px solid transparent;
     transition: background-color 150ms ease, color 150ms ease, padding 180ms cubic-bezier(0.16, 1, 0.3, 1), gap 180ms cubic-bezier(0.16, 1, 0.3, 1), transform 100ms ease;
+    overflow: hidden;
 }
 
 .sidebar nav a svg {
@@ -172,20 +246,36 @@
     color: var(--ink);
 }
 
-/* Active Link: Notion Sidebar Item Style */
+/* Active Link: Clear Blue Pill with Vertical Indicator Bar (Wireframe Reference) */
 .sidebar nav a.active {
-    background: var(--sidebar-active-bg, rgba(0, 0, 0, 0.05));
+    background: #d8ebfd;
     border-color: transparent;
-    color: var(--sidebar-active-text, var(--ink));
+    border-radius: var(--radius-lg, 10px);
+    color: #0066f5;
     font-weight: 600;
+    box-shadow: none;
 }
 
 .sidebar nav a.active svg {
-    color: var(--primary, #0075de);
+    color: #0066f5;
 }
 
 .sidebar nav a.active::before {
-    display: none;
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.5px;
+    height: 20px;
+    background-color: #0066f5;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+.sidebar nav a.active:hover {
+    background: #c7e1fc;
+    color: #0066f5;
 }
 
 .sidebar nav a:active {
@@ -440,6 +530,31 @@
         transform: translateX(-8px);
     }
 
+    html.sidebar-is-collapsed .sidebar-datetime-card,
+    .app-shell.sidebar-collapsed .sidebar-datetime-card {
+        padding: 4px;
+        justify-content: center;
+        gap: 0;
+        margin: 4px auto 10px auto;
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-md, 8px);
+    }
+
+    html.sidebar-is-collapsed .sidebar-datetime-content,
+    .app-shell.sidebar-collapsed .sidebar-datetime-content {
+        display: none !important;
+    }
+
+    html.sidebar-is-collapsed .sidebar-datetime-icon,
+    .app-shell.sidebar-collapsed .sidebar-datetime-icon {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        width: 100%;
+        height: 100%;
+    }
+
     html.sidebar-is-collapsed .nav-label,
     .app-shell.sidebar-collapsed .nav-label {
         max-width: 0;
@@ -471,10 +586,13 @@
 
     html.sidebar-is-collapsed .sidebar nav a.active::before,
     .app-shell.sidebar-collapsed .sidebar nav a.active::before {
-        left: 2px;
-        top: 8px;
-        bottom: 8px;
-        width: 3px;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3.5px;
+        height: 20px;
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
     }
 
     html.sidebar-is-collapsed .nav-section-title,
@@ -602,13 +720,21 @@ html[data-theme="dark"] .sidebar nav::-webkit-scrollbar-thumb {
 }
 
 html[data-theme="dark"] .sidebar nav a.active {
-    background: var(--primary-subtle);
+    background: rgba(0, 117, 222, 0.24);
     border-color: transparent;
-    color: var(--primary);
+    color: #60a5fa;
 }
 
 html[data-theme="dark"] .sidebar nav a.active svg {
-    color: var(--primary);
+    color: #60a5fa;
+}
+
+html[data-theme="dark"] .sidebar nav a.active::before {
+    background-color: #60a5fa;
+}
+
+html[data-theme="dark"] .sidebar nav a.active:hover {
+    background: rgba(0, 117, 222, 0.32);
 }
 
 html[data-theme="dark"] .drawer-account {

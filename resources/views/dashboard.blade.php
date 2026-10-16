@@ -3,42 +3,39 @@
 @section('title', 'Dasbor | SIMASADI')
 
 @section('content')
-    {{-- Notifikasi Hijau Tanda Kondisi Aman (Simple & Compact di Paling Atas) --}}
     @php
         $isAllClear = empty($globalSurveillanceAlerts)
             && (!isset($urgentTpAssessments) || $urgentTpAssessments->isEmpty());
     @endphp
 
     @if($isAllClear)
-        <aside class="dashboard-safe-banner" role="status" aria-label="Status kepatuhan operasional">
+        <div class="dashboard-safe-banner" role="status" aria-live="polite">
             <div class="dashboard-safe-banner-main">
                 <span class="dashboard-safe-banner-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <path d="m9 12 2 2 4-4"/>
-                    </svg>
+                    <x-icon name="check-circle" size="18" />
                 </span>
-                <span class="dashboard-safe-banner-text">
-                    <strong>Tidak Ada Tindakan Mendesak:</strong> Semua siklus surveilen dan pemenuhan perbaikan asesmen saat ini berjalan sesuai jadwal.
-                </span>
+                <div class="dashboard-safe-banner-text">
+                    <strong>Semua Operasional Aman &amp; Terkendali.</strong>
+                    <span>Seluruh agenda surveilen dan perbaikan berjalan lancar tanpa ada yang memerlukan tindak lanjut segera.</span>
+                </div>
             </div>
             <span class="dashboard-safe-banner-badge">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                Kondisi Normal
+                <x-icon name="shield-check" size="14" />
+                <span>Semua Aman</span>
             </span>
-        </aside>
+        </div>
     @endif
 
     <div class="page-heading">
         <div>
-            <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()->name }}.</h1>
+            <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()?->isPic() ? 'PIC Laboratorium Penguji & Kalibrasi.' : auth()->user()->name . '.' }} 👋</h1>
             <p class="lede">Ringkasan operasional kepatuhan akreditasi, surveilen KAN, dan agenda penugasan asesmen.</p>
         </div>
         <div class="dashboard-header-actions">
-            @if(auth()->user()?->isAdmin())
+            @if(auth()->user()?->isAdmin() || auth()->user()?->isPic())
                 <a class="button primary" href="{{ route('lpks.create') }}"><x-icon name="plus" size="16" /><span>Tambah LPK</span></a>
             @endif
-            <a class="button secondary" href="{{ route('calendar.index') }}"><x-icon name="calendar" size="16" /><span>Kalender Kerja</span></a>
+            <a class="button secondary" href="{{ route('calendar.index') }}"><x-icon name="calendar" size="16" /><span>Kalender</span></a>
         </div>
     </div>
 
@@ -46,7 +43,7 @@
     <section class="metric-grid" aria-label="Ringkasan angka">
         <a href="{{ route('lpks.index') }}" class="metric">
             <div class="metric-head">
-                <span class="metric-label">LPK terdaftar</span>
+                <span class="metric-label">LPK Terdaftar</span>
                 <div class="metric-icon theme-indigo" aria-hidden="true">
                     <x-icon name="lpks" size="18" />
                 </div>
@@ -58,246 +55,177 @@
         </a>
         <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="metric {{ !empty($globalSurveillanceAlerts) ? 'warn' : '' }}">
             <div class="metric-head">
-                <span class="metric-label">Tindak lanjut surveilen</span>
+                <span class="metric-label">Tindak Lanjut Surveilen</span>
                 <div class="metric-icon {{ !empty($globalSurveillanceAlerts) ? 'theme-rose' : 'theme-emerald' }}" aria-hidden="true">
                     <x-icon name="{{ !empty($globalSurveillanceAlerts) ? 'alert-circle' : 'check-circle' }}" size="18" />
                 </div>
             </div>
             <div class="metric-body">
                 <strong>{{ count($globalSurveillanceAlerts ?? []) }}</strong>
-                <small>{{ !empty($globalSurveillanceAlerts) ? 'Perlu tindakan segera' : 'Siklus pengawasan normal' }}</small>
+                <small>{{ !empty($globalSurveillanceAlerts) ? count($globalSurveillanceAlerts) . ' LPK perlu dijadwalkan' : 'Semua pengawasan sesuai jadwal' }}</small>
             </div>
         </a>
         <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
             <div class="metric-head">
-                <span class="metric-label">Asesmen bulan ini</span>
+                <span class="metric-label">Asesmen Bulan Ini</span>
                 <div class="metric-icon theme-sky" aria-hidden="true">
                     <x-icon name="calendar" size="18" />
                 </div>
             </div>
             <div class="metric-body">
                 <strong>{{ $assessmentCount }}</strong>
-                <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' TP melewati batas waktu KAN' : (!empty($dueSoonTpCount) ? $dueSoonTpCount . ' TP jatuh tempo segera' : 'Agenda penugasan asesor') }}</small>
+                <small>{{ $assessmentCount > 0 ? $assessmentCount . ' agenda asesmen berjalan' : 'Tidak ada jadwal asesmen bulan ini' }}</small>
             </div>
         </a>
         <a href="{{ route('assessments.index') }}" class="metric {{ !empty($overdueTpCount) ? 'warn' : '' }}">
             <div class="metric-head">
-                <span class="metric-label">Tindakan perbaikan (TP)</span>
+                <span class="metric-label">Tindakan Perbaikan (TP)</span>
                 <div class="metric-icon {{ !empty($overdueTpCount) ? 'theme-rose' : ($activeTpCount > 0 ? 'theme-amber' : 'theme-emerald') }}" aria-hidden="true">
                     <x-icon name="assessments" size="18" />
                 </div>
             </div>
             <div class="metric-body">
                 <strong>{{ $activeTpCount }}</strong>
-                <small>{{ !empty($overdueTpCount) ? $overdueTpCount . ' melewati batas KAN' : 'Pemenuhan temuan asesmen' }}</small>
+                <small>{{ $activeTpCount > 0 ? (!empty($overdueTpCount) ? $overdueTpCount . ' perbaikan melewati batas KAN' : $activeTpCount . ' perbaikan dalam proses') : 'Semua perbaikan selesai' }}</small>
             </div>
         </a>
     </section>
 
-    {{-- Antrean Tindakan Mendesak: Peringatan Siklus Surveilen & Batas TP KAN --}}
-    @if(!empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty()))
-        <div class="dashboard-urgent-stack" aria-label="Antrean Tindakan Mendesak">
-            {{-- Panel Peringatan Jatuh Tempo Siklus Pengawasan KAN --}}
-            @if(!empty($globalSurveillanceAlerts))
-                <section class="panel surveillance-alert-panel" aria-labelledby="surveillance-heading">
-                    <div class="surveillance-alert-header">
-                        <div>
-                            <h2 id="surveillance-heading" class="surveillance-alert-title">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                Peringatan Jatuh Tempo Siklus Pengawasan KAN (Surveilen 1, 2 &amp; Re-Akreditasi)
-                            </h2>
-                            <p class="surveillance-alert-subtitle">Terdapat {{ count($globalSurveillanceAlerts) }} LPK yang memerlukan penjadwalan kunjungan asesmen penilikan atau re-akreditasi KAN.</p>
-                        </div>
-                        <span class="badge lpk-alert-badge is-urgent">Wajib Tindak Lanjut</span>
-                    </div>
-                    <div class="surveillance-alert-list">
-                        @foreach(array_slice($globalSurveillanceAlerts, 0, 5) as $alert)
-                            <div class="surveillance-alert-item">
-                                <div class="surveillance-alert-main-info">
-                                    <span class="badge lpk-alert-badge {{ $alert['is_urgent'] ? 'is-urgent' : 'is-warning' }}">
-                                        {{ $alert['code'] }}
-                                    </span>
-                                    <div>
-                                        <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="surveillance-alert-lpk-name">
-                                            {{ $alert['lpk_name'] }}
-                                        </a>
-                                        <span class="surveillance-alert-reg">({{ $alert['lpk_reg'] }})</span>
-                                        <div class="dashboard-alert-desc {{ $alert['is_urgent'] ? 'is-urgent' : 'is-warning' }}">
-                                            {{ $alert['description'] }} &bull; Target Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong>
-                                            @if(!empty($alert['target_date']))
-                                                @php
-                                                    $diffDays = (int) now()->startOfDay()->diffInDays($alert['target_date']->startOfDay(), false);
-                                                @endphp
-                                                <span class="badge badge-countdown {{ $diffDays < 0 ? 'status-danger' : ($diffDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
-                                                    {{ $diffDays < 0 ? 'Terlewat ' . abs($diffDays) . ' Hari' : ($diffDays === 0 ? 'Hari Ini' : 'H-' . $diffDays) }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="surveillance-alert-actions">
-                                    @if(!empty($alert['target_date']))
-                                        <a href="{{ route('calendar.index', [
-                                            'view' => 'month',
-                                            'date' => $alert['target_date']->format('Y-m-d'),
-                                            'highlight' => 'lpk_jt_' . strtolower($alert['code']) . '_' . $alert['lpk_id'],
-                                            'selected' => 1,
-                                        ]) }}" class="button ghost button-sm" title="Lihat tanggal siklus di kalender">
-                                            <x-icon name="calendar" size="14" />
-                                            <span>Kalender</span>
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="button secondary button-sm">
-                                        <span>Lihat Detail</span>
-                                        <x-icon name="chevron-right" size="14" />
-                                    </a>
-                                    @if(auth()->user()?->isAdmin())
-                                        <a href="{{ route('assessments.create', [
-                                            'lpk_id' => $alert['lpk_id'],
-                                            'alert_code' => $alert['code'],
-                                            'target_date' => $alert['target_date'] ? $alert['target_date']->format('Y-m-d') : null,
-                                        ]) }}" class="button primary button-sm">
-                                            <x-icon name="plus" size="14" />
-                                            <span>Jadwalkan Kunjungan</span>
-                                        </a>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                        @if(count($globalSurveillanceAlerts) > 5)
-                            <div class="dashboard-more-wrap">
-                                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="dashboard-more-link">
-                                    <span>Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo</span>
-                                    <x-icon name="chevron-right" size="14" />
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </section>
-            @endif
-
-            {{-- Panel Peringatan Batas Waktu Tindakan Perbaikan (TP & VTP) KAN --}}
-            @if(isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty())
-                <section class="panel surveillance-alert-panel tp-alert-panel" aria-labelledby="tp-alert-heading">
-                    <div class="surveillance-alert-header">
-                        <div>
-                            <h2 id="tp-alert-heading" class="surveillance-alert-title">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                Peringatan Batas Waktu Tindakan Perbaikan (TP &amp; VTP) KAN
-                            </h2>
-                            <p class="surveillance-alert-subtitle">Terdapat {{ $urgentTpTotalCount ?? $urgentTpAssessments->count() }} asesmen dengan tindakan perbaikan yang mendekati jatuh tempo (&le; 14 hari) atau melewati batas regulasi KAN.</p>
-                        </div>
-                        <span class="badge lpk-alert-badge is-urgent">Batas Waktu Ketat</span>
-                    </div>
-                    <div class="surveillance-alert-list">
-                        @foreach($urgentTpAssessments as $assessment)
-                            @php $tpBadge = $assessment->tp_sla_badge; @endphp
-                            <div class="surveillance-alert-item">
-                                <div class="surveillance-alert-main-info">
-                                    <span class="badge-tp badge-tp-{{ $tpBadge['type'] }}">
-                                        {{ $tpBadge['label'] }}
-                                    </span>
-                                    <div>
-                                        <a href="{{ route('assessments.show', $assessment) }}" class="surveillance-alert-lpk-name">
-                                            {{ $assessment->display_title }}
-                                        </a>
-                                        <span class="surveillance-alert-reg">({{ $assessment->lpk->name }})</span>
-                                        <div class="dashboard-alert-desc {{ $assessment->is_tp_overdue ? 'is-urgent' : 'is-warning' }}">
-                                            {{ $assessment->assessment_type_label }} &bull; Batas Akhir: <strong>{{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d/m/Y') : '-' }}</strong>
-                                            @if($assessment->effective_tp_due_date)
-                                                @php
-                                                    $diffTpDays = (int) now()->startOfDay()->diffInDays($assessment->effective_tp_due_date->startOfDay(), false);
-                                                @endphp
-                                                <span class="badge badge-countdown {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
-                                                    {{ $diffTpDays < 0 ? 'Terlewat ' . abs($diffTpDays) . ' Hari' : ($diffTpDays === 0 ? 'Hari Ini' : 'H-' . $diffTpDays) }}
-                                                </span>
-                                            @endif
-                                            @if($assessment->tp_has_extension)
-                                                <span class="tp-extension-note">(+1 Bulan Surat Resmi)</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="surveillance-alert-actions">
-                                    <a href="{{ route('calendar.index', [
-                                        'view' => 'month',
-                                        'date' => ($assessment->effective_tp_due_date ?: $assessment->start_at)?->format('Y-m-d') ?: now()->format('Y-m-d'),
-                                        'highlight' => 'tp_' . $assessment->id,
-                                        'selected' => 1,
-                                    ]) }}" class="button ghost button-sm" title="Lihat batas waktu TP di kalender">
-                                        <x-icon name="calendar" size="14" />
-                                        <span>Kalender</span>
-                                    </a>
-                                    <a href="{{ route('assessments.show', $assessment) }}" class="button secondary button-sm">
-                                        <span>Periksa TP</span>
-                                        <x-icon name="chevron-right" size="14" />
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
-                        @if(($urgentTpTotalCount ?? $urgentTpAssessments->count()) > 5)
-                            <div class="dashboard-more-wrap">
-                                <a href="{{ route('assessments.index', !empty($overdueTpCount) ? ['tp_status' => 'OVERDUE'] : []) }}" class="dashboard-more-link">
-                                    <span>Lihat seluruh {{ $urgentTpTotalCount ?? $urgentTpAssessments->count() }} asesmen TP yang mendesak</span>
-                                    <x-icon name="chevron-right" size="14" />
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </section>
-            @endif
-        </div>
-    @elseif($isAllClear)
-        <section class="panel dashboard-health-panel" aria-labelledby="status-kepatuhan-heading">
+    {{-- Grid 3 Kolom Sejajar: Status Pengawasan & TP, Laboratorium Terkelola, Asesmen Terdekat --}}
+    <div class="dashboard-tri-grid">
+        @php
+            $hasSurveillanceAlerts = !empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty());
+            $maxAlerts = 5;
+            $tpItems = isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty() ? $urgentTpAssessments->take(2) : collect();
+            $surveillanceLimit = max(0, $maxAlerts - $tpItems->count());
+            $surveillanceList = array_slice($globalSurveillanceAlerts ?? [], 0, $surveillanceLimit);
+            $actionCount = count($surveillanceList) + $tpItems->count();
+        @endphp
+        {{-- Kolom 1: Perlu Tindak Lanjut --}}
+        <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" aria-labelledby="status-pengawasan-heading">
             <div class="panel-head">
-                <div>
-                    <h2 id="status-kepatuhan-heading">Status Pengawasan &amp; TP KAN</h2>
+                <div class="dashboard-panel-title-wrap">
+                    <div class="dashboard-panel-title-row">
+                        <h2 id="status-pengawasan-heading">{{ $hasSurveillanceAlerts ? 'Perlu Tindak Lanjut' : 'Status Pengawasan' }}</h2>
+                        @if($hasSurveillanceAlerts && $actionCount > 0)
+                            <span class="dashboard-panel-count-badge" title="{{ $actionCount }} item perlu tindak lanjut">{{ $actionCount }}</span>
+                        @endif
+                    </div>
+                    <p class="dashboard-panel-subtext">{{ $hasSurveillanceAlerts ? 'Surveilen & perbaikan butuh tindak lanjut' : 'Seluruh siklus surveilen & perbaikan terkendali' }}</p>
                 </div>
-                <span class="badge status-completed">
-                    Semua Siklus Normal
-                </span>
+                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="dashboard-more-link" title="Buka seluruh antrean pengawasan dan perbaikan">
+                    <span>Lihat semua</span>
+                    <x-icon name="chevron-right" size="14" />
+                </a>
             </div>
-            <div class="dashboard-health-card">
-                <div class="dashboard-health-main">
-                    <span class="dashboard-health-icon">
-                        <x-icon name="check-circle" size="18" />
-                    </span>
-                    <div class="dashboard-health-copy">
-                        <strong>Siklus &amp; Tindakan Perbaikan Terkendali</strong>
-                        <p>Tidak ada agenda surveilen (S1/S2/RA) yang jatuh tempo ataupun temuan perbaikan yang mendekati batas waktu KAN saat ini.</p>
-                    </div>
-                </div>
-                <div class="dashboard-health-metrics">
-                    <div class="dashboard-health-stat">
-                        <span class="stat-label"><span class="stat-dot green"></span>Siklus Surveilen</span>
-                        <strong class="stat-val">100% Sesuai Skedul</strong>
-                    </div>
-                    <div class="dashboard-health-stat">
-                        <span class="stat-label"><span class="stat-dot green"></span>Tindakan Perbaikan</span>
-                        <strong class="stat-val">0 Menunggak</strong>
-                    </div>
-                    <div class="dashboard-health-stat">
-                        <span class="stat-label"><span class="stat-dot blue"></span>Masa Berlaku LPK</span>
-                        <strong class="stat-val">{{ $lpkCount }} Terakreditasi</strong>
-                    </div>
-                </div>
-            </div>
-        </section>
-    @endif
 
-    {{-- Panel Operasional Sejajar: Laboratorium Terkelola & Agenda Asesmen Terdekat --}}
-    <div class="dashboard-overview-grid">
-        {{-- Kolom 1: Daftar Laboratorium Terkelola --}}
+            @if(!empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty()))
+                <div class="dashboard-col-alert-list dashboard-lpk-list">
+                    {{-- Peringatan Siklus Surveilen --}}
+                    @foreach($surveillanceList as $alert)
+                        <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="dashboard-lpk-item" title="Lihat detail {{ $alert['lpk_name'] }}">
+                            <div class="dashboard-lpk-item-main">
+                                <div class="dashboard-lpk-item-top">
+                                    <span class="dashboard-lpk-reg">{{ $alert['lpk_reg'] }}</span>
+                                    <x-status :value="$alert['status']" />
+                                    @if(!empty($alert['target_date']))
+                                        @php
+                                            $diffDays = (int) now()->startOfDay()->diffInDays($alert['target_date']->startOfDay(), false);
+                                        @endphp
+                                        <span class="badge badge-countdown {{ $diffDays < 0 ? 'status-danger' : ($diffDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
+                                            {{ $diffDays < 0 ? 'Terlewat ' . abs($diffDays) . ' Hari' : ($diffDays === 0 ? 'Hari Ini' : 'H-' . $diffDays) }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <strong class="dashboard-lpk-name">{{ $alert['lpk_name'] }}</strong>
+                                <div class="dashboard-lpk-meta">
+                                    <span>{{ $alert['name'] ?? $alert['code'] }}</span>
+                                    <span>&bull;</span>
+                                    <span>Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong></span>
+                                </div>
+                            </div>
+                            <div class="dashboard-lpk-arrow" aria-hidden="true">
+                                <x-icon name="chevron-right" size="15" />
+                            </div>
+                        </a>
+                    @endforeach
+
+                    {{-- Peringatan Batas Waktu TP KAN --}}
+                    @if($tpItems->isNotEmpty())
+                        @foreach($tpItems as $assessment)
+                            @php $tpBadge = $assessment->tp_sla_badge; @endphp
+                            <a href="{{ route('assessments.show', $assessment) }}" class="dashboard-lpk-item" title="Buka detail asesmen {{ $assessment->display_title }}">
+                                <div class="dashboard-lpk-item-main">
+                                    <div class="dashboard-lpk-item-top">
+                                        <span class="dashboard-lpk-reg">{{ $assessment->lpk->accreditation_number ?: $assessment->lpk->registration_number }}</span>
+                                        <span class="badge badge-pill badge-tp badge-tp-{{ $tpBadge['type'] }}">{{ $tpBadge['label'] }}</span>
+                                        @if($assessment->effective_tp_due_date)
+                                            @php
+                                                $diffTpDays = (int) now()->startOfDay()->diffInDays($assessment->effective_tp_due_date->startOfDay(), false);
+                                            @endphp
+                                            <span class="badge badge-countdown {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
+                                                {{ $diffTpDays < 0 ? 'Terlewat ' . abs($diffTpDays) . ' Hari' : ($diffTpDays === 0 ? 'Hari Ini' : 'H-' . $diffTpDays) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <strong class="dashboard-lpk-name">{{ $assessment->lpk->name }}</strong>
+                                    <div class="dashboard-lpk-meta">
+                                        <span>{{ $assessment->display_title }}</span>
+                                        <span>&bull;</span>
+                                        <span>Batas TP: <strong>{{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d/m/Y') : '-' }}</strong></span>
+                                    </div>
+                                </div>
+                                <div class="dashboard-lpk-arrow" aria-hidden="true">
+                                    <x-icon name="chevron-right" size="15" />
+                                </div>
+                            </a>
+                        @endforeach
+                    @endif
+                </div>
+            @else
+                {{-- Kondisi Aman / All Clear --}}
+                <div class="dashboard-health-card">
+                    <div class="dashboard-health-main">
+                        <span class="dashboard-health-icon">
+                            <x-icon name="check-circle" size="18" />
+                        </span>
+                        <div class="dashboard-health-copy">
+                            <strong>Siklus &amp; Tindakan Perbaikan Terkendali</strong>
+                            <p>Tidak ada agenda surveilen (S1/S2/RA) yang jatuh tempo ataupun temuan perbaikan yang mendekati batas waktu KAN.</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-health-metrics">
+                        <div class="dashboard-health-stat">
+                            <span class="stat-label"><span class="stat-dot green"></span>Siklus Surveilen</span>
+                            <strong class="stat-val">100% Sesuai Skedul</strong>
+                        </div>
+                        <div class="dashboard-health-stat">
+                            <span class="stat-label"><span class="stat-dot green"></span>Tindakan Perbaikan</span>
+                            <strong class="stat-val">0 Menunggak</strong>
+                        </div>
+                        <div class="dashboard-health-stat">
+                            <span class="stat-label"><span class="stat-dot blue"></span>Masa Berlaku LPK</span>
+                            <strong class="stat-val">{{ $lpkCount }} Terakreditasi</strong>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </section>
+
+        {{-- Kolom 2: Laboratorium Terkelola --}}
         <section class="panel dashboard-lpk-panel" aria-labelledby="managed-lpks-heading">
             <div class="panel-head">
                 <div class="dashboard-panel-title-wrap">
-                    <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
-                    <span class="badge badge-counter">
-                        {{ $lpkCount }} LPK
-                    </span>
+                    <div class="dashboard-panel-title-row">
+                        <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
+                        @if(isset($managedLpks) && $managedLpks->isNotEmpty())
+                            <span class="dashboard-panel-count-badge" title="{{ $managedLpks->count() }} laboratorium terkelola">{{ $managedLpks->count() }}</span>
+                        @endif
+                    </div>
+                    <p class="dashboard-panel-subtext">Daftar laboratorium aktif dan masa berlaku akreditasi</p>
                 </div>
                 <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar LPK">
-                    <span>Lihat Semua</span>
+                    <span>Lihat semua</span>
                     <x-icon name="chevron-right" size="14" />
                 </a>
             </div>
@@ -334,19 +262,20 @@
             @endif
         </section>
 
-        {{-- Kolom 2: Agenda Asesmen Terdekat --}}
+        {{-- Kolom 3: Asesmen Terdekat --}}
         <section class="panel dashboard-agenda-panel" aria-labelledby="upcoming-assessments-heading">
             <div class="panel-head">
                 <div class="dashboard-panel-title-wrap">
-                    <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
-                    @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
-                        <span class="badge badge-counter">
-                            {{ $upcomingAssessments->count() }} Agenda
-                        </span>
-                    @endif
+                    <div class="dashboard-panel-title-row">
+                        <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
+                        @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
+                            <span class="dashboard-panel-count-badge" title="{{ $upcomingAssessments->count() }} asesmen terdekat">{{ $upcomingAssessments->count() }}</span>
+                        @endif
+                    </div>
+                    <p class="dashboard-panel-subtext">Jadwal agenda asesmen dan surveilen mendatang</p>
                 </div>
                 <a href="{{ route('calendar.index') }}" class="dashboard-more-link" title="Buka seluruh jadwal di kalender kerja">
-                    <span>Kalender Kerja</span>
+                    <span>Lihat semua</span>
                     <x-icon name="chevron-right" size="14" />
                 </a>
             </div>
@@ -357,20 +286,16 @@
                             <div class="agenda-card-date">
                                 <span class="day">{{ $assessment->start_at->format('d') }}</span>
                                 <span class="month">{{ $assessment->start_at->translatedFormat('M') }}</span>
+                                <span class="year">{{ $assessment->start_at->format('Y') }}</span>
                             </div>
                             <div class="agenda-card-main">
-                                <div class="agenda-card-title">{{ $assessment->display_title }}</div>
-                                <div class="agenda-card-meta">
-                                    <span><strong>{{ $assessment->lpk->name }}</strong></span>
-                                    <span>&bull;</span>
-                                    <span>{{ $assessment->assessment_type_label }}</span>
-                                    @if($assessment->lead_assessor)
-                                        <span>&bull;</span>
-                                        <span>Ketua: {{ $assessment->lead_assessor }}</span>
-                                    @endif
+                                <div class="agenda-card-top">
+                                    <span class="agenda-card-type">{{ $assessment->assessment_type_label }}</span>
+                                    <x-status :value="$assessment->status" />
                                 </div>
+                                <strong class="agenda-card-lpk-name">{{ $assessment->lpk->name }}</strong>
+                                <div class="agenda-card-sub">{{ $assessment->display_title }}</div>
                             </div>
-                            <x-status :value="$assessment->status" />
                         </a>
                     @endforeach
                 </div>

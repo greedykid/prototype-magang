@@ -392,14 +392,17 @@
         align-items: center;
         display: inline-flex !important;
         flex-shrink: 0;
-        margin-right: 2px;
+        margin-right: 6px;
         text-decoration: none;
     }
 
     .topbar-brand-img {
         display: block;
-        height: 28px;
-        width: 28px;
+        height: 24px;
+        width: auto;
+        max-width: 62px;
+        object-fit: contain;
+        flex-shrink: 0;
     }
 
     /* Reserve bottom space on page content so nothing is covered by bottom nav */

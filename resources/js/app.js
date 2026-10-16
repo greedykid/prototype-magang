@@ -45,6 +45,8 @@ import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
 import { initPasswordToggles } from './modules/password-toggle.js';
 import { initFileDropzones, initFileDropzone } from './modules/file-dropzone.js';
 import { initBottomNav, syncBottomNavActive, setBottomSheetState } from './modules/bottom-nav.js';
+import { initGlobalSearch } from './modules/global-search.js';
+import { initSidebarClock } from './modules/sidebar-clock.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -255,9 +257,10 @@ export const initPageComponents = () => {
         initGcalComponents();
     }
 
-    // 5. Topbar Dropdowns
+    // 5. Topbar Dropdowns & Global Search
     initNotificationDropdown();
     initUserDropdown();
+    initGlobalSearch();
 
     // 6. Table Multiselection
     try {
@@ -282,6 +285,9 @@ export const initPageComponents = () => {
     } catch (err) {
         console.error('Error initializing bottom nav:', err);
     }
+
+    // 11. Sidebar Real-Time Operational Clock & Date
+    initSidebarClock();
 };
 
 window.initPageComponents = initPageComponents;

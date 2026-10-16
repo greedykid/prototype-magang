@@ -86,6 +86,8 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
+    networks:
+      - simasadi-net
   scheduler:
     image: simasadi-app:latest
     container_name: simasadi-scheduler
