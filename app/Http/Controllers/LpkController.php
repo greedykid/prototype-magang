@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLpkRequest;
 use App\Http\Requests\UpdateLpkNotesRequest;
 use App\Http\Requests\UpdateLpkRequest;
+use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -28,14 +29,27 @@ class LpkController extends Controller
             $perPage = 10;
         }
 
+        $searchTerms = Assessment::expandSearchTerms($search);
         $query = Lpk::query()
             ->primaryFor($user)
-            ->when($search, fn ($query) => $query->where(fn ($query) => $query
+            ->when($search, fn ($query) => $query->where(fn ($subQuery) => $subQuery
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('registration_number', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
                 ->orWhere('accreditation_number', 'like', "%{$search}%")
                 ->orWhere('accreditation_type', 'like', "%{$search}%")
+                ->orWhere('scope', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%")
+                ->orWhereHas('assessments', function ($aq) use ($searchTerms, $search) {
+                    $aq->where(function ($sub) use ($searchTerms) {
+                        foreach ($searchTerms as $term) {
+                            $sub->orWhere('title', 'like', "%{$term}%")
+                                ->orWhere('assessment_type', 'like', "%{$term}%");
+                        }
+                    })
+                    ->orWhere('sk_number', 'like', "%{$search}%")
+                    ->orWhere('lead_assessor', 'like', "%{$search}%");
+                })
             ));
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
@@ -119,7 +133,7 @@ class LpkController extends Controller
     public function edit(Lpk $lpk, Request $request): View
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user) && ! empty($lpk->pic_id)) {
+        if ($user && ! $lpk->canManage($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
         }
 
@@ -131,13 +145,13 @@ class LpkController extends Controller
     public function update(UpdateLpkRequest $request, Lpk $lpk): RedirectResponse
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user) && ! empty($lpk->pic_id)) {
+        if ($user && ! $lpk->canManage($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah data LPK ini.');
         }
 
         $data = $request->normalizedData();
         if ($user && $user->isPic()) {
-            $data['pic_id'] = $lpk->pic_id ?: $user->id;
+            $data['pic_id'] = $lpk->pic_id;
         }
 
         $lpk->update($data);
@@ -165,15 +179,18 @@ class LpkController extends Controller
     public function destroy(Lpk $lpk, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini.');
+        if ($user && ! $lpk->canDelete($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini. LPK yang memiliki PIC hanya dapat dihapus oleh PIC pengelola bersangkutan.');
         }
 
         $lpkId = $lpk->id;
         $name = $lpk->name;
         $reg = $lpk->registration_number;
 
-        DB::transaction(fn () => $lpk->delete());
+        DB::transaction(function () use ($lpk) {
+            $lpk->delete();
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache();
+        });
 
         Log::info('LPK deleted', [
             'lpk_id' => $lpkId,
@@ -205,17 +222,18 @@ class LpkController extends Controller
             return back()->with('error', 'Tidak ada data LPK yang dipilih.');
         }
 
-        $records = Lpk::manageableBy($user)->whereIn('id', $ids)->get();
+        $records = Lpk::deletableBy($user)->whereIn('id', $ids)->get();
         $count = $records->count();
 
         if ($count === 0) {
+            $msg = 'Tidak ada data LPK yang dapat dihapus. LPK yang memiliki PIC hanya dapat dihapus oleh PIC pengelola bersangkutan.';
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada data LPK yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                    'message' => $msg,
                 ], 403);
             }
-            return back()->with('error', 'Tidak ada data LPK yang dapat dihapus.');
+            return back()->with('error', $msg);
         }
 
         $idsToDelete = $records->pluck('id')->all();
@@ -235,7 +253,11 @@ class LpkController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        $skippedCount = count($ids) - $count;
         $message = "{$count} data LPK berhasil dihapus.";
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} data dilewati karena bukan wewenang Anda).";
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

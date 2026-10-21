@@ -1,6 +1,6 @@
 @if($users->count() > 0)
     <div class="table-wrap">
-        <table>
+        <table id="users-table">
             <thead>
                 <tr>
                     <th style="min-width: 200px;">Identitas Anggota</th>

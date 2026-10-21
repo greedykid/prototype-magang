@@ -158,6 +158,8 @@ async function handleBulkDelete(bulkBar) {
         cancelButtonText: 'Batal',
         reverseButtons: true,
         focusCancel: true,
+        heightAuto: false,
+        scrollbarPadding: false,
         customClass: {
             popup: 'simasadi-swal-popup',
             confirmButton: 'simasadi-swal-btn simasadi-swal-danger-btn',
@@ -205,6 +207,8 @@ async function handleBulkDelete(bulkBar) {
             text: data.message || `${count} data berhasil dihapus.`,
             timer: 2200,
             showConfirmButton: false,
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: { popup: 'simasadi-swal-popup' },
         });
 
@@ -223,6 +227,8 @@ async function handleBulkDelete(bulkBar) {
             icon: 'error',
             title: 'Gagal Menghapus Data',
             text: err.message || 'Terjadi kesalahan pada server saat menghapus data terpilih.',
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: { popup: 'simasadi-swal-popup' },
         });
     }

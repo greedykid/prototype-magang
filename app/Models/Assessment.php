@@ -89,7 +89,8 @@ class Assessment extends Model
         ?int $tpExtensionMonths = 0,
         ?Carbon $tpSatisfiedAt = null,
         ?string $assessmentType = null,
-        ?Carbon $tpExtensionDate = null
+        ?Carbon $tpExtensionDate = null,
+        ?string $ehaStatus = null
     ): string {
         return app(AssessmentStatusService::class)->determineStatusFromDates(
             $startAt,
@@ -104,7 +105,8 @@ class Assessment extends Model
             $tpExtensionMonths,
             $tpSatisfiedAt,
             $assessmentType,
-            $tpExtensionDate
+            $tpExtensionDate,
+            $ehaStatus
         );
     }
 
@@ -119,7 +121,12 @@ class Assessment extends Model
             return 'COMPLETED';
         }
 
-        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->sk_number)) {
+        $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
+        $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
+            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI], true));
+
+        // Hanya beralih ke COMPLETED jika SK KAN sudah terbit, ATAU TP memenuhi DAN Sidang EHA telah selesai/direkomendasikan
+        if (! empty($this->sk_number) || ($isTpSatisfied && $hasEhaCompleted)) {
             return 'COMPLETED';
         }
 
@@ -132,11 +139,20 @@ class Assessment extends Model
             return 'SUSPENDED';
         }
 
+        // Jika TP sudah memenuhi namun EHA belum terlaksana, status asesmen tetap IN_PROGRESS
+        if ($isTpSatisfied) {
+            return 'IN_PROGRESS';
+        }
+
         return $value ?: 'PLANNED';
     }
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->is_waiting_eha) {
+            return 'Sedang Berlangsung (Menunggu EHA)';
+        }
+
         return self::STATUS_LABELS[$this->status] ?? ($this->status ?: 'Direncanakan');
     }
 
@@ -197,6 +213,27 @@ class Assessment extends Model
         return self::normalizeType($this->assessment_type, (string) $this->title);
     }
 
+    public function getShortTypeAttribute(): string
+    {
+        $shortType = match (strtoupper(trim((string) $this->assessment_type))) {
+            'S1', 'SURVEILEN 1', 'SURVEILLANCE 1' => 'S1',
+            'SURVEILEN 1 + PRL', 'S1 + PRL', 'S1+PRL' => 'S1+PRL',
+            'S2', 'SURVEILEN 2', 'SURVEILLANCE 2' => 'S2',
+            'SURVEILEN 2 + PRL', 'S2 + PRL', 'S2+PRL' => 'S2+PRL',
+            'RA', 'RE-AKREDITASI', 'REAKREDITASI', 'RE-ASESMEN', 'REASSESSMENT', 'RE-AKREDITASI (AKREDITASI ULANG)' => 'RA',
+            'PRL', 'PERLUASAN RUANG LINGKUP', 'PERLUASAN LINGKUP', 'PERLUASAN RUANG LINGKUP (PRL)' => 'PRL',
+            'STT', 'SURVEILEN TIDAK TERJADWAL', 'SURVEILEN TIDAK TERJADWAL (STT)' => 'STT',
+            'AA', 'ASESMEN AWAL', 'INITIAL', 'AKREDITASI AWAL' => 'AA',
+            default => $this->assessment_type ?: 'Asesmen',
+        };
+
+        if (in_array($shortType, ['Surveilen', 'Asesmen'], true) && preg_match('/\b(S1|S2|RA|PRL|STT|AA)\b/i', (string) $this->title, $m)) {
+            $shortType = strtoupper($m[1]);
+        }
+
+        return $shortType;
+    }
+
     public function getDisplayTitleAttribute(): string
     {
         $title = (string) $this->title;
@@ -231,6 +268,25 @@ class Assessment extends Model
     public function getSubmissionDueDateAttribute(): ?Carbon
     {
         return app(AssessmentStatusService::class)->getSubmissionDueDate($this);
+    }
+
+    public function getSubmissionCycleHintAttribute(): string
+    {
+        return app(AssessmentStatusService::class)->getSubmissionCycleHint($this);
+    }
+
+    public function getIsWaitingEhaAttribute(): bool
+    {
+        $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
+        $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
+            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI], true));
+
+        return $isTpSatisfied && ! $hasEhaCompleted && empty($this->sk_number) && $this->status !== 'CANCELLED';
+    }
+
+    public function getIsWaitingSkAttribute(): bool
+    {
+        return $this->status === 'COMPLETED' && empty($this->sk_number);
     }
 
     public function getSuspensionResolutionDeadlineAttribute(): ?Carbon
@@ -334,7 +390,6 @@ class Assessment extends Model
         return app(AssessmentTpService::class)->calculateSkLeadTimeLabel($this);
     }
 
-
     protected static function booted(): void
     {
         static::saving(function (Assessment $assessment): void {
@@ -351,9 +406,12 @@ class Assessment extends Model
                 $assessment->status = 'COMPLETED';
                 $assessment->tp_status = self::TP_STATUS_SATISFIED;
             }
-            // 1. Jika tindakan perbaikan sudah dinyatakan memenuhi (SATISFIED) atau SK sudah terbit,
+            // 1. Jika SK sudah terbit, atau tindakan perbaikan sudah memenuhi (SATISFIED) DAN sidang EHA/laporan telah terlaksana,
             // maka status asesmen otomatis menjadi COMPLETED (Selesai).
-            elseif (($assessment->tp_status === self::TP_STATUS_SATISFIED || ! empty($assessment->sk_number)) && $assessment->status !== 'CANCELLED') {
+            elseif ((! empty($assessment->sk_number) || (
+                ($assessment->tp_status === self::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) &&
+                (! empty($assessment->report_date) || ! empty($assessment->eha_date) || in_array($assessment->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true))
+            )) && $assessment->status !== 'CANCELLED') {
                 $assessment->status = 'COMPLETED';
             }
             // 2. Jika melewati batas 1 tahun kesempatan penyelesaian pembekuan surveilen,
@@ -361,17 +419,20 @@ class Assessment extends Model
             elseif ($assessment->is_suspension_expired && $assessment->status !== 'CANCELLED' && empty($assessment->sk_number)) {
                 $assessment->status = 'REVOKED';
             }
-            // 3. Jika asesmen melewati batas waktu awal tanpa dinyatakan memenuhi,
+            // 3. Jika asesmen melewati tenggat waktu TP tanpa dinyatakan memenuhi,
             // status otomatis menjadi SUSPENDED (Dibekukan).
             elseif ($assessment->is_tp_overdue && $assessment->status !== 'CANCELLED' && empty($assessment->sk_number)) {
                 $assessment->status = 'SUSPENDED';
             }
-            // 4. Jika asesmen sudah mulai berjalan (ada laporan, tanggal EHA, atau TP aktif),
-            // dan statusnya masih PLANNED, otomatis naik menjadi IN_PROGRESS (Sedang Berlangsung).
-            elseif ($assessment->status === 'PLANNED' && (
-                in_array($assessment->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true) ||
-                ! empty($assessment->report_date) ||
-                ! empty($assessment->eha_date)
+            // 4. Jika asesmen sudah mulai berjalan (ada laporan, tanggal EHA, atau TP aktif/memenuhi),
+            // atau jika statusnya COMPLETED namun syarat EHA belum lengkap, status adalah IN_PROGRESS (Sedang Berlangsung).
+            elseif ($assessment->status !== 'CANCELLED' && (
+                in_array($assessment->status, ['PLANNED', 'SCHEDULED', 'COMPLETED'], true) && (
+                    in_array($assessment->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true) ||
+                    ! empty($assessment->report_date) ||
+                    ! empty($assessment->eha_date) ||
+                    ! empty($assessment->tp_satisfied_at)
+                )
             )) {
                 $assessment->status = 'IN_PROGRESS';
             }
@@ -749,14 +810,22 @@ class Assessment extends Model
         $startTo = $criteria['start_to'] ?? null;
 
         return $query
-            ->when($search, fn ($q) => $q->where(function ($sub) use ($search) {
-                $sub->where('title', 'like', "%{$search}%")
-                    ->orWhere('sk_number', 'like', "%{$search}%")
-                    ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('registration_number', 'like', "%{$search}%")
-                    );
-            }))
+            ->when($search, function ($q) use ($search) {
+                $terms = self::expandSearchTerms($search);
+                $q->where(function ($sub) use ($terms, $search) {
+                    foreach ($terms as $term) {
+                        $sub->orWhere('title', 'like', "%{$term}%")
+                            ->orWhere('assessment_type', 'like', "%{$term}%");
+                    }
+                    $sub->orWhere('sk_number', 'like', "%{$search}%")
+                        ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('registration_number', 'like', "%{$search}%")
+                            ->orWhere('no_reg', 'like', "%{$search}%")
+                            ->orWhere('accreditation_number', 'like', "%{$search}%")
+                        );
+                });
+            })
             ->when($lpkId, fn ($q) => $q->where('lpk_id', $lpkId))
             ->when($assessmentType, fn ($q) => $q->forAssessmentType($assessmentType))
             ->when($status, fn ($q, $st) => $q->forStatusFilter($st))
@@ -773,6 +842,56 @@ class Assessment extends Model
             })
             ->when($startFrom, fn ($q) => $q->where('start_at', '>=', "{$startFrom} 00:00:00"))
             ->when($startTo, fn ($q) => $q->where('start_at', '<=', "{$startTo} 23:59:59"));
+    }
+
+    /**
+     * Memperluas kata kunci pencarian dengan singkatan umum KAN (S1, S2, RA, STT, PRL)
+     * agar pencarian berbasis singkatan tetap menemukan asesmen terkait.
+     *
+     * @return array<int, string>
+     */
+    public static function expandSearchTerms(string $q): array
+    {
+        $q = trim($q);
+        if ($q === '') {
+            return [];
+        }
+
+        $terms = [$q];
+        $qLower = strtolower($q);
+
+        $mapping = [
+            's1' => ['Surveilen 1', 'S1'],
+            's2' => ['Surveilen 2', 'S2'],
+            'ra' => ['Re-Akreditasi', 'Reakreditasi', 'Akreditasi Ulang', 'RA'],
+            'stt' => ['Surveilen Tidak Terjadwal', 'STT'],
+            'prl' => ['Perluasan Ruang Lingkup', 'PRL'],
+        ];
+
+        $phrases = [
+            's1' => ['surveilen 1'],
+            's2' => ['surveilen 2'],
+            'ra' => ['re-akreditasi', 'reakreditasi', 'akreditasi ulang'],
+            'stt' => ['tidak terjadwal'],
+            'prl' => ['perluasan'],
+        ];
+
+        foreach ($mapping as $key => $synonyms) {
+            $isAcronym = $qLower === $key || preg_match('/\b'.preg_quote($key, '/').'\b/i', $qLower);
+            $isPhrase = false;
+            foreach ($phrases[$key] ?? [] as $phrase) {
+                if (str_contains($qLower, $phrase)) {
+                    $isPhrase = true;
+                    break;
+                }
+            }
+
+            if ($isAcronym || $isPhrase) {
+                array_push($terms, ...$synonyms);
+            }
+        }
+
+        return array_values(array_unique($terms));
     }
 }
 

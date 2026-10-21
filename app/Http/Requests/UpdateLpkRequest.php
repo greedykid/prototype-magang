@@ -70,7 +70,7 @@ class UpdateLpkRequest extends FormRequest
         }
 
         if (empty($data['registration_number'])) {
-            $data['registration_number'] = $data['accreditation_number'] ?: ($data['no_reg'] ?? 'LPK-' . time());
+            $data['registration_number'] = !empty($data['accreditation_number']) ? $data['accreditation_number'] : (!empty($data['no_reg']) ? $data['no_reg'] : null);
         }
 
         if (empty($data['accreditation_type'])) {

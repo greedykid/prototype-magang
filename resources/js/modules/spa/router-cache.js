@@ -4,8 +4,19 @@
  */
 
 export const PAGE_CACHE_TTL = 30 * 1000; // 30 seconds TTL (ensures fresh operational data)
+export const MAX_PAGE_CACHE_SIZE = 20;
 export const pageCache = new Map();
 export const prefetchInFlight = new Map();
+
+export const setPageCache = (cleanUrl, cacheData) => {
+    if (pageCache.has(cleanUrl)) {
+        pageCache.delete(cleanUrl);
+    } else if (pageCache.size >= MAX_PAGE_CACHE_SIZE) {
+        const oldestKey = pageCache.keys().next().value;
+        pageCache.delete(oldestKey);
+    }
+    pageCache.set(cleanUrl, cacheData);
+};
 
 export const clearPageCache = () => {
     pageCache.clear();
@@ -14,7 +25,18 @@ export const clearPageCache = () => {
 
 export const calendarCache = new Map();
 export const CALENDAR_CACHE_TTL = 60 * 1000; // 60 seconds TTL
+export const MAX_CALENDAR_CACHE_SIZE = 20;
 export const calendarPrefetchInFlight = new Map();
+
+export const setCalendarCache = (cacheKey, cacheData) => {
+    if (calendarCache.has(cacheKey)) {
+        calendarCache.delete(cacheKey);
+    } else if (calendarCache.size >= MAX_CALENDAR_CACHE_SIZE) {
+        const oldestKey = calendarCache.keys().next().value;
+        calendarCache.delete(oldestKey);
+    }
+    calendarCache.set(cacheKey, cacheData);
+};
 
 export const clearCalendarCache = () => {
     calendarCache.clear();
@@ -114,7 +136,7 @@ export const prefetchCalendarPartial = async (rawUrl) => {
             calendarPrefetchInFlight.delete(cacheKey);
             if (!response.ok || response.redirected) return null;
             const text = await response.text();
-            calendarCache.set(cacheKey, {
+            setCalendarCache(cacheKey, {
                 htmlText: text,
                 timestamp: Date.now()
             });
@@ -156,7 +178,7 @@ export const prefetchUrl = (urlStr) => {
             prefetchInFlight.delete(cleanUrl);
             if (!response.ok || response.redirected) return null;
             const text = await response.text();
-            pageCache.set(cleanUrl, {
+            setPageCache(cleanUrl, {
                 htmlText: text,
                 timestamp: Date.now()
             });

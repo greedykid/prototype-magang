@@ -224,7 +224,7 @@
                     </div>
                     <p class="dashboard-panel-subtext">Daftar laboratorium aktif dan masa berlaku akreditasi</p>
                 </div>
-                <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar LPK">
+                <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar laboratorium">
                     <span>Lihat semua</span>
                     <x-icon name="chevron-right" size="14" />
                 </a>

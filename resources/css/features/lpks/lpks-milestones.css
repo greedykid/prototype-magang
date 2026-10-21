@@ -347,7 +347,8 @@
 .lpk-milestone-header {
     align-items: flex-start;
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
     justify-content: space-between;
 }
 
@@ -356,6 +357,7 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    flex: 0 0 auto;
 }
 
 .lpk-milestone-phase-tag {
@@ -372,6 +374,7 @@
     font-weight: 700;
     line-height: 1.25;
     margin: 0;
+    white-space: nowrap;
 }
 
 .lpk-milestone-badges {
@@ -380,6 +383,7 @@
     flex-wrap: wrap;
     gap: 5px;
     justify-content: flex-end;
+    margin-left: auto;
 }
 
 .badge-focus {
@@ -583,6 +587,14 @@
     min-height: 30px;
     padding: 0 12px;
     white-space: nowrap;
+}
+
+.lpk-agenda-unassigned.is-historical {
+    background: rgba(22, 163, 74, 0.07);
+    border: 1px solid rgba(22, 163, 74, 0.25);
+    color: var(--success, #16a34a);
+    font-style: normal;
+    font-weight: 500;
 }
 
 .lpk-milestone-card .assessment-cal-shortcut {

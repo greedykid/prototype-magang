@@ -19,7 +19,7 @@ export function returnModalToPlaceholder(modal) {
 let savedModalScrollY = 0;
 let previousActiveElement = null;
 
-export function openModal(modalId) {
+export function openModal(modalId, targetSectionId = null) {
     let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) {
         console.warn('Modal element not found:', modalId);
@@ -65,27 +65,54 @@ export function openModal(modalId) {
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
 
-    // Auto-focus first input on non-touch devices without causing scroll jumps or focus outlines on the close button
+    const modalBox = modal.querySelector('.simasadi-modal-box');
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
-    if (!isTouch) {
-        const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');
-        if (focusable) {
-            setTimeout(() => {
-                try {
-                    focusable.focus({ preventScroll: true });
-                } catch {
-                    focusable.focus();
+
+    if (targetSectionId) {
+        setTimeout(() => {
+            const targetEl = typeof targetSectionId === 'string'
+                ? (modal.querySelector(targetSectionId.startsWith('#') ? targetSectionId : `#${targetSectionId}`) || document.getElementById(targetSectionId))
+                : targetSectionId;
+
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (!isTouch) {
+                    const inputs = Array.from(targetEl.querySelectorAll('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])'));
+                    const focusable = inputs.find((el) => !el.value) || inputs[0];
+                    if (focusable) {
+                        try {
+                            focusable.focus({ preventScroll: true });
+                        } catch {
+                            focusable.focus();
+                        }
+                    }
                 }
-            }, 60);
-        } else {
-            const modalBox = modal.querySelector('.simasadi-modal-box') || modal;
-            if (!modalBox.hasAttribute('tabindex')) {
-                modalBox.setAttribute('tabindex', '-1');
             }
-            try {
-                modalBox.focus({ preventScroll: true });
-            } catch {
-                modalBox.focus();
+        }, 80);
+    } else {
+        if (modalBox) {
+            modalBox.scrollTop = 0;
+        }
+        if (!isTouch) {
+            const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');
+            if (focusable) {
+                setTimeout(() => {
+                    try {
+                        focusable.focus({ preventScroll: true });
+                    } catch {
+                        focusable.focus();
+                    }
+                }, 60);
+            } else {
+                const boxOrModal = modalBox || modal;
+                if (!boxOrModal.hasAttribute('tabindex')) {
+                    boxOrModal.setAttribute('tabindex', '-1');
+                }
+                try {
+                    boxOrModal.focus({ preventScroll: true });
+                } catch {
+                    boxOrModal.focus();
+                }
             }
         }
     }
@@ -255,3 +282,39 @@ export const initModalListeners = () => {
         }
     }, { passive: false });
 };
+
+export function copyFormulaToClipboard(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(input.value).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span>Tersalin!</span>';
+        btn.style.background = '#2e7d32';
+
+        if (typeof window.Swal !== 'undefined') {
+            const isMobile = window.innerWidth <= 640;
+            window.Swal.fire({
+                target: document.body,
+                toast: true,
+                position: isMobile ? 'top' : 'top-end',
+                icon: 'success',
+                title: 'Rumus Google Sheets berhasil disalin!',
+                text: 'Tempelkan di sel A1 Google Sheets Anda.',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        }
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '#0f9d58';
+        }, 2000);
+    }).catch(err => {
+        console.error('Gagal menyalin:', err);
+    });
+}

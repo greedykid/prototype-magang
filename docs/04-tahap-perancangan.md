@@ -248,6 +248,30 @@ Diagram ini memodelkan alur interaksi pengguna pada modul kalender kerja terpadu
 
 ---
 
+#### 4.3.10 Activity Diagram: Kolaborasi Tim PIC dan Pemantauan Tautan Akun
+
+Diagram ini memodelkan alur interaksi kolaborasi pembagian hak pantau (account linking) antar-PIC laboratorium, yang memungkinkan PIC pemilik memberikan akses baca kepada PIC rekan kerja untuk memantau data LPK binaan tanpa mencampurkan data tersebut ke dalam dasbor pribadi masing-masing:
+
+[![Gambar 4. 16 Activity Diagram Kolaborasi Tim PIC dan Pemantauan Tautan Akun](diagrams/04-16-act-tautan-akun.svg)](diagrams/04-16-act-tautan-akun.html "Buka diagram interaktif")
+
+> *Gambar 4. 16: Activity Diagram Kolaborasi Tim PIC dan Pemantauan Tautan Akun* - [Buka Versi Interaktif HTML](diagrams/04-16-act-tautan-akun.html)
+
+| No | Tahap / Status | Aktor Terkait | Keterangan Teknis Operasional |
+|:---|:---|:---|:---|
+| 1 | `AksesMenuTautan` | PIC Pemilik | PIC membuka menu Tautan Akun pada rute `/account-links`. |
+| 2 | `RenderDaftarPIC` | SISTEM | Merender daftar PIC yang tersedia beserta status relasi akun tertaut saat ini. |
+| 3 | `PilihTautkanAkun` | PIC Pemilik | Memilih akun rekan kerja yang ingin diberikan hak pemantauan dan mengonfirmasi tautan. |
+| 4 | `ForkSinkronisasi` | SISTEM | *Fork Node*: Mengeksekusi pencatatan izin dan pembersihan notifikasi cache secara paralel. |
+| 5a | `SimpanPivotLinks` | SISTEM | Mencatat relasi izin baca ke tabel pivot `user_account_links`. |
+| 5b | `ResetAlertsCache` | SISTEM | Menginvalidasi cache pengawasan pengingat untuk kedua akun (Pemilik dan Viewer). |
+| 6 | `JoinKonfirmasi` | SISTEM | *Join Node*: Menyatukan status transaksi dan mengirim notifikasi konfirmasi sukses. |
+| 7 | `AksesDataTertaut` | PIC Viewer | PIC rekan kerja membuka `/account-links/{id}` untuk meninjau data laboratorium tertaut. |
+| 8 | `VerifikasiScope` | SISTEM | Memverifikasi wewenang `isViewerFor` dan menyajikan data LPK serta asesmen secara terisolasi. |
+| 9 | `EvaluasiPutusTautan` | PIC Pengguna | *Decision Node*: Mengevaluasi opsi pemutusan tautan akun jika masa pendampingan berakhir. |
+| 10 | `HapusTautanCache` | SISTEM | Menghapus rekaman pivot, mereset cache pengawasan, dan memicu `clearPageCache()` SPA router. |
+
+---
+
 ### 4.4 Sequence Diagram
 
 #### 4.4.1 Sequence Diagram: Verifikasi Alur EHA & Quality Gate Rilis SK
@@ -270,7 +294,7 @@ Skema basis data SIMASADI terdiri dari 6 entitas tabel relasional terpadu yang m
 
 #### 4.5.1 Kamus Data & Struktur Tabel SIMASADI (Data Dictionary)
 
-Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional terpadu. Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
+Rancangan struktur basis data SIMASADI terdiri dari 6 entitas tabel domain relasional utama tanpa redundansi (setelah konsolidasi siklus akreditasi terpadu ke tabel assessments dan lpks). Rincian struktur kolom, tipe data, kunci (key), dan deskripsi operasional masing-masing tabel adalah sebagai berikut:
 
 ##### 1. Tabel `users` (Data Pengguna & Hak Akses Sistem)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
@@ -291,7 +315,7 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik data LPK / laboratorium |
 | 2 | registration_number | VARCHAR (50) | - | Nomor identitas registrasi internal laboratorium |
 | 3 | no_reg | VARCHAR (30) | Unique Key | Nomor registrasi resmi KAN (contoh: LP-001-IDN, LK-015-IDN) |
-| 4 | name | VARCHAR (150) | - | Nama resmi laboratorium atau badan hukum LPK |
+| 4 | name | VARCHAR (255) | - | Nama resmi laboratorium atau badan hukum LPK |
 | 5 | accreditation_type | VARCHAR (50) | - | Kategori skema akreditasi (Lab Penguji, Kalibrasi, Medik) |
 | 6 | accreditation_number | VARCHAR (50) | - | Nomor sertifikat akreditasi atau nomor referensi legalitas |
 | 7 | scope | TEXT | - | Ringkasan lingkup bidang pengujian / kalibrasi |
@@ -308,84 +332,68 @@ Rancangan struktur basis data SIMASADI terdiri dari 7 entitas tabel relasional t
 | 18 | created_at | TIMESTAMP | - | Waktu pembuatan data LPK |
 | 19 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data LPK |
 
-##### 3. Tabel `assessments` (Program & Pelaksanaan Asesmen KAN)
+##### 3. Tabel `assessments` (Program & Pelaksanaan Asesmen KAN U-01)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik kegiatan asesmen laboratorium |
 | 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium yang dinilai |
 | 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat agenda asesmen |
-| 4 | title | VARCHAR (150) | - | Judul deskriptif pelaksanaan kegiatan asesmen |
-| 5 | assessment_type | VARCHAR (30) | - | 8 Tipe KAN U-01: INITIAL, SURVEILLANCE_1, S1_PRL, S2, dll |
+| 4 | title | VARCHAR (255) | - | Judul deskriptif pelaksanaan kegiatan asesmen |
+| 5 | assessment_type | VARCHAR (50) | - | 8 Tipe KAN U-01 (INITIAL, S1, S1+PRL, S2, S2+PRL, STT, PRL, RE_ACCREDITATION) |
 | 6 | start_at | DATETIME | - | Tanggal dan waktu dimulainya asesmen lapangan |
-| 7 | end_at | DATETIME | - | Tanggal dan waktu berakhirnya kunjungan (acuan batas waktu) |
-| 8 | submission_due_date | DATE | - | Batas toleransi pengisian dokumen asesmen (default 4 bulan dari bulan ke-15 siklus akreditasi / tanggal kunjungan, dapat diedit) |
-| 9 | location | VARCHAR (150) | - | Lokasi fisik pelaksanaan audit lapangan |
-| 10 | lead_assessor | VARCHAR (100) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
-| 11 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis |
-| 12 | status | VARCHAR (25) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
-| 13 | tp_status | VARCHAR (25) | - | Status perbaikan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
-| 14 | tp_due_date | DATE | - | Batas waktu awal perbaikan (3 bln AA, 2 bln lainnya) |
-| 15 | tp_has_extension | TINYINT (1) | - | Status perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
-| 16 | tp_extension_months | INTEGER | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
-| 17 | tp_extension_letter_no | VARCHAR (80) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
-| 18 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu |
-| 19 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
-| 20 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
-| 21 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan tindakan perbaikan |
-| 22 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen |
-| 23 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
-| 24 | eha_status | VARCHAR (25) | - | Status sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
-| 25 | eha_notes | TEXT | - | Keputusan dan rekomendasi panitia teknis sidang EHA |
-| 26 | sk_number | VARCHAR (80) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
-| 27 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
-| 28 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
+| 7 | end_at | DATETIME | - | Tanggal dan waktu berakhirnya kunjungan (acuan batas waktu SLA TP) |
+| 8 | submission_due_date | DATE | - | Batas toleransi pengisian dokumen asesmen (default 4 bulan dari bulan ke-15 / kunjungan) |
+| 9 | location | VARCHAR (255) | - | Lokasi fisik pelaksanaan audit lapangan |
+| 10 | status | VARCHAR (50) | - | Status asesmen: PLANNED, IN_PROGRESS, SUSPENDED, COMPLETED |
+| 11 | lead_assessor | VARCHAR (255) | - | Nama Asesor Kepala yang ditugaskan memimpin audit |
+| 12 | assessment_team | TEXT | - | Daftar anggota tim penilai dan tenaga ahli teknis KAN |
+| 13 | notes | TEXT | - | Catatan umum pelaksanaan agenda asesmen |
+| 14 | tp_status | VARCHAR (50) | - | Status perbaikan temuan: NONE, IN_PROGRESS, EXTENDED, SATISFIED, OVERDUE |
+| 15 | tp_due_date | DATE | - | Batas waktu awal tindakan perbaikan (3 bln AA, 2 bln proses lainnya) |
+| 16 | tp_has_extension | BOOLEAN | - | Status persetujuan perpanjangan waktu (0 = Tidak, 1 = Disetujui) |
+| 17 | tp_extension_months | TINYINT (3) | - | Durasi perpanjangan yang disetujui (maksimal 1 bulan kalender) |
+| 18 | tp_extension_letter_no | VARCHAR (255) | - | Nomor surat permohonan resmi perpanjangan dari LPK |
+| 19 | tp_extension_date | DATE | - | Tanggal pencatatan persetujuan perpanjangan waktu TP |
+| 20 | tp_extension_notes | TEXT | - | Catatan justifikasi dan bukti progres nyata perbaikan |
+| 21 | tp_satisfied_at | DATE | - | Tanggal pemenuhan seluruh tindakan perbaikan disetujui |
+| 22 | tp_notes | TEXT | - | Rekaman temuan ketidaksesuaian dan ringkasan tindakan perbaikan |
+| 23 | report_date | DATE | - | Tanggal penyelesaian laporan resmi hasil asesmen lapangan |
+| 24 | eha_date | DATE | - | Tanggal pelaksanaan Sidang Evaluasi Hasil Asesmen (EHA) |
+| 25 | eha_status | VARCHAR (50) | - | Status tahapan sidang EHA: BELUM_EHA, SUDAH_EHA, BUTUH_TINDAK_LANJUT |
+| 26 | eha_notes | TEXT | - | Keputusan dan rekomendasi teknis panitia sidang EHA |
+| 27 | sk_number | VARCHAR (255) | - | Nomor Surat Keputusan (SK) resmi akreditasi dari KAN |
+| 28 | sk_date | DATE | - | Tanggal resmi penerbitan Surat Keputusan KAN |
 | 29 | created_at | TIMESTAMP | - | Waktu pembuatan data asesmen |
 | 30 | updated_at | TIMESTAMP | - | Waktu pembaruan terakhir data asesmen |
 
-##### 4. Tabel `accreditations` (Siklus Akreditasi Induk & Quality Gate)
-| no | nama kolom | tipe data dan panjang | key | keterangan |
-|:--:|---|---|:--:|---|
-| 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik siklus akreditasi laboratorium |
-| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium pemilik sertifikat |
-| 3 | status | VARCHAR (25) | - | Status siklus: NOT_STARTED, IN_PROGRESS, RELEASED |
-| 4 | start_date | DATE | - | Tanggal inisiasi pendaftaran berkas akreditasi |
-| 5 | pantek_at | DATE | - | Tanggal pelaksanaan rapat panitia teknis / komite |
-| 6 | target_date | DATE | - | Target estimasi penyelesaian seluruh rangkaian pengawasan |
-| 7 | target_output_at | DATE | - | Target batas waktu penyerahan draf SK dan sertifikat |
-| 8 | output_released_at | DATE | - | Tanggal aktual rilis dokumen SK dan sertifikat akreditasi |
-| 9 | pic | VARCHAR (100) | - | Nama personel PIC pendamping laboratorium |
-| 10 | notes | TEXT | - | Catatan kemajuan proses akreditasi |
-| 11 | created_at | TIMESTAMP | - | Waktu pembuatan rekaman siklus akreditasi |
-| 12 | updated_at | TIMESTAMP | - | Waktu pembaruan rekaman siklus akreditasi |
-
-##### 5. Tabel `calendar_events` (Agenda Kalender Multi-Event)
+##### 4. Tabel `calendar_events` (Agenda Kalender Multi-Event)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik agenda kegiatan kalender |
-| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium terkait agenda |
+| 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium terkait agenda (Nullable: bernilai NULL untuk agenda umum/personal) |
 | 3 | created_by | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id pembuat catatan agenda |
-| 4 | title | VARCHAR (150) | - | Judul ringkas kegiatan atau jadwal pengawasan |
-| 5 | event_type | VARCHAR (30) | - | Kategori event: assessment, surveillance_reminder, tp_reminder, tp_overdue, sk_reminder |
+| 4 | title | VARCHAR (255) | - | Judul ringkas kegiatan atau jadwal pengawasan |
+| 5 | event_type | VARCHAR (50) | - | Kategori event: assessment, surveillance_reminder, tp_reminder, tp_overdue, sk_reminder |
 | 6 | start_at | DATETIME | - | Tanggal dan jam pelaksanaan kegiatan |
 | 7 | end_at | DATETIME | - | Tanggal dan jam berakhirnya kegiatan |
-| 8 | location | VARCHAR (150) | - | Lokasi fisik atau tautan ruang rapat daring |
+| 8 | location | VARCHAR (255) | - | Lokasi fisik atau tautan ruang rapat daring |
 | 9 | status | VARCHAR (25) | - | Status operasional kegiatan: PLANNED, DONE, CANCELLED |
 | 10 | description | TEXT | - | Deskripsi detail rencana pelaksanaan kegiatan |
 | 11 | notes | TEXT | - | Catatan tambahan pelaksanaan agenda |
 | 12 | created_at | TIMESTAMP | - | Waktu pembuatan data agenda |
 | 13 | updated_at | TIMESTAMP | - | Waktu pembaruan data agenda |
 
-##### 6. Tabel `lpk_members` (Kolaborasi Tim Anggota LPK)
+##### 5. Tabel `lpk_members` (Kolaborasi Tim Anggota LPK)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik penautan anggota tim LPK |
 | 2 | lpk_id | BIGINT (20) | Foreign Key (FK) | Relasi ke lpks.id laboratorium binaan |
 | 3 | user_id | BIGINT (20) | Foreign Key (FK) | Relasi ke users.id personel PIC yang ditautkan |
-| 4 | role | VARCHAR (20) | - | Peran keanggotaan dalam tim LPK (contoh: viewer) |
+| 4 | role | VARCHAR (20) | - | Peran keanggotaan dalam tim LPK: 'lead' (PIC Utama / Pengelola) atau 'viewer' (PIC Pemantau) |
 | 5 | created_at | TIMESTAMP | - | Waktu penautan anggota LPK |
 | 6 | updated_at | TIMESTAMP | - | Waktu pembaruan data penautan |
 
-##### 7. Tabel `user_account_links` (Penautan Relasi Akun Antar-Pengguna)
+##### 6. Tabel `user_account_links` (Penautan Relasi Akun Antar-Pengguna)
 | no | nama kolom | tipe data dan panjang | key | keterangan |
 |:--:|---|---|:--:|---|
 | 1 | id | BIGINT (20) | Primary Key (PK) | Identifier unik relasi penautan akun pengguna |

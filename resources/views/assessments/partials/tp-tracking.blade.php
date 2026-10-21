@@ -247,7 +247,7 @@
                     @if($assessment->tp_has_extension)
                         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted);">
-                                <span>Batas Waktu Awal:</span>
+                                <span>Tenggat Waktu TP (Semula):</span>
                                 <strong style="color: var(--ink); text-decoration: line-through; text-decoration-color: var(--muted);">
                                     {{ $initialDueDate?->format('d M Y') ?: '-' }}
                                 </strong>

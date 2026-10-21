@@ -12,8 +12,8 @@
                 $isPic = auth()->user()?->isPic();
                 $menuTitle = match (true) {
                     request()->routeIs('dashboard') => 'Dasbor',
-                    request()->routeIs('lpks.*') => $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)',
-                    request()->routeIs('assessments.*') => $isPic ? 'Jadwal Asesmen' : 'Program Asesmen',
+                    request()->routeIs('lpks.*') => 'Daftar Laboratorium',
+                    request()->routeIs('assessments.*') => 'Daftar Asesmen',
                     request()->routeIs('calendar.*') => $isPic ? 'Kalender Pengawasan' : 'Kalender',
                     request()->routeIs('users.*') => 'Manajemen Anggota',
                     request()->routeIs('account-links.*') => 'Tautan Akun',
@@ -222,7 +222,7 @@
                             </a>
                         @endif
                         <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">
-                            <span>Lihat Semua di Daftar LPK</span>
+                            <span>Lihat Semua di Daftar Laboratorium</span>
                             <x-icon name="chevron-right" size="12" />
                         </a>
                     </div>

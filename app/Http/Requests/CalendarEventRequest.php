@@ -31,7 +31,7 @@ class CalendarEventRequest extends FormRequest
 
         return [
             'lpk_id' => ['nullable', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:150'],
+            'title' => ['required', 'string', 'max:255'],
             'event_type' => [
                 'nullable',
                 'string',
@@ -48,7 +48,7 @@ class CalendarEventRequest extends FormRequest
             'end_time' => ['nullable', 'date_format:H:i'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
-            'location' => ['nullable', 'string', 'max:150'],
+            'location' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:PLANNED,IN_PROGRESS,COMPLETED,CANCELLED'],
             'notes' => ['nullable', 'string'],
         ];

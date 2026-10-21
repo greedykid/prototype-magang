@@ -65,14 +65,16 @@ class AccountLinkController extends Controller
 
         $alreadyViewerIds = $linkedViewers->pluck('id')->push($user->id)->all();
 
-        $availableUsers = User::whereNotIn('id', $alreadyViewerIds)
-            ->where('role', User::ROLE_PIC)
-            ->orderBy('name')
-            ->get();
-
-        $allPics = $user->isAdmin()
-            ? User::where('role', User::ROLE_PIC)->orderBy('name')->get()
-            : collect();
+        if ($user->isAdmin()) {
+            $allPics = User::where('role', User::ROLE_PIC)->orderBy('name')->get();
+            $availableUsers = $allPics->whereNotIn('id', $alreadyViewerIds)->values();
+        } else {
+            $allPics = collect();
+            $availableUsers = User::whereNotIn('id', $alreadyViewerIds)
+                ->where('role', User::ROLE_PIC)
+                ->orderBy('name')
+                ->get();
+        }
 
         return view('account-links.index', compact('user', 'linkedViewers', 'linkedOwners', 'availableUsers', 'allPics'));
     }
@@ -346,6 +348,8 @@ class AccountLinkController extends Controller
         }
 
         $user->linkedViewers()->attach($viewer->id);
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $viewer);
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
 
         return redirect()->back(fallback: route('account-links.index'))->with('success', "Akun {$viewer->name} ({$viewer->email}) berhasil ditautkan sebagai Viewer. Seluruh daftar LPK, agenda asesmen, dan kalender pengawasan Anda sekarang otomatis muncul pada akun tersebut.");
     }
@@ -356,25 +360,43 @@ class AccountLinkController extends Controller
     public function destroy(User $user, Request $request): RedirectResponse
     {
         $currentUser = $request->user();
+        $type = $request->input('type');
 
         // Skenario 1: Admin memutuskan tautan antar dua akun
         if ($currentUser->isAdmin() && $request->filled('owner_id')) {
             $owner = User::find($request->integer('owner_id'));
             if ($owner && $owner->linkedViewers()->where('users.id', $user->id)->exists()) {
                 $owner->linkedViewers()->detach($user->id);
+                \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $owner);
+                \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
                 return redirect()->back(fallback: route('account-links.index'))->with('success', "Tautan viewer antara {$owner->name} dan {$user->name} berhasil diputuskan.");
             }
         }
 
-        // Skenario 2: Pemilik data memutuskan akses akun viewer
-        if ($currentUser->linkedViewers()->where('users.id', $user->id)->exists()) {
+        // Skenario 2: Eksplisit melepaskan akses pemantauan dari akun owner
+        if ($type === 'owner' && $currentUser->linkedOwners()->where('users.id', $user->id)->exists()) {
+            $currentUser->linkedOwners()->detach($user->id);
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $currentUser);
+            return redirect()->back(fallback: route('account-links.index'))->with('success', "Anda berhasil melepaskan akses pemantauan dari akun {$user->name}.");
+        }
+
+        // Skenario 3: Eksplisit memutuskan akses akun viewer yang memantau akun kita
+        if ($type === 'viewer' && $currentUser->linkedViewers()->where('users.id', $user->id)->exists()) {
             $currentUser->linkedViewers()->detach($user->id);
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
             return redirect()->back(fallback: route('account-links.index'))->with('success', "Akses viewer untuk akun {$user->name} berhasil diputuskan. Akun tersebut tidak lagi dapat melihat data LPK dan agenda Anda.");
         }
 
-        // Skenario 3: Akun viewer melepaskan diri dari pantauan pemilik data
+        // Fallback backward-compatibility jika parameter type tidak dikirim
+        if ($currentUser->linkedViewers()->where('users.id', $user->id)->exists()) {
+            $currentUser->linkedViewers()->detach($user->id);
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
+            return redirect()->back(fallback: route('account-links.index'))->with('success', "Akses viewer untuk akun {$user->name} berhasil diputuskan. Akun tersebut tidak lagi dapat melihat data LPK dan agenda Anda.");
+        }
+
         if ($currentUser->linkedOwners()->where('users.id', $user->id)->exists()) {
             $currentUser->linkedOwners()->detach($user->id);
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $currentUser);
             return redirect()->back(fallback: route('account-links.index'))->with('success', "Anda berhasil melepaskan akses pemantauan dari akun {$user->name}.");
         }
 

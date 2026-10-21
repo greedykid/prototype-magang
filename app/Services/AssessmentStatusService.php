@@ -25,21 +25,32 @@ class AssessmentStatusService
         ?int $tpExtensionMonths = 0,
         ?Carbon $tpSatisfiedAt = null,
         ?string $assessmentType = null,
-        ?Carbon $tpExtensionDate = null
+        ?Carbon $tpExtensionDate = null,
+        ?string $ehaStatus = null
     ): string {
         if ($currentStatus === 'CANCELLED') {
             return 'CANCELLED';
         }
 
-        // 1. Keputusan akhir: SK KAN sudah terbit atau Tindakan Perbaikan telah dinyatakan Memenuhi
-        if (! empty($skNumber) || $tpStatus === Assessment::TP_STATUS_SATISFIED || ! empty($tpSatisfiedAt)) {
+        $isTpSatisfied = $tpStatus === Assessment::TP_STATUS_SATISFIED || ! empty($tpSatisfiedAt);
+        $hasEhaCompleted = in_array($ehaStatus, [Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true)
+            || (! empty($ehaDate) && ! in_array($ehaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI], true));
+
+        // 1. Keputusan akhir: SK KAN sudah terbit, ATAU Tindakan Perbaikan telah dinyatakan Memenuhi DAN Sidang EHA telah selesai/direkomendasikan
+        if (! empty($skNumber) || ($isTpSatisfied && $hasEhaCompleted)) {
             return 'COMPLETED';
+        }
+
+        // Jika tindakan perbaikan telah memenuhi namun EHA belum selesai atau belum direkomendasikan / SK belum terbit,
+        // status asesmen tetap berada dalam tahap evaluasi (IN_PROGRESS).
+        if ($isTpSatisfied) {
+            return 'IN_PROGRESS';
         }
 
         $now = now();
 
-        // 2. Batas waktu awal tindakan perbaikan:
-        // Jika sampai tanggal batas waktu awal belum ada dinyatakan memenuhi, status otomatis DIBEKUKAN (SUSPENDED).
+        // 2. Batas waktu tindakan perbaikan:
+        // Jika sampai tanggal tenggat waktu TP belum ada yang dinyatakan memenuhi, status otomatis DIBEKUKAN (SUSPENDED).
         $hasExplicitSla = ! empty($tpDueDate);
         $hasActiveTp = in_array($tpStatus, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true);
 
@@ -85,7 +96,7 @@ class AssessmentStatusService
                     return 'SUSPENDED';
                 }
 
-                return 'COMPLETED';
+                return 'IN_PROGRESS';
             }
 
             // Jika tanggal telah lewat namun belum ada tindakan apapun, statusnya tetap PLANNED.
@@ -239,6 +250,108 @@ class AssessmentStatusService
     }
 
     /**
+     * Keterangan dinamis masa pengisian/toleransi dokumen berdasarkan jenis asesmen dan siklus KAN.
+     */
+    public function getSubmissionCycleHint(Assessment $assessment): string
+    {
+        $type = strtolower((string) ($assessment->assessment_type ?: ''));
+        $title = strtolower((string) ($assessment->title ?: ''));
+
+        // 1. Re-Akreditasi (RA)
+        $isRa = in_array($assessment->assessment_type, [
+            Assessment::TYPE_RE_AKREDITASI,
+            'RA',
+            'Re-Akreditasi',
+            'Re-Akreditasi (RA)',
+            'REAKREDITASI',
+            'REASSESSMENT',
+            'Re-asesmen',
+            'Re-asesmen (Reassessment)',
+            'Akreditasi Ulang',
+            'Re-Akreditasi (Akreditasi Ulang)',
+        ], true)
+            || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
+            || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $type)
+            || str_contains($type, 'akreditasi ulang')
+            || str_contains($title, 'akreditasi ulang');
+
+        if ($isRa) {
+            return 'batas toleransi bulan ke-60 / akhir siklus KAN';
+        }
+
+        // 2. Surveilen 2 (S2)
+        $isS2 = in_array($assessment->assessment_type, [
+            Assessment::TYPE_SURVEILEN_2,
+            Assessment::TYPE_SURVEILEN_2_PRL,
+            'S2',
+            'Surveilen 2',
+            'Surveilen 2 (S2)',
+            'SURVEILLANCE 2',
+            'S2 + PRL',
+        ], true)
+            || preg_match('/\b(Surveilen\s*2|S2)\b/i', $title)
+            || preg_match('/\b(Surveilen\s*2|S2)\b/i', $type);
+
+        if ($isS2) {
+            return 'masa pengisian bulan 36-39 siklus KAN';
+        }
+
+        // 3. Akreditasi Awal (Asesmen Awal)
+        $isInitial = in_array($assessment->assessment_type, [
+            Assessment::TYPE_AKREDITASI_AWAL,
+            'Asesmen Awal',
+            'INITIAL',
+            'AA',
+            'Asesmen Awal (AA)',
+            'Akreditasi Awal',
+        ], true)
+            || preg_match('/\b(Asesmen Awal|Akreditasi Awal|AA)\b/i', $title)
+            || preg_match('/\b(Asesmen Awal|Akreditasi Awal|AA)\b/i', $type)
+            || str_contains($type, 'awal')
+            || str_contains($title, 'awal');
+
+        if ($isInitial) {
+            return 'batas toleransi proses asesmen awal KAN';
+        }
+
+        // 4. Surveilen Tidak Terjadwal (STT)
+        $isStt = in_array($assessment->assessment_type, [
+            Assessment::TYPE_STT,
+            'STT',
+            'Surveilen Tidak Terjadwal',
+        ], true)
+            || preg_match('/\b(STT|Surveilen Tidak Terjadwal)\b/i', $title)
+            || preg_match('/\b(STT|Surveilen Tidak Terjadwal)\b/i', $type);
+
+        if ($isStt) {
+            return 'surveilen tidak terjadwal / khusus KAN';
+        }
+
+        // 5. Perluasan Ruang Lingkup (PRL) Mandiri
+        $isPrl = in_array($assessment->assessment_type, [
+            Assessment::TYPE_PRL,
+            'PRL',
+            'Perluasan Ruang Lingkup',
+            'Perluasan Lingkup',
+        ], true)
+            || (str_contains($type, 'perluasan') && ! str_contains($type, 'surveilen'))
+            || (str_contains($title, 'perluasan') && ! str_contains($title, 'surveilen'));
+
+        if ($isPrl) {
+            return 'proses perluasan ruang lingkup KAN';
+        }
+
+        // 6. Surveilen 1 (S1) atau Surveilen Umum
+        $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : ($assessment->lpk_id ? $assessment->lpk : null);
+        if ($lpk && $lpk->s1_delay_penalty_months > 0) {
+            $prep = $lpk->s1_prep_remaining_months;
+            return "masa pengisian bulan ke-{$prep} siklus KAN (penyesuaian keterlambatan siklus lalu)";
+        }
+
+        return 'masa pengisian bulan 15-18 siklus KAN';
+    }
+
+    /**
      * Batas waktu toleransi pengisian dokumen surveilen.
      */
     public function getSubmissionDueDate(Assessment $assessment): ?Carbon
@@ -281,6 +394,12 @@ class AssessmentStatusService
      */
     public function isPastSurveillanceForActiveLpk(Assessment $assessment): bool
     {
+        $type = strtoupper((string) ($assessment->assessment_type ?: ''));
+        $isSurv = str_contains($type, 'SURVEILEN') || str_contains($type, 'S1') || str_contains($type, 'S2');
+        if (! $isSurv) {
+            return false;
+        }
+
         $lpk = $assessment->relationLoaded('lpk') ? $assessment->lpk : ($assessment->lpk_id ? $assessment->lpk : null);
         if (! $lpk || $lpk->getRawOriginal('status') !== 'ACTIVE') {
             return false;
@@ -312,11 +431,7 @@ class AssessmentStatusService
             return false;
         }
 
-        if ($rawStatus === 'COMPLETED' || $assessment->tp_status === Assessment::TP_STATUS_SATISFIED) {
-            return true;
-        }
-
-        return (bool) ($assessment->end_at && $assessment->end_at->lt(now()->startOfYear()));
+        return (bool) ($assessment->end_at && $assessment->end_at->lt(now()->subYears(1)) && $rawStatus === 'COMPLETED');
     }
 
     /**

@@ -7,7 +7,7 @@
                         <input type="checkbox" class="table-select-all" data-table-id="assessments-table" aria-label="Pilih semua asesmen di halaman ini">
                     </th>
                     <th data-sort-field="title">Agenda</th>
-                    <th>LPK</th>
+                    <th>Laboratorium</th>
                     <th data-sort-field="start_at">Tanggal</th>
                     <th>Tindakan Perbaikan (TP)</th>
                     <th data-sort-field="status">Status Asesmen</th>
@@ -76,6 +76,18 @@
                                         Toleransi Terlampaui (Dibekukan)
                                     </span>
                                 </div>
+                            @elseif($assessment->is_waiting_eha)
+                                <div style="margin-top: 3px;">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Tindakan perbaikan telah memenuhi, menunggu sidang Evaluasi Hasil Asesmen (EHA)">
+                                        Menunggu Sidang EHA
+                                    </span>
+                                </div>
+                            @elseif($assessment->is_waiting_sk)
+                                <div style="margin-top: 3px;">
+                                    <span class="badge-tp badge-tp-neutral" style="font-size: 10px; display: inline-block;" title="Sidang EHA telah selesai / direkomendasikan, menunggu penerbitan SK resmi dari KAN">
+                                        Menunggu SK KAN
+                                    </span>
+                                </div>
                             @endif
                         </td>
                         <td><a href="{{ route('assessments.show', $assessment) }}">Detail</a></td>
@@ -91,10 +103,10 @@
             <x-icon name="search" size="22" />
         </div>
         <strong class="empty-title">
-            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak Ada Asesmen yang Cocok' : 'Belum Ada Program Asesmen' }}
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak Ada Asesmen yang Cocok' : 'Belum Ada Daftar Asesmen' }}
         </strong>
         <p class="empty-desc">
-            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }}
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada asesmen yang cocok dengan filter.' : 'Belum ada daftar asesmen.' }}
         </p>
         @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))
             <button type="button" class="button secondary empty-action" id="empty-reset-filter-btn" data-role="reset-filter">

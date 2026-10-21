@@ -2,14 +2,14 @@
     {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
     <div class="lpk-header-back-wrap">
         @if(isset($owner))
-            <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="lpk-back-btn" title="Kembali ke Program Asesmen Akun Tertaut">
+            <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen Akun Tertaut">
                 <x-icon name="chevron-left" size="16" />
-                <span>Program Asesmen Akun: {{ $owner->name }}</span>
+                <span>Daftar Asesmen Akun: {{ $owner->name }}</span>
             </a>
         @else
-            <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke {{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}">
+            <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen">
                 <x-icon name="chevron-left" size="16" />
-                <span>{{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}</span>
+                <span>Daftar Asesmen</span>
             </a>
         @endif
     </div>
@@ -28,6 +28,14 @@
                         @elseif($assessment->is_submission_overdue)
                             <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
                                 Dibekukan (Toleransi Terlampaui)
+                            </span>
+                        @elseif($assessment->is_waiting_eha)
+                            <span class="status status-in_progress" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border-color: rgba(245, 158, 11, 0.3);" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan sidang Evaluasi Hasil Asesmen (EHA)">
+                                Sedang Berlangsung (Menunggu EHA)
+                            </span>
+                        @elseif($assessment->is_waiting_sk)
+                            <span class="status status-completed" title="Evaluasi hasil asesmen telah selesai, menunggu rilis SK KAN resmi">
+                                Selesai (Menunggu SK KAN)
                             </span>
                         @else
                             <x-status :value="$assessment->status" />
@@ -119,15 +127,15 @@
                     @if($assessment->is_submission_overdue)
                         Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->format('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
                     @else
-                        Batas waktu awal tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
+                        Tenggat waktu tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
                     @endif
                 </p>
             </div>
             @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
                 <div class="lpk-alert-callout-actions">
-                    <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking')" title="Buka modal untuk menandai status selesai, input tanggal laporan, atau input SK KAN">
+                    <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking')" title="Buka modal pembaruan tindak lanjut untuk verifikasi TP, sidang EHA, atau nomor SK KAN">
                         <x-icon name="check-circle" size="14" />
-                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Selesaikan Status TP' }}</span>
+                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Tindak Lanjut Asesmen' }}</span>
                     </button>
                     <a href="{{ route('assessments.edit', $assessment) }}#form-sk-block" class="button secondary button-sm lpk-alert-action-btn" title="Langsung menuju blok pengisian Surat Keputusan (SK) KAN di formulir ubah">
                         <x-icon name="accreditations" size="14" />
@@ -231,7 +239,7 @@
                             <span class="lpk-meta-label">Toleransi Pengisian</span>
                             <div class="lpk-meta-value">
                                 <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
-                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">(masa pengisian bulan {{ str_contains(strtolower($assessment->assessment_type ?: ''), 's2') || str_contains(strtolower($assessment->title ?: ''), 's2') ? '36-39' : '15-18' }} siklus KAN)</span>
+                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">({{ $assessment->submission_cycle_hint }})</span>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                     <div style="margin-top: 4px; font-size: 12px; color: var(--danger-text, #ef4444); font-weight: 600;">
                                         &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
@@ -289,15 +297,38 @@
                         <span class="lpk-meta-label">Evaluasi Hasil Asesmen (EHA)</span>
                         <div class="lpk-meta-value">
                             @if($assessment->eha_date || ($assessment->eha_status && $assessment->eha_status !== 'BELUM_EHA') || $assessment->eha_notes)
-                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                                    <span class="badge-tp badge-tp-neutral">{{ $assessment->eha_status_label }}</span>
-                                    @if($assessment->eha_date)
-                                        <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                        <span class="badge-tp badge-tp-neutral">{{ $assessment->eha_status_label }}</span>
+                                        @if($assessment->eha_date)
+                                            <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
+                                        @endif
+                                    </div>
+                                    @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())) && empty($assessment->sk_number))
+                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-eha')" style="font-size: 11px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="plus" size="12" />
+                                            <span>Ubah Sidang EHA</span>
+                                        </button>
                                     @endif
                                 </div>
                                 @if($assessment->eha_notes)
                                     <div style="font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.45;">{{ $assessment->eha_notes }}</div>
                                 @endif
+                            @elseif($assessment->is_waiting_eha)
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                        <span class="badge-tp badge-tp-warning" style="font-size: 11px; padding: 2.5px 8px;">
+                                            Menunggu Sidang EHA
+                                        </span>
+                                        <span style="color: var(--muted); font-size: 12px;">(Tindakan perbaikan telah memenuhi)</span>
+                                    </div>
+                                    @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
+                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-eha')" style="font-size: 11px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="plus" size="12" />
+                                            <span>Input Sidang EHA</span>
+                                        </button>
+                                    @endif
+                                </div>
                             @else
                                 <span style="color: var(--muted);">Belum EHA</span>
                             @endif
@@ -319,6 +350,21 @@
                                         <span class="badge-tp badge-tp-neutral" style="font-size: 11px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
                                              Rentang Proses: {{ $assessment->sk_lead_time_label }}
                                         </span>
+                                    @endif
+                                </div>
+                            @elseif($assessment->is_waiting_sk)
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                        <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; padding: 2.5px 8px;">
+                                            Menunggu Penerbitan SK KAN
+                                        </span>
+                                        <span style="color: var(--muted); font-size: 12px;">(Sidang EHA telah selesai / direkomendasikan)</span>
+                                    </div>
+                                    @if(!isset($owner) && $assessment->isManagedBy(auth()->user()))
+                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-sk')" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="plus" size="12" />
+                                            <span>Input SK KAN</span>
+                                        </button>
                                     @endif
                                 </div>
                             @else

@@ -19,6 +19,8 @@ export function handleFlashNotifications() {
                 confirmButtonText: 'Selesai',
                 timer: 3500,
                 timerProgressBar: true,
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',
@@ -42,6 +44,8 @@ export function handleFlashNotifications() {
                 text: message,
                 confirmButtonColor: '#5645d4',
                 confirmButtonText: 'Tutup',
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',
@@ -75,6 +79,8 @@ export function handleFlashNotifications() {
                 html: listHtml,
                 confirmButtonColor: '#5645d4',
                 confirmButtonText: 'Mengerti',
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',

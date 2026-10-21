@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Program Asesmen | SIMASADI')
+@section('title', 'Daftar Asesmen | SIMASADI')
 
 @section('content')
 <x-page-header
-    title="Program asesmen"
-    subtitle="Jadwal dan progres asesmen semua LPK."
+    title="Daftar asesmen"
+    subtitle="Jadwal dan progres asesmen semua laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
         <x-icon name="import" size="16" />
@@ -28,7 +28,7 @@
                 <x-icon name="assessments" size="18" />
             </div>
             <div style="font-size: 13px; color: var(--ink);">
-                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data agenda asesmen. Program asesmen tersebut tersimpan terpisah di detail akun masing-masing.
+                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data agenda asesmen. Daftar asesmen tersebut tersimpan terpisah di detail akun masing-masing.
             </div>
         </div>
         <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
@@ -168,13 +168,13 @@
 
 <x-sheets-modal
     modal-id="modal-sheets-sync-assessments"
-    title="Integrasi Google Sheets: Data Program Asesmen"
+    title="Integrasi Google Sheets: Data Daftar Asesmen"
     subtitle="Sinkronkan jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) secara langsung ke Google Sheets Anda."
     :export-url="route('reports.assessments.export')"
     :feed-url="route('feeds.assessments', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
-    file-name="program-asesmen-simasadi.csv"
+    file-name="daftar-asesmen-simasadi.csv"
     :columns="[
-        'ID Asesmen', 'Judul Agenda Asesmen', 'Nama LPK', 'Jenis Asesmen',
+        'ID Asesmen', 'Judul Agenda Asesmen', 'Nama Laboratorium', 'Jenis Asesmen',
         'Tanggal Mulai', 'Tanggal Selesai', 'Status Asesmen'
     ]"
 />

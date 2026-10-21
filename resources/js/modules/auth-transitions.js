@@ -56,6 +56,8 @@ export const initAuthTransitions = () => {
             confirmButtonText: 'Ya, Keluar',
             cancelButtonText: 'Batal',
             reverseButtons: true,
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: {
                 popup: 'simasadi-swal-popup',
                 confirmButton: 'simasadi-swal-btn',

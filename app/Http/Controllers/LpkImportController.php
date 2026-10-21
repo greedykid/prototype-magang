@@ -353,17 +353,65 @@ class LpkImportController extends Controller
 
                 // Normalisasi otomatis nomor akreditasi numerik murni (misal: 077 -> LP-077-IDN)
                 if ($regNo && preg_match('/^\d+$/', $regNo)) {
-                    if (! $noReg) {
-                        $noReg = $regNo;
-                    }
                     $regNo = 'LP-' . str_pad($regNo, 3, '0', STR_PAD_LEFT) . '-IDN';
                     $accreditationNumber = $regNo;
                 }
 
-                $status = strtoupper($data['status'] ?? 'ACTIVE');
-                if (! in_array($status, ['ACTIVE', 'INACTIVE'], true)) {
+                $rawStatus = strtolower(trim((string) ($data['status'] ?? 'active')));
+                if (str_contains($rawStatus, 'inactive') || str_contains($rawStatus, 'withdrawn') || str_contains($rawStatus, 'kadaluarsa')) {
+                    $status = 'INACTIVE';
+                } elseif (str_contains($rawStatus, 'beku') || str_contains($rawStatus, 'suspended')) {
+                    $status = 'SUSPENDED';
+                } else {
                     $status = 'ACTIVE';
                 }
+
+                if (! $accreditationType) {
+                    $checkAccred = strtoupper((string) ($accreditationNumber ?: $regNo));
+                    if (str_starts_with($checkAccred, 'LK-')) {
+                        $accreditationType = 'Laboratorium Kalibrasi';
+                    } elseif (str_starts_with($checkAccred, 'LM-')) {
+                        $accreditationType = 'Laboratorium Medik';
+                    } elseif (str_starts_with($checkAccred, 'LI-')) {
+                        $accreditationType = 'Lembaga Inspeksi';
+                    } else {
+                        $accreditationType = 'Laboratorium Penguji';
+                    }
+                }
+
+                $phone = ! empty($data['phone']) ? $data['phone'] : ($data['nomorpersonilpenghubung'] ?? null);
+
+                $address = $data['address'] ?? null;
+                if (! empty($data['provinsi']) && $address && ! str_contains(strtolower($address), strtolower($data['provinsi']))) {
+                    $address .= ', ' . $data['provinsi'];
+                }
+
+                $scope = $data['scope'] ?? null;
+                if (! empty($data['bidanguji']) && $scope && ! str_contains(strtolower($scope), strtolower($data['bidanguji']))) {
+                    $scope = $data['bidanguji'] . ' - ' . $scope;
+                }
+
+                $notesParts = [];
+                if (! empty($data['notes'])) {
+                    $notesParts[] = $data['notes'];
+                }
+                if (! empty($data['picproses'])) {
+                    $notesParts[] = 'PIC: ' . $data['picproses'];
+                }
+                if (! empty($data['ketuatim'])) {
+                    $notesParts[] = 'Ketua Tim: ' . $data['ketuatim'];
+                }
+                if (! empty($data['personilpenghubung'])) {
+                    $cp = 'CP: ' . $data['personilpenghubung'];
+                    if (! empty($data['nomorpersonilpenghubung']) && $data['nomorpersonilpenghubung'] !== $phone) {
+                        $cp .= ' (' . $data['nomorpersonilpenghubung'] . ')';
+                    }
+                    $notesParts[] = $cp;
+                }
+                if (! empty($data['ket'])) {
+                    $notesParts[] = 'Standar: ' . $data['ket'];
+                }
+                $compiledNotes = ! empty($notesParts) ? implode(' | ', $notesParts) : null;
 
                 $certificateDate = $this->parseDateString($data['certificate_date'] ?? null);
                 $expiredAt = $this->parseDateString($data['expired_at'] ?? null);
@@ -383,9 +431,13 @@ class LpkImportController extends Controller
                     $driveColLetter = $driveColIndex !== false ? Coordinate::stringFromColumnIndex($driveColIndex + 1) : null;
 
                     if ($driveColLetter && ! empty($sheetHyperlinks[$excelRowNumber][$driveColLetter])) {
-                        $driveUrl = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
+                        $candidateLink = $sheetHyperlinks[$excelRowNumber][$driveColLetter];
                     } else {
-                        $driveUrl = reset($sheetHyperlinks[$excelRowNumber]);
+                        $candidateLink = reset($sheetHyperlinks[$excelRowNumber]);
+                    }
+
+                    if ($candidateLink && filter_var($candidateLink, FILTER_VALIDATE_URL) && str_starts_with($candidateLink, 'http')) {
+                        $driveUrl = $candidateLink;
                     }
                 }
 
@@ -424,15 +476,15 @@ class LpkImportController extends Controller
                         'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
                         'registration_number' => $accreditationNumber ?: ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
                         'name' => $name,
-                        'scope' => ! empty($data['scope']) ? $data['scope'] : $existing->scope,
+                        'scope' => $scope ?: $existing->scope,
                         'certificate_date' => $certificateDate ?: $existing->certificate_date,
-                        'address' => ! empty($data['address']) ? $data['address'] : $existing->address,
+                        'address' => $address ?: $existing->address,
                         'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
-                        'phone' => ! empty($data['phone']) ? $data['phone'] : $existing->phone,
+                        'phone' => $phone ?: $existing->phone,
                         'status' => $status,
                         'expired_at' => $expiredAt ?: $existing->expired_at,
                         'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
-                        'notes' => ! empty($data['notes']) ? $data['notes'] : $existing->notes,
+                        'notes' => $compiledNotes ?: $existing->notes,
                     ]);
                     $updatedCount++;
                 } else {
@@ -441,17 +493,17 @@ class LpkImportController extends Controller
                         'no_reg' => $noReg,
                         'accreditation_number' => $accreditationNumber ?: $regNo,
                         'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',
-                        'registration_number' => $regNo ?: ($accreditationNumber ?: $noReg),
+                        'registration_number' => $accreditationNumber ?: ($regNo ?: $noReg),
                         'name' => $name,
-                        'scope' => $data['scope'] ?? null,
+                        'scope' => $scope,
                         'certificate_date' => $certificateDate,
-                        'address' => $data['address'] ?? null,
+                        'address' => $address,
                         'email' => $data['email'] ?? null,
-                        'phone' => $data['phone'] ?? null,
+                        'phone' => $phone,
                         'status' => $status,
                         'expired_at' => $expiredAt,
                         'drive_url' => $driveUrl,
-                        'notes' => $data['notes'] ?? null,
+                        'notes' => $compiledNotes,
                     ]);
 
                     // Perbarui in-memory lookup cache untuk baris berikutnya
@@ -508,6 +560,7 @@ class LpkImportController extends Controller
         $reader = IOFactory::createReaderForFile($filePath);
         $reader->setReadDataOnly(false);
         $spreadsheet = $reader->load($filePath);
+        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance($spreadsheet)->disableCalculationCache();
         $worksheet = $spreadsheet->getActiveSheet();
 
         $headers = [];
@@ -539,10 +592,15 @@ class LpkImportController extends Controller
 
                 if (ExcelDate::isDateTime($cell)) {
                     try {
-                        $dateObj = ExcelDate::excelToDateTimeObject($cell->getValue());
-                        $val = $dateObj->format('Y-m-d');
+                        $rawDateVal = $cell->isFormula() ? $cell->getCalculatedValue() : $cell->getValue();
+                        if (is_numeric($rawDateVal)) {
+                            $dateObj = ExcelDate::excelToDateTimeObject((float) $rawDateVal);
+                            $val = $dateObj->format('Y-m-d');
+                        } else {
+                            $val = (string) ($rawDateVal ?? '');
+                        }
                     } catch (\Throwable) {
-                        $val = (string) $cell->getCalculatedValue();
+                        $val = (string) ($cell->getCalculatedValue() ?? '');
                     }
                 } else {
                     $val = (string) ($cell->getCalculatedValue() ?? '');
@@ -585,19 +643,20 @@ class LpkImportController extends Controller
 
             return match ($clean) {
                 'noreglpk', 'noreg', 'nomorreglpk', 'nomorreg', 'idreg', 'idunik', 'noregister' => 'no_reg',
-                'noakreditasi', 'nomorakreditasi', 'noakred', 'nomor' => 'accreditation_number',
+                'noakreditasi', 'nomorakreditasi', 'noakred' => 'accreditation_number',
                 'nomorregistrasi', 'registrationnumber', 'no' => 'registration_number',
                 'jenisakreditasi', 'tipeakreditasi', 'skema', 'skemaakreditasi', 'jenis' => 'accreditation_type',
-                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk' => 'name',
+                'namalpk', 'nama', 'namalembaga', 'name', 'lembagapenilaiankesesuaian', 'lpk', 'namalaboratorium', 'laboratorium' => 'name',
                 'ruanglingkup', 'lingkup', 'scope', 'bidang', 'ruanglingkupakreditasi', 'ruanglingkupuji' => 'scope',
                 'alamat', 'address', 'lokasi' => 'address',
                 'email', 'surel', 'mail' => 'email',
                 'telepon', 'telp', 'phone', 'notelp', 'teleponhp', 'teleponfax', 'telfax', 'fax', 'telpfax' => 'phone',
                 'status', 'statusoperasional' => 'status',
-                'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat' => 'certificate_date',
+                'tanggalterbitsertifikat', 'tanggalterbit', 'tglterbit', 'certificatedate', 'tglterbitsertif', 'terbitsertifikat', 'tanggalakreditasi' => 'certificate_date',
                 'masaberlaku', 'expired', 'expireddate', 'tanggalkedaluwarsa', 'masaberlakuakreditasi', 'masaberlakuakreditasiexpired', 'expiredakreditasi', 'tanggalkadaluarsa', 'exp' => 'expired_at',
                 'link', 'linkdrive', 'linkdrivedokumen', 'driveurl', 'tautandrive', 'tautan', 'linkdrivesertifikat', 'linkdriveamandemen', 'url', 'googledrive', 'linkberkas' => 'drive_url',
                 'catatan', 'keterangan', 'notes' => 'notes',
+                'nomor' => 'nomor_seq',
                 default => $clean,
             };
         }, $headerRaw);
@@ -613,6 +672,15 @@ class LpkImportController extends Controller
         }
 
         $date = trim($date);
+
+        // Jika berupa angka serial tanggal Excel (misal: 46253 atau 48031)
+        if (is_numeric($date) && (float) $date >= 20000 && (float) $date <= 90000) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $date)->format('Y-m-d');
+            } catch (\Throwable) {
+                // Lanjut ke parser berikutnya
+            }
+        }
 
         // Jika berupa 4 digit angka tahun (misal: 2027)
         if (preg_match('/^\d{4}$/', $date)) {

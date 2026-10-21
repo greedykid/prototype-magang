@@ -71,6 +71,11 @@ class Lpk extends Model
         'drive_url',
     ];
 
+    /**
+     * Cache internal memori per siklus request untuk kalkulasi milestone surveilen.
+     */
+    protected ?array $memoizedMilestones = null;
+
     protected function casts(): array
     {
         return [
@@ -83,29 +88,16 @@ class Lpk extends Model
     protected static function booted(): void
     {
         static::saving(function (Lpk $lpk): void {
-            if (empty($lpk->no_reg)) {
-                if (!empty($lpk->registration_number) && preg_match('/^\d+$/', (string) $lpk->registration_number)) {
-                    $candidate = (string) $lpk->registration_number;
-                    $exists = \Illuminate\Support\Facades\DB::table('lpks')
-                        ->where('no_reg', $candidate)
-                        ->when($lpk->exists, fn ($q) => $q->where('id', '!=', $lpk->id))
-                        ->exists();
-                    if (! $exists) {
-                        $lpk->no_reg = $candidate;
-                    }
-                }
-
-                if (empty($lpk->no_reg)) {
-                    $lpk->no_reg = static::generateNextNoReg();
-                }
+            if ($lpk->no_reg !== null && trim((string) $lpk->no_reg) === '') {
+                $lpk->no_reg = null;
             }
 
-            if (empty($lpk->accreditation_number) && !empty($lpk->registration_number)) {
-                $lpk->accreditation_number = $lpk->registration_number;
+            if ($lpk->accreditation_number !== null && trim((string) $lpk->accreditation_number) === '') {
+                $lpk->accreditation_number = null;
             }
 
             if (empty($lpk->registration_number)) {
-                $lpk->registration_number = $lpk->accreditation_number ?: $lpk->no_reg;
+                $lpk->registration_number = $lpk->accreditation_number ?: ($lpk->no_reg ?: null);
             }
 
             if (empty($lpk->accreditation_type)) {
@@ -113,17 +105,8 @@ class Lpk extends Model
             }
         });
 
-        static::created(function (Lpk $lpk): void {
-            $lpk->generateSurveillanceAssessments();
-        });
-
-        static::updated(function (Lpk $lpk): void {
-            if ($lpk->wasChanged(['certificate_date', 'expired_at'])) {
-                $lpk->generateSurveillanceAssessments();
-            }
-        });
-
         static::saved(function (Lpk $lpk): void {
+            $lpk->memoizedMilestones = null;
             \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
         });
 
@@ -162,28 +145,6 @@ class Lpk extends Model
 
     public function save(array $options = [])
     {
-        $attempts = 0;
-        while ($attempts < 3) {
-            try {
-                return parent::save($options);
-            } catch (\Illuminate\Database\QueryException $e) {
-                $msg = $e->getMessage();
-                $isUniqueViolation = str_contains($msg, 'lpks.no_reg')
-                    || str_contains($msg, 'UNIQUE constraint failed: lpks.no_reg')
-                    || str_contains($msg, 'lpks.registration_number')
-                    || str_contains($msg, 'UNIQUE constraint failed: lpks.registration_number');
-                if ($isUniqueViolation && $attempts < 2) {
-                    $this->no_reg = static::generateNextNoReg();
-                    if (empty($this->registration_number) || $this->registration_number === $this->getOriginal('no_reg')) {
-                        $this->registration_number = $this->no_reg;
-                    }
-                    $attempts++;
-                    continue;
-                }
-                throw $e;
-            }
-        }
-
         return parent::save($options);
     }
 
@@ -477,6 +438,22 @@ class Lpk extends Model
         return app(LpkSurveillanceService::class)->calculateMilestones($this);
     }
 
+    public function hasMemoizedMilestones(): bool
+    {
+        return $this->memoizedMilestones !== null;
+    }
+
+    public function getMemoizedMilestones(): ?array
+    {
+        return $this->memoizedMilestones;
+    }
+
+    public function setMemoizedMilestones(?array $milestones): self
+    {
+        $this->memoizedMilestones = $milestones;
+        return $this;
+    }
+
     public function getActiveSurveillanceAlerts(): array
     {
         return app(LpkSurveillanceService::class)->getActiveAlerts($this);
@@ -554,6 +531,24 @@ class Lpk extends Model
         }
 
         return $this->isLeadPic($user);
+    }
+
+    /**
+     * Wewenang menghapus data LPK:
+     * - Jika LPK memiliki PIC pengelola: Hanya PIC pengelola bersangkutan yang berhak menghapus.
+     * - Jika LPK belum memiliki PIC (unassigned): Hanya Admin yang berhak menghapus.
+     */
+    public function canDelete(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->pic_id !== null) {
+            return (int) $this->pic_id === (int) $user->id;
+        }
+
+        return $user->isAdmin();
     }
 
     public function isManagedBy(?User $user): bool
@@ -661,6 +656,27 @@ class Lpk extends Model
     }
 
     /**
+     * Scope untuk menyaring LPK yang boleh dihapus oleh user:
+     * - Admin: hanya boleh menghapus LPK yang belum ada PIC (unassigned) atau ditugaskan ke dirinya sendiri.
+     * - PIC: hanya boleh menghapus LPK yang ditugaskan ke dirinya sendiri.
+     */
+    public function scopeDeletableBy(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isAdmin()) {
+            return $query->where(function ($q) use ($user) {
+                $q->whereNull('lpks.pic_id')
+                  ->orWhere('lpks.pic_id', $user->id);
+            });
+        }
+
+        return $query->where('lpks.pic_id', $user->id);
+    }
+
+    /**
      * Scope untuk menyaring data LPK berdasarkan status dinamis operasional
      * dan status surveilen secara terpadu tanpa duplikasi kode antar-controller.
      */
@@ -704,6 +720,7 @@ class Lpk extends Model
         } elseif ($status === 'SUSPENDED') {
             $candidateQuery->where(function ($q) {
                 $q->where('status', 'SUSPENDED')
+                    ->orWhereNotNull('certificate_date')
                     ->orWhereHas('assessments', fn ($aq) => $aq->where('status', 'SUSPENDED')->orWhere('tp_status', 'IN_PROGRESS'));
             });
         } elseif (in_array($status, ['SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE'], true)) {

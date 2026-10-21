@@ -21,7 +21,7 @@
 
                 @if($lpk->exists)
                     <div class="lpk-header-badges">
-                        <span class="lpk-badge-reg">No. Reg: {{ $lpk->no_reg ?: ($lpk->registration_number ?: '-') }}</span>
+                        <span class="lpk-badge-reg">No. Reg: {{ $lpk->no_reg ?: '-' }}</span>
                         @if($lpk->accreditation_number)
                             <span class="lpk-badge-acc">No. Akreditasi: {{ $lpk->accreditation_number }}</span>
                         @else
@@ -369,8 +369,8 @@
         </div>
     </form>
 
-    {{-- Danger Zone (Hapus Data LPK untuk Admin) --}}
-    @if($lpk->exists && auth()->user()?->isAdmin())
+    {{-- Danger Zone: Hapus Data LPK --}}
+    @if($lpk->exists && $lpk->canDelete(auth()->user()))
         <div class="lpk-danger-card">
             <div class="lpk-danger-text">
                 <span class="lpk-danger-title">Zona Bahaya: Hapus Data Lembaga (LPK)</span>

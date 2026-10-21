@@ -323,6 +323,7 @@
 
 .lpk-field-row .lpk-field {
     margin-bottom: 0;
+    min-width: 0;
 }
 
 .lpk-field-row:last-child {

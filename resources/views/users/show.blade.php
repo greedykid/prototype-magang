@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    {{-- Tabel Daftar LPK yang Dikerjakan --}}
+    {{-- Tabel Daftar Laboratorium yang Dikerjakan --}}
     <section class="panel table-panel-borderless">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px;">
             <div>

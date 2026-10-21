@@ -33,6 +33,7 @@
               style="margin: 0;">
             @csrf
             @method('DELETE')
+            <input type="hidden" name="type" value="owner">
             <button type="submit" class="button secondary" style="font-size: 12.5px; padding: 7px 12px; color: #dc2626; border-color: rgba(239, 68, 68, 0.3);">
                 <x-icon name="unlink" size="14" />
                 <span>Lepas Akses Akun</span>
@@ -51,7 +52,7 @@
     <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}"
        style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {{ $tab === 'assessments' ? 'var(--primary, #0284c7)' : 'transparent' }}; color: {{ $tab === 'assessments' ? 'var(--primary, #0284c7)' : 'var(--muted)' }}; transition: all 120ms ease;">
         <x-icon name="assessments" size="16" />
-        <span>Program Asesmen ({{ $totalAssessmentCount }})</span>
+        <span>Daftar Asesmen ({{ $totalAssessmentCount }})</span>
     </a>
 </div>
 
@@ -221,7 +222,7 @@
     </section>
 
 @else
-    {{-- Kartu Ringkasan Program Asesmen --}}
+    {{-- Kartu Ringkasan Daftar Asesmen --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         {{-- Total Asesmen --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">

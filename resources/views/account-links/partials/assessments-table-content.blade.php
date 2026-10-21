@@ -97,12 +97,12 @@
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 12px;">
             <x-icon name="assessments" size="24" />
         </div>
-        <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Tidak Ada Program Asesmen Ditemukan</div>
+        <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Tidak Ada Asesmen Ditemukan</div>
         <p style="font-size: 12.5px; color: var(--muted); margin: 4px 0 0; line-height: 1.5;">
             @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))
                 Tidak ada agenda asesmen milik akun {{ $owner->name }} yang sesuai dengan kriteria filter saat ini.
             @else
-                Akun {{ $owner->name }} saat ini belum memiliki agenda program asesmen terdaftar.
+                Akun {{ $owner->name }} saat ini belum memiliki agenda asesmen terdaftar.
             @endif
         </p>
         @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))

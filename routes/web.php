@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lpks/create', [LpkController::class, 'create'])->name('lpks.create');
     Route::post('/lpks', [LpkController::class, 'store'])->name('lpks.store');
     Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
-    Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
+    Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import')->middleware('throttle:15,1');
     Route::get('/lpks/{lpk}', [LpkController::class, 'show'])->name('lpks.show')->whereNumber('lpk');
     Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
     Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
@@ -62,7 +62,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
     Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
     Route::get('/assessments/import/template', [AssessmentImportController::class, 'downloadTemplate'])->name('assessments.import.template');
-    Route::post('/assessments/import', [AssessmentImportController::class, 'import'])->name('assessments.import');
+    Route::post('/assessments/import', [AssessmentImportController::class, 'import'])->name('assessments.import')->middleware('throttle:15,1');
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
     Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
     Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');

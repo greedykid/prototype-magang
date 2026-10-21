@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Data LPK | SIMASADI')
+@section('title', 'Daftar Laboratorium | SIMASADI')
 
 @section('content')
 <x-page-header
-    title="Daftar LPK"
-    subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi LPK."
+    title="Daftar Laboratorium"
+    subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
         <x-icon name="sheets" size="16" style="color: #0f9d58;" />
@@ -175,7 +175,7 @@
     :export-url="route('reports.lpks.export')"
     :feed-url="route('feeds.lpks', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="data-master-lpk-simasadi.csv"
-    :columns="['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
+    :columns="['ID LPK', 'No. Akreditasi', 'Nama Laboratorium', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
 />
 
 @include('lpks.partials.import-modal')

@@ -116,7 +116,9 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
                     $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
 
                     try {
-                        \Illuminate\Support\Facades\Mail::to($targetEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
+                        $delay = now()->addSeconds($notifiedCount * 2);
+                        $mailable = (new \App\Mail\SurveillanceReminderMail($lpk, $alert))->delay($delay);
+                        \Illuminate\Support\Facades\Mail::to($targetEmails)->queue($mailable);
                         $notifiedCount++;
                         $hasSentForLpk = true;
                         $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim ({$targetSummary}).");
@@ -139,7 +141,7 @@ Artisan::command('lpk:generate-assessments', function () {
 
     $totalCreated = 0;
 
-    \App\Models\Lpk::chunk(100, function ($lpks) use (&$totalCreated) {
+    \App\Models\Lpk::with('assessments')->chunkById(100, function ($lpks) use (&$totalCreated) {
         foreach ($lpks as $lpk) {
             $count = $lpk->generateSurveillanceAssessments();
             if ($count > 0) {

@@ -79,6 +79,10 @@ html[data-theme="dark"] .gcal-popover-body h3 {
     color: var(--ink);
 }
 
+html[data-theme="dark"] .gcal-popover-title-link.has-link:hover {
+    color: #60a5fa;
+}
+
 html[data-theme="dark"] #popover-agenda {
     color: var(--ink);
 }

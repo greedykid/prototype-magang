@@ -18,6 +18,10 @@ class LpkSurveillanceService
      */
     public function calculateMilestones(Lpk $lpk): array
     {
+        if ($lpk->hasMemoizedMilestones()) {
+            return $lpk->getMemoizedMilestones();
+        }
+
         /** @var Carbon|null $cycleEnd */
         $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
         /** @var Carbon|null $cycleStart */
@@ -57,6 +61,7 @@ class LpkSurveillanceService
         ];
 
         if (! $cycleStart || ! $cycleEnd) {
+            $lpk->setMemoizedMilestones($milestones);
             return $milestones;
         }
 
@@ -205,6 +210,7 @@ class LpkSurveillanceService
             }
         }
 
+        $lpk->setMemoizedMilestones($milestones);
         return $milestones;
     }
 
@@ -273,9 +279,23 @@ class LpkSurveillanceService
             $activeAssessment = $lpk->getActiveOrUpcomingAssessment();
             $code = 'S1';
             $name = Assessment::TYPE_SURVEILEN_1;
+            $noticeDate = $activeAssessment?->start_at;
+            $targetDate = $activeAssessment?->effective_tp_due_date ?: $activeAssessment?->submission_due_date;
+            $desc = "Akreditasi laboratorium dibekukan karena melewati batas waktu surveilen atau tindakan perbaikan.";
+
             if ($activeAssessment) {
                 $code = str_contains(strtolower($activeAssessment->title ?: ''), 's2') ? 'S2' : (str_contains(strtolower($activeAssessment->title ?: ''), 'ra') ? 'RA' : 'S1');
                 $name = $activeAssessment->assessment_type_label;
+            } else {
+                $milestones = $this->calculateMilestones($lpk);
+                $overdueMilestone = collect($milestones)->first(fn ($m) => ($m['status'] ?? '') === 'OVERDUE');
+                if ($overdueMilestone) {
+                    $code = $overdueMilestone['code'];
+                    $name = $overdueMilestone['name'];
+                    $noticeDate = $overdueMilestone['notice_date'];
+                    $targetDate = $overdueMilestone['target_date'];
+                    $desc = "Akreditasi laboratorium dibekukan karena melewati batas waktu maksimal {$name} sesuai regulasi KAN U-01.";
+                }
             }
 
             $alerts[] = [
@@ -285,13 +305,13 @@ class LpkSurveillanceService
                 'lpk_email' => $lpk->email,
                 'code' => $code,
                 'name' => $name,
-                'notice_date' => $activeAssessment?->start_at,
-                'target_date' => $activeAssessment?->effective_tp_due_date ?: $activeAssessment?->submission_due_date,
+                'notice_date' => $noticeDate,
+                'target_date' => $targetDate,
                 'status' => 'SUSPENDED',
                 'status_label' => 'STATUS DIBEKUKAN',
                 'is_urgent' => true,
                 'severity' => 'danger',
-                'description' => "Akreditasi laboratorium dibekukan karena melewati batas waktu surveilen atau tindakan perbaikan.",
+                'description' => $desc,
                 'last_notified_at' => $lpk->last_surveillance_notified_at,
             ];
 
@@ -597,7 +617,7 @@ class LpkSurveillanceService
             || ($milestones['s2']['status'] ?? '') === 'OVERDUE';
 
         if ($isOverdue) {
-            return 'SURVEILLANCE_OVERDUE';
+            return 'SUSPENDED';
         }
 
         // Cek apakah ada notifikasi surveilen yang sedang aktif (due)
@@ -772,6 +792,9 @@ class LpkSurveillanceService
                 default => $firstAlert['name'] ?? Assessment::TYPE_SURVEILEN_1,
             };
             $target = ! empty($firstAlert['target_date']) ? ' (' . $firstAlert['target_date']->format('d/m/Y') . ')' : '';
+            if (($firstAlert['status'] ?? '') === 'SUSPENDED') {
+                return "{$milestoneName}: Dibekukan (melewati batas waktu surveilen KAN{$target}).";
+            }
             return "{$milestoneName}: Periode jatuh tempo KAN{$target}.";
         }
 

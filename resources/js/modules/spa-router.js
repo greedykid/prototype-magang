@@ -1,12 +1,13 @@
 import { setDrawerState } from './sidebar.js';
 import { returnModalToPlaceholder, closeModal } from './modals.js';
-import { returnPopoverToPlaceholder, closeEventPopover } from './calendar.js';
+import { returnPopoverToPlaceholder, closeEventPopover, stopGcalLiveTimeLine } from './calendar.js';
 import { closeAllCustomPickers } from './custom-picker.js';
 import { renderSkeletonForType } from './spa/skeletons.js';
 import { getPageTypeAndTitle } from './spa/route-matcher.js';
 import {
     PAGE_CACHE_TTL,
     pageCache,
+    setPageCache,
     prefetchInFlight,
     clearPageCache,
     clearCalendarCache,
@@ -31,6 +32,8 @@ let onNavigateCallback = null;
  * Clean up active popovers, modals, and custom pickers prior to navigation
  */
 const cleanupActiveOverlays = () => {
+    if (typeof stopGcalLiveTimeLine === 'function') stopGcalLiveTimeLine();
+
     if (typeof closeEventPopover === 'function') closeEventPopover();
     else window.closeEventPopover?.();
 
@@ -224,7 +227,7 @@ const navigateTo = async (url, pushState = true) => {
             fetchUrlRedirect = response.url;
             htmlText = await response.text();
             if (isCacheableUrl(url)) {
-                pageCache.set(cleanTargetUrl, {
+                setPageCache(cleanTargetUrl, {
                     htmlText,
                     timestamp: Date.now()
                 });

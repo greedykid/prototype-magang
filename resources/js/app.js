@@ -6,7 +6,7 @@ import { closeAllCustomSelects, initCustomSelects } from './modules/custom-selec
 import { initCustomPickers, closeAllCustomPickers, syncCustomPickers } from './modules/custom-picker.js';
 import { initDataTables, syncViewToggleLocation } from './modules/datatable.js';
 import { handleFlashNotifications, initPersistentSurveillanceBanner } from './modules/notifications.js';
-import { initModalListeners, openModal, closeModal, returnModalToPlaceholder } from './modules/modals.js';
+import { initModalListeners, openModal, closeModal, returnModalToPlaceholder, copyFormulaToClipboard } from './modules/modals.js';
 import { initButtonLoader } from './modules/button-loader.js';
 import { initAuthTransitions } from './modules/auth-transitions.js';
 import { initConfirmations } from './modules/confirmations.js';
@@ -60,6 +60,7 @@ window.initFileDropzone = initFileDropzone;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.returnModalToPlaceholder = returnModalToPlaceholder;
+window.copyFormulaToClipboard = copyFormulaToClipboard;
 window.showEventPopover = showEventPopover;
 window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;

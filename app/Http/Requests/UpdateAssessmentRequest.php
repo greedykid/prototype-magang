@@ -40,7 +40,7 @@ class UpdateAssessmentRequest extends FormRequest
 
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
-            'title' => ['required', 'string', 'max:150'],
+            'title' => ['required', 'string', 'max:255'],
             'assessment_type' => ['required', 'string', 'max:60'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],
             'start_time' => ['nullable', 'string', 'max:10'],
@@ -49,7 +49,7 @@ class UpdateAssessmentRequest extends FormRequest
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'submission_due_date' => ['nullable', 'date'],
-            'location' => ['nullable', 'string', 'max:150'],
+            'location' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
             'lead_assessor' => ['nullable', 'string', 'max:100'],
             'assessment_team' => ['nullable', 'string', 'max:1000'],
@@ -62,8 +62,19 @@ class UpdateAssessmentRequest extends FormRequest
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
             'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
-            'tp_extension_letter_no' => ['nullable', 'string', 'max:80'],
-            'tp_extension_date' => ['nullable', 'date'],
+            'tp_extension_letter_no' => [
+                'required_if_accepted:tp_has_extension',
+                'required_with:tp_extension_date',
+                'nullable',
+                'string',
+                'max:80',
+            ],
+            'tp_extension_date' => [
+                'required_if_accepted:tp_has_extension',
+                'required_with:tp_extension_letter_no',
+                'nullable',
+                'date',
+            ],
             'tp_extension_notes' => ['nullable', 'string'],
             'tp_satisfied_at' => ['nullable', 'date'],
             'tp_notes' => ['nullable', 'string'],
@@ -85,6 +96,10 @@ class UpdateAssessmentRequest extends FormRequest
             'end_at.after' => 'Waktu selesai pelaksanaan harus setelah waktu mulai pelaksanaan.',
             'start_date.required' => 'Tanggal mulai pelaksanaan wajib diisi.',
             'end_date.required' => 'Tanggal selesai pelaksanaan wajib diisi.',
+            'tp_extension_letter_no.required_if_accepted' => 'Nomor surat resmi LPK wajib diisi saat mengajukan perpanjangan waktu tindakan perbaikan.',
+            'tp_extension_letter_no.required_with' => 'Nomor surat resmi LPK wajib diisi jika tanggal surat perpanjangan diisi.',
+            'tp_extension_date.required_if_accepted' => 'Tanggal surat resmi LPK wajib diisi saat mengajukan perpanjangan waktu tindakan perbaikan.',
+            'tp_extension_date.required_with' => 'Tanggal surat resmi LPK wajib diisi jika nomor surat perpanjangan diisi.',
         ];
     }
 
@@ -103,9 +118,19 @@ class UpdateAssessmentRequest extends FormRequest
         $startAt = ! empty($data['start_at']) ? Carbon::parse($data['start_at']) : null;
         $endAt = ! empty($data['end_at']) ? Carbon::parse($data['end_at']) : null;
         $tpDueDate = ! empty($data['tp_due_date']) ? Carbon::parse($data['tp_due_date']) : $assessment?->tp_due_date;
-        $tpHasExtension = (bool) ($data['tp_has_extension'] ?? $assessment?->tp_has_extension ?? false);
-        $tpExtensionMonths = (int) ($data['tp_extension_months'] ?? $assessment?->tp_extension_months ?? 0);
-        $tpExtensionDate = ! empty($data['tp_extension_date']) ? Carbon::parse($data['tp_extension_date']) : $assessment?->tp_extension_date;
+        $tpHasExtension = (bool) ($data['tp_has_extension'] ?? false);
+        if ($tpHasExtension) {
+            $tpExtensionMonths = (int) ($data['tp_extension_months'] ?? 1) ?: 1;
+            $tpExtensionDate = ! empty($data['tp_extension_date']) ? Carbon::parse($data['tp_extension_date']) : $assessment?->tp_extension_date;
+        } else {
+            $tpExtensionMonths = 0;
+            $tpExtensionDate = null;
+            $data['tp_extension_letter_no'] = null;
+            $data['tp_extension_date'] = null;
+            $data['tp_extension_notes'] = null;
+        }
+        $data['tp_has_extension'] = $tpHasExtension;
+        $data['tp_extension_months'] = $tpExtensionMonths;
         $tpSatisfiedAt = ! empty($data['tp_satisfied_at']) ? Carbon::parse($data['tp_satisfied_at']) : $assessment?->tp_satisfied_at;
 
         $data['assessment_type'] = Assessment::normalizeType(
@@ -126,7 +151,8 @@ class UpdateAssessmentRequest extends FormRequest
             $tpExtensionMonths,
             $tpSatisfiedAt,
             $data['assessment_type'],
-            $tpExtensionDate
+            $tpExtensionDate,
+            $data['eha_status'] ?? $assessment?->eha_status
         );
 
         return $data;

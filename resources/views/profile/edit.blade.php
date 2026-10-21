@@ -277,6 +277,7 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
+                                <input type="hidden" name="type" value="viewer">
                                 <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: var(--danger-text); display: inline-flex; align-items: center; border-radius: var(--radius-xs, 6px);" title="Putuskan tautan">
                                     <x-icon name="trash" size="14" />
                                 </button>
@@ -323,6 +324,7 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
+                                <input type="hidden" name="type" value="owner">
                                 <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 11.5px; padding: 4px 10px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                     Lepas
                                 </button>

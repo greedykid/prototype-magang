@@ -49,6 +49,7 @@ export function initGlobalSearch() {
     let abortController = null;
     let selectedIndex = -1;
     let items = [];
+    let currentViewAllUrl = null;
 
     function openDropdown() {
         dropdown.style.display = 'block';
@@ -58,7 +59,9 @@ export function initGlobalSearch() {
     function closeDropdown() {
         dropdown.style.display = 'none';
         input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
         selectedIndex = -1;
+        currentViewAllUrl = null;
         updateItemSelection();
     }
 
@@ -129,11 +132,18 @@ export function initGlobalSearch() {
                 item.classList.add('is-selected');
                 item.setAttribute('aria-selected', 'true');
                 item.scrollIntoView({ block: 'nearest' });
+                if (item.id) {
+                    input.setAttribute('aria-activedescendant', item.id);
+                }
             } else {
                 item.classList.remove('is-selected');
                 item.removeAttribute('aria-selected');
             }
         });
+
+        if (selectedIndex === -1) {
+            input.removeAttribute('aria-activedescendant');
+        }
     }
 
     function renderResults(data, query) {
@@ -159,7 +169,7 @@ export function initGlobalSearch() {
             html += `<div class="topbar-search-group"><div class="topbar-search-group-title">Laboratorium (${data.lpks.length})</div>`;
             data.lpks.forEach(lpk => {
                 html += `
-                    <a href="${lpk.url}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
+                    <a href="${lpk.url}" id="topbar-search-item-${itemIndex}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
                         <div class="topbar-search-item-icon lpk-icon" aria-hidden="true">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
                         </div>
@@ -182,12 +192,12 @@ export function initGlobalSearch() {
 
         // 2. Group Asesmen
         if (data.assessments && data.assessments.length > 0) {
-            html += `<div class="topbar-search-group"><div class="topbar-search-group-title">Jadwal Asesmen (${data.assessments.length})</div>`;
+            html += `<div class="topbar-search-group"><div class="topbar-search-group-title">Asesmen (${data.assessments.length})</div>`;
             data.assessments.forEach(assessment => {
                 html += `
-                    <a href="${assessment.url}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
+                    <a href="${assessment.url}" id="topbar-search-item-${itemIndex}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
                         <div class="topbar-search-item-icon assessment-icon" aria-hidden="true">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
                         </div>
                         <div class="topbar-search-item-info">
                             <div class="topbar-search-item-primary">
@@ -206,12 +216,38 @@ export function initGlobalSearch() {
             html += `</div>`;
         }
 
-        // 3. Group Accounts
+        // 3. Group Jadwal Asesmen (Kalender)
+        if (data.schedules && data.schedules.length > 0) {
+            html += `<div class="topbar-search-group"><div class="topbar-search-group-title">Jadwal Kalender (${data.schedules.length})</div>`;
+            data.schedules.forEach(schedule => {
+                html += `
+                    <a href="${schedule.url}" id="topbar-search-item-${itemIndex}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
+                        <div class="topbar-search-item-icon schedule-icon" aria-hidden="true">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        </div>
+                        <div class="topbar-search-item-info">
+                            <div class="topbar-search-item-primary">
+                                <strong class="item-title">${escapeHtml(schedule.title)}</strong>
+                                <span class="status status-${schedule.status.toLowerCase()}">${formatStatus(schedule.status)}</span>
+                            </div>
+                            <div class="topbar-search-item-sub">
+                                <span>${escapeHtml(schedule.lpk_name)}</span>
+                                <span class="sep">&bull;</span>
+                                <span>${escapeHtml(schedule.date)}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        // 4. Group Accounts
         if (data.accounts && data.accounts.length > 0) {
             html += `<div class="topbar-search-group"><div class="topbar-search-group-title">Tautan Akun (${data.accounts.length})</div>`;
             data.accounts.forEach(account => {
                 html += `
-                    <a href="${account.url}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
+                    <a href="${account.url}" id="topbar-search-item-${itemIndex}" class="topbar-search-item" data-index="${itemIndex++}" role="option">
                         <div class="topbar-search-item-icon user-icon" aria-hidden="true">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         </div>
@@ -230,13 +266,31 @@ export function initGlobalSearch() {
             html += `</div>`;
         }
 
-        // 4. Footer "Lihat semua hasil"
-        if (data.view_all_url) {
+        // 5. Footer "Lihat semua hasil"
+        currentViewAllUrl = data.view_all_url || null;
+
+        if (data.view_all_links && data.view_all_links.length > 1) {
+            html += `
+                <div class="topbar-search-footer">
+                    <div class="topbar-search-footer-header">
+                        <span class="topbar-search-footer-title">Lihat semua hasil:</span>
+                    </div>
+                    <div class="topbar-search-footer-links">
+                        ${data.view_all_links.map(link => `
+                            <a href="${link.url}" class="topbar-search-footer-chip">
+                                <span>${escapeHtml(link.label)}</span>
+                                <span class="chip-count">${link.count}</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (data.view_all_url) {
+            const footerLabel = data.view_all_label || 'Lihat semua hasil';
             html += `
                 <div class="topbar-search-footer">
                     <a href="${data.view_all_url}" class="topbar-search-view-all">
-                        <span>Lihat semua hasil pencarian LPK</span>
-                        <kbd class="topbar-search-key">↵ Enter</kbd>
+                        <span>${escapeHtml(footerLabel)}</span>
                     </a>
                 </div>
             `;
@@ -347,8 +401,17 @@ export function initGlobalSearch() {
                 } else {
                     window.location.href = targetUrl;
                 }
+            } else if (isDropdownVisible && currentViewAllUrl) {
+                e.preventDefault();
+                const targetUrl = currentViewAllUrl;
+                closeDropdown();
+                if (typeof window.navigateTo === 'function') {
+                    window.navigateTo(targetUrl);
+                } else {
+                    window.location.href = targetUrl;
+                }
             }
-            // If selectedIndex is -1, let the form submit normally to /lpks?search=...
+            // Otherwise let form submit normally
         } else if (e.key === 'Escape') {
             if (isDropdownVisible) {
                 e.preventDefault();

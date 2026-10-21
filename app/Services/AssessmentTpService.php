@@ -63,14 +63,10 @@ class AssessmentTpService
             return null;
         }
 
-        $type = strtoupper(trim((string) $assessment->assessment_type));
-        $eligibleTypes = [
-            'S1', 'S2', 'STT',
-            'SURVEILEN 1', 'SURVEILEN 2', 'SURVEILEN TIDAK TERJADWAL',
-            'SURVEILEN', 'SURVEILLANCE',
-        ];
+        $type = strtoupper(trim((string) $assessment->assessment_type_label));
+        $isEligible = str_contains($type, 'SURVEILEN') || str_contains($type, 'STT') || in_array($type, ['S1', 'S2'], true);
 
-        if (! in_array($type, $eligibleTypes, true)) {
+        if (! $isEligible) {
             return null;
         }
 
@@ -217,7 +213,7 @@ class AssessmentTpService
         if ($this->isTpOverdue($assessment) || $assessment->status === 'SUSPENDED') {
             $days = $this->calculateDaysRemainingTp($assessment);
             $overdueDays = abs($days ?? 0);
-            $deadlineLabel = $assessment->tp_has_extension ? 'batas waktu perpanjangan' : 'batas waktu awal';
+            $deadlineLabel = $assessment->tp_has_extension ? 'tenggat waktu perpanjangan' : 'tenggat waktu TP';
             return [
                 'type' => 'suspended',
                 'label' => 'Dibekukan (Terlambat ' . ($overdueDays > 0 ? $overdueDays . ' Hari' : '') . ')',

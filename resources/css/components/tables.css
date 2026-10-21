@@ -90,57 +90,57 @@
 
 /* Table Length Dropdown ("Show [ 10 ] entries") */
 .table-length-control .custom-select-wrapper {
-    flex: 0 0 auto !important;
-    min-width: 78px !important;
-    width: 78px !important;
+    flex: 0 0 auto;
+    min-width: 78px;
+    width: 78px;
 }
 
 .table-length-control .custom-select-trigger {
-    background: #ffffff !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    height: 34px !important;
-    justify-content: space-between !important;
-    min-height: 34px !important;
-    min-width: 78px !important;
-    padding: 4px 10px !important;
-    width: 78px !important;
+    background: var(--input-bg, #ffffff);
+    font-size: 13px;
+    font-weight: 600;
+    height: 34px;
+    justify-content: space-between;
+    min-height: 34px;
+    min-width: 78px;
+    padding: 4px 10px;
+    width: 78px;
 }
 
 .table-length-control .custom-select-value {
-    flex: 1 1 auto !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    justify-content: flex-start !important;
-    min-width: 0 !important;
-    overflow: visible !important;
+    flex: 1 1 auto;
+    font-size: 13px;
+    font-weight: 600;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: visible;
 }
 
 .table-length-control .custom-select-value > span {
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    overflow: visible !important;
-    text-align: left !important;
-    white-space: nowrap !important;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: visible;
+    text-align: left;
+    white-space: nowrap;
 }
 
 .table-length-control .custom-select-menu {
-    box-sizing: border-box !important;
-    left: 0 !important;
-    min-width: 82px !important;
-    right: auto !important;
-    width: 82px !important;
+    box-sizing: border-box;
+    left: 0;
+    min-width: 82px;
+    right: auto;
+    width: 82px;
 }
 
 .table-length-control .custom-select-option {
-    box-sizing: border-box !important;
-    min-height: 32px !important;
-    padding: 6px 10px !important;
+    box-sizing: border-box;
+    min-height: 32px;
+    padding: 6px 10px;
 }
 
 .table-length-control .custom-select-option-content {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .table-length-control .custom-select-option-text {
@@ -1116,9 +1116,7 @@ table.table-lpks-custom tbody td.col-lpk-notes,
 .table-lpks-custom .lpk-note-header {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
     gap: 6px;
-    justify-content: space-between;
     width: 100%;
 }
 
@@ -1634,31 +1632,31 @@ table.table-lpks-custom tbody td.col-lpk-notes,
    Modern Card Grid for LPKs (.table-lpks-custom in .table-mode-grid)
    ========================================================================== */
 .table-mode-grid .table-lpks-custom tbody {
-    display: grid !important;
-    gap: 16px !important;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
-    width: 100% !important;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    width: 100%;
 }
 
 .table-mode-grid .table-lpks-custom tr {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: var(--radius-xl, 18px) !important;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    overflow: hidden !important;
-    position: relative !important;
-    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms ease, border-color 160ms ease !important;
-    width: 100% !important;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: var(--radius-xl, 18px);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.02);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms ease, border-color 160ms ease;
+    width: 100%;
 }
 
 .table-mode-grid .table-lpks-custom tr:hover {
-    border-color: #cbd5e1 !important;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
-    transform: translateY(-2px) !important;
+    border-color: var(--line-strong, #cbd5e1);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    transform: translateY(-2px);
 }
 
 /* 1. Card Top Bar / Eyebrow: No. Akreditasi & Alert Badges */

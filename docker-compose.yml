@@ -20,7 +20,7 @@ x-simasadi-environment: &simasadi-env
   LOG_CHANNEL: stderr
   LOG_LEVEL: "${LOG_LEVEL:-warning}"
 
-  SHEETS_FEED_KEY: "${SHEETS_FEED_KEY:-simasadi-live}"
+  SHEETS_FEED_KEY: "${SHEETS_FEED_KEY:-}"
   SESSION_SECURE_COOKIE: "${SESSION_SECURE_COOKIE:-false}"
   RECAPTCHA_ENABLED: "${RECAPTCHA_ENABLED:-false}"
   RECAPTCHA_SITE_KEY: "${RECAPTCHA_SITE_KEY:-}"

@@ -130,6 +130,18 @@
     word-break: break-word;
 }
 
+.gcal-popover-title-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 120ms ease;
+}
+
+.gcal-popover-title-link.has-link:hover {
+    color: var(--primary, #0075de);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 #popover-agenda {
     color: var(--ink, #0f172a);
     font-weight: 600;

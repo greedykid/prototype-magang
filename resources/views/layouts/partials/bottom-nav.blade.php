@@ -21,7 +21,7 @@
         <a href="{{ route('lpks.index') }}"
            class="bottom-nav-item {{ request()->routeIs('lpks.*') ? 'active' : '' }}"
            data-nav-target="lpks"
-           title="{{ $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)' }}">
+           title="Daftar Laboratorium">
             <span class="bottom-nav-icon-wrap" aria-hidden="true">
                 <x-icon name="lpks" size="19" />
             </span>
@@ -32,7 +32,7 @@
         <a href="{{ route('assessments.index') }}"
            class="bottom-nav-item {{ request()->routeIs('assessments.*') ? 'active' : '' }}"
            data-nav-target="assessments"
-           title="{{ $isPic ? 'Jadwal Asesmen' : 'Program Asesmen' }}">
+           title="Daftar Asesmen">
             <span class="bottom-nav-icon-wrap" aria-hidden="true">
                 <x-icon name="assessments" size="19" />
             </span>

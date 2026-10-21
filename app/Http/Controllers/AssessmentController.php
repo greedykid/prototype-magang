@@ -25,8 +25,8 @@ class AssessmentController extends Controller
         $assessmentType = $request->string('assessment_type')->toString();
         $status = $request->string('status')->toString();
         $tpFilter = $request->string('tp_status')->toString();
-        $startFrom = $request->date('start_from')?->format('Y-m-d');
-        $startTo = $request->date('start_to')?->format('Y-m-d');
+        $startFrom = rescue(fn () => $request->date('start_from')?->format('Y-m-d'), null, false);
+        $startTo = rescue(fn () => $request->date('start_to')?->format('Y-m-d'), null, false);
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
@@ -108,13 +108,14 @@ class AssessmentController extends Controller
                 $assessment->assessment_type = $normalizedType;
                 $assessment->title = ($normalizedType ?: 'Asesmen') . ' - ' . $lpk->name;
 
-                if ($targetDateStr) {
-                    try {
-                        $targetDate = Carbon::parse($targetDateStr);
+                $isTargetPast = false;
+                $targetDate = $targetDateStr ? rescue(fn () => Carbon::parse($targetDateStr), null, false) : null;
+                if ($targetDate) {
+                    if ($targetDate->endOfDay()->isPast()) {
+                        $isTargetPast = true;
+                    } else {
                         $assessment->start_at = $targetDate->copy()->setTime(9, 0);
                         $assessment->end_at = $targetDate->copy()->addDays(2)->setTime(17, 0);
-                    } catch (\Throwable $e) {
-                        // Abaikan error parsing tanggal
                     }
                 } else {
                     $defaultStart = now()->addDays(14)->setTime(9, 0);
@@ -136,28 +137,20 @@ class AssessmentController extends Controller
             $assessment->location = $request->input('location');
         }
         if ($request->filled('start_date')) {
-            try {
-                $time = $request->input('start_time', '09:00');
-                $assessment->start_at = Carbon::parse($request->input('start_date').' '.$time);
-            } catch (\Throwable $e) {}
+            $time = $request->input('start_time', '09:00');
+            $assessment->start_at = rescue(fn () => Carbon::parse($request->input('start_date').' '.$time), null, false);
         } elseif ($request->filled('start_at')) {
-            try {
-                $assessment->start_at = Carbon::parse($request->input('start_at'));
-            } catch (\Throwable $e) {}
+            $assessment->start_at = rescue(fn () => Carbon::parse($request->input('start_at')), null, false);
         }
 
         if ($request->filled('end_date')) {
-            try {
-                $time = $request->input('end_time', '17:00');
-                $assessment->end_at = Carbon::parse($request->input('end_date').' '.$time);
-            } catch (\Throwable $e) {}
+            $time = $request->input('end_time', '17:00');
+            $assessment->end_at = rescue(fn () => Carbon::parse($request->input('end_date').' '.$time), null, false);
         } elseif ($request->filled('end_at')) {
-            try {
-                $assessment->end_at = Carbon::parse($request->input('end_at'));
-            } catch (\Throwable $e) {}
+            $assessment->end_at = rescue(fn () => Carbon::parse($request->input('end_at')), null, false);
         }
 
-        if (! $assessment->start_at) {
+        if (! $assessment->start_at && empty($isTargetPast)) {
             $defaultStart = now()->addDays(14)->setTime(9, 0);
             $assessment->start_at = $defaultStart;
             $assessment->end_at = $defaultStart->copy()->addDays(2)->setTime(17, 0);
@@ -168,19 +161,21 @@ class AssessmentController extends Controller
         }
 
         if ($request->filled('submission_due_date')) {
-            try {
-                $assessment->submission_due_date = Carbon::parse($request->input('submission_due_date'));
-            } catch (\Throwable $e) {}
+            $assessment->submission_due_date = rescue(fn () => Carbon::parse($request->input('submission_due_date')), null, false);
         }
 
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpks]);
+        return view('assessments.form', [
+            'assessment' => $assessment,
+            'lpks' => $lpks,
+            'isTargetPast' => $isTargetPast ?? false,
+        ]);
     }
 
     public function store(StoreAssessmentRequest $request): RedirectResponse
     {
         $data = $request->normalizedPayload();
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
-        if ($data['tp_has_extension']) {
+        $hasExt = (bool) ($data['tp_has_extension'] ?? false);
+        if ($hasExt) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
                     'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
@@ -189,6 +184,11 @@ class AssessmentController extends Controller
             if (empty($data['tp_extension_months'])) {
                 $data['tp_extension_months'] = 1;
             }
+        } else {
+            $data['tp_extension_months'] = 0;
+            $data['tp_extension_letter_no'] = null;
+            $data['tp_extension_date'] = null;
+            $data['tp_extension_notes'] = null;
         }
 
         $user = $request->user();
@@ -199,14 +199,14 @@ class AssessmentController extends Controller
 
         $assessment = Assessment::create($data + ['created_by' => $user->id]);
 
-        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil dicatat.');
+        return redirect()->route('assessments.index')->with('success', 'Asesmen berhasil dicatat.');
     }
 
     public function show(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
         if (! $assessment->canView($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk melihat program asesmen ini.');
+            abort(403, 'Anda tidak memiliki hak untuk melihat asesmen ini.');
         }
 
         return view('assessments.show', ['assessment' => $assessment->load(['lpk'])]);
@@ -216,7 +216,7 @@ class AssessmentController extends Controller
     {
         $user = $request->user();
         if (! $assessment->isManagedBy($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
+            abort(403, 'Anda tidak memiliki hak untuk mengubah asesmen ini.');
         }
 
         return view('assessments.form', ['assessment' => $assessment, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get()]);
@@ -237,8 +237,8 @@ class AssessmentController extends Controller
             }
         }
 
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
-        if ($data['tp_has_extension']) {
+        $hasExt = (bool) ($data['tp_has_extension'] ?? false);
+        if ($hasExt) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
                     'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
@@ -247,11 +247,16 @@ class AssessmentController extends Controller
             if (empty($data['tp_extension_months'])) {
                 $data['tp_extension_months'] = 1;
             }
+        } else {
+            $data['tp_extension_months'] = 0;
+            $data['tp_extension_letter_no'] = null;
+            $data['tp_extension_date'] = null;
+            $data['tp_extension_notes'] = null;
         }
 
         $assessment->update($data);
 
-        return redirect()->route('assessments.show', $assessment)->with('success', 'Program asesmen berhasil diperbarui.');
+        return redirect()->route('assessments.show', $assessment)->with('success', 'Asesmen berhasil diperbarui.');
     }
 
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
@@ -264,19 +269,20 @@ class AssessmentController extends Controller
         $validated = $request->normalizedData($assessment);
         $assessment->update($validated);
 
-        return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) serta milestone asesmen berhasil diperbarui.');
+        return back()->with('success', 'Pembaruan tindak lanjut asesmen berhasil disimpan.');
     }
 
     public function destroy(Assessment $assessment, Request $request): RedirectResponse
     {
         $user = $request->user();
         if (! $assessment->isManagedBy($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
+            abort(403, 'Anda tidak memiliki hak untuk menghapus asesmen ini.');
         }
 
         $assessmentId = $assessment->id;
         $title = $assessment->title;
-        $assessment->delete();
+
+        DB::transaction(fn () => $assessment->delete());
 
         Log::info('Assessment deleted', [
             'assessment_id' => $assessmentId,
@@ -285,7 +291,7 @@ class AssessmentController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('assessments.index')->with('success', "Program asesmen {$title} berhasil dihapus.");
+        return redirect()->route('assessments.index')->with('success', "Asesmen {$title} berhasil dihapus.");
     }
 
     public function bulkDestroy(Request $request): RedirectResponse|JsonResponse
@@ -301,10 +307,10 @@ class AssessmentController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada program asesmen yang dipilih.',
+                    'message' => 'Tidak ada asesmen yang dipilih.',
                 ], 422);
             }
-            return back()->with('error', 'Tidak ada program asesmen yang dipilih.');
+            return back()->with('error', 'Tidak ada asesmen yang dipilih.');
         }
 
         $records = Assessment::with('lpk')->manageableBy($user)->whereIn('id', $ids)->get();
@@ -314,16 +320,21 @@ class AssessmentController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada program asesmen yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                    'message' => 'Tidak ada asesmen yang dapat dihapus atau Anda tidak memiliki hak akses.',
                 ], 403);
             }
-            return back()->with('error', 'Tidak ada program asesmen yang dapat dihapus.');
+            return back()->with('error', 'Tidak ada asesmen yang dapat dihapus.');
         }
 
         $idsToDelete = $records->pluck('id')->all();
+        $affectedLpks = $records->pluck('lpk')->filter()->unique('id');
 
-        DB::transaction(function () use ($idsToDelete) {
+        DB::transaction(function () use ($idsToDelete, $affectedLpks) {
             Assessment::whereIn('id', $idsToDelete)->delete();
+            foreach ($affectedLpks as $lpk) {
+                $lpk->touch();
+                \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
+            }
             \App\Services\LpkSurveillanceService::invalidateAlertsCache();
         });
 
@@ -334,7 +345,7 @@ class AssessmentController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $message = "{$count} program asesmen berhasil dihapus.";
+        $message = "{$count} asesmen berhasil dihapus.";
 
         if ($request->wantsJson()) {
             return response()->json([

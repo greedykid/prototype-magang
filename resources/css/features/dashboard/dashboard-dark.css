@@ -351,6 +351,11 @@ html[data-theme="dark"] .topbar-search-item-icon.assessment-icon {
     color: #4ade80;
 }
 
+html[data-theme="dark"] .topbar-search-item-icon.schedule-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
 html[data-theme="dark"] .topbar-search-item-icon.user-icon {
     background: rgba(147, 51, 234, 0.15);
     color: #c084fc;
@@ -369,6 +374,28 @@ html[data-theme="dark"] .topbar-search-key {
     background: var(--surface-subtle);
     border-color: var(--line);
     color: var(--muted);
+}
+
+html[data-theme="dark"] .topbar-search-footer-chip {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .topbar-search-footer-chip:hover {
+    background: rgba(25, 114, 245, 0.18);
+    border-color: #60a5fa;
+    color: #60a5fa;
+}
+
+html[data-theme="dark"] .topbar-search-footer-chip .chip-count {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .topbar-search-footer-chip:hover .chip-count {
+    background: rgba(25, 114, 245, 0.28);
+    color: #60a5fa;
 }
 
 html[data-theme="dark"] .topbar-search-container.is-mobile-open {

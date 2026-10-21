@@ -49,7 +49,7 @@
                                 Peringatan Siklus Pengawasan Akreditasi: {{ count($globalSurveillanceAlerts) }} Kunjungan Memerlukan Tindak Lanjut!
                             </strong>
                             <p class="persistent-surveillance-banner-desc">
-                                Sesuai siklus KAN, notifikasi aktif di <strong>Bulan ke-14 (S1)</strong>, <strong>Bulan ke-35 (S2)</strong>, dan <strong>1 Bulan sebelum kedaluwarsa (Re-Akreditasi)</strong>.
+                                Sesuai regulasi KAN U-01, pengingat aktif di <strong>Bulan ke-13 (S1)</strong>, <strong>Bulan ke-34 (S2)</strong>, dan <strong>Bulan ke-48 (1 tahun sebelum kedaluwarsa RA)</strong>.
                             </p>
                         </div>
                         <div class="persistent-surveillance-banner-action">

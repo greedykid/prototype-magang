@@ -21,9 +21,11 @@ class GlobalSearchController extends Controller
             return response()->json([
                 'lpks' => [],
                 'assessments' => [],
+                'schedules' => [],
                 'accounts' => [],
                 'total' => 0,
                 'view_all_url' => route('lpks.index'),
+                'view_all_label' => 'Lihat semua hasil pencarian LPK',
             ]);
         }
 
@@ -31,39 +33,88 @@ class GlobalSearchController extends Controller
         $isPic = $user?->isPic();
         $isAdmin = $user?->isAdmin();
 
-        // 1. Search LPK
+        $assessmentTerms = Assessment::expandSearchTerms($q);
+
+        // 1. Search LPK (Direct attributes + related assessments)
         $lpks = Lpk::query()
+            ->with(['assessments'])
             ->primaryFor($user)
-            ->where(function ($query) use ($q) {
+            ->where(function ($query) use ($q, $assessmentTerms) {
                 $query->where('name', 'like', "%{$q}%")
                     ->orWhere('registration_number', 'like', "%{$q}%")
                     ->orWhere('no_reg', 'like', "%{$q}%")
                     ->orWhere('accreditation_number', 'like', "%{$q}%")
-                    ->orWhere('accreditation_type', 'like', "%{$q}%");
+                    ->orWhere('accreditation_type', 'like', "%{$q}%")
+                    ->orWhere('scope', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%")
+                    ->orWhereHas('assessments', function ($aq) use ($assessmentTerms, $q) {
+                        $aq->where(function ($sub) use ($assessmentTerms) {
+                            foreach ($assessmentTerms as $term) {
+                                $sub->orWhere('title', 'like', "%{$term}%")
+                                    ->orWhere('assessment_type', 'like', "%{$term}%");
+                            }
+                        })
+                        ->orWhere('sk_number', 'like', "%{$q}%")
+                        ->orWhere('lead_assessor', 'like', "%{$q}%");
+                    });
             })
-            ->limit(4)
-            ->get(['id', 'name', 'registration_number', 'accreditation_number', 'accreditation_type', 'status'])
-            ->map(fn ($lpk) => [
-                'id' => $lpk->id,
-                'name' => $lpk->name,
-                'reg' => $lpk->accreditation_number ?: ($lpk->registration_number ?: '-'),
-                'type' => $lpk->accreditation_type ?: 'Laboratorium Terakreditasi',
-                'status' => $lpk->dynamic_status,
-                'url' => route('lpks.show', $lpk->id),
-            ]);
+            ->limit(5)
+            ->get(['id', 'name', 'registration_number', 'no_reg', 'accreditation_number', 'accreditation_type', 'status', 'certificate_date', 'expired_at'])
+            ->map(function ($lpk) {
+                foreach ($lpk->assessments as $assessment) {
+                    $assessment->setRelation('lpk', $lpk);
+                }
 
-        // 2. Search Assessments
-        $assessments = Assessment::query()
+                return [
+                    'id' => $lpk->id,
+                    'name' => $lpk->name,
+                    'reg' => $lpk->accreditation_number ?: ($lpk->registration_number ?: '-'),
+                    'type' => $lpk->accreditation_type ?: 'Laboratorium Terakreditasi',
+                    'status' => $lpk->dynamic_status,
+                    'url' => route('lpks.show', $lpk->id),
+                ];
+            });
+
+        // 2. Search Assessments & Schedules in a single query
+        $rawAssessments = Assessment::query()
             ->with(['lpk:id,name'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
-            ->where(function ($query) use ($q) {
-                $query->where('title', 'like', "%{$q}%")
-                    ->orWhere('assessment_type', 'like', "%{$q}%")
-                    ->orWhereHas('lpk', fn ($lq) => $lq->where('name', 'like', "%{$q}%"));
+            ->where(function ($query) use ($assessmentTerms, $q) {
+                $query->where(function ($sub) use ($assessmentTerms) {
+                    foreach ($assessmentTerms as $term) {
+                        $sub->orWhere('title', 'like', "%{$term}%")
+                            ->orWhere('assessment_type', 'like', "%{$term}%");
+                    }
+                })
+                ->orWhere('sk_number', 'like', "%{$q}%")
+                ->orWhere('lead_assessor', 'like', "%{$q}%")
+                ->orWhere('location', 'like', "%{$q}%")
+                ->orWhereHas('lpk', fn ($lq) => $lq->where('name', 'like', "%{$q}%")
+                    ->orWhere('registration_number', 'like', "%{$q}%")
+                    ->orWhere('no_reg', 'like', "%{$q}%")
+                    ->orWhere('accreditation_number', 'like', "%{$q}%")
+                );
             })
             ->orderBy('start_at', 'desc')
-            ->limit(3)
-            ->get()
+            ->limit(10)
+            ->get();
+
+        $assessments = $rawAssessments
+            ->take(5)
+            ->map(fn ($assessment) => [
+                'id' => $assessment->id,
+                'title' => $assessment->display_title,
+                'type_label' => $assessment->assessment_type_label,
+                'lpk_name' => $assessment->lpk?->name ?: '-',
+                'date' => $assessment->start_at ? $assessment->start_at->translatedFormat('d M Y') : '-',
+                'status' => $assessment->status,
+                'url' => route('assessments.show', $assessment->id),
+            ]);
+
+        // 3. Search Schedules / Jadwal (Kalender)
+        $schedules = $rawAssessments
+            ->filter(fn ($assessment) => ! empty($assessment->start_at))
+            ->take(5)
             ->map(fn ($assessment) => [
                 'id' => $assessment->id,
                 'title' => $assessment->display_title,
@@ -77,9 +128,10 @@ class GlobalSearchController extends Controller
                     'highlight' => $assessment->id,
                     'selected' => 1,
                 ]),
-            ]);
+            ])
+            ->values();
 
-        // 3. Search Users / Accounts (Admin & PIC only)
+        // 4. Search Users / Accounts (Admin & PIC only)
         $accounts = collect();
         if ($isAdmin) {
             $accounts = User::query()
@@ -87,7 +139,7 @@ class GlobalSearchController extends Controller
                     $query->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");
                 })
-                ->limit(3)
+                ->limit(4)
                 ->get(['id', 'name', 'email', 'role'])
                 ->map(fn ($account) => [
                     'id' => $account->id,
@@ -104,7 +156,7 @@ class GlobalSearchController extends Controller
                     $query->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");
                 })
-                ->limit(3)
+                ->limit(4)
                 ->get(['id', 'name', 'email', 'role'])
                 ->map(fn ($account) => [
                     'id' => $account->id,
@@ -115,14 +167,62 @@ class GlobalSearchController extends Controller
                 ]);
         }
 
-        $total = $lpks->count() + $assessments->count() + $accounts->count();
+        $viewAllLinks = [];
+        if ($lpks->isNotEmpty()) {
+            $viewAllLinks[] = [
+                'type' => 'lpk',
+                'label' => 'Laboratorium',
+                'url' => route('lpks.index', ['search' => $q]),
+                'count' => $lpks->count(),
+            ];
+        }
+        if ($assessments->isNotEmpty()) {
+            $viewAllLinks[] = [
+                'type' => 'assessment',
+                'label' => 'Asesmen',
+                'url' => route('assessments.index', ['search' => $q]),
+                'count' => $assessments->count(),
+            ];
+        }
+        if ($schedules->isNotEmpty()) {
+            $viewAllLinks[] = [
+                'type' => 'calendar',
+                'label' => 'Kalender',
+                'url' => route('calendar.index', ['view' => 'month']),
+                'count' => $schedules->count(),
+            ];
+        }
+        if ($accounts->isNotEmpty()) {
+            $viewAllLinks[] = [
+                'type' => 'account',
+                'label' => $isPic ? 'Tautan Akun' : 'Anggota',
+                'url' => $isPic ? route('account-links.index', ['search' => $q]) : route('users.index', ['search' => $q]),
+                'count' => $accounts->count(),
+            ];
+        }
+
+        $total = $lpks->count() + $assessments->count() + $schedules->count() + $accounts->count();
+
+        $viewAllUrl = route('lpks.index', ['search' => $q]);
+        $viewAllLabel = 'Lihat semua hasil pencarian LPK';
+
+        if ($lpks->isEmpty() && $assessments->isNotEmpty()) {
+            $viewAllUrl = route('assessments.index', ['search' => $q]);
+            $viewAllLabel = 'Lihat semua hasil pencarian Asesmen';
+        } elseif ($lpks->isEmpty() && $assessments->isEmpty() && $accounts->isNotEmpty()) {
+            $viewAllUrl = $isPic ? route('account-links.index', ['search' => $q]) : route('users.index', ['search' => $q]);
+            $viewAllLabel = $isPic ? 'Lihat semua Tautan Akun' : 'Lihat semua Anggota';
+        }
 
         return response()->json([
             'lpks' => $lpks,
             'assessments' => $assessments,
+            'schedules' => $schedules,
             'accounts' => $accounts,
             'total' => $total,
-            'view_all_url' => route('lpks.index', ['search' => $q]),
+            'view_all_url' => $viewAllUrl,
+            'view_all_label' => $viewAllLabel,
+            'view_all_links' => $viewAllLinks,
         ]);
     }
 }

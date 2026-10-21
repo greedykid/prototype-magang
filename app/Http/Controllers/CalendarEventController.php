@@ -95,7 +95,10 @@ class CalendarEventController extends Controller
 
         $pics = $user ? $user->getAccessiblePics() : collect();
         $lpks = Lpk::accessibleBy($user)
-            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
+            ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
+                $sub->where('lpks.pic_id', $picFilter)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter));
+            }))
             ->orderBy('name')
             ->get(['id', 'name', 'accreditation_number', 'registration_number', 'no_reg']);
         $hoursRange = range(7, 19);
@@ -132,7 +135,7 @@ class CalendarEventController extends Controller
     public function create(Request $request): View
     {
         $event = new CalendarEvent;
-        $selectedDate = $request->date('date')?->toDateString();
+        $selectedDate = rescue(fn () => $request->date('date')?->toDateString(), null, false);
 
         return view('calendar.form', ['event' => $event, 'lpks' => Lpk::manageableBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
     }
@@ -333,7 +336,7 @@ class CalendarEventController extends Controller
                     ->orWhereHas('lpk', fn ($lq) => $lq->accessibleBy($user));
             }))
             ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
-                $sub->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter))
+                $sub->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter)))
                     ->orWhere(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $picFilter));
             }))
             ->where('start_at', '<=', $queryEnd)
@@ -400,28 +403,14 @@ class CalendarEventController extends Controller
 
         $assessments = Assessment::with('lpk')
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
-            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter))))
             ->where('start_at', '<=', $queryEnd)
             ->where('end_at', '>=', $queryStart)
             ->orderBy('start_at')
             ->get();
 
         return $assessments->map(function ($item) use ($isAdmin, $user) {
-            $shortType = match (strtoupper(trim((string) $item->assessment_type))) {
-                'S1', 'SURVEILEN 1', 'SURVEILLANCE 1' => 'S1',
-                'SURVEILEN 1 + PRL', 'S1 + PRL', 'S1+PRL' => 'S1+PRL',
-                'S2', 'SURVEILEN 2', 'SURVEILLANCE 2' => 'S2',
-                'SURVEILEN 2 + PRL', 'S2 + PRL', 'S2+PRL' => 'S2+PRL',
-                'RA', 'RE-AKREDITASI', 'REAKREDITASI', 'RE-ASESMEN', 'REASSESSMENT', 'RE-AKREDITASI (AKREDITASI ULANG)' => 'RA',
-                'PRL', 'PERLUASAN RUANG LINGKUP', 'PERLUASAN LINGKUP', 'PERLUASAN RUANG LINGKUP (PRL)' => 'PRL',
-                'STT', 'SURVEILEN TIDAK TERJADWAL', 'SURVEILEN TIDAK TERJADWAL (STT)' => 'STT',
-                'AA', 'ASESMEN AWAL', 'INITIAL', 'AKREDITASI AWAL' => 'AA',
-                default => $item->assessment_type ?: 'Asesmen',
-            };
-
-            if (in_array($shortType, ['Surveilen', 'Asesmen'], true) && preg_match('/\b(S1|S2|RA|PRL|STT|AA)\b/i', (string) $item->title, $m)) {
-                $shortType = strtoupper($m[1]);
-            }
+            $shortType = $item->short_type;
 
             $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
             $lpkReg = $item->lpk?->registration_number;
@@ -473,7 +462,7 @@ class CalendarEventController extends Controller
                     ->orWhereBetween('end_at', [$queryStart->subMonths(5), $queryEnd->endOfDay()]);
             })
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
-            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter))))
             ->get();
 
         $events = collect();
@@ -624,7 +613,10 @@ class CalendarEventController extends Controller
         $lpksWithMilestones = Lpk::accessibleBy($user)
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
             ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'tp_satisfied_at', 'sk_number'])])
-            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
+            ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
+                $sub->where('lpks.pic_id', $picFilter)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter));
+            }))
             ->where(function ($q) use ($queryStart, $queryEnd, $qStartStr, $qEndStr) {
                 // 1. Kedaluwarsa akreditasi pada bulan kalender aktif
                 $q->whereBetween('expired_at', [$qStartStr, $qEndStr])

@@ -198,6 +198,53 @@ class GoogleSheetsReportController extends Controller
     }
 
     /**
+     * Susun baris data master LPK untuk ekspor CSV / Excel.
+     */
+    protected function buildLpkRow(Lpk $lpk, bool $isCsv = false): array
+    {
+        return [
+            'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
+            $lpk->no_reg ?: $lpk->registration_number,
+            $lpk->accreditation_number ?: $lpk->registration_number,
+            $lpk->accreditation_type ?: 'Laboratorium Penguji',
+            $lpk->name,
+            $lpk->scope ?: '-',
+            $this->formatLpkStatus($lpk),
+            $isCsv
+                ? $this->formatDateForCsv($lpk->certificate_date)
+                : ($lpk->certificate_date ? $lpk->certificate_date->translatedFormat('d F Y') : '-'),
+            $isCsv
+                ? $this->formatDateForCsv($lpk->expired_at)
+                : ($lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-'),
+            $lpk->drive_url ?: '-',
+        ];
+    }
+
+    /**
+     * Susun baris data program asesmen untuk ekspor CSV / Excel.
+     */
+    protected function buildAssessmentRow(Assessment $asm, bool $isCsv = false): array
+    {
+        return [
+            'ASM-' . str_pad((string) $asm->id, 4, '0', STR_PAD_LEFT),
+            $asm->title,
+            $asm->lpk?->name ?? '-',
+            $asm->assessment_type,
+            $isCsv
+                ? $this->formatDateForCsv($asm->start_at)
+                : ($asm->start_at ? $asm->start_at->translatedFormat('d F Y') : '-'),
+            $isCsv
+                ? $this->formatDateForCsv($asm->end_at)
+                : ($asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-'),
+            $this->formatAssessmentStatus($asm->status),
+            $this->formatTpStatus($asm->tp_status),
+            $isCsv
+                ? $this->formatDateForCsv($asm->effective_tp_due_date)
+                : ($asm->effective_tp_due_date ? $asm->effective_tp_due_date->translatedFormat('d F Y') : '-'),
+        ];
+    }
+
+    /**
      * Parse daftar ID dari parameter request (bisa string koma atau array).
      */
     protected function parseIds(Request $request): ?array
@@ -249,7 +296,8 @@ class GoogleSheetsReportController extends Controller
             $query = Lpk::with(['assessments' => function ($q) {
                 $q->select([
                     'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
-                    'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                    'status', 'tp_status', 'tp_due_date', 'tp_has_extension', 'tp_extension_months',
+                    'tp_extension_date', 'tp_satisfied_at', 'submission_due_date',
                     'report_date', 'eha_date', 'sk_number',
                 ]);
             }])
@@ -266,19 +314,7 @@ class GoogleSheetsReportController extends Controller
                 foreach ($lpk->assessments as $asm) {
                     $asm->setRelation('lpk', $lpk);
                 }
-                $row = [
-                    'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
-                    $lpk->no_reg ?: $lpk->registration_number,
-                    $lpk->accreditation_number ?: $lpk->registration_number,
-                    $lpk->accreditation_type ?: 'Laboratorium Penguji',
-                    $lpk->name,
-                    $lpk->scope ?: '-',
-                    $this->formatLpkStatus($lpk),
-                    $this->formatDateForCsv($lpk->certificate_date),
-                    $this->formatDateForCsv($lpk->expired_at),
-                    $lpk->drive_url ?: '-',
-                ];
-
+                $row = $this->buildLpkRow($lpk, true);
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
             }
 
@@ -327,18 +363,7 @@ class GoogleSheetsReportController extends Controller
             $assessments = $query->cursor();
 
             foreach ($assessments as $asm) {
-                $row = [
-                    'ASM-' . str_pad((string) $asm->id, 4, '0', STR_PAD_LEFT),
-                    $asm->title,
-                    $asm->lpk?->name ?? '-',
-                    $asm->assessment_type,
-                    $this->formatDateForCsv($asm->start_at),
-                    $this->formatDateForCsv($asm->end_at),
-                    $this->formatAssessmentStatus($asm->status),
-                    $this->formatTpStatus($asm->tp_status),
-                    $this->formatDateForCsv($asm->effective_tp_due_date),
-                ];
-
+                $row = $this->buildAssessmentRow($asm, true);
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
             }
 
@@ -378,7 +403,8 @@ class GoogleSheetsReportController extends Controller
         $query = Lpk::with(['assessments' => function ($q) {
             $q->select([
                 'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
-                'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
+                'status', 'tp_status', 'tp_due_date', 'tp_has_extension', 'tp_extension_months',
+                'tp_extension_date', 'tp_satisfied_at', 'submission_due_date',
                 'report_date', 'eha_date', 'sk_number',
             ]);
         }])
@@ -397,18 +423,7 @@ class GoogleSheetsReportController extends Controller
             foreach ($lpk->assessments as $asm) {
                 $asm->setRelation('lpk', $lpk);
             }
-            $row = [
-                'LPK-' . str_pad((string) $lpk->id, 4, '0', STR_PAD_LEFT),
-                $lpk->no_reg ?: $lpk->registration_number,
-                $lpk->accreditation_number ?: $lpk->registration_number,
-                $lpk->accreditation_type ?: 'Laboratorium Penguji',
-                $lpk->name,
-                $lpk->scope ?: '-',
-                $this->formatLpkStatus($lpk),
-                $lpk->certificate_date ? $lpk->certificate_date->translatedFormat('d F Y') : '-',
-                $lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-',
-                $lpk->drive_url ?: '-',
-            ];
+            $row = $this->buildLpkRow($lpk, false);
 
             $batch[] = array_map([$this, 'sanitizeCsvCell'], $row);
             $rowIdx++;
@@ -513,17 +528,7 @@ class GoogleSheetsReportController extends Controller
         $rowIdx = 2;
 
         foreach ($query->cursor() as $asm) {
-            $row = [
-                'ASM-' . str_pad((string) $asm->id, 4, '0', STR_PAD_LEFT),
-                $asm->title,
-                $asm->lpk?->name ?? '-',
-                $asm->assessment_type,
-                $asm->start_at ? $asm->start_at->translatedFormat('d F Y') : '-',
-                $asm->end_at ? $asm->end_at->translatedFormat('d F Y') : '-',
-                $this->formatAssessmentStatus($asm->status),
-                $this->formatTpStatus($asm->tp_status),
-                $asm->effective_tp_due_date ? $asm->effective_tp_due_date->translatedFormat('d F Y') : '-',
-            ];
+            $row = $this->buildAssessmentRow($asm, false);
 
             $batch[] = array_map([$this, 'sanitizeCsvCell'], $row);
             $rowIdx++;

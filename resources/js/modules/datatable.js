@@ -364,6 +364,8 @@ export function syncViewToggleLocation() {
     });
 }
 
+let tableFilterEscapeBound = false;
+
 export const initDataTables = () => {
     // 1. Table view mode toggles, Table sorting, and Table length controls
     document.querySelectorAll('.table-wrap').forEach((tableWrap, index) => {
@@ -529,11 +531,22 @@ export const initDataTables = () => {
         closeButton.addEventListener('click', closeDrawer);
         backdrop.addEventListener('click', closeDrawer);
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && filter.classList.contains('filters-open')) {
-                closeDrawer();
-            }
-        });
+        if (!tableFilterEscapeBound) {
+            tableFilterEscapeBound = true;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const openFilter = document.querySelector('.table-filters.filters-open');
+                    if (openFilter) {
+                        openFilter.style.transform = '';
+                        openFilter.style.transition = '';
+                        openFilter.classList.remove('filters-open');
+                        const openToggle = openFilter.parentElement?.querySelector('.filter-toggle');
+                        openToggle?.setAttribute('aria-expanded', 'false');
+                        document.body.classList.remove('filter-drawer-open');
+                    }
+                }
+            });
+        }
 
         // Touch drag down to dismiss bottom sheet
         let touchStartY = 0;

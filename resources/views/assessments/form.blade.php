@@ -62,7 +62,9 @@
             $tpHasExtVal,
             $tpExtMonthsVal,
             $tpSatisfiedCarbon,
-            $typeVal
+            $typeVal,
+            $assessment->tp_extension_date,
+            old('eha_status', $assessment->eha_status)
         );
     }
     $statusLabels = [
@@ -80,7 +82,7 @@
             : 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'SCHEDULED' => 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'IN_PROGRESS' => 'Otomatis: Saat ini dalam periode pelaksanaan atau tindak lanjut asesmen.',
-        'SUSPENDED' => 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.',
+        'SUSPENDED' => 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.',
         'COMPLETED' => 'Otomatis: Tindakan perbaikan memenuhi atau SK KAN telah terbit.',
         'CANCELLED' => 'Asesmen dibatalkan.',
     ];
@@ -115,7 +117,7 @@
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Dibekukan (Lewat Batas Waktu)';
         $initialComputedTpBadgeClass = 'status-suspended';
-        $initialComputedTpDesc = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi.';
+        $initialComputedTpDesc = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi.';
     } elseif ($hasActiveTp || ($isVisitFinished && ! $isOverdueWithoutAction) || $hasExecutionProof || ($hasExplicitTpDate && $isVisitFinished)) {
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Sedang Berlangsung';
@@ -132,9 +134,9 @@
 <div class="lpk-form-container">
     {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
     <div class="lpk-header-back-wrap">
-        <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke {{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}">
+        <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen">
             <x-icon name="chevron-left" size="16" />
-            <span>{{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}</span>
+            <span>Daftar Asesmen</span>
         </a>
     </div>
 
@@ -149,7 +151,7 @@
 
                 @if($assessment->exists)
                     <div class="lpk-header-badges">
-                        <span class="lpk-badge-reg">{{ $assessment->lpk->registration_number ?? '-' }}</span>
+                        <span class="lpk-badge-reg">{{ $assessment->lpk->accreditation_number ?: ($assessment->lpk->no_reg ?: '-') }}</span>
                         <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
                         <x-status :value="$assessment->status" />
                     </div>
@@ -174,20 +176,37 @@
             $prefilledLpk = $lpks->firstWhere('id', old('lpk_id', $assessment->lpk_id ?: request('lpk_id')));
         @endphp
         @if($prefilledLpk)
-            <div class="lpk-alert-callout is-success">
-                <div class="lpk-alert-callout-content">
-                    <div class="lpk-alert-callout-head">
-                        <x-icon name="check-circle" size="18" style="flex-shrink: 0;" />
-                        <strong>Jadwal Kunjungan Otomatis Disiapkan</strong>
+            @if(!empty($isTargetPast))
+                <div class="lpk-alert-callout is-warning">
+                    <div class="lpk-alert-callout-content">
+                        <div class="lpk-alert-callout-head">
+                            <x-icon name="alert-triangle" size="18" style="flex-shrink: 0;" />
+                            <strong>Data Laboratorium Dimuat (Input Jadwal Diperlukan)</strong>
+                        </div>
+                        <p class="lpk-alert-callout-desc">
+                            Form telah dimuat untuk <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->accreditation_number ?: ($prefilledLpk->no_reg ?: '-') }}). Karena batas waktu surveilen telah lampau, tanggal pelaksanaan dikosongkan agar Anda dapat menentukan tanggal rencana kunjungan baru secara manual.
+                        </p>
                     </div>
-                    <p class="lpk-alert-callout-desc">
-                        Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->registration_number }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
-                    </p>
+                    <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
+                        Jadwal Manual
+                    </span>
                 </div>
-                <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
-                    Auto Pre-filled
-                </span>
-            </div>
+            @else
+                <div class="lpk-alert-callout is-success">
+                    <div class="lpk-alert-callout-content">
+                        <div class="lpk-alert-callout-head">
+                            <x-icon name="check-circle" size="18" style="flex-shrink: 0;" />
+                            <strong>Jadwal Kunjungan Otomatis Disiapkan</strong>
+                        </div>
+                        <p class="lpk-alert-callout-desc">
+                            Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->accreditation_number ?: ($prefilledLpk->no_reg ?: '-') }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
+                        </p>
+                    </div>
+                    <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
+                        Auto Pre-filled
+                    </span>
+                </div>
+            @endif
         @endif
     @endif
 
@@ -318,14 +337,16 @@
                         </div>
 
                         <div class="lpk-field">
-                            <label class="lpk-label">
-                                <span>Status Asesmen</span>
-                            </label>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; flex-wrap: wrap; gap: 4px;">
+                                <label class="lpk-label" style="margin-bottom: 0;">
+                                    <span>Status Asesmen</span>
+                                </label>
+                                <span class="status-auto-tag">Otomatis</span>
+                            </div>
                             <div class="lpk-status-preview-box">
                                 <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
                                     {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
                                 </span>
-                                <span class="status-auto-tag">Otomatis</span>
                                 <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
                             </div>
                             <span id="status-desc-preview" class="lpk-field-hint">{{ $initialComputedDesc }}</span>
@@ -393,7 +414,7 @@
                         </label>
                         <input id="assessment-submission-due-date" type="date" name="submission_due_date" value="{{ $submissionDueDateVal }}" data-default-date="{{ $defaultSubmissionDueDateVal }}">
                         <span id="assessment-submission-due-date-hint" class="lpk-field-hint">
-                            Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).
+                            Maksimal batas toleransi pengisian dokumen (bawaan: {{ $assessment->submission_cycle_hint }} / dapat diubah sesuai kondisi proses tertentu).
                         </span>
                     </div>
 
@@ -465,7 +486,7 @@
                     <div class="lpk-field-row" style="align-items: start; margin-bottom: 18px;">
                         <div class="lpk-field">
                             <label class="lpk-label" for="assessment-tp-due-date" style="min-height: 34px; align-items: flex-start;">
-                                <span>Batas Waktu Awal</span>
+                                <span>Tenggat Waktu TP</span>
                             </label>
                             <input id="assessment-tp-due-date" type="date" name="tp_due_date" value="{{ $initTpDueDate }}" data-base-date="{{ $baseTpDate }}" data-is-extended="{{ $tpHasExtVal ? '1' : '0' }}">
                             <div id="tp-due-date-ext-badge-wrap" style="display: {{ $tpHasExtVal ? 'block' : 'none' }}; margin-top: 6px;">
@@ -478,14 +499,14 @@
                                 @if($tpHasExtVal)
                                     * Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.
                                 @else
-                                    Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.
+                                    Otomatis dihitung +2 atau +3 bulan dari selesai asesmen. Ubah hanya jika ada kesepakatan tanggal khusus di berita acara.
                                 @endif
                             </span>
                         </div>
 
                         <div class="lpk-field">
                             <label class="lpk-label" for="assessment-tp-satisfied-at" style="min-height: 34px; align-items: flex-start;">
-                                <span>Tanggal Dinyatakan Memenuhi</span>
+                                <span>Dinyatakan Memenuhi</span>
                             </label>
                             <input id="assessment-tp-satisfied-at" type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}">
                             <span class="lpk-field-hint" style="margin-top: 4px;">Diisi saat verifikasi tindakan perbaikan telah disetujui.</span>
@@ -506,15 +527,17 @@
                             <div class="lpk-field">
                                 <label class="lpk-label" for="assessment-ext-letter-no">
                                     <span>Nomor Surat Resmi LPK</span>
+                                    <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}">
+                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @endif>
                             </div>
 
                             <div class="lpk-field">
                                 <label class="lpk-label" for="assessment-ext-date">
                                     <span>Tanggal Surat</span>
+                                    <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}">
+                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" @if($tpHasExtVal) required @endif>
                             </div>
 
                             <div class="lpk-field" style="grid-column: 1 / -1;">
@@ -640,6 +663,12 @@
 <script>
 (function() {
     function initAutoAssessmentStatus() {
+        const form = document.getElementById('assessment-main-form');
+        if (!form || form.dataset.autoStatusInit === 'true') {
+            return;
+        }
+        form.dataset.autoStatusInit = 'true';
+
         const startDateInput = document.querySelector('input[name="start_date"]');
         const startTimeInput = document.querySelector('input[name="start_time"]');
         const endDateInput = document.querySelector('input[name="end_date"]');
@@ -807,11 +836,17 @@
                 const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
                 const lowerType = typeVal.toLowerCase();
                 if (lowerType.includes('ra') || lowerType.includes('re-akreditasi') || lowerType.includes('akreditasi ulang')) {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi bulan ke-60 / tanggal kedaluwarsa sertifikat akreditasi KAN).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi bulan ke-60 / akhir siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
                 } else if (lowerType.includes('s2') || typeVal === 'Surveilen 2') {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 36-39 siklus akreditasi KAN).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 36-39 siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('awal')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi proses asesmen awal KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('stt') || lowerType.includes('tidak terjadwal')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: surveilen tidak terjadwal / khusus KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('prl') || lowerType.includes('perluasan')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: proses perluasan ruang lingkup KAN / dapat diubah sesuai kondisi proses tertentu).';
                 } else {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
                 }
             }
         }
@@ -821,17 +856,29 @@
 
             const letterVal = tpExtLetterNoInput ? tpExtLetterNoInput.value.trim() : '';
             const hasLetter = letterVal.length > 0;
-            const isChecked = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
 
             if (triggeredFromLetter && hasLetter && tpHasExtCheckbox && !tpHasExtCheckbox.checked) {
                 tpHasExtCheckbox.checked = true;
             }
 
-            const shouldExtend = hasLetter || (tpHasExtCheckbox ? tpHasExtCheckbox.checked : false);
+            const shouldExtend = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
 
             if (formExtBlock) {
                 formExtBlock.style.display = shouldExtend ? 'grid' : 'none';
             }
+
+            const tpExtDateInput = document.getElementById('assessment-ext-date');
+            const formExtReqDots = document.querySelectorAll('.form-ext-req-dot');
+
+            if (tpExtLetterNoInput) {
+                tpExtLetterNoInput.required = shouldExtend;
+            }
+            if (tpExtDateInput) {
+                tpExtDateInput.required = shouldExtend;
+            }
+            formExtReqDots.forEach(function(dot) {
+                dot.style.display = shouldExtend ? 'inline' : 'none';
+            });
 
             const isExtended = tpDueDateInput.dataset.isExtended === '1';
 
@@ -872,7 +919,7 @@
                     updatePickerDisplay(tpDueDateInput);
                     if (tpDueDateExtBadgeWrap) tpDueDateExtBadgeWrap.style.display = 'none';
                     if (tpDueDateExtBadge) tpDueDateExtBadge.style.display = 'none';
-                    if (tpDueDateHint) tpDueDateHint.textContent = 'Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.';
+                    if (tpDueDateHint) tpDueDateHint.textContent = 'Otomatis dihitung +2 atau +3 bulan dari selesai asesmen. Ubah hanya jika ada kesepakatan tanggal khusus di berita acara.';
                 }
             }
 
@@ -966,7 +1013,11 @@
             const isSlaPassed = effectiveDueDate && now > effectiveDueDate;
             const isTpSatisfied = tpSatisfiedVal !== '';
             const hasExecutionProof = reportDateVal !== '' || ehaDateVal !== '';
-            const hasCompletedAction = skNumberVal !== '' || isTpSatisfied;
+            const ehaStatusSelect = document.getElementById('assessment-eha-status');
+            const ehaStatusVal = ehaStatusSelect ? ehaStatusSelect.value : '';
+            const hasEhaCompleted = (ehaStatusVal === 'DIREKOMENDASIKAN' || ehaStatusVal === 'SUDAH_EHA')
+                || (ehaDateVal !== '' && ehaStatusVal !== 'BELUM_EHA' && ehaStatusVal !== 'PERLU_VERIFIKASI');
+            const hasCompletedAction = skNumberVal !== '' || (isTpSatisfied && hasEhaCompleted);
             const isVisitFinished = endDate && (now > endDate);
             const isVisitInProgress = startDate && endDate && (now >= startDate && now <= endDate);
             const isFutureDate = startDate && (now < startDate);
@@ -996,7 +1047,7 @@
                 tpStatus = 'IN_PROGRESS';
                 tpLabel = 'Dibekukan (Lewat Batas Waktu)';
                 tpBadgeClass = 'status-suspended';
-                tpDescription = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
+                tpDescription = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
             } else if (hasActiveTpRecord || (isVisitFinished && !isOverdueWithoutAction) || hasExecutionProof || (tpDueDateVal && isVisitFinished)) {
                 tpStatus = 'IN_PROGRESS';
                 tpLabel = 'Sedang Berlangsung';
@@ -1026,12 +1077,19 @@
             let badgeClass = 'status-planned';
             let description = 'Otomatis: Agenda asesmen direncanakan.';
 
-            // a. Jika SK KAN sudah terbit atau Tindakan Perbaikan (TP) memenuhi
+            // a. Jika SK KAN sudah terbit atau Tindakan Perbaikan (TP) memenuhi DAN EHA/Laporan selesai
             if (hasCompletedAction) {
                 status = 'COMPLETED';
                 label = 'Selesai';
                 badgeClass = 'status-completed';
-                description = 'Otomatis: SK KAN telah terbit atau tindakan perbaikan (TP) telah memenuhi.';
+                description = 'Otomatis: SK KAN telah terbit atau sidang EHA telah merekomendasikan/selesai.';
+            }
+            // a.2. Jika TP memenuhi namun EHA belum terlaksana
+            else if (isTpSatisfied) {
+                status = 'IN_PROGRESS';
+                label = 'Sedang Berlangsung (Menunggu EHA)';
+                badgeClass = 'status-in_progress';
+                description = 'Otomatis: Tindakan perbaikan memenuhi, menunggu pelaksanaan sidang Evaluasi Hasil Asesmen (EHA).';
             }
             // b. Jika tanggal pelaksanaan telah lewat namun belum ada tindakan apapun
             else if (isOverdueWithoutAction && !tpDueDateVal) {
@@ -1040,12 +1098,12 @@
                 badgeClass = 'status-planned';
                 description = 'Otomatis: Tanggal pelaksanaan telah lewat namun belum ada tindakan/pelaporan asesmen (Lewat Jadwal).';
             }
-            // c. Jika melewati batas waktu awal belum ada yang dinyatakan memenuhi -> DIBEKUKAN
+            // c. Jika melewati tenggat waktu TP belum ada yang dinyatakan memenuhi -> DIBEKUKAN
             else if (isSlaPassed) {
                 status = 'SUSPENDED';
                 label = 'Dibekukan';
                 badgeClass = 'status-suspended';
-                description = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
+                description = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
             }
             // d. Jika kunjungan sedang berlangsung di lapangan saat ini
             else if (isVisitInProgress) {
@@ -1170,7 +1228,8 @@
             tpSatisfiedInput,
             reportDateInput,
             ehaDateInput,
-            skNumberInput
+            skNumberInput,
+            document.getElementById('assessment-eha-status')
         ];
         watchElements.forEach(function(el) {
             if (el) {
@@ -1185,6 +1244,7 @@
 
         // Jalankan penentuan info LPK dan status otomatis saat form dimuat
         updateSelectedLpkInfo();
+        handleExtensionSync(false);
         updateStatus();
 
         // Auto-scroll dan fokus langsung ke pengisian SK jika diakses dari notifikasi SK
@@ -1237,7 +1297,6 @@
     } else {
         initAutoAssessmentStatus();
     }
-    window.addEventListener('simasadi:page-loaded', initAutoAssessmentStatus);
 })();
 </script>
 @endsection

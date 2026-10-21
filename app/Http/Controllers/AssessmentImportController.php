@@ -241,12 +241,14 @@ class AssessmentImportController extends Controller
         // Cache LPKs dan Asesmen terproyeksi hanya untuk LPK yang cocok dengan file input
         $user = auth()->user();
         $accessibleLpksQuery = Lpk::manageableBy($user)
-            ->select(['id', 'registration_number', 'name', 'address', 'pic_id']);
+            ->select(['id', 'no_reg', 'accreditation_number', 'registration_number', 'name', 'address', 'pic_id']);
 
         if (! empty($incomingRegs) || ! empty($incomingNames)) {
             $accessibleLpksQuery->where(function ($q) use ($incomingRegs, $incomingNames) {
                 if (! empty($incomingRegs)) {
-                    $q->whereIn('registration_number', $incomingRegs);
+                    $q->whereIn('registration_number', $incomingRegs)
+                      ->orWhereIn('accreditation_number', $incomingRegs)
+                      ->orWhereIn('no_reg', $incomingRegs);
                 }
                 if (! empty($incomingNames)) {
                     $q->orWhereIn('name', $incomingNames);
@@ -257,18 +259,21 @@ class AssessmentImportController extends Controller
         }
 
         $accessibleLpks = $accessibleLpksQuery->get();
-        $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
+        $lpksByReg = $accessibleLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
+        $lpksByAccred = $accessibleLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
+        $lpksByNoReg = $accessibleLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        // Pre-load existing assessments terproyeksi hanya untuk LPK yang relevan
+        // Pre-load existing assessments hanya untuk LPK yang relevan
         $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))
-            ->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'created_by'])
             ->get();
 
         DB::transaction(function () use (
             $rows,
             $headers,
             $lpksByReg,
+            $lpksByAccred,
+            $lpksByNoReg,
             $lpksByName,
             $existingAssessments,
             $userId,
@@ -297,18 +302,24 @@ class AssessmentImportController extends Controller
 
                 // Cari LPK
                 $matchedLpk = null;
-                if (! empty($regInput) && isset($lpksByReg[$regInput])) {
-                    $matchedLpk = $lpksByReg[$regInput];
-                } elseif (! empty($data['lpk_name'])) {
+                if (! empty($regInput)) {
+                    $matchedLpk = $lpksByReg[$regInput]
+                        ?? $lpksByAccred[$regInput]
+                        ?? $lpksByNoReg[$regInput]
+                        ?? null;
+                }
+                if (! $matchedLpk && ! empty($data['lpk_name'])) {
                     $lpkNameKey = strtolower(trim((string) $data['lpk_name']));
                     $matchedLpk = $lpksByName[$lpkNameKey] ?? null;
                 }
 
-                if (! $matchedLpk) {
+                if (! $matchedLpk && ! empty($regInput)) {
                     // Coba substring match jika ada format LP-XXX
                     if (preg_match('/(L[PKI]-\d+-IDN)/i', $regInput, $m)) {
                         $normReg = strtoupper($m[1]);
-                        $matchedLpk = $lpksByReg[$normReg] ?? null;
+                        $matchedLpk = $lpksByAccred[$normReg]
+                            ?? $lpksByReg[$normReg]
+                            ?? null;
                     }
                 }
 

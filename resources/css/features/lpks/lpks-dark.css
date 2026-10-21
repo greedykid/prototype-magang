@@ -31,10 +31,16 @@ html[data-theme="dark"] .lpk-field textarea:focus {
 }
 
 html[data-theme="dark"] .lpk-label,
-html[data-theme="dark"] .lpk-label span,
+html[data-theme="dark"] .lpk-label span:not(.lpk-required-dot),
 html[data-theme="dark"] .lpk-checkbox-card label,
 html[data-theme="dark"] .lpk-checkbox-card label span {
     color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-required-dot,
+html[data-theme="dark"] .lpk-label .lpk-required-dot,
+html[data-theme="dark"] .required-mark {
+    color: #ef4444 !important;
 }
 
 html[data-theme="dark"] .lpk-field-hint,
@@ -436,6 +442,12 @@ html[data-theme="dark"] .lpk-agenda-unassigned {
     background: var(--surface-subtle);
     border-color: var(--line);
     color: #64748b;
+}
+
+html[data-theme="dark"] .lpk-agenda-unassigned.is-historical {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #4ade80;
 }
 
 html[data-theme="dark"] .lpk-delay-penalty-banner {

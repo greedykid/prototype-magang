@@ -9,7 +9,7 @@
             <thead>
                 <tr>
                     <th data-label="No Akreditasi" class="col-th-no">NO. AKREDITASI</th>
-                    <th data-label="Nama LPK" class="col-th-name">NAMA LPK</th>
+                    <th data-label="Nama Laboratorium" class="col-th-name">NAMA LABORATORIUM</th>
                     <th data-label="Masa Berlaku" class="col-th-validity">
                         <div class="th-header-dual">
                             <span class="th-title-main">MASA BERLAKU</span>
@@ -34,7 +34,7 @@
                             </div>
                         </td>
 
-                        <!-- 2. NAMA LPK -->
+                        <!-- 2. NAMA LABORATORIUM -->
                         <td class="col-lpk-name" data-sort-value="{{ $lpk->name }}">
                             <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="lpk-name-link" title="Buka rincian LPK">
                                 {{ $lpk->name }}

@@ -53,6 +53,8 @@ export const initConfirmations = () => {
             cancelButtonText: form.dataset.cancelBtn || 'Batal',
             reverseButtons: true,
             focusCancel: true,
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: {
                 popup: 'simasadi-swal-popup',
                 confirmButton: `simasadi-swal-btn ${isDanger ? 'simasadi-swal-danger-btn' : ''}`,
@@ -77,6 +79,13 @@ export const initConfirmations = () => {
                         spinner.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
                         submitBtn.prepend(spinner);
                     }
+                }
+
+                if (typeof window.clearPageCache === 'function') {
+                    window.clearPageCache();
+                }
+                if (typeof window.clearCalendarCache === 'function') {
+                    window.clearCalendarCache();
                 }
 
                 form.submit();

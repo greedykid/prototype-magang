@@ -1,5 +1,26 @@
 /* SweetAlert2 Crisp Design System Theme */
 /* ========================================================================== */
+
+/* Prevent layout shift & collapse of sticky sidebar / full-height shell */
+html.swal2-shown,
+body.swal2-shown,
+html.swal2-height-auto,
+body.swal2-height-auto {
+    height: 100% !important;
+    min-height: 100% !important;
+}
+
+body.swal2-shown {
+    padding-right: 0 !important;
+}
+
+html.swal2-shown .app-shell,
+html.swal2-shown .sidebar,
+body.swal2-shown .app-shell,
+body.swal2-shown .sidebar {
+    transition: none !important;
+}
+
 .swal2-container,
 div:where(.swal2-container),
 .simasadi-modal .swal2-container {

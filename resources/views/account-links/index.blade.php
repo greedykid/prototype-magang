@@ -102,6 +102,7 @@
                               style="margin: 0;">
                             @csrf
                             @method('DELETE')
+                            <input type="hidden" name="type" value="viewer">
                             <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan akses viewer">
                                 <x-icon name="trash" size="15" />
                             </button>
@@ -149,7 +150,7 @@
                                 {{ $owner->initials }}
                             </div>
                             <div style="min-width: 0;">
-                                <a href="{{ route('account-links.show', $owner) }}" style="font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; word-break: break-word;" title="Buka daftar LPK milik {{ $owner->name }}">
+                                <a href="{{ route('account-links.show', $owner) }}" style="font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; word-break: break-word;" title="Buka daftar laboratorium milik {{ $owner->name }}">
                                     {{ $owner->name }}
                                 </a>
                                 <div style="font-size: 12px; color: var(--muted); margin-top: 2px; word-break: break-all;">
@@ -170,12 +171,12 @@
 
                     {{-- Baris Bawah: Tombol Aksi --}}
                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; flex-wrap: wrap;">
-                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="button primary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka daftar LPK milik {{ $owner->name }}">
+                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="button primary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka daftar laboratorium milik {{ $owner->name }}">
                             <x-icon name="building" size="14" />
                             <span>Lihat LPK ({{ $owner->lpks_count }})</span>
                         </a>
 
-                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="button secondary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka program asesmen milik {{ $owner->name }}">
+                        <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="button secondary" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" title="Buka daftar asesmen milik {{ $owner->name }}">
                             <x-icon name="assessments" size="14" />
                             <span>Lihat Asesmen ({{ $owner->assessments_count ?? 0 }})</span>
                         </a>
@@ -188,6 +189,7 @@
                               style="margin: 0;">
                             @csrf
                             @method('DELETE')
+                            <input type="hidden" name="type" value="owner">
                             <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 12px; padding: 6px 12px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                 Lepas Akses
                             </button>
