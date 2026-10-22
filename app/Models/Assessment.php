@@ -57,7 +57,7 @@ class Assessment extends Model
     public const EHA_STATUS_CATATAN_KHUSUS = 'CATATAN_KHUSUS';
 
     public const EHA_STATUSES = [
-        self::EHA_STATUS_BELUM => 'Belum EHA',
+        self::EHA_STATUS_BELUM => 'Belum Rapat Panitia Teknis',
         self::EHA_STATUS_DIREKOMENDASIKAN => 'Direkomendasikan (Memenuhi)',
         self::EHA_STATUS_PERLU_VERIFIKASI => 'Perlu Verifikasi Lanjutan',
         self::EHA_STATUS_CATATAN_KHUSUS => 'Catatan Khusus Panitia Teknis',
@@ -123,10 +123,10 @@ class Assessment extends Model
 
         $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
-            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI], true));
+            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        // Hanya beralih ke COMPLETED jika SK KAN sudah terbit, ATAU TP memenuhi DAN Sidang EHA telah selesai/direkomendasikan
-        if (! empty($this->sk_number) || ($isTpSatisfied && $hasEhaCompleted)) {
+        // Hanya beralih ke COMPLETED jika SK KAN sudah terbit
+        if (! empty($this->sk_number)) {
             return 'COMPLETED';
         }
 
@@ -149,8 +149,20 @@ class Assessment extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->is_eha_needs_verification) {
+            return 'Sedang Berlangsung (Perlu Verifikasi Panitia Teknis)';
+        }
+
+        if ($this->is_eha_special_notes) {
+            return 'Sedang Berlangsung (Catatan Khusus Panitia Teknis)';
+        }
+
+        if ($this->is_waiting_sk) {
+            return 'Sedang Berlangsung (Menunggu SK KAN)';
+        }
+
         if ($this->is_waiting_eha) {
-            return 'Sedang Berlangsung (Menunggu EHA)';
+            return 'Sedang Berlangsung (Menunggu Rapat Panitia Teknis)';
         }
 
         return self::STATUS_LABELS[$this->status] ?? ($this->status ?: 'Direncanakan');
@@ -275,18 +287,40 @@ class Assessment extends Model
         return app(AssessmentStatusService::class)->getSubmissionCycleHint($this);
     }
 
+    public function getIsEhaNeedsVerificationAttribute(): bool
+    {
+        return $this->eha_status === self::EHA_STATUS_PERLU_VERIFIKASI
+            && empty($this->sk_number)
+            && $this->status !== 'CANCELLED';
+    }
+
+    public function getIsEhaSpecialNotesAttribute(): bool
+    {
+        return $this->eha_status === self::EHA_STATUS_CATATAN_KHUSUS
+            && empty($this->sk_number)
+            && $this->status !== 'CANCELLED';
+    }
+
     public function getIsWaitingEhaAttribute(): bool
     {
+        if (in_array($this->eha_status, [self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true)) {
+            return false;
+        }
+
         $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
-            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI], true));
+            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
 
         return $isTpSatisfied && ! $hasEhaCompleted && empty($this->sk_number) && $this->status !== 'CANCELLED';
     }
 
     public function getIsWaitingSkAttribute(): bool
     {
-        return $this->status === 'COMPLETED' && empty($this->sk_number);
+        $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
+        $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
+            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
+
+        return $isTpSatisfied && $hasEhaCompleted && empty($this->sk_number) && $this->status !== 'CANCELLED';
     }
 
     public function getSuspensionResolutionDeadlineAttribute(): ?Carbon
@@ -347,7 +381,7 @@ class Assessment extends Model
 
     public function getEhaStatusLabelAttribute(): string
     {
-        return self::EHA_STATUSES[$this->eha_status] ?? ($this->eha_status ?: 'Belum EHA');
+        return self::EHA_STATUSES[$this->eha_status] ?? ($this->eha_status ?: 'Belum Rapat Panitia Teknis');
     }
 
     public function calculateDefaultSkReminderDate(): ?Carbon
@@ -406,12 +440,8 @@ class Assessment extends Model
                 $assessment->status = 'COMPLETED';
                 $assessment->tp_status = self::TP_STATUS_SATISFIED;
             }
-            // 1. Jika SK sudah terbit, atau tindakan perbaikan sudah memenuhi (SATISFIED) DAN sidang EHA/laporan telah terlaksana,
-            // maka status asesmen otomatis menjadi COMPLETED (Selesai).
-            elseif ((! empty($assessment->sk_number) || (
-                ($assessment->tp_status === self::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) &&
-                (! empty($assessment->report_date) || ! empty($assessment->eha_date) || in_array($assessment->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true))
-            )) && $assessment->status !== 'CANCELLED') {
+            // 1. Jika SK sudah terbit, maka status asesmen otomatis menjadi COMPLETED (Selesai).
+            elseif (! empty($assessment->sk_number) && $assessment->status !== 'CANCELLED') {
                 $assessment->status = 'COMPLETED';
             }
             // 2. Jika melewati batas 1 tahun kesempatan penyelesaian pembekuan surveilen,

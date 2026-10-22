@@ -48,7 +48,12 @@ class DashboardController extends Controller
                 ->get()
             : collect();
 
-        $lpkCount = $isPic ? Lpk::primaryFor($user)->count() : Lpk::count();
+        $baseLpkQuery = Lpk::query()
+            ->when($isPic, fn ($q) => $q->primaryFor($user));
+
+        $lpkCount = (clone $baseLpkQuery)->count();
+        $suspendedCount = (clone $baseLpkQuery)->where('status', 'SUSPENDED')->count();
+        $revokedCount = (clone $baseLpkQuery)->whereIn('status', ['REVOKED', 'DICABUT', 'INACTIVE'])->count();
 
         $upcomingAssessments = Assessment::with('lpk')
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
@@ -66,6 +71,8 @@ class DashboardController extends Controller
 
         return view('dashboard', [
             'lpkCount' => $lpkCount,
+            'suspendedCount' => $suspendedCount,
+            'revokedCount' => $revokedCount,
             'assessmentCount' => $assessmentCount,
             'upcomingAssessments' => $upcomingAssessments,
             'managedLpks' => $managedLpks,

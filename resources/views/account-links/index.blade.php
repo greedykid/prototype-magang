@@ -110,14 +110,28 @@
                     </div>
                 </div>
             @empty
-                <div style="padding: 28px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 10px;">
-                        <x-icon name="users" size="22" />
+                <div style="padding: 24px 20px; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 16px); display: flex; flex-direction: column; align-items: stretch; gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--radius-pill, 9999px); background: #eff6ff; color: var(--primary, #1972f5); border: 1px solid rgba(25, 114, 245, 0.25); flex-shrink: 0;">
+                            <x-icon name="link" size="20" />
+                        </div>
+                        <div>
+                            <div style="font-size: 13.5px; font-weight: 700; color: var(--ink);">Belum Ada Kolaborasi Akun Tertaut</div>
+                            <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0; line-height: 1.4;">
+                                Beri izin pantau ke rekan PIC agar dapat melihat data pengawasan tanpa mengubah isi data.
+                            </p>
+                        </div>
                     </div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: var(--ink);">Belum Ada Akun Viewer Tertaut</div>
-                    <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0; max-width: 440px; line-height: 1.5;">
-                        Seluruh data laboratorium, asesmen, dan kalender kegiatan hanya dapat diakses oleh akun Anda sendiri.
-                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg, 12px);">
+                        <div style="display: flex; gap: 8px; align-items: flex-start;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 9999px; background: var(--neutral-chip-bg); color: var(--ink); font-size: 11px; font-weight: 700; flex-shrink: 0;">1</span>
+                            <span style="font-size: 11.5px; color: var(--muted); line-height: 1.35;">Pilih akun PIC rekanan melalui dropdown di formulir atas.</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: flex-start;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 9999px; background: var(--neutral-chip-bg); color: var(--ink); font-size: 11px; font-weight: 700; flex-shrink: 0;">2</span>
+                            <span style="font-size: 11.5px; color: var(--muted); line-height: 1.35;">Klik tombol "Tautkan Akun" untuk mengaktifkan akses Viewer.</span>
+                        </div>
+                    </div>
                 </div>
             @endforelse
         </div>

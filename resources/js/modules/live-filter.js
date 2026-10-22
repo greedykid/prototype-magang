@@ -246,6 +246,20 @@ export const initLiveFilters = () => {
         executePartialFilter(form, false);
     });
 
+    // 3b. Toggle Collapsible Advanced Filters Drawer
+    document.addEventListener('click', (event) => {
+        const toggleBtn = event.target.closest('.btn-toggle-advanced-filters');
+        if (!toggleBtn) return;
+
+        const targetId = toggleBtn.getAttribute('aria-controls') || toggleBtn.dataset.target;
+        const targetEl = targetId ? document.getElementById(targetId) : null;
+        if (!targetEl) return;
+
+        const isCurrentlyExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        toggleBtn.setAttribute('aria-expanded', isCurrentlyExpanded ? 'false' : 'true');
+        targetEl.style.display = isCurrentlyExpanded ? 'none' : 'block';
+    });
+
     // 4. Reset Button click
     document.addEventListener('click', (event) => {
         const resetBtn = event.target.closest('#lpk-filter-reset-btn, [data-role="reset-filter"]');

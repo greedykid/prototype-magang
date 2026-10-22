@@ -88,8 +88,8 @@ class LpkSurveillanceService
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
                 $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->subMonths(2)) && $item->start_at->lte($cycleStart->copy()->addMonths(26));
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -129,8 +129,8 @@ class LpkSurveillanceService
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
                 $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(24)) && $item->start_at->lte($cycleStart->copy()->addMonths(46));
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -167,8 +167,8 @@ class LpkSurveillanceService
                     return false;
                 }
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -655,14 +655,51 @@ class LpkSurveillanceService
      */
     public function determineDynamicStatusLabel(Lpk $lpk): string
     {
-        return match ($this->determineDynamicStatus($lpk)) {
+        $status = $this->determineDynamicStatus($lpk);
+
+        if ($status === 'SURVEILLANCE_DUE') {
+            $milestones = $this->calculateMilestones($lpk);
+            if (($milestones['ra']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Re-Akreditasi';
+            }
+            if (($milestones['s2']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Surveilen 2';
+            }
+            if (($milestones['s1']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Surveilen 1';
+            }
+            return 'Jatuh Tempo Pengawasan';
+        }
+
+        if ($status === 'SURVEILLANCE_OVERDUE') {
+            $milestones = $this->calculateMilestones($lpk);
+            if (($milestones['ra']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Re-Akreditasi';
+            }
+            if (($milestones['s2']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Surveilen 2';
+            }
+            if (($milestones['s1']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Surveilen 1';
+            }
+            return 'Lewat Jadwal Pengawasan';
+        }
+
+        if ($status === 'ACTIVE') {
+            $activeAssessment = $lpk->getActiveOrUpcomingAssessment();
+            if ($activeAssessment && in_array($activeAssessment->status, ['IN_PROGRESS', 'SCHEDULED'], true)) {
+                $short = $activeAssessment->short_type;
+                return "Aktif (Proses {$short})";
+            }
+            return 'Aktif';
+        }
+
+        return match ($status) {
             'INACTIVE' => 'Tidak Aktif',
             'REVOKED' => 'Dicabut',
             'SUSPENDED' => 'Dibekukan',
             'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
             'EXPIRED' => 'Kedaluwarsa',
-            'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
-            'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
             default => 'Aktif',
         };
     }
@@ -752,14 +789,14 @@ class LpkSurveillanceService
                 return "{$typeLabel}: Selesai (TP Memenuhi).";
             }
 
-            // 4. Tahap Evaluasi Hasil Asesmen (EHA)
+            // 4. Tahap Rapat Panitia Teknis
             if (! empty($activeAssessment->eha_status) && $activeAssessment->eha_status !== Assessment::EHA_STATUS_BELUM) {
-                return "{$typeLabel}: Evaluasi Hasil Asesmen ({$activeAssessment->eha_status_label}).";
+                return "{$typeLabel}: Rapat Panitia Teknis ({$activeAssessment->eha_status_label}).";
             }
 
-            // 5. Laporan asesmen telah terbit, menunggu EHA
+            // 5. Laporan asesmen telah terbit, menunggu Rapat Panitia Teknis
             if ($activeAssessment->report_date) {
-                return "{$typeLabel}: Laporan terbit ({$activeAssessment->report_date->format('d/m/Y')}), proses EHA.";
+                return "{$typeLabel}: Laporan terbit ({$activeAssessment->report_date->format('d/m/Y')}), proses Rapat Panitia Teknis.";
             }
 
             // 6. Sedang berlangsung (kunjungan lapangan)

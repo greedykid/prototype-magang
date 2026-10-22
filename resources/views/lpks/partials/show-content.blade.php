@@ -183,7 +183,7 @@
                     return [
                         'card_class' => 'is-pelaksanaan is-in-progress',
                         'badge_class' => 'status-pelaksanaan status-in_progress',
-                        'badge_label' => $linked->is_waiting_eha ? 'Menunggu EHA' : 'Sedang Berlangsung',
+                        'badge_label' => $linked->is_eha_needs_verification ? 'Perlu Verifikasi Panitia Teknis' : ($linked->is_eha_special_notes ? 'Catatan Khusus Panitia Teknis' : ($linked->is_waiting_sk ? 'Menunggu SK KAN' : ($linked->is_waiting_eha ? 'Menunggu Rapat Panitia Teknis' : 'Sedang Berlangsung'))),
                     ];
                 }
                 if ($linked->status === 'SCHEDULED') {
@@ -846,7 +846,7 @@
                     </div>
 
                     @if($lpk->drive_url)
-                        <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
+                        <div class="lpk-meta-item full-width">
                             <span class="lpk-meta-label">Dokumen Akreditasi (Google Drive)</span>
                             <div class="lpk-meta-value" style="display: flex; align-items: center; gap: 8px;">
                                 <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button button-drive button-xs" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -901,7 +901,7 @@
                         </div>
                     </div>
 
-                    <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 10px;">
+                    <div class="lpk-meta-item full-width">
                         <span class="lpk-meta-label">Alamat Fasilitas</span>
                         <div class="lpk-meta-value" style="color: var(--ink); line-height: 1.55;">
                             {{ $lpk->address ?: 'Belum diisi' }}

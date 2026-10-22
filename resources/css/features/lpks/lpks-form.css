@@ -33,7 +33,7 @@
 .lpk-header-back-wrap {
     align-items: center;
     display: flex;
-    margin-bottom: 14px;
+    margin-bottom: 0;
 }
 
 /* Tactile Navigation Pill (Back Button) */
@@ -567,4 +567,104 @@
     line-height: 1.45;
     opacity: 0.9;
 }
+
+/* ==========================================================================
+   Assessment Duration Toolbar & Quick Chips
+   ========================================================================== */
+.assessment-duration-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+}
+
+.duration-toolbar-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.duration-chips-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.duration-chip-btn {
+    appearance: none;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line-subtle, #cbd5e1);
+    border-radius: var(--radius-sm, 6px);
+    color: var(--ink, #0f172a);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    line-height: 1.25;
+    transition: all 140ms ease;
+}
+
+.duration-chip-btn:hover {
+    border-color: var(--primary, #0284c7);
+    color: var(--primary, #0284c7);
+    background: var(--surface-hover, #f0f9ff);
+}
+
+.duration-chip-btn.is-active {
+    background: var(--primary, #0284c7);
+    border-color: var(--primary, #0284c7);
+    color: #ffffff;
+}
+
+.assessment-duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill, 9999px);
+    margin-left: auto;
+}
+
+.assessment-duration-badge.badge-success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.assessment-duration-badge.badge-info {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.assessment-duration-badge.badge-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+@media (max-width: 640px) {
+    .assessment-duration-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .assessment-duration-badge {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 

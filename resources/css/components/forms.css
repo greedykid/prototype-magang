@@ -1,0 +1,114 @@
+/* ==========================================================================
+   SIMASADI Forms & Sticky Action Bar Component
+   Adheres to antislop-ui and antislop-layoutmobile:
+   - Sticky action footer floating at bottom of viewport
+   - Accessible tap targets (>= 44px on mobile)
+   - Mobile clearance for fixed bottom-nav (60px + safe area)
+   - Cohesive light and dark theme styling
+   ========================================================================== */
+
+.form-sticky-footer {
+    position: sticky;
+    bottom: 20px;
+    z-index: 45;
+    margin-top: 24px;
+    padding: 12px 20px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #eaecf5);
+    border-radius: var(--radius-xl, 14px);
+    box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    transition: border-color var(--motion-duration-normal, 150ms) ease,
+                box-shadow var(--motion-duration-normal, 150ms) ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.form-sticky-footer .form-sticky-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted, #5d6b98);
+    font-size: var(--text-sm, 13px);
+    font-weight: 500;
+    line-height: 1.4;
+    min-width: 0;
+}
+
+.form-sticky-footer .form-sticky-hint svg {
+    color: var(--primary, #1972f5);
+    flex-shrink: 0;
+}
+
+.form-sticky-footer .form-sticky-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.form-sticky-footer .form-sticky-actions .button {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 18px;
+    font-size: var(--text-sm, 13.5px);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Dark Theme Adjustments */
+html[data-theme="dark"] .form-sticky-footer {
+    background: var(--surface, #1e1e1e);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .form-sticky-footer .form-sticky-hint {
+    color: var(--muted, #a39e98);
+}
+
+html[data-theme="dark"] .form-sticky-footer .form-sticky-hint svg {
+    color: var(--primary, #4a9df8);
+}
+
+/* Responsive Clearance: Tablet and Mobile (<= 900px) */
+@media (max-width: 900px) {
+    .form-sticky-footer {
+        /* Clear above fixed bottom-nav (60px + safe area) */
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 12px);
+    }
+}
+
+/* Responsive Layout: Small Mobile (<= 640px) */
+@media (max-width: 640px) {
+    .form-sticky-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: var(--radius-lg, 10px);
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 8px);
+    }
+
+    .form-sticky-footer .form-sticky-hint {
+        display: none;
+    }
+
+    .form-sticky-footer .form-sticky-actions {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .form-sticky-footer .form-sticky-actions .button {
+        width: 100%;
+        min-height: 44px; /* Ensure 44px minimum tap target */
+    }
+}

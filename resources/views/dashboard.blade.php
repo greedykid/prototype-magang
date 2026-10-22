@@ -26,10 +26,22 @@
         </div>
     @endif
 
+    @php
+        $totalSurvAlerts = count($globalSurveillanceAlerts ?? []);
+        $totalTpUrgent = isset($urgentTpAssessments) ? $urgentTpAssessments->count() : 0;
+        $totalActionRequired = $totalSurvAlerts + $totalTpUrgent;
+    @endphp
+
     <div class="page-heading">
         <div>
             <h1 class="dashboard-greeting">Selamat datang, {{ auth()->user()?->isPic() ? 'PIC Laboratorium Penguji & Kalibrasi.' : auth()->user()->name . '.' }} 👋</h1>
-            <p class="lede">Ringkasan operasional kepatuhan akreditasi, surveilen KAN, dan agenda penugasan asesmen.</p>
+            <p class="lede">
+                @if($totalActionRequired > 0)
+                    Terdapat <strong>{{ $totalActionRequired }} agenda operasional</strong> ({{ $totalSurvAlerts > 0 ? $totalSurvAlerts . ' surveilen' : '' }}{{ $totalSurvAlerts > 0 && $totalTpUrgent > 0 ? ' dan ' : '' }}{{ $totalTpUrgent > 0 ? $totalTpUrgent . ' perbaikan TP' : '' }}) yang memerlukan tindak lanjut segera.
+                @else
+                    Seluruh <strong>{{ $lpkCount }} laboratorium binaan</strong> dalam kondisi kepatuhan terkendali dan sesuai siklus KAN.
+                @endif
+            </p>
         </div>
         <div class="dashboard-header-actions">
             @if(auth()->user()?->isAdmin() || auth()->user()?->isPic())
@@ -91,8 +103,8 @@
         </a>
     </section>
 
-    {{-- Grid 3 Kolom Sejajar: Status Pengawasan & TP, Laboratorium Terkelola, Asesmen Terdekat --}}
-    <div class="dashboard-tri-grid">
+    {{-- Asymmetric 2-Column Grid (65% Operasional / 35% Monitoring) --}}
+    <div class="dashboard-layout-grid">
         @php
             $hasSurveillanceAlerts = !empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty());
             $maxAlerts = 5;
@@ -100,61 +112,84 @@
             $surveillanceLimit = max(0, $maxAlerts - $tpItems->count());
             $surveillanceList = array_slice($globalSurveillanceAlerts ?? [], 0, $surveillanceLimit);
             $actionCount = count($surveillanceList) + $tpItems->count();
+
+            $dueLpkCount = !empty($globalSurveillanceAlerts)
+                ? collect($globalSurveillanceAlerts)->pluck('lpk_id')->unique()->count()
+                : 0;
+            $suspCount = $suspendedCount ?? 0;
+            $revCount = $revokedCount ?? 0;
+            $activeCount = max(0, $lpkCount - ($dueLpkCount + $suspCount + $revCount));
+
+            $totalLpks = max(1, $lpkCount);
+            if ($lpkCount === 0) {
+                $pctActive = 100;
+                $pctDue = 0;
+                $pctSuspended = 0;
+                $pctRevoked = 0;
+            } else {
+                $pctActive = round(($activeCount / $totalLpks) * 100);
+                $pctDue = round(($dueLpkCount / $totalLpks) * 100);
+                $pctSuspended = round(($suspCount / $totalLpks) * 100);
+                $pctRevoked = max(0, 100 - ($pctActive + $pctDue + $pctSuspended));
+            }
         @endphp
-        {{-- Kolom 1: Perlu Tindak Lanjut --}}
-        <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" id="surveillance-section" aria-labelledby="surveillance-heading">
-            <div class="panel-head">
-                <div class="dashboard-panel-title-wrap">
-                    <div class="dashboard-panel-title-row">
-                        <h2 id="surveillance-heading">{{ $hasSurveillanceAlerts ? 'Perlu Tindak Lanjut' : 'Status Pengawasan' }}</h2>
-                        @if($hasSurveillanceAlerts && $actionCount > 0)
-                            <span class="dashboard-panel-count-badge" title="{{ $actionCount }} item perlu tindak lanjut">{{ $actionCount }}</span>
-                        @endif
+
+        {{-- KOLOM KIRI (65%): Pusat Operasional & Tindakan --}}
+        <div class="dashboard-main-column">
+            {{-- Panel 1: Perlu Tindak Lanjut --}}
+            <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" id="surveillance-section" aria-labelledby="surveillance-heading">
+                <div class="panel-head">
+                    <div class="dashboard-panel-title-wrap">
+                        <div class="dashboard-panel-title-row">
+                            <h2 id="surveillance-heading">{{ $hasSurveillanceAlerts ? 'Perlu Tindak Lanjut' : 'Status Pengawasan' }}</h2>
+                            @if($hasSurveillanceAlerts && $actionCount > 0)
+                                <span class="dashboard-panel-count-badge" title="{{ $actionCount }} item perlu tindak lanjut">{{ $actionCount }}</span>
+                            @endif
+                        </div>
+                        <p class="dashboard-panel-subtext">{{ $hasSurveillanceAlerts ? 'Surveilen & perbaikan butuh tindak lanjut' : 'Seluruh siklus surveilen & perbaikan terkendali' }}</p>
                     </div>
-                    <p class="dashboard-panel-subtext">{{ $hasSurveillanceAlerts ? 'Surveilen & perbaikan butuh tindak lanjut' : 'Seluruh siklus surveilen & perbaikan terkendali' }}</p>
+                    <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="dashboard-more-link" title="Buka seluruh antrean pengawasan dan perbaikan">
+                        <span>Lihat semua</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
                 </div>
-                <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="dashboard-more-link" title="Buka seluruh antrean pengawasan dan perbaikan">
-                    <span>Lihat semua</span>
-                    <x-icon name="chevron-right" size="14" />
-                </a>
-            </div>
 
-            @if(!empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty()))
-                <div class="dashboard-col-alert-list dashboard-lpk-list">
-                    {{-- Peringatan Siklus Surveilen --}}
-                    @foreach($surveillanceList as $alert)
-                        <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="dashboard-lpk-item" title="Lihat detail {{ $alert['lpk_name'] }}">
-                            <div class="dashboard-lpk-item-main">
-                                <div class="dashboard-lpk-item-top">
-                                    <span class="dashboard-lpk-reg">{{ $alert['lpk_reg'] }}</span>
-                                    <x-status :value="$alert['status']" />
-                                    @if(!empty($alert['target_date']))
-                                        @php
-                                            $diffDays = (int) now()->startOfDay()->diffInDays($alert['target_date']->startOfDay(), false);
-                                        @endphp
-                                        <span class="badge badge-countdown {{ $diffDays < 0 ? 'status-danger' : ($diffDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
-                                            {{ $diffDays < 0 ? 'Terlewat ' . abs($diffDays) . ' Hari' : ($diffDays === 0 ? 'Hari Ini' : 'H-' . $diffDays) }}
-                                        </span>
-                                    @endif
+                @if(!empty($globalSurveillanceAlerts) || (isset($urgentTpAssessments) && $urgentTpAssessments->isNotEmpty()))
+                    <div class="dashboard-col-alert-list dashboard-lpk-list">
+                        {{-- Peringatan Siklus Surveilen --}}
+                        @foreach($surveillanceList as $alert)
+                            <a href="{{ route('lpks.show', $alert['lpk_id']) }}" class="dashboard-lpk-item" title="Lihat detail {{ $alert['lpk_name'] }}">
+                                <div class="dashboard-lpk-item-main">
+                                    <div class="dashboard-lpk-item-top">
+                                        <span class="dashboard-lpk-reg">{{ $alert['lpk_reg'] }}</span>
+                                        <x-status :value="$alert['status']" />
+                                        @if(!empty($alert['target_date']))
+                                            @php
+                                                $diffDays = (int) now()->startOfDay()->diffInDays($alert['target_date']->startOfDay(), false);
+                                            @endphp
+                                            <span class="badge badge-countdown {{ $diffDays < 0 ? 'status-danger' : ($diffDays <= 14 ? 'status-warn' : 'status-scheduled') }}">
+                                                {{ $diffDays < 0 ? 'Terlewat ' . abs($diffDays) . ' Hari' : ($diffDays === 0 ? 'Hari Ini' : 'H-' . $diffDays) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <strong class="dashboard-lpk-name">{{ $alert['lpk_name'] }}</strong>
+                                    <div class="dashboard-lpk-meta">
+                                        <span>{{ $alert['name'] ?? $alert['code'] }}</span>
+                                        <span>&bull;</span>
+                                        <span>Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong></span>
+                                    </div>
                                 </div>
-                                <strong class="dashboard-lpk-name">{{ $alert['lpk_name'] }}</strong>
-                                <div class="dashboard-lpk-meta">
-                                    <span>{{ $alert['name'] ?? $alert['code'] }}</span>
-                                    <span>&bull;</span>
-                                    <span>Batas: <strong>{{ $alert['target_date'] ? $alert['target_date']->format('d/m/Y') : '-' }}</strong></span>
+                                <div class="dashboard-lpk-arrow" aria-hidden="true">
+                                    <x-icon name="chevron-right" size="15" />
                                 </div>
-                            </div>
-                            <div class="dashboard-lpk-arrow" aria-hidden="true">
-                                <x-icon name="chevron-right" size="15" />
-                            </div>
-                        </a>
-                    @endforeach
+                            </a>
+                        @endforeach
 
-                    {{-- Peringatan Batas Waktu TP KAN --}}
-                    @if($tpItems->isNotEmpty())
-                        @foreach($tpItems as $assessment)
-                            @php $tpBadge = $assessment->tp_sla_badge; @endphp
-                            <a href="{{ route('assessments.show', $assessment) }}" class="dashboard-lpk-item" title="Buka detail asesmen {{ $assessment->display_title }}">
+                        {{-- Peringatan Batas Waktu TP KAN --}}
+                        @if($tpItems->isNotEmpty())
+                            @foreach($tpItems as $assessment)
+                                @php $tpBadge = $assessment->tp_sla_badge; @endphp
+                                <a href="{{ route('assessments.show', $assessment) }}" class="dashboard-lpk-item" title="Buka detail asesmen {{ $assessment->display_title }}">
                                 <div class="dashboard-lpk-item-main">
                                     <div class="dashboard-lpk-item-top">
                                         <span class="dashboard-lpk-reg">{{ $assessment->lpk->accreditation_number ?: $assessment->lpk->registration_number }}</span>
@@ -179,134 +214,204 @@
                                     <x-icon name="chevron-right" size="15" />
                                 </div>
                             </a>
+                            @endforeach
+                        @endif
+                    </div>
+                @else
+                    {{-- Kondisi Aman / All Clear --}}
+                    <div class="dashboard-health-card">
+                        <div class="dashboard-health-main">
+                            <span class="dashboard-health-icon">
+                                <x-icon name="check-circle" size="18" />
+                            </span>
+                            <div class="dashboard-health-copy">
+                                <strong>Siklus &amp; Tindakan Perbaikan Terkendali</strong>
+                                <p>Tidak ada agenda surveilen (S1/S2/RA) yang jatuh tempo ataupun temuan perbaikan yang mendekati batas waktu KAN.</p>
+                            </div>
+                        </div>
+                        <div class="dashboard-health-metrics">
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot green"></span>Siklus Surveilen</span>
+                                <strong class="stat-val">100% Sesuai Skedul</strong>
+                            </div>
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot green"></span>Tindakan Perbaikan</span>
+                                <strong class="stat-val">0 Menunggak</strong>
+                            </div>
+                            <div class="dashboard-health-stat">
+                                <span class="stat-label"><span class="stat-dot blue"></span>Masa Berlaku LPK</span>
+                                <strong class="stat-val">{{ $lpkCount }} Terakreditasi</strong>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </section>
+
+            {{-- Panel 2: Asesmen Terdekat --}}
+            <section class="panel dashboard-agenda-panel" aria-labelledby="upcoming-assessments-heading">
+                <div class="panel-head">
+                    <div class="dashboard-panel-title-wrap">
+                        <div class="dashboard-panel-title-row">
+                            <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
+                            @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
+                                <span class="dashboard-panel-count-badge" title="{{ $upcomingAssessments->count() }} asesmen terdekat">{{ $upcomingAssessments->count() }}</span>
+                            @endif
+                        </div>
+                        <p class="dashboard-panel-subtext">Jadwal agenda asesmen dan surveilen mendatang</p>
+                    </div>
+                    <a href="{{ route('calendar.index') }}" class="dashboard-more-link" title="Buka seluruh jadwal di kalender kerja">
+                        <span>Lihat semua</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
+                </div>
+                @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
+                    <div class="agenda-list">
+                        @foreach($upcomingAssessments as $assessment)
+                            <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" class="agenda-card" title="Buka dan sorot agenda ini di kalender">
+                                <div class="agenda-card-date">
+                                    <span class="day">{{ $assessment->start_at->format('d') }}</span>
+                                    <span class="month">{{ $assessment->start_at->translatedFormat('M') }}</span>
+                                    <span class="year">{{ $assessment->start_at->format('Y') }}</span>
+                                </div>
+                                <div class="agenda-card-main">
+                                    <div class="agenda-card-top">
+                                        <span class="agenda-card-type">{{ $assessment->assessment_type_label }}</span>
+                                        <x-status :value="$assessment->status" />
+                                    </div>
+                                    <strong class="agenda-card-lpk-name">{{ $assessment->lpk->name }}</strong>
+                                    <div class="agenda-card-sub">{{ $assessment->display_title }}</div>
+                                </div>
+                            </a>
                         @endforeach
-                    @endif
-                </div>
-            @else
-                {{-- Kondisi Aman / All Clear --}}
-                <div class="dashboard-health-card">
-                    <div class="dashboard-health-main">
-                        <span class="dashboard-health-icon">
-                            <x-icon name="check-circle" size="18" />
-                        </span>
-                        <div class="dashboard-health-copy">
-                            <strong>Siklus &amp; Tindakan Perbaikan Terkendali</strong>
-                            <p>Tidak ada agenda surveilen (S1/S2/RA) yang jatuh tempo ataupun temuan perbaikan yang mendekati batas waktu KAN.</p>
-                        </div>
                     </div>
-                    <div class="dashboard-health-metrics">
-                        <div class="dashboard-health-stat">
-                            <span class="stat-label"><span class="stat-dot green"></span>Siklus Surveilen</span>
-                            <strong class="stat-val">100% Sesuai Skedul</strong>
-                        </div>
-                        <div class="dashboard-health-stat">
-                            <span class="stat-label"><span class="stat-dot green"></span>Tindakan Perbaikan</span>
-                            <strong class="stat-val">0 Menunggak</strong>
-                        </div>
-                        <div class="dashboard-health-stat">
-                            <span class="stat-label"><span class="stat-dot blue"></span>Masa Berlaku LPK</span>
-                            <strong class="stat-val">{{ $lpkCount }} Terakreditasi</strong>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </section>
-
-        {{-- Kolom 2: Laboratorium Terkelola --}}
-        <section class="panel dashboard-lpk-panel" aria-labelledby="managed-lpks-heading">
-            <div class="panel-head">
-                <div class="dashboard-panel-title-wrap">
-                    <div class="dashboard-panel-title-row">
-                        <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
-                        @if(isset($managedLpks) && $managedLpks->isNotEmpty())
-                            <span class="dashboard-panel-count-badge" title="{{ $managedLpks->count() }} laboratorium terkelola">{{ $managedLpks->count() }}</span>
+                @else
+                    <div class="empty">
+                        <p class="empty-desc">Belum ada agenda asesmen mendatang.</p>
+                        @if(auth()->user()?->isAdmin())
+                            <a href="{{ route('assessments.create') }}" class="button primary button-sm">Jadwalkan Asesmen</a>
                         @endif
                     </div>
-                    <p class="dashboard-panel-subtext">Daftar laboratorium aktif dan masa berlaku akreditasi</p>
-                </div>
-                <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar laboratorium">
-                    <span>Lihat semua</span>
-                    <x-icon name="chevron-right" size="14" />
-                </a>
-            </div>
+                @endif
+            </section>
+        </div>
 
-            @if(isset($managedLpks) && $managedLpks->isNotEmpty())
-                <div class="dashboard-lpk-list">
-                    @foreach($managedLpks as $lpk)
-                        <a href="{{ route('lpks.show', $lpk) }}" class="dashboard-lpk-item" title="Lihat detail {{ $lpk->name }}">
-                            <div class="dashboard-lpk-item-main">
-                                <div class="dashboard-lpk-item-top">
-                                    <span class="dashboard-lpk-reg">{{ $lpk->accreditation_number ?: $lpk->registration_number }}</span>
-                                    <x-status :value="$lpk->dynamic_status" />
-                                </div>
-                                <strong class="dashboard-lpk-name">{{ $lpk->name }}</strong>
-                                <div class="dashboard-lpk-meta">
-                                    <span>{{ $lpk->accreditation_type ?: 'Laboratorium Terakreditasi' }}</span>
-                                    <span>&bull;</span>
-                                    <span>Masa Berlaku: <strong>{{ $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-' }}</strong></span>
-                                </div>
-                            </div>
-                            <div class="dashboard-lpk-arrow" aria-hidden="true">
-                                <x-icon name="chevron-right" size="15" />
-                            </div>
-                        </a>
-                    @endforeach
+        {{-- KOLOM KANAN (35%): Pemantauan Makro & Akses Cepat --}}
+        <div class="dashboard-side-column">
+            {{-- Panel 3: Distribusi Kepatuhan LPK (Zero-dependency Health Meter Bar) --}}
+            <section class="panel compliance-meter-panel" aria-labelledby="compliance-meter-heading">
+                <div class="panel-head">
+                    <div class="dashboard-panel-title-wrap">
+                        <div class="dashboard-panel-title-row">
+                            <h2 id="compliance-meter-heading">Kesehatan Kepatuhan LPK</h2>
+                        </div>
+                        <p class="dashboard-panel-subtext">Distribusi status akreditasi dan pengawasan siklus</p>
+                    </div>
+                    <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka master data laboratorium">
+                        <span>Detail</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
                 </div>
-            @else
-                <div class="empty">
-                    <p class="empty-desc">Belum ada data laboratorium terdaftar.</p>
-                    @if(auth()->user()?->isAdmin() || auth()->user()?->isPic())
-                        <a href="{{ route('lpks.create') }}" class="button primary button-sm">Tambah LPK Baru</a>
-                    @endif
-                </div>
-            @endif
-        </section>
 
-        {{-- Kolom 3: Asesmen Terdekat --}}
-        <section class="panel dashboard-agenda-panel" aria-labelledby="upcoming-assessments-heading">
-            <div class="panel-head">
-                <div class="dashboard-panel-title-wrap">
-                    <div class="dashboard-panel-title-row">
-                        <h2 id="upcoming-assessments-heading">Asesmen Terdekat</h2>
-                        @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
-                            <span class="dashboard-panel-count-badge" title="{{ $upcomingAssessments->count() }} asesmen terdekat">{{ $upcomingAssessments->count() }}</span>
+                <div class="compliance-meter-card">
+                    {{-- Visual Multi-Segment Meter Bar --}}
+                    <div class="compliance-meter-bar" title="Distribusi Kepatuhan: {{ $activeCount }} Aktif, {{ $dueLpkCount }} Jatuh Tempo, {{ $suspCount }} Dibekukan, {{ $revCount }} Dicabut">
+                        @if($pctActive > 0)
+                            <div class="compliance-meter-segment seg-active" data-legend="active" style="width: {{ $pctActive }}%;" title="Aktif Aman: {{ $activeCount }} LPK ({{ $pctActive }}%)"></div>
+                        @endif
+                        @if($pctDue > 0)
+                            <div class="compliance-meter-segment seg-due" data-legend="due" style="width: {{ $pctDue }}%;" title="Jatuh Tempo: {{ $dueLpkCount }} LPK ({{ $pctDue }}%)"></div>
+                        @endif
+                        @if($pctSuspended > 0)
+                            <div class="compliance-meter-segment seg-suspended" data-legend="suspended" style="width: {{ $pctSuspended }}%;" title="Dibekukan: {{ $suspCount }} LPK ({{ $pctSuspended }}%)"></div>
+                        @endif
+                        @if($pctRevoked > 0)
+                            <div class="compliance-meter-segment seg-revoked" data-legend="revoked" style="width: {{ $pctRevoked }}%;" title="Dicabut / Tenggang: {{ $revCount }} LPK ({{ $pctRevoked }}%)"></div>
                         @endif
                     </div>
-                    <p class="dashboard-panel-subtext">Jadwal agenda asesmen dan surveilen mendatang</p>
-                </div>
-                <a href="{{ route('calendar.index') }}" class="dashboard-more-link" title="Buka seluruh jadwal di kalender kerja">
-                    <span>Lihat semua</span>
-                    <x-icon name="chevron-right" size="14" />
-                </a>
-            </div>
-            @if(isset($upcomingAssessments) && $upcomingAssessments->isNotEmpty())
-                <div class="agenda-list">
-                    @foreach($upcomingAssessments as $assessment)
-                        <a href="{{ route('calendar.index', ['view' => 'month', 'date' => $assessment->start_at->toDateString(), 'highlight' => $assessment->id, 'selected' => 1]) }}" class="agenda-card" title="Buka dan sorot agenda ini di kalender">
-                            <div class="agenda-card-date">
-                                <span class="day">{{ $assessment->start_at->format('d') }}</span>
-                                <span class="month">{{ $assessment->start_at->translatedFormat('M') }}</span>
-                                <span class="year">{{ $assessment->start_at->format('Y') }}</span>
-                            </div>
-                            <div class="agenda-card-main">
-                                <div class="agenda-card-top">
-                                    <span class="agenda-card-type">{{ $assessment->assessment_type_label }}</span>
-                                    <x-status :value="$assessment->status" />
-                                </div>
-                                <strong class="agenda-card-lpk-name">{{ $assessment->lpk->name }}</strong>
-                                <div class="agenda-card-sub">{{ $assessment->display_title }}</div>
+
+                    {{-- 4 Legend Cards with Direct Filter Links --}}
+                    <div class="compliance-meter-legend">
+                        <a href="{{ route('lpks.index', ['status' => 'ACTIVE']) }}" class="compliance-legend-item" data-legend="active" title="Filter laboratorium aktif terkendali">
+                            <span class="compliance-legend-dot dot-active"></span>
+                            <div class="compliance-legend-text">
+                                <span class="compliance-legend-label">Aktif Aman</span>
+                                <strong class="compliance-legend-val">{{ $activeCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctActive }}%)</small></strong>
                             </div>
                         </a>
-                    @endforeach
+                        <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="compliance-legend-item" data-legend="due" title="Filter laboratorium jatuh tempo pengawasan">
+                            <span class="compliance-legend-dot dot-due"></span>
+                            <div class="compliance-legend-text">
+                                <span class="compliance-legend-label">Jatuh Tempo</span>
+                                <strong class="compliance-legend-val">{{ $dueLpkCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctDue }}%)</small></strong>
+                            </div>
+                        </a>
+                        <a href="{{ route('lpks.index', ['status' => 'SUSPENDED']) }}" class="compliance-legend-item" data-legend="suspended" title="Filter laboratorium dibekukan">
+                            <span class="compliance-legend-dot dot-suspended"></span>
+                            <div class="compliance-legend-text">
+                                <span class="compliance-legend-label">Dibekukan</span>
+                                <strong class="compliance-legend-val">{{ $suspCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctSuspended }}%)</small></strong>
+                            </div>
+                        </a>
+                        <a href="{{ route('lpks.index', ['status' => 'REVOKED']) }}" class="compliance-legend-item" data-legend="revoked" title="Filter laboratorium dicabut atau masa tenggang habis">
+                            <span class="compliance-legend-dot dot-revoked"></span>
+                            <div class="compliance-legend-text">
+                                <span class="compliance-legend-label">Dicabut / TG</span>
+                                <strong class="compliance-legend-val">{{ $revCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctRevoked }}%)</small></strong>
+                            </div>
+                        </a>
+                    </div>
                 </div>
-            @else
-                <div class="empty">
-                    <p class="empty-desc">Belum ada agenda asesmen mendatang.</p>
-                    @if(auth()->user()?->isAdmin())
-                        <a href="{{ route('assessments.create') }}" class="button primary button-sm">Jadwalkan Asesmen</a>
-                    @endif
+            </section>
+
+            {{-- Panel 4: Laboratorium Terkelola --}}
+            <section class="panel dashboard-lpk-panel" aria-labelledby="managed-lpks-heading">
+                <div class="panel-head">
+                    <div class="dashboard-panel-title-wrap">
+                        <div class="dashboard-panel-title-row">
+                            <h2 id="managed-lpks-heading">Laboratorium Terkelola</h2>
+                            @if(isset($managedLpks) && $managedLpks->isNotEmpty())
+                                <span class="dashboard-panel-count-badge" title="{{ $managedLpks->count() }} laboratorium terkelola">{{ $managedLpks->count() }}</span>
+                            @endif
+                        </div>
+                        <p class="dashboard-panel-subtext">Daftar laboratorium aktif dan masa berlaku akreditasi</p>
+                    </div>
+                    <a href="{{ route('lpks.index') }}" class="dashboard-more-link" title="Buka seluruh daftar laboratorium">
+                        <span>Lihat semua</span>
+                        <x-icon name="chevron-right" size="14" />
+                    </a>
                 </div>
-            @endif
-        </section>
+
+                @if(isset($managedLpks) && $managedLpks->isNotEmpty())
+                    <div class="dashboard-lpk-list">
+                        @foreach($managedLpks as $lpk)
+                            <a href="{{ route('lpks.show', $lpk) }}" class="dashboard-lpk-item" title="Lihat detail {{ $lpk->name }}">
+                                <div class="dashboard-lpk-item-main">
+                                    <div class="dashboard-lpk-item-top">
+                                        <span class="dashboard-lpk-reg">{{ $lpk->accreditation_number ?: $lpk->registration_number }}</span>
+                                        <x-status :value="$lpk->dynamic_status" />
+                                    </div>
+                                    <strong class="dashboard-lpk-name">{{ $lpk->name }}</strong>
+                                    <div class="dashboard-lpk-meta">
+                                        <span>{{ $lpk->accreditation_type ?: 'Laboratorium Terakreditasi' }}</span>
+                                        <span>&bull;</span>
+                                        <span>Masa Berlaku: <strong>{{ $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-' }}</strong></span>
+                                    </div>
+                                </div>
+                                <div class="dashboard-lpk-arrow" aria-hidden="true">
+                                    <x-icon name="chevron-right" size="15" />
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty">
+                        <p class="empty-desc">Belum ada data laboratorium terdaftar.</p>
+                        @if(auth()->user()?->isAdmin() || auth()->user()?->isPic())
+                            <a href="{{ route('lpks.create') }}" class="button primary button-sm">Tambah LPK Baru</a>
+                        @endif
+                    </div>
+                @endif
+            </section>
+        </div>
     </div>
 @endsection

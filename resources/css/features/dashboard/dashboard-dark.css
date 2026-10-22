@@ -453,3 +453,23 @@ html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-panel-coun
     color: #fda4af;
     border-color: rgba(225, 29, 72, 0.4);
 }
+
+/* Compliance Meter Dark Mode */
+html[data-theme="dark"] .compliance-meter-panel {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .compliance-meter-bar {
+    background: var(--surface-hover);
+}
+
+html[data-theme="dark"] .compliance-legend-item {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .compliance-legend-item:hover {
+    background: var(--surface-hover);
+    border-color: var(--line-strong);
+}

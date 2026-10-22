@@ -34,16 +34,6 @@
                     </div>
                 @endif
             </div>
-
-            <div class="lpk-header-actions">
-                <a class="button ghost" href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}">
-                    Batal
-                </a>
-                <button class="button primary" type="submit" form="lpk-main-form">
-                    <x-icon :name="$lpk->exists ? 'check' : 'plus'" size="16" />
-                    <span>{{ $lpk->exists ? 'Simpan perubahan' : 'Simpan data LPK' }}</span>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -87,7 +77,6 @@
                         @error('name')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Nama lengkap unit atau balai pengujian yang tercantum pada sertifikat akreditasi (maksimal 255 karakter).</span>
                     </div>
 
                     <div class="lpk-field-row">
@@ -103,7 +92,6 @@
                             @error('accreditation_type')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
-                            <span class="lpk-field-hint">Skema akreditasi resmi KAN (LP, LK, LM, dsb).</span>
                         </div>
 
                         <div class="lpk-field">
@@ -114,7 +102,6 @@
                             @error('no_reg')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
-                            <span class="lpk-field-hint">Nomor registrasi unik pada basis data KAN.</span>
                         </div>
                     </div>
 
@@ -142,7 +129,6 @@
                             @error('status')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
-                            <span class="lpk-field-hint">Status kepatuhan administratif LPK.</span>
                         </div>
                     </div>
 
@@ -160,7 +146,6 @@
                             @error('pic_id')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
-                            <span class="lpk-field-hint">Petugas atau analis laboratorium yang ditugaskan mengawal proses LPK ini.</span>
                         </div>
                     @endif
                 </div>
@@ -228,7 +213,6 @@
                         @error('drive_url')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Tempelkan tautan folder Google Drive terpadu yang memuat Sertifikat Akreditasi, Amandemen, dan Lampiran.</span>
                     </div>
                 </div>
             </div>
@@ -260,7 +244,6 @@
                         @error('certificate_date')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Tanggal penetapan SK atau sertifikat akreditasi terbit.</span>
                     </div>
 
                     <div class="lpk-field">
@@ -340,7 +323,6 @@
                         @error('email')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Alamat surat elektronik untuk pengiriman surat resmi &amp; notifikasi pengawasan.</span>
                     </div>
 
                     <div class="lpk-field">
@@ -351,7 +333,6 @@
                         @error('phone')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Nomor kontak langsung fasilitas pengujian.</span>
                     </div>
 
                     <div class="lpk-field">
@@ -362,9 +343,25 @@
                         @error('address')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
-                        <span class="lpk-field-hint">Lokasi fisik tempat pengujian atau kalibrasi diselenggarakan.</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
+        <div class="form-sticky-footer">
+            <div class="form-sticky-hint">
+                <x-icon name="info" size="15" />
+                <span>{{ $lpk->exists ? 'Periksa kembali data legalitas dan masa berlaku sebelum menyimpan.' : 'Pastikan seluruh data lembaga terisi dengan benar sebelum disimpan.' }}</span>
+            </div>
+            <div class="form-sticky-actions">
+                <a class="button ghost" href="{{ $lpk->exists ? route('lpks.show', $lpk) : route('lpks.index') }}">
+                    Batal
+                </a>
+                <button class="button primary" type="submit">
+                    <x-icon :name="$lpk->exists ? 'check' : 'plus'" size="16" />
+                    <span>{{ $lpk->exists ? 'Simpan perubahan' : 'Simpan data LPK' }}</span>
+                </button>
             </div>
         </div>
     </form>

@@ -18,7 +18,7 @@
                     $accNo = $lpk->accreditation_number ?: $lpk->registration_number;
                 @endphp
                 <option value="{{ $lpk->id }}" @if($accNo) data-badge="{{ $accNo }}" data-accreditation-no="{{ $accNo }}" @endif @selected(old('lpk_id', $event->lpk_id) == $lpk->id)>
-                    {{ $accNo ? $accNo . ' — ' : '' }}{{ $lpk->name }}
+                    {{ $accNo ? $accNo . ' - ' : '' }}{{ $lpk->name }}
                 </option>
             @endforeach
         </select>
@@ -33,12 +33,19 @@
     <label>Status<select name="status"><option value="PLANNED" @selected(old('status', $event->status ?: 'PLANNED') === 'PLANNED')>Direncanakan</option><option value="IN_PROGRESS" @selected(old('status', $event->status) === 'IN_PROGRESS')>Sedang Berlangsung</option><option value="COMPLETED" @selected(old('status', $event->status) === 'COMPLETED')>Selesai</option><option value="CANCELLED" @selected(old('status', $event->status) === 'CANCELLED')>Dibatalkan</option></select></label>
     <label class="full">Deskripsi<textarea name="description" rows="4">{{ old('description', $event->description) }}</textarea></label>
     <label class="full">Catatan<textarea name="notes" rows="3">{{ old('notes', $event->notes) }}</textarea></label>
-    <div class="form-actions full">
-        <a class="button ghost" href="{{ route('calendar.index') }}">Batal</a>
-        <button class="button primary" type="submit">
-            <x-icon :name="$event->exists ? 'edit' : 'plus'" size="16" />
-            <span>{{ $event->exists ? 'Simpan perubahan' : 'Simpan agenda' }}</span>
-        </button>
+    {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
+    <div class="form-sticky-footer full">
+        <div class="form-sticky-hint">
+            <x-icon name="info" size="15" />
+            <span>{{ $event->exists ? 'Periksa kembali waktu dan rincian sebelum memperbarui agenda.' : 'Pastikan waktu dan detail agenda terisi dengan benar.' }}</span>
+        </div>
+        <div class="form-sticky-actions">
+            <a class="button ghost" href="{{ route('calendar.index') }}">Batal</a>
+            <button class="button primary" type="submit">
+                <x-icon :name="$event->exists ? 'check' : 'plus'" size="16" />
+                <span>{{ $event->exists ? 'Simpan perubahan' : 'Simpan agenda' }}</span>
+            </button>
+        </div>
     </div>
 </form>
 @endsection

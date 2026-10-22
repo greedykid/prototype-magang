@@ -90,6 +90,7 @@ const elevateParents = (wrapper, isOpen) => {
     let el = wrapper.parentElement;
     while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
         if (el.tagName === 'LABEL' ||
+            el.classList.contains('simasadi-modal-box') ||
             el.classList.contains('modal-form-grid-2col') ||
             el.classList.contains('lpk-field-row') ||
             el.classList.contains('lpk-field') ||
@@ -130,29 +131,30 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
     const measuredWidth = popover && popover.offsetWidth > 50 ? popover.offsetWidth : 0;
 
     const isClock = wrapper.classList.contains('custom-clockpicker-wrapper');
-    const defaultHeight = isClock ? 380 : 360;
+    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
+    const defaultHeight = isClock ? 380 : (modalBox ? 260 : 360);
+    const defaultWidth = modalBox ? 280 : 300;
     const popoverHeight = explicitHeight || measuredHeight || defaultHeight;
-    const popoverWidth = explicitWidth || measuredWidth || 300;
+    const popoverWidth = explicitWidth || measuredWidth || defaultWidth;
 
     const triggerRect = trigger.getBoundingClientRect();
-    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
 
     let spaceBelow = window.innerHeight - triggerRect.bottom;
     let boundaryRight = window.innerWidth - 14;
 
     if (modalBox) {
         const modalRect = modalBox.getBoundingClientRect();
+        const modalHead = modalBox.querySelector('.simasadi-modal-head');
+        const modalHeadBottom = modalHead ? modalHead.getBoundingClientRect().bottom : modalRect.top;
         spaceBelow = modalRect.bottom - triggerRect.bottom;
-        const spaceAbove = triggerRect.top - modalRect.top;
+        const spaceAbove = triggerRect.top - modalHeadBottom;
         boundaryRight = modalRect.right - 14;
 
         // Inside a modal container with scrollable content (overflow-y: auto):
         // Dropping up is only allowed if there is guaranteed clearance above the trigger within the modal box,
-        // so that the popover top never extends above modalRect.top (which would be clipped because scrollTop cannot scroll negative).
-        // Therefore, spaceAbove must strictly exceed popoverHeight + 24px safety buffer.
-        // Otherwise, always drop down. Dropping down expands the modal scrollable area,
-        // which ensurePickerInView smoothly scrolls into view with zero clipping.
-        const requiredAbove = popoverHeight + 24;
+        // so that the popover top never extends above modalHeadBottom.
+        // Therefore, spaceAbove must strictly exceed popoverHeight + 16px safety buffer.
+        const requiredAbove = popoverHeight + 16;
         if (spaceBelow < popoverHeight && spaceAbove >= requiredAbove) {
             wrapper.classList.add('dropup');
         }
@@ -186,24 +188,9 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
 };
 
 const ensurePickerInModalView = (wrapper, modalBox) => {
-    requestAnimationFrame(() => {
-        const popover = wrapper.querySelector('.custom-picker-popover');
-        if (!popover || !wrapper.classList.contains('is-open')) return;
-
-        const popoverRect = popover.getBoundingClientRect();
-        const modalRect = modalBox.getBoundingClientRect();
-
-        // If bottom extends below modal's visible bottom
-        if (popoverRect.bottom > modalRect.bottom - 12) {
-            const scrollDistance = popoverRect.bottom - modalRect.bottom + 24;
-            modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
-        }
-        // If top extends above modal's visible top (in case dropup was used with prior scroll)
-        else if (popoverRect.top < modalRect.top + 12) {
-            const scrollDistance = popoverRect.top - modalRect.top - 24;
-            modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
-        }
-    });
+    // In modal dialogs, do NOT scroll the internal modal container when a picker opens.
+    // The popover floats above form fields and footer buttons via high z-index without shifting scroll position or tabs.
+    return;
 };
 
 const ensurePickerInView = (wrapper) => {

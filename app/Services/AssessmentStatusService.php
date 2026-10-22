@@ -34,15 +34,15 @@ class AssessmentStatusService
 
         $isTpSatisfied = $tpStatus === Assessment::TP_STATUS_SATISFIED || ! empty($tpSatisfiedAt);
         $hasEhaCompleted = in_array($ehaStatus, [Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true)
-            || (! empty($ehaDate) && ! in_array($ehaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI], true));
+            || (! empty($ehaDate) && ! in_array($ehaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI, Assessment::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        // 1. Keputusan akhir: SK KAN sudah terbit, ATAU Tindakan Perbaikan telah dinyatakan Memenuhi DAN Sidang EHA telah selesai/direkomendasikan
-        if (! empty($skNumber) || ($isTpSatisfied && $hasEhaCompleted)) {
+        // 1. Keputusan akhir: SK KAN sudah terbit
+        if (! empty($skNumber)) {
             return 'COMPLETED';
         }
 
-        // Jika tindakan perbaikan telah memenuhi namun EHA belum selesai atau belum direkomendasikan / SK belum terbit,
-        // status asesmen tetap berada dalam tahap evaluasi (IN_PROGRESS).
+        // Jika tindakan perbaikan telah memenuhi atau EHA telah selesai namun SK belum terbit,
+        // status asesmen tetap berada dalam tahap berjalan (IN_PROGRESS).
         if ($isTpSatisfied) {
             return 'IN_PROGRESS';
         }

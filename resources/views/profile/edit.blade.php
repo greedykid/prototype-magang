@@ -81,7 +81,6 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <input id="profile-name" type="text" name="name" class="profile-input" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
-                        <small class="profile-field-hint">Nama resmi yang ditampilkan pada sistem dan riwayat penugasan.</small>
                     </div>
 
                     <div class="profile-field">
@@ -90,7 +89,6 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <input id="profile-email" type="email" name="email" class="profile-input" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: nama@lab.co.id">
-                        <small class="profile-field-hint">Digunakan untuk notifikasi dan autentikasi login SIMASADI.</small>
                     </div>
 
                     <div class="profile-field">
@@ -108,7 +106,6 @@
                                 <span>Dikelola Admin</span>
                             </span>
                         </div>
-                        <small class="profile-field-hint">Hak akses operasional Anda dikelola langsung oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
                     </div>
                 </div>
 
@@ -181,7 +178,6 @@
                                 <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                             </button>
                         </div>
-                        <small class="profile-field-hint">Gunakan kombinasi minimal 8 karakter huruf, angka, dan simbol.</small>
                     </div>
 
                     <div class="profile-field">

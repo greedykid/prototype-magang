@@ -141,11 +141,15 @@
                                             <span class="lpk-note-badge">
                                                 {{ $cleanProcessName }}
                                             </span>
+                                            <span class="lpk-cat-tag">[{{ $catLabel }}]</span>
                                         </div>
                                         <div class="lpk-note-body">
                                             {{ trim($statusDetail) }}
                                         </div>
                                     @else
+                                        <div class="lpk-note-header">
+                                            <span class="lpk-cat-tag">[{{ $catLabel }}]</span>
+                                        </div>
                                         <div class="lpk-note-body font-semibold">
                                             {{ $dynamicKet }}
                                         </div>

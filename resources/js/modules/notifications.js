@@ -131,5 +131,10 @@ export function initPersistentSurveillanceBanner() {
             }
         });
     }
+
+    // Ensure surveillance banner is not suppressed by any past session state
+    try {
+        sessionStorage.removeItem('surveillance_banner_dismissed');
+    } catch (_) {}
 }
 

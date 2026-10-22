@@ -29,13 +29,21 @@
                             <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
                                 Dibekukan (Toleransi Terlampaui)
                             </span>
+                        @elseif($assessment->is_eha_needs_verification)
+                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan hasil memerlukan verifikasi lanjutan">
+                                Sedang Berlangsung (Perlu Verifikasi Panitia Teknis)
+                            </span>
+                        @elseif($assessment->is_eha_special_notes)
+                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus panitia teknis">
+                                Sedang Berlangsung (Catatan Khusus Panitia Teknis)
+                            </span>
                         @elseif($assessment->is_waiting_eha)
-                            <span class="status status-in_progress" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border-color: rgba(245, 158, 11, 0.3);" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan sidang Evaluasi Hasil Asesmen (EHA)">
-                                Sedang Berlangsung (Menunggu EHA)
+                            <span class="status status-in_progress" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan Rapat Panitia Teknis">
+                                Sedang Berlangsung (Menunggu Rapat Panitia Teknis)
                             </span>
                         @elseif($assessment->is_waiting_sk)
-                            <span class="status status-completed" title="Evaluasi hasil asesmen telah selesai, menunggu rilis SK KAN resmi">
-                                Selesai (Menunggu SK KAN)
+                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah selesai / merekomendasikan, menunggu penerbitan SK resmi dari KAN">
+                                Sedang Berlangsung (Menunggu SK KAN)
                             </span>
                         @else
                             <x-status :value="$assessment->status" />
@@ -50,7 +58,7 @@
                             @if($assessment->start_at->isSameDay($assessment->end_at))
                                 {{ $assessment->start_at->format('d M Y') }}
                             @else
-                                {{ $assessment->start_at->format('d M') }} &ndash; {{ $assessment->end_at->format('d M Y') }}
+                                {{ $assessment->start_at->format('d M') }} - {{ $assessment->end_at->format('d M Y') }}
                             @endif
                         </span>
                     </span>
@@ -133,14 +141,14 @@
             </div>
             @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
                 <div class="lpk-alert-callout-actions">
-                    <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking')" title="Buka modal pembaruan tindak lanjut untuk verifikasi TP, sidang EHA, atau nomor SK KAN">
+                    <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking', '{{ $assessment->is_submission_overdue ? 'sk' : 'tp' }}')" title="Buka modal pembaruan tindak lanjut untuk verifikasi TP, rapat panitia teknis, atau nomor SK KAN">
                         <x-icon name="check-circle" size="14" />
                         <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Tindak Lanjut Asesmen' }}</span>
                     </button>
-                    <a href="{{ route('assessments.edit', $assessment) }}#form-sk-block" class="button secondary button-sm lpk-alert-action-btn" title="Langsung menuju blok pengisian Surat Keputusan (SK) KAN di formulir ubah">
+                    <button type="button" class="button secondary button-sm lpk-alert-action-btn" onclick="window.openModal('modal-tp-tracking', 'sk')" title="Buka tab Surat Keputusan (SK) KAN pada modal tindak lanjut">
                         <x-icon name="accreditations" size="14" />
                         <span>Input SK KAN</span>
-                    </a>
+                    </button>
                     <a href="{{ route('assessments.edit', $assessment) }}" class="button secondary button-sm lpk-alert-action-btn" title="Ubah tanggal pelaksanaan atau rincian agenda asesmen">
                         <x-icon name="edit" size="14" />
                         <span>Perbarui Asesmen</span>
@@ -150,9 +158,209 @@
         </div>
     @endif
 
+    {{-- Stepper 4 Tahapan KAN U-01 (Kunjungan -> TP -> Rapat Panitia Teknis -> SK) --}}
+    @php
+        $isFieldDone = now()->gt($assessment->end_at) || !empty($assessment->report_date) || !empty($assessment->tp_satisfied_at) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED';
+        $isFieldCurrent = !$isFieldDone && (now()->between($assessment->start_at, $assessment->end_at) || in_array($assessment->status, ['SCHEDULED', 'IN_PROGRESS']));
+
+        $isTpSatisfied = $assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED' || $assessment->isPastSurveillanceForActiveLpk();
+        $isTpCurrent = !$isTpSatisfied && ($isFieldDone || in_array($assessment->tp_status, [\App\Models\Assessment::TP_STATUS_IN_PROGRESS, \App\Models\Assessment::TP_STATUS_UNDER_VERIFICATION]));
+
+        $isEhaSpecialNotes = ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS) && empty($assessment->sk_number);
+        $isEhaNeedsVerification = ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI) && empty($assessment->sk_number);
+        $isEhaDone = (in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED') && !$isEhaSpecialNotes && !$isEhaNeedsVerification;
+        $isEhaCurrent = !$isEhaDone && $isTpSatisfied;
+
+        $isSkDone = !empty($assessment->sk_number) || $assessment->isPastSurveillanceForActiveLpk();
+        $isSkCurrent = !$isSkDone && $isEhaDone;
+    @endphp
+
+    <div class="assessment-stepper-cluster">
+        <div class="lpk-cycle-timeline-bar assessment-workflow-timeline" aria-label="Alur 4 Tahapan Asesmen KAN U-01">
+        {{-- Tahap 1: Kunjungan Lapangan --}}
+        <div class="lpk-cycle-step-item {{ $isFieldDone ? 'is-completed' : ($isFieldCurrent ? 'is-current' : 'is-upcoming') }}">
+            <div class="lpk-step-bullet">
+                @if($isFieldDone)
+                    <x-icon name="check" size="13" />
+                @else
+                    <span>1</span>
+                @endif
+            </div>
+            <div class="lpk-step-label-group">
+                <span class="lpk-step-num">Tahap 1</span>
+                <strong class="lpk-step-name">Asesmen Lapangan</strong>
+                <span class="lpk-step-timing">{{ $assessment->end_at ? $assessment->end_at->format('d M Y') : 'Terjadwal' }}</span>
+            </div>
+        </div>
+
+        <div class="lpk-cycle-step-line {{ $isFieldDone ? 'is-passed' : '' }}"></div>
+
+        {{-- Tahap 2: Tindakan Perbaikan (TP) --}}
+        <div class="lpk-cycle-step-item {{ $isTpSatisfied ? 'is-completed' : ($isTpCurrent ? 'is-current' : 'is-upcoming') }}">
+            <div class="lpk-step-bullet">
+                @if($isTpSatisfied)
+                    <x-icon name="check" size="13" />
+                @else
+                    <span>2</span>
+                @endif
+            </div>
+            <div class="lpk-step-label-group">
+                <span class="lpk-step-num">Tahap 2</span>
+                <strong class="lpk-step-name">Perbaikan TP</strong>
+                <span class="lpk-step-timing">{{ $isTpSatisfied ? 'Memenuhi' : ($assessment->effective_tp_due_date ? 'Batas: ' . $assessment->effective_tp_due_date->format('d/m/Y') : 'SLA KAN') }}</span>
+            </div>
+        </div>
+
+        <div class="lpk-cycle-step-line {{ $isTpSatisfied ? 'is-passed' : '' }}"></div>
+
+        {{-- Tahap 3: Rapat Panitia Teknis --}}
+        <div class="lpk-cycle-step-item {{ $isEhaDone ? 'is-completed' : ($isEhaCurrent ? 'is-current' : 'is-upcoming') }}">
+            <div class="lpk-step-bullet">
+                @if($isEhaDone)
+                    <x-icon name="check" size="13" />
+                @else
+                    <span>3</span>
+                @endif
+            </div>
+            <div class="lpk-step-label-group">
+                <span class="lpk-step-num">Tahap 3</span>
+                <strong class="lpk-step-name">Rapat Panitia Teknis</strong>
+                <span class="lpk-step-timing">{{ $isEhaDone ? 'Rekomendasi' : ($isEhaSpecialNotes ? 'Catatan Khusus' : ($isEhaNeedsVerification ? 'Perlu Verifikasi' : ($assessment->eha_date ? $assessment->eha_date->format('d/m/Y') : 'Panitia Teknis'))) }}</span>
+            </div>
+        </div>
+
+        <div class="lpk-cycle-step-line {{ $isEhaDone ? 'is-passed' : '' }}"></div>
+
+        {{-- Tahap 4: Surat Keputusan (SK) --}}
+        <div class="lpk-cycle-step-item {{ $isSkDone ? 'is-completed' : ($isSkCurrent ? 'is-current' : 'is-upcoming') }}">
+            <div class="lpk-step-bullet">
+                @if($isSkDone)
+                    <x-icon name="check" size="13" />
+                @else
+                    <span>4</span>
+                @endif
+            </div>
+            <div class="lpk-step-label-group">
+                <span class="lpk-step-num">Tahap 4</span>
+                <strong class="lpk-step-name">SK Akreditasi</strong>
+                <span class="lpk-step-timing">{{ $isSkDone ? ($assessment->sk_number ?: 'Terbit') : ($isSkCurrent ? 'Menunggu SK' : 'Keputusan KAN') }}</span>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $ctaPhaseClass = 'is-phase-field';
+        if (!$isFieldDone) {
+            $ctaPhaseClass = 'is-phase-field';
+        } elseif (!$isTpSatisfied) {
+            $ctaPhaseClass = 'is-phase-tp';
+        } elseif ($isEhaNeedsVerification) {
+            $ctaPhaseClass = 'is-phase-eha-verify';
+        } elseif ($isEhaSpecialNotes) {
+            $ctaPhaseClass = 'is-phase-eha-notes';
+        } elseif (!$isEhaDone) {
+            $ctaPhaseClass = 'is-phase-eha';
+        } else {
+            $ctaPhaseClass = 'is-phase-sk';
+        }
+    @endphp
+
+    {{-- Direct CTA Bar Sesuai Tahapan KAN U-01 yang Sedang Aktif --}}
+    @if(!$isSkDone)
+        <div class="assessment-stepper-cta-box {{ $ctaPhaseClass }}">
+            <div class="assessment-stepper-cta-left">
+                <div class="assessment-stepper-cta-icon" aria-hidden="true">
+                    @if(!$isFieldDone)
+                        <x-icon name="calendar" size="16" />
+                    @elseif(!$isTpSatisfied)
+                        <x-icon name="alert-triangle" size="16" />
+                    @elseif($isEhaNeedsVerification || $isEhaSpecialNotes)
+                        <x-icon name="alert-triangle" size="16" />
+                    @elseif(!$isEhaDone)
+                        <x-icon name="check-circle" size="16" />
+                    @else
+                        <x-icon name="accreditations" size="16" />
+                    @endif
+                </div>
+                <div class="assessment-stepper-cta-text">
+                    @if(!$isFieldDone)
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Persiapan Asesmen Lapangan</span>
+                        <span class="assessment-stepper-cta-desc">Pastikan jadwal kunjungan dan penetapan tim asesor telah terverifikasi.</span>
+                    @elseif(!$isTpSatisfied)
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Perbaikan (TP/VTP)</span>
+                        <span class="assessment-stepper-cta-desc">{{ $assessment->effective_tp_due_date ? 'Batas waktu perbaikan s/d ' . $assessment->effective_tp_due_date->format('d M Y') . ($assessment->tp_days_remaining !== null ? ' (' . $assessment->tp_days_remaining . ' hari lagi)' : '') : 'Menunggu penyelesaian dan verifikasi bukti perbaikan temuan asesmen.' }}</span>
+                    @elseif($isEhaNeedsVerification)
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Verifikasi Panitia Teknis Lanjutan</span>
+                        <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah dilaksanakan dengan catatan memerlukan verifikasi lanjutan sebelum rekomendasi akreditasi diterbitkan.</span>
+                    @elseif($isEhaSpecialNotes)
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Catatan Khusus Panitia Teknis</span>
+                        <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus panitia teknis. Tindak lanjuti catatan sebelum rekomendasi akreditasi diterbitkan.</span>
+                    @elseif(!$isEhaDone)
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Rapat Panitia Teknis</span>
+                        <span class="assessment-stepper-cta-desc">Perbaikan temuan telah memenuhi. Agenda berikutnya adalah pencatatan Rapat Panitia Teknis.</span>
+                    @else
+                        <span class="assessment-stepper-cta-title">Fase Berjalan: Penetapan Surat Keputusan (SK) KAN</span>
+                        <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah merekomendasikan akreditasi. Masukkan nomor dan tanggal SK untuk menuntaskan siklus.</span>
+                    @endif
+                </div>
+            </div>
+            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())) && $isFieldDone)
+                <div class="assessment-stepper-cta-actions">
+                    @if(!$isTpSatisfied)
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'tp')">
+                            <x-icon name="check-circle" size="14" />
+                            <span>Verifikasi Tindak Lanjut TP</span>
+                        </button>
+                    @elseif($isEhaNeedsVerification)
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'eha')">
+                            <x-icon name="alert-triangle" size="14" />
+                            <span>Tindak Lanjut Verifikasi Panitia Teknis</span>
+                        </button>
+                    @elseif($isEhaSpecialNotes)
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'eha')">
+                            <x-icon name="alert-triangle" size="14" />
+                            <span>Tindak Lanjut Catatan Panitia Teknis</span>
+                        </button>
+                    @elseif(!$isEhaDone)
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'eha')">
+                            <x-icon name="check-circle" size="14" />
+                            <span>Catat Rekomendasi Panitia Teknis</span>
+                        </button>
+                    @else
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'sk')">
+                            <x-icon name="check" size="14" />
+                            <span>Input SK KAN Resmi</span>
+                        </button>
+                    @endif
+                </div>
+            @endif
+        </div>
+    @else
+        <div class="assessment-stepper-cta-box is-phase-completed">
+            <div class="assessment-stepper-cta-left">
+                <div class="assessment-stepper-cta-icon" aria-hidden="true">
+                    <x-icon name="check" size="16" />
+                </div>
+                <div class="assessment-stepper-cta-text">
+                    <span class="assessment-stepper-cta-title">Siklus Asesmen KAN U-01 Telah Tuntas</span>
+                    <span class="assessment-stepper-cta-desc">{{ $assessment->sk_number ? 'Surat Keputusan (SK) resmi telah terbit: ' . $assessment->sk_number . ($assessment->sk_date ? ' (' . $assessment->sk_date->format('d M Y') . ')' : '') : 'Seluruh tahapan asesmen telah terlaksana dan dinyatakan selesai.' }}</span>
+                </div>
+            </div>
+            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
+                <div class="assessment-stepper-cta-actions">
+                    <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'sk')">
+                        <x-icon name="accreditations" size="14" />
+                        <span>Perbarui Data SK</span>
+                    </button>
+                </div>
+            @endif
+        </div>
+    @endif
+    </div>
+
     {{-- 2-Column Responsive Layout --}}
     <div class="lpk-show-grid assessment-show-grid">
-        {{-- KOLOM KIRI: Informasi Pelaksanaan, Tim Asesor, Evaluasi EHA & SK KAN --}}
+        {{-- KOLOM KIRI: Informasi Pelaksanaan, Tim Asesor, Rapat Panitia Teknis & SK KAN --}}
         <div class="lpk-show-col">
             {{-- KARTU 1: Detail Pelaksanaan Asesmen --}}
             <div class="lpk-form-card">
@@ -202,32 +410,7 @@
                         </div>
                     </div>
 
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Jenis Asesmen (KAN U-01)</span>
-                        <div class="lpk-meta-value">
-                            {{ $assessment->assessment_type_label }}
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Tanggal Pelaksanaan</span>
-                        <div class="lpk-meta-value">
-                            @if($assessment->start_at->isSameDay($assessment->end_at))
-                                <strong>{{ $assessment->start_at->format('d M Y') }}</strong>
-                            @else
-                                <strong>{{ $assessment->start_at->format('d M Y') }}</strong> sampai <strong>{{ $assessment->end_at->format('d M Y') }}</strong>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Lokasi Kunjungan</span>
-                        <div class="lpk-meta-value">
-                            {{ $assessment->location ?: 'Belum diisi' }}
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item">
+                    <div class="lpk-meta-item full-width">
                         <span class="lpk-meta-label">Tim Asesmen</span>
                         <div class="lpk-meta-value">
                             {{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}
@@ -235,7 +418,7 @@
                     </div>
 
                     @if($assessment->submission_due_date && $assessment->status !== 'COMPLETED')
-                        <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px;">
+                        <div class="lpk-meta-item full-width">
                             <span class="lpk-meta-label">Toleransi Pengisian</span>
                             <div class="lpk-meta-value">
                                 <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
@@ -254,7 +437,7 @@
                     @endif
 
                     @if($assessment->notes)
-                        <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 4px;">
+                        <div class="lpk-meta-item full-width">
                             <span class="lpk-meta-label">Catatan Pelaksanaan</span>
                             <div class="assessment-notes-box">
                                 {{ $assessment->notes }}
@@ -264,7 +447,7 @@
                 </div>
             </div>
 
-            {{-- KARTU 2: Laporan Asesmen, Evaluasi Hasil Asesmen (EHA) & SK KAN --}}
+            {{-- KARTU 2: Laporan Asesmen, Rapat Panitia Teknis & SK KAN --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header">
                     <div class="lpk-card-icon-wrap icon-wrap-rose">
@@ -276,7 +459,7 @@
                         </svg>
                     </div>
                     <div class="lpk-card-header-text">
-                        <h2>Laporan Asesmen, Evaluasi EHA &amp; SK KAN</h2>
+                        <h2>Laporan Asesmen, Rapat Panitia Teknis &amp; SK KAN</h2>
                         <p>Dokumen pelaporan asesmen, evaluasi panitia teknis, dan keputusan akreditasi.</p>
                     </div>
                 </div>
@@ -294,48 +477,32 @@
                     </div>
 
                     <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Evaluasi Hasil Asesmen (EHA)</span>
+                        <span class="lpk-meta-label">Rapat Panitia Teknis</span>
                         <div class="lpk-meta-value">
                             @if($assessment->eha_date || ($assessment->eha_status && $assessment->eha_status !== 'BELUM_EHA') || $assessment->eha_notes)
-                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                                        <span class="badge-tp badge-tp-neutral">{{ $assessment->eha_status_label }}</span>
-                                        @if($assessment->eha_date)
-                                            <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
-                                        @endif
-                                    </div>
-                                    @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())) && empty($assessment->sk_number))
-                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-eha')" style="font-size: 11px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                            <x-icon name="plus" size="12" />
-                                            <span>Ubah Sidang EHA</span>
-                                        </button>
+                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                    <span class="badge-tp {{ in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI, \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS], true) ? 'badge-tp-warning' : ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN ? 'badge-tp-satisfied' : 'badge-tp-neutral') }}">{{ $assessment->eha_status_label }}</span>
+                                    @if($assessment->eha_date)
+                                        <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
                                     @endif
                                 </div>
                                 @if($assessment->eha_notes)
                                     <div style="font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.45;">{{ $assessment->eha_notes }}</div>
                                 @endif
                             @elseif($assessment->is_waiting_eha)
-                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <span class="badge-tp badge-tp-warning" style="font-size: 11px; padding: 2.5px 8px;">
-                                            Menunggu Sidang EHA
-                                        </span>
-                                        <span style="color: var(--muted); font-size: 12px;">(Tindakan perbaikan telah memenuhi)</span>
-                                    </div>
-                                    @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
-                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-eha')" style="font-size: 11px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                            <x-icon name="plus" size="12" />
-                                            <span>Input Sidang EHA</span>
-                                        </button>
-                                    @endif
+                                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 11px; padding: 2.5px 8px;">
+                                        Menunggu Rapat Panitia Teknis
+                                    </span>
+                                    <span style="color: var(--muted); font-size: 12px;">(Tindakan perbaikan telah memenuhi)</span>
                                 </div>
                             @else
-                                <span style="color: var(--muted);">Belum EHA</span>
+                                <span style="color: var(--muted);">Belum Rapat Panitia Teknis</span>
                             @endif
                         </div>
                     </div>
 
-                    <div class="lpk-meta-item full-width" style="border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 4px;">
+                    <div class="lpk-meta-item full-width">
                         <span class="lpk-meta-label">Surat Keputusan (SK)</span>
                         <div class="lpk-meta-value">
                             @if($assessment->sk_number || $assessment->sk_date)
@@ -353,19 +520,11 @@
                                     @endif
                                 </div>
                             @elseif($assessment->is_waiting_sk)
-                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; padding: 2.5px 8px;">
-                                            Menunggu Penerbitan SK KAN
-                                        </span>
-                                        <span style="color: var(--muted); font-size: 12px;">(Sidang EHA telah selesai / direkomendasikan)</span>
-                                    </div>
-                                    @if(!isset($owner) && $assessment->isManagedBy(auth()->user()))
-                                        <button type="button" class="button secondary button-sm" onclick="window.openModal('modal-tp-tracking', 'modal-section-sk')" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
-                                            <x-icon name="plus" size="12" />
-                                            <span>Input SK KAN</span>
-                                        </button>
-                                    @endif
+                                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; padding: 2.5px 8px;">
+                                        Menunggu Penerbitan SK KAN
+                                    </span>
+                                    <span style="color: var(--muted); font-size: 12px;">(Rapat Panitia Teknis telah selesai / direkomendasikan)</span>
                                 </div>
                             @else
                                 <span style="color: var(--muted);">Belum terbit</span>

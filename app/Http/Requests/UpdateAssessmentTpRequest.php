@@ -102,9 +102,16 @@ class UpdateAssessmentTpRequest extends FormRequest
                     $effectiveEhaStatus = $validated['eha_status'] ?? $assessment->eha_status;
                     $effectiveEhaDate = ! empty($validated['eha_date']) ? $validated['eha_date'] : $assessment->eha_date;
                     $hasEha = in_array($effectiveEhaStatus, [Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true)
-                        || (! empty($effectiveEhaDate) && ! in_array($effectiveEhaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI, 'BELUM_EHA', 'PERLU_VERIFIKASI'], true));
+                        || (! empty($effectiveEhaDate) && ! in_array($effectiveEhaStatus, [
+                            Assessment::EHA_STATUS_BELUM,
+                            Assessment::EHA_STATUS_PERLU_VERIFIKASI,
+                            Assessment::EHA_STATUS_CATATAN_KHUSUS,
+                            'BELUM_EHA',
+                            'PERLU_VERIFIKASI',
+                            'CATATAN_KHUSUS',
+                        ], true));
                     $hasSk = ! empty($validated['sk_number']) || ! empty($assessment->sk_number);
-                    $validated['status'] = ($hasEha || $hasSk) ? 'COMPLETED' : 'IN_PROGRESS';
+                    $validated['status'] = $hasSk ? 'COMPLETED' : 'IN_PROGRESS';
                     break;
                 case 'SUSPENDED':
                     $validated['status'] = 'SUSPENDED';

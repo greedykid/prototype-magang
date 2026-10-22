@@ -120,6 +120,7 @@
     max-width: 100%;
     min-width: 0;
     width: 100%;
+    align-items: stretch;
 }
 
 .lpk-milestone-card {
@@ -133,6 +134,7 @@
     justify-content: space-between;
     padding: 20px;
     position: relative;
+    height: 100%;
     transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease;
 }
 
@@ -331,9 +333,15 @@
     color: var(--ink);
 }
 
-/* Current Focus State Ring: Memberi penegasan fokus alur tanpa mengubah warna border status */
+/* Current Focus State Ring: Memberi penegasan visual fase berjalan dengan aksen biru dan shadow */
 .lpk-milestone-card.is-current-focus {
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+    border-color: var(--primary, #1972f5) !important;
+    box-shadow: 0 0 0 3px rgba(25, 114, 245, 0.16), 0 8px 24px -4px rgba(25, 114, 245, 0.12) !important;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus {
+    border-color: var(--primary, #4a9df8) !important;
+    box-shadow: 0 0 0 3px rgba(74, 157, 248, 0.22), 0 8px 28px rgba(0, 0, 0, 0.45) !important;
 }
 
 .lpk-milestone-card-top {
@@ -388,17 +396,24 @@
 
 .badge-focus {
     align-items: center;
-    background: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-xs, 6px);
-    color: var(--surface);
+    background: #eff6ff;
+    border: 1px solid rgba(25, 114, 245, 0.35);
+    border-radius: var(--radius-pill, 9999px);
+    color: var(--primary, #1972f5);
     display: inline-flex;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.02em;
     line-height: 1.2;
-    padding: 2.5px 8px;
+    padding: 2.5px 9px;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(25, 114, 245, 0.08);
+}
+
+html[data-theme="dark"] .badge-focus {
+    background: rgba(74, 157, 248, 0.15);
+    border-color: rgba(74, 157, 248, 0.4);
+    color: #93c5fd;
 }
 
 .lpk-milestone-desc {

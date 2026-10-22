@@ -89,7 +89,7 @@ body.modal-open .sidebar {
     padding: 20px 28px 16px 28px;
     position: sticky;
     top: -24px;
-    z-index: 20;
+    z-index: 120;
 }
 
 .simasadi-modal-head h4 {
@@ -148,7 +148,7 @@ body.modal-open .sidebar {
     padding-bottom: 20px;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    z-index: 20;
+    z-index: 120;
 }
 
 /* Modal Import Component */
@@ -174,7 +174,7 @@ body.modal-open .sidebar {
     padding: 18px 24px;
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 120;
 }
 
 .modal-head-title {
@@ -650,6 +650,72 @@ body.modal-open .sidebar {
     font-size: 12.5px;
     color: var(--color-blue-700, #005bab);
     line-height: 1.5;
+}
+
+.modal-tp-nav-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: var(--surface-subtle, #f1f5f9);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 10px);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.tp-modal-tab-btn {
+    flex: 1;
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    text-align: center;
+    user-select: none;
+}
+
+.tp-modal-tab-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--ink);
+}
+
+.tp-modal-tab-btn.is-active {
+    background: var(--surface, #ffffff);
+    border-color: var(--line);
+    color: var(--primary, #0284c7);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="dark"] .modal-tp-nav-tabs {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .tp-modal-tab-btn {
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+}
+
+html[data-theme="dark"] .tp-modal-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .tp-modal-tab-btn.is-active {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 640px) {

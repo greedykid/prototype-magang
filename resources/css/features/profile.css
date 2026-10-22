@@ -502,3 +502,15 @@ html[data-theme="dark"] .profile-hero-avatar {
     line-height: 1.45;
     max-width: 280px;
 }
+
+@media (max-width: 640px) {
+    .profile-form-actions {
+        justify-content: stretch;
+    }
+
+    .profile-form-actions .button {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+}

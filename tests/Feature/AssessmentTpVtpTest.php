@@ -380,7 +380,7 @@ class AssessmentTpVtpTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('assessments.show', $assessment));
         $response->assertOk();
         $response->assertSee('Dr. Budi Santoso (Ketua), Ir. Siti Aminah (Anggota)');
-        $response->assertSee('Evaluasi Hasil Asesmen (EHA)');
+        $response->assertSee('Rapat Panitia Teknis');
         $response->assertSee('Laporan Asesmen');
         $response->assertSee('Direkomendasikan (Memenuhi)');
         $response->assertSee('Seluruh temuan minor telah diverifikasi dan disetujui komite.');

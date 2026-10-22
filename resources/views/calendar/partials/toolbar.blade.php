@@ -28,7 +28,14 @@
 
                 <div class="gcal-nav-group">
                     <div class="gcal-nav-cluster">
-                        <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}" class="button secondary gcal-btn-today">
+                        @php
+                            $isViewingToday = ($viewMode === 'month')
+                                ? now()->isSameMonth($currentMonth)
+                                : ($activeDate && now()->isSameDay($activeDate));
+                        @endphp
+                        <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}"
+                           class="button secondary gcal-btn-today {{ $isViewingToday ? 'is-today-active' : '' }}"
+                           title="{{ $isViewingToday ? 'Sedang berada pada periode saat ini' : 'Kembali ke tanggal hari ini' }}">
                             Hari ini
                         </a>
 
@@ -99,7 +106,7 @@
                         </div>
                     @elseif($viewMode === 'week')
                         <h2 class="gcal-title-label">
-                            {{ $weekStart->translatedFormat('d M') }} &ndash; {{ $weekEnd->translatedFormat('d M Y') }}
+                            {{ $weekStart->translatedFormat('d M') }} - {{ $weekEnd->translatedFormat('d M Y') }}
                         </h2>
                         <div class="gcal-title-selects is-compact" role="group" aria-label="Lompat ke bulan dan tahun">
                             <label class="sr-only" for="gcal-select-month">Lompat bulan</label>

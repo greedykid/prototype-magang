@@ -36,6 +36,18 @@ html[data-theme="dark"] .gcal-btn-range:hover {
     color: var(--ink) !important;
 }
 
+html[data-theme="dark"] .gcal-btn-today.is-today-active {
+    background: rgba(56, 189, 248, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
+    color: #38bdf8 !important;
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2) !important;
+}
+
+html[data-theme="dark"] .gcal-btn-today.is-today-active:hover {
+    background: rgba(56, 189, 248, 0.2) !important;
+    border-color: #38bdf8 !important;
+}
+
 html[data-theme="dark"] .gcal-btn-range.is-active {
     background: var(--primary) !important;
     border-color: var(--primary) !important;
@@ -248,40 +260,46 @@ html[data-theme="dark"] .gcal-month-cell:hover {
 }
 
 /* Event Chips & Cards Dark Mode Theming */
-html[data-theme="dark"] .gcal-event-chip.theme-indigo {
-    background: rgba(99, 102, 241, 0.18);
-    border-color: rgba(99, 102, 241, 0.4);
-    color: #a5b4fc;
-}
-
-html[data-theme="dark"] .gcal-event-chip.theme-purple {
-    background: rgba(168, 85, 247, 0.18);
-    border-color: rgba(168, 85, 247, 0.4);
-    color: #d8b4fe;
+html[data-theme="dark"] .gcal-event-chip.theme-emerald {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.4);
+    border-left: 3.5px solid #10b981;
+    color: #a7f3d0;
 }
 
 html[data-theme="dark"] .gcal-event-chip.theme-amber {
     background: rgba(245, 158, 11, 0.18);
     border-color: rgba(245, 158, 11, 0.4);
+    border-left: 3.5px solid #f59e0b;
     color: #fde68a;
 }
 
 html[data-theme="dark"] .gcal-event-chip.theme-rose {
     background: rgba(244, 63, 94, 0.18);
     border-color: rgba(244, 63, 94, 0.4);
+    border-left: 3.5px solid #f43f5e;
     color: #fda4af;
-}
-
-html[data-theme="dark"] .gcal-event-chip.theme-emerald {
-    background: rgba(16, 185, 129, 0.18);
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #a7f3d0;
 }
 
 html[data-theme="dark"] .gcal-event-chip.theme-cyan {
     background: rgba(6, 182, 212, 0.18);
     border-color: rgba(6, 182, 212, 0.4);
+    border-left: 3.5px solid #06b6d4;
     color: #a5f3fc;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-blue {
+    background: rgba(37, 99, 235, 0.18);
+    border-color: rgba(37, 99, 235, 0.4);
+    border-left: 3.5px solid #3b82f6;
+    color: #bfdbfe;
+}
+
+html[data-theme="dark"] .gcal-event-chip.theme-indigo {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.4);
+    border-left: 3.5px solid #6366f1;
+    color: #a5b4fc;
 }
 
 html[data-theme="dark"] .gcal-timed-card.theme-amber {

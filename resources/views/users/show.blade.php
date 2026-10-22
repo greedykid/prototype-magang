@@ -37,10 +37,6 @@
             </div>
 
             <div class="lpk-header-actions">
-                <a href="{{ route('lpks.index', ['pic_id' => $user->id]) }}" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
-                    <x-icon name="lpks" size="14" />
-                    <span>Filter di Data Lab</span>
-                </a>
                 <a href="{{ route('users.edit', $user) }}" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
                     <x-icon name="edit" size="14" />
                     <span>Ubah Data</span>

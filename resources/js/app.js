@@ -289,6 +289,48 @@ export const initPageComponents = () => {
 
     // 11. Sidebar Real-Time Operational Clock & Date
     initSidebarClock();
+
+    // 12. Dashboard Compliance Meter Interactive Hover
+    initComplianceMeterInteractions();
+};
+
+export const initComplianceMeterInteractions = () => {
+    const card = document.querySelector('.compliance-meter-card');
+    if (!card || card.dataset.meterInit === 'true') return;
+    card.dataset.meterInit = 'true';
+
+    const segments = card.querySelectorAll('.compliance-meter-segment');
+    const legendItems = card.querySelectorAll('.compliance-legend-item');
+
+    segments.forEach((seg) => {
+        const legendKey = seg.dataset.legend;
+        if (!legendKey) return;
+        const matchingLegend = card.querySelector(`.compliance-legend-item[data-legend="${legendKey}"]`);
+        if (!matchingLegend) return;
+
+        seg.addEventListener('mouseenter', () => {
+            matchingLegend.classList.add('is-highlighted');
+        });
+        seg.addEventListener('mouseleave', () => {
+            matchingLegend.classList.remove('is-highlighted');
+        });
+    });
+
+    legendItems.forEach((item) => {
+        const legendKey = item.dataset.legend;
+        if (!legendKey) return;
+        const matchingSeg = card.querySelector(`.compliance-meter-segment[data-legend="${legendKey}"]`);
+        if (!matchingSeg) return;
+
+        item.addEventListener('mouseenter', () => {
+            matchingSeg.style.transform = 'scaleY(1.4)';
+            matchingSeg.style.borderRadius = '2px';
+        });
+        item.addEventListener('mouseleave', () => {
+            matchingSeg.style.transform = '';
+            matchingSeg.style.borderRadius = '';
+        });
+    });
 };
 
 window.initPageComponents = initPageComponents;

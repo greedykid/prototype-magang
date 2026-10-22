@@ -120,23 +120,30 @@
 .persistent-surveillance-banner {
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
-    border-radius: var(--radius-xl, 18px);
+    border-radius: var(--radius-lg, 12px);
     box-shadow: var(--shadow-card);
-    margin-bottom: 24px;
-    padding: 16px 20px;
+    margin-bottom: 18px;
+    padding: 9px 16px;
+    transition: all 200ms ease;
 }
 
 .persistent-surveillance-banner-inner {
     align-items: center;
     display: flex;
-    gap: 16px;
+    gap: 14px;
     justify-content: space-between;
-    flex-wrap: wrap;
 }
 
 .persistent-surveillance-banner-main {
-    flex: 1 1 420px;
+    flex: 1;
     min-width: 0;
+}
+
+.banner-compact-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
 }
 
 .persistent-surveillance-banner-badge {
@@ -145,32 +152,30 @@
     border-radius: var(--radius-pill, 9999px);
     color: #ffffff;
     display: inline-flex;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 750;
     gap: 5px;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    padding: 2.5px 9px;
+    padding: 2px 7px;
     text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .persistent-surveillance-banner-title {
     color: var(--danger-text);
-    display: block;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.35;
-    margin-bottom: 3px;
+    margin: 0;
 }
 
 .persistent-surveillance-banner-desc {
     color: var(--danger-text);
-    display: block;
-    font-size: 12.5px;
-    line-height: 1.45;
-    margin: 0;
-    opacity: 0.95;
+    font-size: 11.5px;
+    line-height: 1.35;
+    opacity: 0.9;
+    white-space: nowrap;
 }
 
 .persistent-surveillance-banner-action {

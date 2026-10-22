@@ -32,9 +32,14 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge-role {{ $userItem->role_badge_class }}">
-                                {{ $userItem->role_label }}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span class="badge-role {{ $userItem->role_badge_class }}">
+                                    {{ $userItem->role_label }}
+                                </span>
+                                <span class="badge" style="font-size: 11px; font-weight: 600; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-pill, 9999px); padding: 1px 7px;" title="Akun terdaftar dan aktif di sistem">
+                                    Aktif
+                                </span>
+                            </div>
                         </td>
                         <td>
                             @php

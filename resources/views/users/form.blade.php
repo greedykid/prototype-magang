@@ -47,7 +47,6 @@
             @error('name')
                 <span class="field-error-text">{{ $message }}</span>
             @enderror
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Nama resmi personel atau perwakilan laboratorium.</small>
         </label>
 
         <label class="full">
@@ -56,7 +55,6 @@
             @error('email')
                 <span class="field-error-text">{{ $message }}</span>
             @enderror
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Digunakan sebagai identitas masuk (login) ke aplikasi.</small>
         </label>
 
         <label class="full">
@@ -87,10 +85,6 @@
                 <small style="color: var(--danger-text, #ef4444); font-size: 11.5px; display: block; margin-top: 4px;">
                     Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses Ketua Tim.
                 </small>
-            @else
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
-                    Pilih peran sesuai tanggung jawab penugasan pengguna di sistem SIMASADI.
-                </small>
             @endif
         </label>
 
@@ -106,9 +100,6 @@
             @error('password')
                 <span class="field-error-text">{{ $message }}</span>
             @enderror
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
-                {{ $user->exists ? 'Isi bidang ini hanya jika ingin mengatur ulang (reset) kata sandi pengguna.' : 'Kata sandi awal untuk masuk ke akun. Minimal 8 karakter.' }}
-            </small>
         </label>
 
         <label class="full">
@@ -125,12 +116,19 @@
             @enderror
         </label>
 
-        <div class="form-actions full" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-            <a href="{{ route('users.index') }}" class="button ghost">Batal</a>
-            <button type="submit" class="button primary">
-                <x-icon name="check" size="16" />
-                <span>{{ $user->exists ? 'Perbarui Pengguna' : 'Simpan Pengguna Baru' }}</span>
-            </button>
+        {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
+        <div class="form-sticky-footer full">
+            <div class="form-sticky-hint">
+                <x-icon name="info" size="15" />
+                <span>{{ $user->exists ? 'Periksa hak akses peran dan kata sandi sebelum memperbarui.' : 'Pastikan seluruh informasi akun pengguna terisi lengkap.' }}</span>
+            </div>
+            <div class="form-sticky-actions">
+                <a href="{{ route('users.index') }}" class="button ghost">Batal</a>
+                <button type="submit" class="button primary">
+                    <x-icon :name="$user->exists ? 'check' : 'plus'" size="16" />
+                    <span>{{ $user->exists ? 'Perbarui Pengguna' : 'Simpan Pengguna Baru' }}</span>
+                </button>
+            </div>
         </div>
     </form>
 </section>

@@ -43,6 +43,24 @@ export function openModal(modalId, targetSectionId = null) {
         savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     }
 
+    const isTpModal = (modalId === 'modal-tp-tracking' || (modal && modal.id === 'modal-tp-tracking'));
+    if (isTpModal) {
+        let tabKey = 'tp';
+        if (targetSectionId) {
+            const cleanTarget = String(targetSectionId).replace(/^#/, '').toLowerCase();
+            if (cleanTarget === 'eha' || cleanTarget.includes('eha')) {
+                tabKey = 'eha';
+            } else if (cleanTarget === 'sk' || cleanTarget.includes('sk')) {
+                tabKey = 'sk';
+            } else {
+                tabKey = 'tp';
+            }
+        }
+        if (typeof window.switchModalTpTab === 'function') {
+            window.switchModalTpTab(tabKey);
+        }
+    }
+
     // Teleport to document.body so modal escapes any ancestor containing block,
     // positioning relative to the entire viewport (covering sidebar, topbar, and centered).
     // A placeholder comment node is left behind so the modal can be restored to its exact place in the DOM upon closing.
@@ -68,7 +86,9 @@ export function openModal(modalId, targetSectionId = null) {
     const modalBox = modal.querySelector('.simasadi-modal-box');
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
 
-    if (targetSectionId) {
+    const isTabTarget = isTpModal && targetSectionId && ['tp', 'eha', 'sk', 'modal-tp-panel-tp', 'modal-tp-panel-eha', 'modal-tp-panel-sk'].includes(String(targetSectionId).replace(/^#/, '').toLowerCase());
+
+    if (targetSectionId && !isTabTarget) {
         setTimeout(() => {
             const targetEl = typeof targetSectionId === 'string'
                 ? (modal.querySelector(targetSectionId.startsWith('#') ? targetSectionId : `#${targetSectionId}`) || document.getElementById(targetSectionId))
@@ -92,6 +112,9 @@ export function openModal(modalId, targetSectionId = null) {
     } else {
         if (modalBox) {
             modalBox.scrollTop = 0;
+            requestAnimationFrame(() => {
+                if (modalBox) modalBox.scrollTop = 0;
+            });
         }
         if (!isTouch) {
             const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');

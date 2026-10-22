@@ -55,9 +55,20 @@
                             @php
                                 $badge = $assessment->tp_sla_badge;
                                 $hasDueDate = $assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE;
+                                $isTpDone = $assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at);
                             @endphp
                             @if($hasDueDate)
-                                <strong style="font-size: 14px; font-weight: 700; color: var(--ink); display: inline-block;" title="{{ $badge['label'] }} - {{ $badge['detail'] }}">{{ $assessment->effective_tp_due_date->format('d/m/Y') }}</strong>
+                                <strong style="font-size: 13.5px; font-weight: 700; color: var(--ink); display: block;" title="{{ $badge['label'] }} - {{ $badge['detail'] }}">{{ $assessment->effective_tp_due_date->format('d/m/Y') }}</strong>
+                                @if($isTpDone)
+                                    <span class="badge badge-countdown status-completed" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">Memenuhi</span>
+                                @else
+                                    @php
+                                        $diffTpDays = (int) now()->startOfDay()->diffInDays($assessment->effective_tp_due_date->startOfDay(), false);
+                                    @endphp
+                                    <span class="badge badge-countdown {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }}" style="font-size: 10px; padding: 1px 6px; margin-top: 3px; display: inline-block;">
+                                        {{ $diffTpDays < 0 ? 'Terlewat ' . abs($diffTpDays) . ' Hari' : ($diffTpDays === 0 ? 'Hari Ini' : 'H-' . $diffTpDays) }}
+                                    </span>
+                                @endif
                             @else
                                 <span style="color: var(--muted); font-size: 13px;">-</span>
                             @endif
@@ -76,15 +87,27 @@
                                         Toleransi Terlampaui (Dibekukan)
                                     </span>
                                 </div>
+                            @elseif($assessment->is_eha_needs_verification)
+                                <div style="margin-top: 3px;">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Rapat Panitia Teknis telah dilaksanakan dengan hasil memerlukan verifikasi lanjutan sebelum rekomendasi akreditasi">
+                                        Perlu Verifikasi Panitia Teknis
+                                    </span>
+                                </div>
+                            @elseif($assessment->is_eha_special_notes)
+                                <div style="margin-top: 3px;">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus yang perlu ditindaklanjuti">
+                                        Catatan Khusus Panitia Teknis
+                                    </span>
+                                </div>
                             @elseif($assessment->is_waiting_eha)
                                 <div style="margin-top: 3px;">
-                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Tindakan perbaikan telah memenuhi, menunggu sidang Evaluasi Hasil Asesmen (EHA)">
-                                        Menunggu Sidang EHA
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan Rapat Panitia Teknis">
+                                        Menunggu Rapat Panitia Teknis
                                     </span>
                                 </div>
                             @elseif($assessment->is_waiting_sk)
                                 <div style="margin-top: 3px;">
-                                    <span class="badge-tp badge-tp-neutral" style="font-size: 10px; display: inline-block;" title="Sidang EHA telah selesai / direkomendasikan, menunggu penerbitan SK resmi dari KAN">
+                                    <span class="badge-tp badge-tp-warning" style="font-size: 10px; display: inline-block;" title="Rapat Panitia Teknis telah selesai / direkomendasikan, menunggu penetapan SK resmi dari KAN">
                                         Menunggu SK KAN
                                     </span>
                                 </div>

@@ -40,7 +40,7 @@
                 </div>
             </div>
             @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
-                <button type="button" class="button secondary tp-manage-btn" onclick="window.openModal('modal-tp-tracking')" aria-controls="modal-tp-tracking">
+                <button type="button" class="button secondary tp-manage-btn" onclick="window.openModal('modal-tp-tracking', 'tp')" aria-controls="modal-tp-tracking">
                     <x-icon name="edit" size="14" />
                     <span>Kelola Status TP</span>
                 </button>
@@ -295,39 +295,9 @@
         @endif
     </div>
 
-    {{-- SK KAN Hasil Asesmen / Kelanjutan Akreditasi --}}
-    @if($assessment->sk_number)
-        <div class="tp-sk-banner">
-            <div class="tp-sk-banner-left">
-                <div class="icon-wrap-emerald" style="width: 40px; height: 40px; border-radius: var(--radius-md, 10px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;" aria-hidden="true">
-                    <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div style="min-width: 0;">
-                    <span style="font-size: 11px; font-weight: 700; color: var(--green, #15803d); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 2px;">
-                        Surat Keputusan (SK) Hasil Asesmen Telah Terbit
-                    </span>
-                    <strong style="font-size: 15px; color: var(--ink); letter-spacing: 0.01em; word-break: break-word;">{{ $assessment->sk_number }}</strong>
-                </div>
-            </div>
-            @if($assessment->sk_date)
-                <div class="tp-sk-banner-right">
-                    <span style="font-size: 11.5px; color: var(--muted); display: block;">Tanggal Penerbitan SK</span>
-                    <strong style="font-size: 14px; color: var(--ink);">{{ $assessment->sk_date->format('d M Y') }}</strong>
-                    @if($assessment->sk_lead_time_label)
-                        <span style="display: block; font-size: 11.5px; color: var(--green, #166534); font-weight: 600; margin-top: 3px;" title="Durasi sejak akhir pelaksanaan asesmen hingga tanggal SK">
-                            Rentang: {{ $assessment->sk_lead_time_label }}
-                        </span>
-                    @endif
-                </div>
-            @endif
-        </div>
-    @endif
-
     {{-- Notes & Extension Details --}}
     @if($assessment->tp_notes || ($assessment->tp_has_extension && $assessment->tp_extension_notes))
-        <div style="display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line);">
+        <div style="display: grid; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);">
             @if($assessment->tp_notes)
                 <div>
                     <strong style="font-size: 13px; color: var(--ink); display: block; margin-bottom: 4px;">Catatan Temuan &amp; Tindakan Perbaikan:</strong>

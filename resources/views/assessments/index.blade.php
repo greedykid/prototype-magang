@@ -7,13 +7,13 @@
     title="Daftar asesmen"
     subtitle="Jadwal dan progres asesmen semua laboratorium."
 >
-    <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
-        <x-icon name="import" size="16" />
-        <span>Import Asesmen</span>
-    </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
         <x-icon name="sheets" size="16" style="color: #0f9d58;" />
         <span>Google Sheets & Ekspor</span>
+    </button>
+    <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
+        <x-icon name="import" size="16" />
+        <span>Import Asesmen</span>
     </button>
     <a class="button primary" href="{{ route('assessments.create') }}">
         <x-icon name="plus" size="16" />
@@ -41,29 +41,85 @@
 <section class="panel table-panel-borderless">
     <form id="assessment-filter-form" class="table-filters" method="GET" action="{{ route('assessments.index') }}" data-partial-filter="true" data-target="#assessment-table-container">
         <input type="hidden" name="per_page" value="{{ $perPage }}">
-        <div class="table-filter-grid">
-            <label for="filter-asm-search">
-                Cari agenda
-                <div class="table-filter-search-wrap">
-                    <x-icon name="search" size="16" class="table-filter-search-icon" />
-                    <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off">
-                </div>
-            </label>
-            <label for="filter-asm-lpk">LPK<select id="filter-asm-lpk" name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
-            <label for="filter-asm-type">Jenis<select id="filter-asm-type" name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
-            <label for="filter-asm-status">Status Pelaksanaan<select id="filter-asm-status" name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
-            <label for="filter-asm-tp-status">Status TP (Batas Waktu)
-                <select id="filter-asm-tp-status" name="tp_status">
-                    <option value="">Semua status TP</option>
-                    <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Belum Ditentukan</option>
-                    <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
-                    <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
-                    <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
-                    <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
-                </select>
-            </label>
-            <label for="filter-asm-start-from">Mulai dari<input id="filter-asm-start-from" type="date" name="start_from" value="{{ $startFrom }}"></label>
-            <label for="filter-asm-start-to">Mulai sampai<input id="filter-asm-start-to" type="date" name="start_to" value="{{ $startTo }}"></label>
+        @php
+            $secondaryFiltersCount = 0;
+            if ($assessmentType) $secondaryFiltersCount++;
+            if ($status) $secondaryFiltersCount++;
+            if (!empty($tpFilter)) $secondaryFiltersCount++;
+            if ($startFrom) $secondaryFiltersCount++;
+            if ($startTo) $secondaryFiltersCount++;
+        @endphp
+
+        <div class="table-filter-primary-row">
+            <div class="table-filter-primary-search" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr); gap: 12px;">
+                <label for="filter-asm-search">
+                    Cari agenda
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda..." autocomplete="off">
+                    </div>
+                </label>
+                <label for="filter-asm-lpk">
+                    Laboratorium (LPK)
+                    <select id="filter-asm-lpk" name="lpk_id">
+                        <option value="">Semua LPK</option>
+                        @foreach($lpks as $lpk)
+                            <option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
+            <div class="table-filter-toggle-wrap">
+                <button type="button" class="btn-toggle-advanced-filters" id="toggle-assessment-advanced-filters" aria-expanded="{{ $secondaryFiltersCount > 0 ? 'true' : 'false' }}" aria-controls="assessment-advanced-filters" title="Buka atau tutup filter jenis, status, dan tanggal">
+                    <x-icon name="filter" size="14" />
+                    <span>Filter Lanjutan</span>
+                    @if($secondaryFiltersCount > 0)
+                        <span class="filter-count-badge">{{ $secondaryFiltersCount }}</span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <div class="table-filter-advanced" id="assessment-advanced-filters" style="{{ $secondaryFiltersCount > 0 ? '' : 'display: none;' }}">
+            <div class="table-filter-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <label for="filter-asm-type">
+                    Jenis Asesmen
+                    <select id="filter-asm-type" name="assessment_type">
+                        <option value="">Semua jenis (KAN U-01)</option>
+                        @foreach($assessmentTypes as $key => $label)
+                            <option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label for="filter-asm-status">
+                    Status Pelaksanaan
+                    <select id="filter-asm-status" name="status">
+                        <option value="">Semua status</option>
+                        @foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)
+                            <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label for="filter-asm-tp-status">
+                    Status TP (Batas Waktu)
+                    <select id="filter-asm-tp-status" name="tp_status">
+                        <option value="">Semua status TP</option>
+                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Belum Ditentukan</option>
+                        <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
+                        <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
+                        <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
+                        <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
+                    </select>
+                </label>
+                <label for="filter-asm-start-from">
+                    Mulai dari
+                    <input id="filter-asm-start-from" type="date" name="start_from" value="{{ $startFrom }}">
+                </label>
+                <label for="filter-asm-start-to">
+                    Mulai sampai
+                    <input id="filter-asm-start-to" type="date" name="start_to" value="{{ $startTo }}">
+                </label>
+            </div>
         </div>
         <div class="table-filter-actions" id="assessment-filter-actions" style="margin-top: 8px;">
             <span id="assessment-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">

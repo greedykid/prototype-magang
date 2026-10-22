@@ -27,6 +27,7 @@
 @import './components/sweetalert.css';
 @import './components/modals.css';
 @import './components/bottom-nav.css';
+@import './components/forms.css';
 
 /* 4. Domain & Features */
 @import './features/dashboard.css';

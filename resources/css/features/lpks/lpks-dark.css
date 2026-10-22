@@ -657,6 +657,49 @@ html[data-theme="dark"] .lpk-grace-warning-box {
     border-color: rgba(245, 158, 11, 0.35);
 }
 
+/* Assessment Duration Toolbar Dark Mode */
+html[data-theme="dark"] .assessment-duration-toolbar {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .duration-chip-btn {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .duration-chip-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+html[data-theme="dark"] .duration-chip-btn.is-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-info {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+
 
 
 
