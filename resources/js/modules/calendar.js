@@ -339,6 +339,13 @@ function quickAddAtRange(startDateStr, endDateStr, timeStr = '09:00') {
         if (modalSubtitle) modalSubtitle.textContent = `Rentang kegiatan: ${formattedStart} s.d. ${formattedEnd}`;
     }
 
+    const titleInput = document.getElementById('quick-input-title');
+    if (titleInput) titleInput.value = '';
+    const notesInput = document.getElementById('quick-input-notes');
+    if (notesInput) notesInput.value = '';
+    const typeSelect = document.getElementById('quick-input-type');
+    if (typeSelect) typeSelect.value = 'AGENDA_INTERNAL';
+
     initQuickAddDateSync();
     openModal('modal-quick-add-event');
 }
@@ -533,7 +540,7 @@ function openQuickAddWithType(type = 'PRL') {
         modalHeading.textContent = headingText;
     }
 
-    if (typeSelect) {
+    if (typeSelect && typeSelect.options) {
         let matched = false;
         for (const opt of typeSelect.options) {
             if (opt.value === targetValue) {
@@ -558,10 +565,16 @@ function openQuickAddWithType(type = 'PRL') {
         // Dispatch change event to immediately sync custom-select UI
         typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (typeSelect) {
+        typeSelect.value = targetValue;
     }
 
     if (titleInput) {
         titleInput.value = defaultTitle;
+    }
+    const notesInput = document.getElementById('quick-input-notes');
+    if (notesInput) {
+        notesInput.value = '';
     }
 
     openModal('modal-quick-add-event');

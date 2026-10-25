@@ -340,6 +340,7 @@ window.initPageComponents = initPageComponents;
 // ==========================================================================
 export const initClickableRows = () => {
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const row = event.target.closest('tr.clickable-row, tr[data-href], .clickable-row[data-href]');
         if (!row) return;
 

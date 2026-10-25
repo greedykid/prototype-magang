@@ -10,35 +10,12 @@
 
         <form method="POST" action="{{ route('calendar.events.store') }}" style="display: grid; gap: 14px; margin-top: 14px;">
             @csrf
+            <input type="hidden" name="event_type" id="quick-input-type" value="AGENDA_INTERNAL">
+
             <div class="form-grid" style="gap: 12px;">
                 <label class="full">
-                    Jenis Agenda / Asesmen
-                    <select name="event_type" id="quick-input-type" onchange="window.updateQuickAddType ? window.updateQuickAddType(this.value) : null">
-                        @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
-                            <option value="{{ $typeKey }}" @selected($typeKey === \App\Models\Assessment::TYPE_PRL)>{{ $typeLabel }}</option>
-                        @endforeach
-                        <option value="AGENDA_INTERNAL">Agenda Umum / Rapat Internal</option>
-                    </select>
-                </label>
-
-                <label class="full">
                     Judul Kegiatan
-                    <input type="text" name="title" id="quick-input-title" required placeholder="Contoh: PRL - Penambahan Ruang Lingkup">
-                </label>
-
-                <label class="full">
-                    Lembaga Terkait (LPK)
-                    <select name="lpk_id" id="quick-input-lpk" required>
-                        <option value="">Pilih Lembaga Penilaian Kesesuaian</option>
-                        @foreach($lpks as $lpk)
-                            @php
-                                $accNo = $lpk->accreditation_number ?: $lpk->registration_number;
-                            @endphp
-                            <option value="{{ $lpk->id }}" @if($accNo) data-badge="{{ $accNo }}" data-accreditation-no="{{ $accNo }}" @endif>
-                                {{ $accNo ? $accNo . ' — ' : '' }}{{ $lpk->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text" name="title" id="quick-input-title" required placeholder="Contoh: Rapat Koordinasi Internal / Penilaian Lapangan">
                 </label>
 
                 <label>
@@ -64,6 +41,11 @@
                         <option value="COMPLETED">Selesai</option>
                         <option value="CANCELLED">Dibatalkan</option>
                     </select>
+                </label>
+
+                <label class="full">
+                    Catatan
+                    <textarea name="notes" id="quick-input-notes" rows="3" placeholder="Tambahkan catatan agenda, pokok pembahasan, atau keterangan penting..."></textarea>
                 </label>
             </div>
 

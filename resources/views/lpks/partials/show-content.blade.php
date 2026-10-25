@@ -139,19 +139,58 @@
                 ];
             }
 
-            // 3. JT S1 - RA (Merah) - Jatuh tempo, lewat jadwal, atau dicabut
-            if ($linked && $linked->status === 'REVOKED') {
+            // 3. PELAKSANAAN RESMI KAN (Selesai, Sedang Berlangsung, Terjadwal, maupun Direncanakan)
+            if ($linked) {
+                if ($linked->status === 'REVOKED') {
+                    return [
+                        'card_class' => 'is-jt is-overdue',
+                        'badge_class' => 'status-jt status-danger',
+                        'badge_label' => 'Dicabut',
+                    ];
+                }
+                if ($linked->status === 'COMPLETED') {
+                    return [
+                        'card_class' => 'is-completed',
+                        'badge_class' => 'status-completed',
+                        'badge_label' => 'Selesai',
+                    ];
+                }
+                if ($linked->status === 'IN_PROGRESS') {
+                    return [
+                        'card_class' => 'is-in-progress',
+                        'badge_class' => 'status-in_progress status-warn',
+                        'badge_label' => $linked->is_eha_needs_verification ? 'Perlu Verifikasi Panitia Teknis' : ($linked->is_eha_special_notes ? 'Catatan Khusus Panitia Teknis' : ($linked->is_waiting_sk ? 'Menunggu SK KAN' : ($linked->is_waiting_eha ? 'Menunggu Rapat Panitia Teknis' : 'Sedang Berlangsung'))),
+                    ];
+                }
+                if ($linked->status === 'SCHEDULED') {
+                    if ($linked->start_at && $linked->start_at->isPast()) {
+                        return [
+                            'card_class' => 'is-jt is-overdue',
+                            'badge_class' => 'status-jt status-danger',
+                            'badge_label' => 'Lewat Jadwal',
+                        ];
+                    }
+                    return [
+                        'card_class' => 'is-scheduled',
+                        'badge_class' => 'status-scheduled',
+                        'badge_label' => 'Terjadwal',
+                    ];
+                }
+                if ($linked->status === 'PLANNED') {
+                    return [
+                        'card_class' => 'is-upcoming',
+                        'badge_class' => 'status-planned',
+                        'badge_label' => 'Akan Datang',
+                    ];
+                }
+            }
+
+            // 4. JT S1 - RA (Merah) - Jatuh tempo, lewat jadwal, atau dicabut (tanpa agenda asesmen terkait)
+            if ($typeCode === 'RA' && (($milestone['status'] ?? null) === 'REVOKED' || $lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED')) {
                 return [
                     'card_class' => 'is-jt is-overdue',
                     'badge_class' => 'status-jt status-danger',
                     'badge_label' => 'Dicabut',
-                ];
-            }
-            if ($linked && $linked->status === 'SCHEDULED' && $linked->start_at && $linked->start_at->isPast()) {
-                return [
-                    'card_class' => 'is-jt is-overdue',
-                    'badge_class' => 'status-jt status-danger',
-                    'badge_label' => 'Lewat Jadwal',
                 ];
             }
             if (($milestone['status'] ?? null) === 'OVERDUE') {
@@ -169,43 +208,10 @@
                 ];
             }
 
-            // 4. PELAKSANAAN S1 - RA, PRL DAN STT (Hijau)
-            // Semua asesmen pelaksanaan resmi KAN (Selesai, Sedang Berlangsung, Terjadwal, maupun Direncanakan)
-            if ($linked) {
-                if ($linked->status === 'COMPLETED') {
-                    return [
-                        'card_class' => 'is-pelaksanaan is-completed',
-                        'badge_class' => 'status-pelaksanaan status-completed',
-                        'badge_label' => 'Selesai',
-                    ];
-                }
-                if ($linked->status === 'IN_PROGRESS') {
-                    return [
-                        'card_class' => 'is-pelaksanaan is-in-progress',
-                        'badge_class' => 'status-pelaksanaan status-in_progress',
-                        'badge_label' => $linked->is_eha_needs_verification ? 'Perlu Verifikasi Panitia Teknis' : ($linked->is_eha_special_notes ? 'Catatan Khusus Panitia Teknis' : ($linked->is_waiting_sk ? 'Menunggu SK KAN' : ($linked->is_waiting_eha ? 'Menunggu Rapat Panitia Teknis' : 'Sedang Berlangsung'))),
-                    ];
-                }
-                if ($linked->status === 'SCHEDULED') {
-                    return [
-                        'card_class' => 'is-pelaksanaan is-scheduled',
-                        'badge_class' => 'status-pelaksanaan status-scheduled',
-                        'badge_label' => 'Terjadwal',
-                    ];
-                }
-                if ($linked->status === 'PLANNED') {
-                    return [
-                        'card_class' => 'is-upcoming',
-                        'badge_class' => 'status-planned',
-                        'badge_label' => 'Akan Datang',
-                    ];
-                }
-            }
-
             if (($milestone['status'] ?? null) === 'COMPLETED_OR_SCHEDULED') {
                 return [
-                    'card_class' => 'is-pelaksanaan is-completed',
-                    'badge_class' => 'status-pelaksanaan status-completed',
+                    'card_class' => 'is-completed',
+                    'badge_class' => 'status-completed',
                     'badge_label' => 'Terealisasi',
                 ];
             }
@@ -240,8 +246,14 @@
             return in_array($state['badge_label'], ['Selesai', 'Terealisasi'], true);
         };
 
+        $isRevoked = $lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED';
+
         $currentFocusCode = null;
-        if (! $isMilestoneResolved($s1CardState)) {
+        if (! $isMilestoneResolved($raCardState) && ($lpk->isInGracePeriod() || $lpk->hasReaccreditationInFlight() || $linkedRA || ($ra['notice_date'] && now()->gte($ra['notice_date'])))) {
+            $currentFocusCode = 'RA';
+        } elseif (! $isMilestoneResolved($s2CardState) && ($linkedS2 || ($s2['notice_date'] && now()->gte($s2['notice_date'])))) {
+            $currentFocusCode = 'S2';
+        } elseif (! $isMilestoneResolved($s1CardState)) {
             $currentFocusCode = 'S1';
         } elseif (! $isMilestoneResolved($s2CardState)) {
             $currentFocusCode = 'S2';
@@ -302,10 +314,6 @@
             </div>
             @if($lpk->canManage(auth()->user()))
                 <div class="lpk-alert-callout-actions">
-                    <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'assessment_type' => 'INITIAL', 'title' => 'Akreditasi Awal - ' . $lpk->name]) }}" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-danger" title="Daftarkan permohonan asesmen akreditasi awal baru">
-                        <x-icon name="plus" size="14" />
-                        <span>Ajukan Akreditasi Awal</span>
-                    </a>
                     <a href="{{ route('lpks.edit', $lpk) }}" class="button secondary button-sm lpk-alert-action-btn" title="Perbarui data dan status laboratorium">
                         <x-icon name="edit" size="14" />
                         <span>Perbarui Data LPK</span>
@@ -316,7 +324,11 @@
     @endif
 
     @php
-        $filteredActiveAlerts = collect($activeAlerts)->filter(function ($a) use ($lpk) {
+        $filteredActiveAlerts = collect($activeAlerts)->filter(function ($a) use ($lpk, $isRevoked) {
+            // Jika LPK dicabut, alert pengawasan siklus lama (RA/S1/S2) tidak berlaku
+            if ($isRevoked) {
+                return false;
+            }
             // Jika LPK sedang dalam masa tenggang, alert RA sudah ditangani secara khusus oleh banner oranye di atas
             if ($lpk->isInGracePeriod() && strtoupper($a['code'] ?? '') === 'RA') {
                 return false;
@@ -431,16 +443,29 @@
                                     default => 'Re-Akreditasi',
                                 };
                             @endphp
-                            <span style="font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: var(--radius-pill, 9999px); background: var(--neutral-chip-bg); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; letter-spacing: 0.02em;">
-                                Fokus Siklus: {{ $focusLabel }}
-                            </span>
+                            @if($isRevoked)
+                                <span style="font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: var(--radius-pill, 9999px); background: #ffe4e6; color: #be123c; border: 1px solid #fda4af; display: inline-flex; align-items: center; letter-spacing: 0.02em;">
+                                    Status Siklus: Akreditasi Dicabut
+                                </span>
+                            @else
+                                <span style="font-size: 11px; font-weight: 700; padding: 2.5px 9px; border-radius: var(--radius-pill, 9999px); background: var(--neutral-chip-bg); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; letter-spacing: 0.02em;">
+                                    Fokus Siklus: {{ $focusLabel }}
+                                </span>
+                            @endif
                         </h2>
                     </div>
                     @if($canManageLpk)
-                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="button secondary" style="font-size: 12px; padding: 5px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;">
-                            <x-icon name="plus" size="14" />
-                            <span>Jadwalkan Asesmen Kunjungan</span>
-                        </a>
+                        @if($isRevoked)
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'assessment_type' => 'INITIAL', 'title' => 'Akreditasi Awal - ' . $lpk->name]) }}" class="button primary" style="font-size: 12px; padding: 5px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;" title="Daftarkan permohonan asesmen akreditasi awal baru">
+                                <x-icon name="plus" size="14" />
+                                <span>Ajukan Akreditasi Awal</span>
+                            </a>
+                        @else
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id]) }}" class="button secondary" style="font-size: 12px; padding: 5px 12px; min-height: 32px; display: inline-flex; align-items: center; gap: 6px;" title="Tambah agenda asesmen baru untuk laboratorium ini (seperti PRL, STT, atau asesmen khusus)">
+                                <x-icon name="plus" size="14" />
+                                <span>Tambah Agenda Asesmen</span>
+                            </a>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -448,9 +473,9 @@
 
         {{-- Stepper Timeline Horizontal KAN U-01 --}}
         <div class="lpk-cycle-timeline-bar" aria-label="Alur Tahapan Siklus KAN U-01">
-            <div class="lpk-cycle-step-item {{ $currentFocusCode === 'S1' ? 'is-current' : ($isMilestoneResolved($s1CardState) ? 'is-completed' : 'is-upcoming') }}">
+            <div class="lpk-cycle-step-item {{ $currentFocusCode === 'S1' ? 'is-current' : (($isMilestoneResolved($s1CardState) || in_array($currentFocusCode, ['S2', 'RA'], true)) ? 'is-completed' : 'is-upcoming') }}">
                 <div class="lpk-step-bullet">
-                    @if($isMilestoneResolved($s1CardState))
+                    @if($isMilestoneResolved($s1CardState) || in_array($currentFocusCode, ['S2', 'RA'], true))
                         <x-icon name="check" size="13" />
                     @else
                         <span>1</span>
@@ -463,11 +488,27 @@
                 </div>
             </div>
 
-            <div class="lpk-cycle-step-line {{ in_array($currentFocusCode, ['S2', 'RA']) || $isMilestoneResolved($s1CardState) ? 'is-passed' : '' }}"></div>
+            @php
+                $line1Class = '';
+                if ($isMilestoneResolved($s2CardState) || $isMilestoneResolved($raCardState) || $currentFocusCode === 'RA') {
+                    $line1Class = 'is-passed';
+                } elseif ($isMilestoneResolved($s1CardState) || in_array($currentFocusCode, ['S2', 'RA'], true)) {
+                    $line1Class = $currentFocusCode === 'S2' ? 'is-active' : 'is-passed';
+                }
 
-            <div class="lpk-cycle-step-item {{ $currentFocusCode === 'S2' ? 'is-current' : ($isMilestoneResolved($s2CardState) ? 'is-completed' : 'is-upcoming') }}">
+                $line2Class = '';
+                if ($isMilestoneResolved($raCardState)) {
+                    $line2Class = 'is-passed';
+                } elseif ($isMilestoneResolved($s2CardState) || $currentFocusCode === 'RA') {
+                    $line2Class = $currentFocusCode === 'RA' ? 'is-active' : 'is-passed';
+                }
+            @endphp
+
+            <div class="lpk-cycle-step-line {{ $line1Class }}"></div>
+
+            <div class="lpk-cycle-step-item {{ $currentFocusCode === 'S2' ? 'is-current' : (($isMilestoneResolved($s2CardState) || $currentFocusCode === 'RA') ? 'is-completed' : 'is-upcoming') }}">
                 <div class="lpk-step-bullet">
-                    @if($isMilestoneResolved($s2CardState))
+                    @if($isMilestoneResolved($s2CardState) || $currentFocusCode === 'RA')
                         <x-icon name="check" size="13" />
                     @else
                         <span>2</span>
@@ -480,7 +521,7 @@
                 </div>
             </div>
 
-            <div class="lpk-cycle-step-line {{ $currentFocusCode === 'RA' || $isMilestoneResolved($s2CardState) ? 'is-passed' : '' }}"></div>
+            <div class="lpk-cycle-step-line {{ $line2Class }}"></div>
 
             <div class="lpk-cycle-step-item {{ $currentFocusCode === 'RA' ? 'is-current' : ($isMilestoneResolved($raCardState) ? 'is-completed' : 'is-upcoming') }}">
                 <div class="lpk-step-bullet">
@@ -575,7 +616,7 @@
                     </div>
                 </div>
 
-                @if($canManageLpk && !$linkedS1 && ! $isMilestoneResolved($s1CardState))
+                @if($canManageLpk && !$linkedS1 && ! $isMilestoneResolved($s1CardState) && ! $isRevoked)
                     <div class="lpk-milestone-footer-actions">
                         <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S1', 'target_date' => ($s1['visit_target_date'] ?? $s1['target_date'])?->format('Y-m-d')]) }}" class="button primary button-sm lpk-primary-action-btn">
                             <x-icon name="plus" size="13" />
@@ -655,7 +696,7 @@
                     </div>
                 </div>
 
-                @if($canManageLpk && !$linkedS2 && ! $isMilestoneResolved($s2CardState))
+                @if($canManageLpk && !$linkedS2 && ! $isMilestoneResolved($s2CardState) && ! $isRevoked)
                     <div class="lpk-milestone-footer-actions">
                         <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'S2', 'target_date' => ($s2['visit_target_date'] ?? $s2['target_date'])?->format('Y-m-d')]) }}" class="button primary button-sm lpk-primary-action-btn">
                             <x-icon name="plus" size="13" />
@@ -760,12 +801,21 @@
                 </div>
 
                 @if($canManageLpk && !$linkedRA && ! $isMilestoneResolved($raCardState))
-                    <div class="lpk-milestone-footer-actions">
-                        <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'RA', 'target_date' => $ra['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm lpk-primary-action-btn">
-                            <x-icon name="plus" size="13" />
-                            <span>Jadwalkan Re-asesmen</span>
-                        </a>
-                    </div>
+                    @if($isRevoked)
+                        <div class="lpk-milestone-footer-actions">
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'assessment_type' => 'INITIAL', 'title' => 'Akreditasi Awal - ' . $lpk->name]) }}" class="button primary button-sm lpk-primary-action-btn lpk-alert-action-btn-danger" title="Daftarkan permohonan akreditasi awal baru">
+                                <x-icon name="plus" size="13" />
+                                <span>Ajukan Akreditasi Awal</span>
+                            </a>
+                        </div>
+                    @else
+                        <div class="lpk-milestone-footer-actions">
+                            <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'RA', 'target_date' => $ra['target_date']?->format('Y-m-d')]) }}" class="button primary button-sm lpk-primary-action-btn">
+                                <x-icon name="plus" size="13" />
+                                <span>Jadwalkan Re-asesmen</span>
+                            </a>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>

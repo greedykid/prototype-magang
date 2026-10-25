@@ -70,6 +70,10 @@
         background: var(--color-green-500, #10b981) !important;
     }
 
+    .lpk-cycle-step-line.is-active {
+        background: linear-gradient(180deg, var(--color-green-500, #10b981) 0%, var(--primary, #1972f5) 100%) !important;
+    }
+
     .lpk-step-label-group {
         align-items: baseline;
         column-gap: 8px;

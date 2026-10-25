@@ -8,8 +8,8 @@
     subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
-        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-        <span>Google Sheets & Ekspor</span>
+        <x-icon name="export" size="16" />
+        <span>Ekspor Data</span>
     </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
         <x-icon name="import" size="16" />
@@ -41,72 +41,51 @@
 <section class="panel table-panel-borderless">
     <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
         <input type="hidden" name="per_page" value="{{ $perPage }}">
-        @php
-            $secondaryFiltersCount = 0;
-            if ($status) $secondaryFiltersCount++;
-            if ($surveillance) $secondaryFiltersCount++;
-            if ($expiry) $secondaryFiltersCount++;
-        @endphp
 
-        <div class="table-filter-primary-row">
-            <div class="table-filter-primary-search">
-                <label for="filter-lpk-search">
-                    Cari LPK
-                    <div class="table-filter-search-wrap">
-                        <x-icon name="search" size="16" class="table-filter-search-icon" />
-                        <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
-                    </div>
-                </label>
-            </div>
-            <div class="table-filter-toggle-wrap">
-                <button type="button" class="btn-toggle-advanced-filters" id="toggle-lpk-advanced-filters" aria-expanded="{{ $secondaryFiltersCount > 0 ? 'true' : 'false' }}" aria-controls="lpk-advanced-filters" title="Buka atau tutup filter status dan masa berlaku">
-                    <x-icon name="filter" size="14" />
-                    <span>Filter Lanjutan</span>
-                    @if($secondaryFiltersCount > 0)
-                        <span class="filter-count-badge">{{ $secondaryFiltersCount }}</span>
-                    @endif
-                </button>
-            </div>
+        <div class="table-filter-grid-4col">
+            <label for="filter-lpk-search">
+                Cari LPK
+                <div class="table-filter-search-wrap">
+                    <x-icon name="search" size="16" class="table-filter-search-icon" />
+                    <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                </div>
+            </label>
+            <label for="filter-lpk-status">
+                Status LPK
+                <select id="filter-lpk-status" name="status">
+                    <option value="">Semua status</option>
+                    <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
+                    <option value="GRACE_PERIOD" @selected($status === 'GRACE_PERIOD')>Masa Tenggang (6 Bln)</option>
+                    <option value="SUSPENDED" @selected($status === 'SUSPENDED')>Dibekukan</option>
+                    <option value="REVOKED" @selected($status === 'REVOKED')>Dicabut</option>
+                    <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jadwal Surveilen</option>
+                    <option value="SURVEILLANCE_DUE" @selected($status === 'SURVEILLANCE_DUE')>Jatuh Tempo Surveilen</option>
+                    <option value="EXPIRED" @selected($status === 'EXPIRED')>Kedaluwarsa</option>
+                    <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
+                </select>
+            </label>
+            <label for="filter-lpk-surveillance">
+                Status Pengawasan
+                <select id="filter-lpk-surveillance" name="surveillance">
+                    <option value="">Semua pengawasan</option>
+                    <option value="NEEDS_ACTION" @selected($surveillance === 'NEEDS_ACTION')>Perlu Tindak Lanjut</option>
+                    <option value="DUE_S1" @selected($surveillance === 'DUE_S1')>Jatuh Tempo S1 (Bulan 14)</option>
+                    <option value="DUE_S2" @selected($surveillance === 'DUE_S2')>Jatuh Tempo S2 (Bulan 35)</option>
+                    <option value="DUE_RA" @selected($surveillance === 'DUE_RA')>Jatuh Tempo Re-Akreditasi (Bulan 1 Sebelum Habis)</option>
+                    <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Melewati Jadwal</option>
+                </select>
+            </label>
+            <label for="filter-lpk-expiry">
+                Masa Berlaku
+                <select id="filter-lpk-expiry" name="expiry">
+                    <option value="">Semua masa berlaku</option>
+                    <option value="VALID" @selected($expiry === 'VALID')>Masih berlaku</option>
+                    <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati kedaluwarsa (&le; 90 hari)</option>
+                    <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
+                </select>
+            </label>
         </div>
 
-        <div class="table-filter-advanced" id="lpk-advanced-filters" style="{{ $secondaryFiltersCount > 0 ? '' : 'display: none;' }}">
-            <div class="table-filter-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-                <label for="filter-lpk-status">
-                    Status LPK
-                    <select id="filter-lpk-status" name="status">
-                        <option value="">Semua status</option>
-                        <option value="ACTIVE" @selected($status === 'ACTIVE')>Aktif</option>
-                        <option value="GRACE_PERIOD" @selected($status === 'GRACE_PERIOD')>Masa Tenggang (6 Bln)</option>
-                        <option value="SUSPENDED" @selected($status === 'SUSPENDED')>Dibekukan</option>
-                        <option value="REVOKED" @selected($status === 'REVOKED')>Dicabut</option>
-                        <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jadwal Surveilen</option>
-                        <option value="SURVEILLANCE_DUE" @selected($status === 'SURVEILLANCE_DUE')>Jatuh Tempo Surveilen</option>
-                        <option value="EXPIRED" @selected($status === 'EXPIRED')>Kedaluwarsa</option>
-                        <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
-                    </select>
-                </label>
-                <label for="filter-lpk-surveillance">
-                    Status Pengawasan
-                    <select id="filter-lpk-surveillance" name="surveillance">
-                        <option value="">Semua pengawasan</option>
-                        <option value="NEEDS_ACTION" @selected($surveillance === 'NEEDS_ACTION')>Perlu Tindak Lanjut</option>
-                        <option value="DUE_S1" @selected($surveillance === 'DUE_S1')>Jatuh Tempo S1 (Bulan 14)</option>
-                        <option value="DUE_S2" @selected($surveillance === 'DUE_S2')>Jatuh Tempo S2 (Bulan 35)</option>
-                        <option value="DUE_RA" @selected($surveillance === 'DUE_RA')>Jatuh Tempo Re-Akreditasi (Bulan 1 Sebelum Habis)</option>
-                        <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Melewati Jadwal</option>
-                    </select>
-                </label>
-                <label for="filter-lpk-expiry">
-                    Masa Berlaku
-                    <select id="filter-lpk-expiry" name="expiry">
-                        <option value="">Semua masa berlaku</option>
-                        <option value="VALID" @selected($expiry === 'VALID')>Masih berlaku</option>
-                        <option value="EXPIRING_SOON" @selected($expiry === 'EXPIRING_SOON')>Mendekati kedaluwarsa (&le; 90 hari)</option>
-                        <option value="EXPIRED" @selected($expiry === 'EXPIRED')>Kedaluwarsa</option>
-                    </select>
-                </label>
-            </div>
-        </div>
         <div class="table-filter-actions" id="lpk-filter-actions" style="margin-top: 8px;">
             <span id="lpk-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
                 <span class="filter-live-spinner"></span>
@@ -127,7 +106,9 @@
         @php
             $statusLabels = [
                 'ACTIVE' => 'Aktif',
+                'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
                 'SUSPENDED' => 'Dibekukan',
+                'REVOKED' => 'Dicabut',
                 'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
                 'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
                 'EXPIRED' => 'Kedaluwarsa',
@@ -193,12 +174,13 @@
 
 <x-sheets-modal
     modal-id="modal-sheets-sync-lpks"
-    title="Integrasi Google Sheets: Data Master LPK"
-    subtitle="Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung."
+    title="Ekspor Data Master LPK"
+    subtitle="Unduh data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.lpks.export')"
     :feed-url="route('feeds.lpks', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="data-master-lpk-simasadi.csv"
     :columns="['ID LPK', 'No. Akreditasi', 'Nama Laboratorium', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
+    :show-feed="false"
 />
 
 @include('lpks.partials.import-modal')

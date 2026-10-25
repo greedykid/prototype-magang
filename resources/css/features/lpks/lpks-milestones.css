@@ -56,6 +56,17 @@
     color: #ffffff;
 }
 
+.lpk-cycle-step-item.is-draft-saved .lpk-step-bullet {
+    background: var(--surface-subtle, #f1f5f9);
+    border: 1.5px dashed var(--line, #cbd5e1);
+    color: var(--muted, #64748b);
+}
+
+.lpk-cycle-step-item.is-draft-saved .lpk-step-timing {
+    color: var(--muted, #64748b);
+    font-style: italic;
+}
+
 .lpk-step-label-group {
     display: flex;
     flex-direction: column;
@@ -111,6 +122,10 @@
     background: var(--success-solid, #12b76a);
 }
 
+.lpk-cycle-step-line.is-active {
+    background: linear-gradient(90deg, var(--success-solid, #12b76a) 0%, var(--primary, #1972f5) 100%);
+}
+
 /* 2. Milestone Cards Grid */
 .lpk-milestones-grid {
     box-sizing: border-box;
@@ -148,50 +163,70 @@
    6. NETRAL (SLATE): Belum Ada Agenda & Belum Reminder
    ========================================================================== */
 
-/* 1. PELAKSANAAN S1 - RA, PRL, STT - HIJAU */
-.lpk-milestone-card.is-pelaksanaan,
-.lpk-milestone-card.is-completed,
-.lpk-milestone-card.is-scheduled,
-.lpk-milestone-card.is-in-progress,
-.lpk-milestone-card.is-planned {
+/* 1. PELAKSANAAN SELESAI / TEREALISASI - HIJAU */
+.lpk-milestone-card.is-completed {
     background: #f4fbf6;
     border: 1px solid #4ade80;
     border-top: 3px solid #16a34a;
     box-shadow: 0 3px 12px rgba(22, 163, 74, 0.08);
 }
-.lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
-.lpk-milestone-card.is-completed .lpk-milestone-phase-tag,
-.lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag,
-.lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag,
-.lpk-milestone-card.is-planned .lpk-milestone-phase-tag {
+.lpk-milestone-card.is-completed .lpk-milestone-phase-tag {
     color: #15803d;
 }
-.lpk-milestone-card.is-pelaksanaan .lpk-milestone-key-target,
-.lpk-milestone-card.is-completed .lpk-milestone-key-target,
-.lpk-milestone-card.is-scheduled .lpk-milestone-key-target,
-.lpk-milestone-card.is-in-progress .lpk-milestone-key-target,
-.lpk-milestone-card.is-planned .lpk-milestone-key-target {
+.lpk-milestone-card.is-completed .lpk-milestone-key-target {
     background: #ecfdf5;
     border-color: #a7f3d0;
 }
-.lpk-milestone-card.is-pelaksanaan .lpk-key-target-header,
-.lpk-milestone-card.is-completed .lpk-key-target-header,
-.lpk-milestone-card.is-scheduled .lpk-key-target-header,
-.lpk-milestone-card.is-in-progress .lpk-key-target-header,
-.lpk-milestone-card.is-planned .lpk-key-target-header {
+.lpk-milestone-card.is-completed .lpk-key-target-header {
     color: #047857;
 }
-.lpk-milestone-card.is-pelaksanaan .lpk-key-target-date,
 .lpk-milestone-card.is-completed .lpk-key-target-date,
-.lpk-milestone-card.is-scheduled .lpk-key-target-date,
-.lpk-milestone-card.is-in-progress .lpk-key-target-date,
-.lpk-milestone-card.is-planned .lpk-key-target-date,
-.lpk-milestone-card.is-pelaksanaan .lpk-target-value,
-.lpk-milestone-card.is-completed .lpk-target-value,
-.lpk-milestone-card.is-scheduled .lpk-target-value,
-.lpk-milestone-card.is-in-progress .lpk-target-value,
-.lpk-milestone-card.is-planned .lpk-target-value {
+.lpk-milestone-card.is-completed .lpk-target-value {
     color: #064e3b;
+}
+
+/* 1b. SEDANG BERLANGSUNG (IN PROGRESS) - AMBER */
+.lpk-milestone-card.is-in-progress {
+    background: #fffdf5;
+    border: 1px solid #fde047;
+    border-top: 3px solid #eab308;
+    box-shadow: 0 3px 12px rgba(234, 179, 8, 0.08);
+}
+.lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag {
+    color: #a16207;
+}
+.lpk-milestone-card.is-in-progress .lpk-milestone-key-target {
+    background: #fefce8;
+    border-color: #fef08a;
+}
+.lpk-milestone-card.is-in-progress .lpk-key-target-header {
+    color: #854d0e;
+}
+.lpk-milestone-card.is-in-progress .lpk-key-target-date,
+.lpk-milestone-card.is-in-progress .lpk-target-value {
+    color: #713f12;
+}
+
+/* 1c. TERJADWAL (SCHEDULED) - BIRU */
+.lpk-milestone-card.is-scheduled {
+    background: #f0f7ff;
+    border: 1px solid #93c5fd;
+    border-top: 3px solid #3b82f6;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.08);
+}
+.lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag {
+    color: #1d4ed8;
+}
+.lpk-milestone-card.is-scheduled .lpk-milestone-key-target {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+.lpk-milestone-card.is-scheduled .lpk-key-target-header {
+    color: #1e40af;
+}
+.lpk-milestone-card.is-scheduled .lpk-key-target-date,
+.lpk-milestone-card.is-scheduled .lpk-target-value {
+    color: #1e3a8a;
 }
 
 /* 2. REMINDER S1 - RA, TP & VTP, SK - KUNING */
