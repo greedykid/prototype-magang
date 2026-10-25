@@ -1,5 +1,26 @@
-/* SweetAlert2 Notion Design System Theme */
+/* SweetAlert2 Crisp Design System Theme */
 /* ========================================================================== */
+
+/* Prevent layout shift & collapse of sticky sidebar / full-height shell */
+html.swal2-shown,
+body.swal2-shown,
+html.swal2-height-auto,
+body.swal2-height-auto {
+    height: 100% !important;
+    min-height: 100% !important;
+}
+
+body.swal2-shown {
+    padding-right: 0 !important;
+}
+
+html.swal2-shown .app-shell,
+html.swal2-shown .sidebar,
+body.swal2-shown .app-shell,
+body.swal2-shown .sidebar {
+    transition: none !important;
+}
+
 .swal2-container,
 div:where(.swal2-container),
 .simasadi-modal .swal2-container {
@@ -10,22 +31,39 @@ div:where(.swal2-container),
 
 .swal2-popup.simasadi-swal-popup,
 .swal2-container .swal2-popup:not(.swal2-toast) {
-    background: var(--surface, #ffffff) !important;
-    border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
-    border-radius: var(--radius-lg, 12px) !important;
-    box-shadow: var(--shadow-lg) !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: var(--radius-2xl, 12px) !important;
+    box-shadow: var(--shadow-modal) !important;
     font-family: var(--font-sans) !important;
     padding: 24px 24px 22px !important;
     width: min(440px, calc(100vw - 32px)) !important;
     max-width: calc(100vw - 32px) !important;
     box-sizing: border-box !important;
-    margin: auto !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
-.simasadi-swal-popup .swal2-timer-progress-bar-container {
-    border-bottom-right-radius: var(--radius-lg, 12px) !important;
-    border-bottom-left-radius: var(--radius-lg, 12px) !important;
+.simasadi-swal-popup .swal2-timer-progress-bar-container,
+.swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar-container,
+.swal2-container:not(.swal2-toast-shown) .swal2-timer-progress-bar-container {
+    background: rgba(0, 0, 0, 0.04) !important;
+    border-bottom-right-radius: var(--radius-2xl, 12px) !important;
+    border-bottom-left-radius: var(--radius-2xl, 12px) !important;
+    bottom: 0 !important;
+    height: 3px !important;
+    left: 0 !important;
     overflow: hidden !important;
+    position: absolute !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
+}
+
+html[data-theme="dark"] .simasadi-swal-popup .swal2-timer-progress-bar-container,
+html[data-theme="dark"] .swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar-container,
+html[data-theme="dark"] .swal2-container:not(.swal2-toast-shown) .swal2-timer-progress-bar-container {
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .simasadi-swal-title {
@@ -39,7 +77,7 @@ div:where(.swal2-container),
 }
 
 .simasadi-swal-text {
-    color: var(--muted, #615d59) !important;
+    color: var(--muted) !important;
     font-size: 14px !important;
     line-height: 1.55 !important;
     margin: 8px 0 16px !important;
@@ -50,7 +88,7 @@ div:where(.swal2-container),
     align-items: center !important;
     background: var(--primary, #0075de) !important;
     border: 1px solid var(--primary, #0075de) !important;
-    border-radius: var(--radius-sm, 6px) !important;
+    border-radius: var(--radius-md, 6px) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
     color: #ffffff !important;
     cursor: pointer !important;
@@ -65,9 +103,9 @@ div:where(.swal2-container),
 }
 
 .simasadi-swal-btn:hover {
-    background: var(--primary-hover, #005bab) !important;
-    border-color: var(--primary-hover, #005bab) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12) !important;
+    background: var(--primary-hover) !important;
+    border-color: var(--primary-border, #3d7fde) !important;
+    box-shadow: var(--shadow-sm) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -77,7 +115,7 @@ div:where(.swal2-container),
 .simasadi-swal-danger-btn {
     background: #e32d14 !important;
     border-color: #e32d14 !important;
-    border-radius: var(--radius-sm, 6px) !important;
+    border-radius: var(--radius-md, 12px) !important;
     box-shadow: 0 1px 2px rgba(227, 45, 20, 0.16) !important;
     color: #ffffff !important;
 }
@@ -95,10 +133,10 @@ div:where(.swal2-container),
 
 .simasadi-swal-cancel-btn {
     align-items: center !important;
-    background: var(--surface, #ffffff) !important;
-    border: 1px solid var(--line, rgba(0, 0, 0, 0.08)) !important;
-    border-radius: var(--radius-sm, 6px) !important;
-    color: var(--ink, #191918) !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: var(--radius-md, 12px) !important;
+    color: var(--ink) !important;
     cursor: pointer !important;
     display: inline-flex !important;
     font-family: inherit !important;
@@ -116,8 +154,18 @@ div:where(.swal2-container),
     color: var(--ink, #000000) !important;
 }
 
-.swal2-timer-progress-bar {
-    background: var(--primary) !important;
+.swal2-timer-progress-bar,
+.simasadi-swal-popup .swal2-timer-progress-bar,
+.swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar {
+    background: var(--primary-gradient, linear-gradient(90deg, #1972f5 0%, #0456ce 100%)) !important;
+    border-radius: 9999px !important;
+    height: 100% !important;
+}
+
+html[data-theme="dark"] .swal2-timer-progress-bar,
+html[data-theme="dark"] .simasadi-swal-popup .swal2-timer-progress-bar,
+html[data-theme="dark"] .swal2-popup:not(.swal2-toast) .swal2-timer-progress-bar {
+    background: var(--primary-gradient, linear-gradient(90deg, #3b8cf5 0%, #1a6fd8 100%)) !important;
 }
 
 /* SweetAlert2 Dark Theme Overrides */
@@ -144,7 +192,7 @@ html[data-theme="dark"] .simasadi-swal-cancel-btn {
 
 html[data-theme="dark"] .simasadi-swal-cancel-btn:hover {
     background: var(--surface-hover) !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
+    border-color: var(--line-strong, var(--line)) !important;
     color: #ffffff !important;
 }
 
@@ -228,11 +276,7 @@ body.swal2-toast-shown .swal2-container,
 @media (max-width: 640px) {
     body.swal2-toast-shown .swal2-container,
     .swal2-toast-shown .swal2-container,
-    .swal2-container:has(.swal2-toast),
-    .swal2-container.swal2-top,
-    .swal2-container.swal2-top-end,
-    .swal2-container.swal2-top-right,
-    .swal2-container.swal2-center {
+    .swal2-container:has(.swal2-toast) {
         align-items: flex-start !important;
         bottom: auto !important;
         display: flex !important;
@@ -247,6 +291,45 @@ body.swal2-toast-shown .swal2-container,
         top: 16px !important;
         transform: none !important;
         width: 100% !important;
+    }
+
+    /* Mobile Standard Modal Popup: Centered vertically & horizontally without clipping */
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) {
+        align-items: center !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        inset: 0 !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        position: fixed !important;
+        width: 100% !important;
+        z-index: 2147483647 !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-popup {
+        border-radius: var(--radius-2xl, 22px) !important;
+        box-sizing: border-box !important;
+        margin: auto !important;
+        max-height: calc(100vh - 40px) !important;
+        max-height: calc(100dvh - 40px) !important;
+        max-width: min(390px, calc(100vw - 28px)) !important;
+        overflow: hidden !important;
+        padding: 22px 20px 20px !important;
+        position: relative !important;
+        transform: none !important;
+        width: 100% !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-timer-progress-bar-container {
+        border-bottom-right-radius: var(--radius-2xl, 22px) !important;
+        border-bottom-left-radius: var(--radius-2xl, 22px) !important;
+    }
+
+    .swal2-container:not(.swal2-toast-shown):not(:has(.swal2-toast)) .swal2-html-container {
+        max-height: 55vh !important;
+        overflow-y: auto !important;
     }
 
     .swal2-popup.swal2-toast {

@@ -58,7 +58,7 @@
             </div>
 
             @if($errors->hasBag('default') && ($errors->has('name') || $errors->has('email')))
-                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                <div class="alert danger" style="margin-bottom: 18px;">
                     <ul style="margin: 0; padding-left: 18px;">
                         @foreach($errors->get('name') as $error)
                             <li>{{ $error }}</li>
@@ -81,7 +81,6 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <input id="profile-name" type="text" name="name" class="profile-input" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
-                        <small class="profile-field-hint">Nama resmi yang ditampilkan pada sistem dan riwayat penugasan.</small>
                     </div>
 
                     <div class="profile-field">
@@ -90,7 +89,6 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <input id="profile-email" type="email" name="email" class="profile-input" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: nama@lab.co.id">
-                        <small class="profile-field-hint">Digunakan untuk notifikasi dan autentikasi login SIMASADI.</small>
                     </div>
 
                     <div class="profile-field">
@@ -108,7 +106,6 @@
                                 <span>Dikelola Admin</span>
                             </span>
                         </div>
-                        <small class="profile-field-hint">Hak akses operasional Anda dikelola langsung oleh Ketua Tim Akreditasi Laboratorium KAN.</small>
                     </div>
                 </div>
 
@@ -138,7 +135,7 @@
             </div>
 
             @if($errors->has('current_password') || $errors->has('password'))
-                <div class="alert danger" style="margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+                <div class="alert danger" style="margin-bottom: 18px;">
                     <ul style="margin: 0; padding-left: 18px;">
                         @foreach($errors->get('current_password') as $error)
                             <li>{{ $error }}</li>
@@ -181,7 +178,6 @@
                                 <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                             </button>
                         </div>
-                        <small class="profile-field-hint">Gunakan kombinasi minimal 8 karakter huruf, angka, dan simbol.</small>
                     </div>
 
                     <div class="profile-field">
@@ -209,7 +205,8 @@
         </section>
     </div>
 
-    {{-- KARTU 3: Tautan Akun Kolaborasi (Account Linking) --}}
+    {{-- KARTU 3: Tautan Akun Kolaborasi (Account Linking Khusus PIC) --}}
+    @if($user->isPic())
     <section class="profile-links-card" id="account-links" aria-labelledby="profile-links-heading">
         <div class="profile-links-header">
             <div class="profile-links-header-left">
@@ -276,7 +273,8 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center; border-radius: 6px;" title="Putuskan tautan">
+                                <input type="hidden" name="type" value="viewer">
+                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: var(--danger-text); display: inline-flex; align-items: center; border-radius: var(--radius-xs, 6px);" title="Putuskan tautan">
                                     <x-icon name="trash" size="14" />
                                 </button>
                             </form>
@@ -308,7 +306,7 @@
                             <div class="profile-link-item-left">
                                 <span class="profile-link-avatar" aria-hidden="true">{{ $owner->initials }}</span>
                                 <div class="profile-link-details">
-                                    <a href="{{ route('account-links.show', $owner) }}" class="hover-underline" style="color: var(--ink); text-decoration: none;">
+                                    <a href="{{ route('account-links.show', $owner) }}" style="color: var(--ink); text-decoration: none;">
                                         <strong class="profile-link-name">{{ $owner->name }}</strong>
                                     </a>
                                     <small class="profile-link-email">{{ $owner->email }} &bull; <a href="{{ route('account-links.show', $owner) }}" style="color: var(--primary); font-weight: 600; text-decoration: none;">{{ $owner->lpks_count }} LPK</a></small>
@@ -322,6 +320,7 @@
                                   style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
+                                <input type="hidden" name="type" value="owner">
                                 <button type="submit" class="table-action-btn table-action-btn-danger" style="font-size: 11.5px; padding: 4px 10px; font-weight: 500;" title="Lepaskan akses pemantauan">
                                     Lepas
                                 </button>
@@ -340,5 +339,6 @@
             </div>
         </div>
     </section>
+    @endif
 </div>
 @endsection

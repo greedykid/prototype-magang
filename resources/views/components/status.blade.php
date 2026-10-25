@@ -32,9 +32,12 @@
         'FAILED' => 'Gagal',
         'RUNNING' => 'Sedang Berjalan',
         // Siklus Pengawasan Akreditasi KAN
-        'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
-        'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
-        'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
+        'GRACE_PERIOD' => 'Masa Tenggang',
+        'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal',
+        'SURVEILLANCE_DUE' => 'Jatuh Tempo',
+        'DUE' => 'Jatuh Tempo',
+        'OVERDUE' => 'Lewat Jadwal',
+        'EXPIRED' => 'Kedaluwarsa',
     ];
     $label = $labels[$value] ?? str_replace('_', ' ', $value);
 @endphp

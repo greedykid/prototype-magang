@@ -26,25 +26,30 @@
 .page-heading .back-link,
 .back-link {
     align-items: center;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm, 6px);
-    box-shadow: none;
-    color: var(--muted, #615d59);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full, 9999px);
+    box-shadow: var(--shadow-xs);
+    color: var(--ink) !important;
+    cursor: pointer;
     display: inline-flex;
     font-family: inherit;
     font-size: var(--text-sm, 13px);
-    font-weight: var(--font-medium, 500);
-    gap: 6px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    min-height: 32px;
-    padding: 4px 8px 4px 4px;
-    text-decoration: none;
+    font-weight: 600;
+    gap: 7px;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 12px;
+    min-height: 34px;
+    padding: 6px 14px 6px 10px;
+    text-decoration: none !important;
     transition: background-color var(--motion-duration-normal, 150ms) ease,
+                border-color var(--motion-duration-normal, 150ms) ease,
+                box-shadow var(--motion-duration-normal, 150ms) ease,
                 color var(--motion-duration-normal, 150ms) ease,
                 transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
     user-select: none;
+    width: fit-content;
 }
 
 .page-heading .back-link::before,
@@ -58,112 +63,119 @@
     flex-shrink: 0;
     height: 16px;
     width: 16px;
-    transition: background-image 150ms ease;
+    transition: background-image 150ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-heading .back-link:hover,
 .back-link:hover {
-    background: var(--surface-hover, rgba(0, 0, 0, 0.045));
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--ink, #191918);
-    transform: translateX(-3px);
+    background: var(--surface-hover);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-sm);
+    color: var(--ink) !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
 }
 
 .page-heading .back-link:hover::before,
 .back-link:hover::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23191918' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230075de' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    transform: translateX(-3px);
 }
 
 .page-heading .back-link:active,
 .back-link:active {
-    transform: scale(0.98);
+    background: var(--surface-subtle);
+    box-shadow: none;
+    transform: translateY(0) scale(0.98);
 }
 
-.page-wrap,
+.page-heading .back-link:focus-visible,
+.back-link:focus-visible {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus-ring);
+    outline: none;
+}
+
+/* Native GPU View Transitions for seamless SPA cross-fade */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 160ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fallback soft-fade for browsers without View Transitions */
 .page-wrap.page-enter-active {
-    animation: page-enter 140ms var(--ease-out-expo) forwards;
+    animation: page-enter 140ms ease both;
 }
 @keyframes page-enter {
     from {
-        opacity: 0;
-        transform: translateY(4px);
+        opacity: 0.85;
     }
     to {
         opacity: 1;
-        transform: none;
     }
 }
 
-.page-heading {
-    animation: heading-enter 140ms var(--ease-out-expo) forwards;
-}
-@keyframes heading-enter {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-/* Persistent Global Surveillance Banner (Notion Callout Style - Danger Red) */
+/* Persistent Global Surveillance Banner (Crisp Callout Card Style - Crimson Alert) */
 .persistent-surveillance-banner {
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
-    border-radius: var(--radius-md, 8px);
-    box-shadow: var(--shadow-xs);
-    margin-bottom: 24px;
-    padding: 14px 18px;
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 18px;
+    padding: 9px 16px;
+    transition: all 200ms ease;
 }
 
 .persistent-surveillance-banner-inner {
     align-items: center;
     display: flex;
-    gap: 16px;
+    gap: 14px;
     justify-content: space-between;
-    flex-wrap: wrap;
 }
 
 .persistent-surveillance-banner-main {
-    flex: 1 1 420px;
+    flex: 1;
     min-width: 0;
+}
+
+.banner-compact-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
 }
 
 .persistent-surveillance-banner-badge {
     align-items: center;
-    background-color: var(--danger, #e32d14);
-    border-radius: var(--radius-xs, 4px);
+    background-color: var(--danger-text, #bc081f);
+    border-radius: var(--radius-pill, 9999px);
     color: #ffffff;
     display: inline-flex;
-    font-size: 10.5px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 750;
     gap: 5px;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
     padding: 2px 7px;
     text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .persistent-surveillance-banner-title {
     color: var(--danger-text);
-    display: block;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.35;
-    margin-bottom: 3px;
+    margin: 0;
 }
 
 .persistent-surveillance-banner-desc {
     color: var(--danger-text);
-    display: block;
-    font-size: 12.5px;
-    line-height: 1.45;
-    margin: 0;
-    opacity: 0.95;
+    font-size: 11.5px;
+    line-height: 1.35;
+    opacity: 0.9;
+    white-space: nowrap;
 }
 
 .persistent-surveillance-banner-action {
@@ -176,34 +188,34 @@
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn {
     align-items: center;
-    background-color: var(--danger, #e32d14);
-    border: 1px solid var(--danger, #e32d14);
-    border-radius: var(--radius-sm, 6px);
-    box-shadow: 0 1px 2px rgba(227, 45, 20, 0.2);
+    background-color: var(--danger-text, #bc081f);
+    border: 1px solid var(--danger-text, #bc081f);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: 0 1px 2px rgba(188, 8, 31, 0.2);
     color: #ffffff;
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
     gap: 6px;
-    min-height: 34px;
-    padding: 5px 13px;
+    min-height: 36px;
+    padding: 6px 14px;
     text-decoration: none;
-    transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
     white-space: nowrap;
 }
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:hover {
-    background-color: #b01601;
-    border-color: #b01601;
-    box-shadow: 0 2px 6px rgba(176, 22, 1, 0.25);
+    background-color: #990619;
+    border-color: #990619;
+    box-shadow: 0 3px 6px rgba(188, 8, 31, 0.25);
     color: #ffffff;
     transform: translateY(-1px);
 }
 
 .persistent-surveillance-banner-action .button.persistent-surveillance-banner-btn:active {
-    background-color: #6f0d00;
-    border-color: #6f0d00;
+    background-color: #7a0514;
+    border-color: #7a0514;
     transform: translateY(0);
 }
 
@@ -211,17 +223,17 @@
     align-items: center;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 6px);
+    border-radius: var(--radius-lg, 12px);
     color: var(--ink);
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
     gap: 6px;
-    min-height: 34px;
-    padding: 5px 13px;
+    min-height: 36px;
+    padding: 6px 14px;
     text-decoration: none;
-    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     white-space: nowrap;
 }
 
@@ -233,10 +245,10 @@
 /* Dark mode overrides for app shell components */
 html[data-theme="dark"] .page-heading .back-link,
 html[data-theme="dark"] .back-link {
-    background: transparent;
-    border-color: transparent;
-    color: #94a3b8;
-    box-shadow: none;
+    background: var(--surface, #1e1e1e);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: var(--ink, #f6f5f4) !important;
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
@@ -304,15 +316,23 @@ html[data-theme="dark"] .back-link::before {
 
 html[data-theme="dark"] .page-heading .back-link:hover,
 html[data-theme="dark"] .back-link:hover {
-    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
-    border-color: transparent;
-    color: var(--ink, #f6f5f4);
-    box-shadow: none;
+    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: var(--line-strong, rgba(255, 255, 255, 0.22));
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+    color: #ffffff !important;
 }
 
 html[data-theme="dark"] .page-heading .back-link:hover::before,
 html[data-theme="dark"] .back-link:hover::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f6f5f4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a9df8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    transform: translateX(-3px);
+}
+
+html[data-theme="dark"] .page-heading .back-link:active,
+html[data-theme="dark"] .back-link:active {
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.05));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transform: translateY(0) scale(0.98);
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner {

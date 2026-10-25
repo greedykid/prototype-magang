@@ -6,7 +6,7 @@ import { closeAllCustomSelects, initCustomSelects } from './modules/custom-selec
 import { initCustomPickers, closeAllCustomPickers, syncCustomPickers } from './modules/custom-picker.js';
 import { initDataTables, syncViewToggleLocation } from './modules/datatable.js';
 import { handleFlashNotifications, initPersistentSurveillanceBanner } from './modules/notifications.js';
-import { initModalListeners, openModal, closeModal, returnModalToPlaceholder } from './modules/modals.js';
+import { initModalListeners, openModal, closeModal, returnModalToPlaceholder, copyFormulaToClipboard } from './modules/modals.js';
 import { initButtonLoader } from './modules/button-loader.js';
 import { initAuthTransitions } from './modules/auth-transitions.js';
 import { initConfirmations } from './modules/confirmations.js';
@@ -44,6 +44,9 @@ import { initTableMultiselect, syncTableState, clearTableSelection } from './mod
 import { initTheme, toggleTheme, applyTheme } from './modules/theme.js';
 import { initPasswordToggles } from './modules/password-toggle.js';
 import { initFileDropzones, initFileDropzone } from './modules/file-dropzone.js';
+import { initBottomNav, syncBottomNavActive, setBottomSheetState } from './modules/bottom-nav.js';
+import { initGlobalSearch } from './modules/global-search.js';
+import { initSidebarClock } from './modules/sidebar-clock.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -57,6 +60,7 @@ window.initFileDropzone = initFileDropzone;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.returnModalToPlaceholder = returnModalToPlaceholder;
+window.copyFormulaToClipboard = copyFormulaToClipboard;
 window.showEventPopover = showEventPopover;
 window.closeEventPopover = closeEventPopover;
 window.returnPopoverToPlaceholder = returnPopoverToPlaceholder;
@@ -87,6 +91,9 @@ window.clearTableSelection = clearTableSelection;
 window.toggleTheme = toggleTheme;
 window.applyTheme = applyTheme;
 window.initPasswordToggles = initPasswordToggles;
+window.initBottomNav = initBottomNav;
+window.syncBottomNavActive = syncBottomNavActive;
+window.setBottomSheetState = setBottomSheetState;
 
 export function closeNotificationDropdown() {
     const currentMenu = document.getElementById('notif-dropdown-menu');
@@ -251,9 +258,10 @@ export const initPageComponents = () => {
         initGcalComponents();
     }
 
-    // 5. Topbar Dropdowns
+    // 5. Topbar Dropdowns & Global Search
     initNotificationDropdown();
     initUserDropdown();
+    initGlobalSearch();
 
     // 6. Table Multiselection
     try {
@@ -270,6 +278,59 @@ export const initPageComponents = () => {
 
     // 9. File Dropzones
     initFileDropzones();
+
+    // 10. Mobile Bottom Navigation
+    try {
+        initBottomNav();
+        syncBottomNavActive();
+    } catch (err) {
+        console.error('Error initializing bottom nav:', err);
+    }
+
+    // 11. Sidebar Real-Time Operational Clock & Date
+    initSidebarClock();
+
+    // 12. Dashboard Compliance Meter Interactive Hover
+    initComplianceMeterInteractions();
+};
+
+export const initComplianceMeterInteractions = () => {
+    const card = document.querySelector('.compliance-meter-card');
+    if (!card || card.dataset.meterInit === 'true') return;
+    card.dataset.meterInit = 'true';
+
+    const segments = card.querySelectorAll('.compliance-meter-segment');
+    const legendItems = card.querySelectorAll('.compliance-legend-item');
+
+    segments.forEach((seg) => {
+        const legendKey = seg.dataset.legend;
+        if (!legendKey) return;
+        const matchingLegend = card.querySelector(`.compliance-legend-item[data-legend="${legendKey}"]`);
+        if (!matchingLegend) return;
+
+        seg.addEventListener('mouseenter', () => {
+            matchingLegend.classList.add('is-highlighted');
+        });
+        seg.addEventListener('mouseleave', () => {
+            matchingLegend.classList.remove('is-highlighted');
+        });
+    });
+
+    legendItems.forEach((item) => {
+        const legendKey = item.dataset.legend;
+        if (!legendKey) return;
+        const matchingSeg = card.querySelector(`.compliance-meter-segment[data-legend="${legendKey}"]`);
+        if (!matchingSeg) return;
+
+        item.addEventListener('mouseenter', () => {
+            matchingSeg.style.transform = 'scaleY(1.4)';
+            matchingSeg.style.borderRadius = '2px';
+        });
+        item.addEventListener('mouseleave', () => {
+            matchingSeg.style.transform = '';
+            matchingSeg.style.borderRadius = '';
+        });
+    });
 };
 
 window.initPageComponents = initPageComponents;
@@ -279,6 +340,7 @@ window.initPageComponents = initPageComponents;
 // ==========================================================================
 export const initClickableRows = () => {
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const row = event.target.closest('tr.clickable-row, tr[data-href], .clickable-row[data-href]');
         if (!row) return;
 
@@ -342,6 +404,7 @@ initClickableRows();
 initLiveFilters();
 initTheme();
 initPasswordToggles();
+initBottomNav();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

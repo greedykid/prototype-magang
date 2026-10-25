@@ -1,3 +1,18 @@
+/* Laptop & Compact Desktop Optimization (1141px - 1400px) */
+@media (min-width: 1141px) and (max-width: 1400px) {
+    .lpk-milestones-grid {
+        gap: 12px;
+    }
+
+    .lpk-milestone-card {
+        padding: 18px 16px;
+    }
+
+    .lpk-milestone-title {
+        font-size: 14px;
+    }
+}
+
 /* Tablet & Medium Screen Reflow for Milestone Grid & Timeline */
 @media (max-width: 1140px) {
     .lpk-milestones-grid {
@@ -53,6 +68,10 @@
 
     .lpk-cycle-step-line.is-passed {
         background: var(--color-green-500, #10b981) !important;
+    }
+
+    .lpk-cycle-step-line.is-active {
+        background: linear-gradient(180deg, var(--color-green-500, #10b981) 0%, var(--primary, #1972f5) 100%) !important;
     }
 
     .lpk-step-label-group {
@@ -125,6 +144,7 @@
         align-items: flex-start;
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         justify-content: space-between;
         gap: 8px;
         width: 100%;
@@ -188,12 +208,12 @@
     .lpk-badge-reg,
     .lpk-badge-acc,
     .lpk-badge-type {
-        border-radius: 8px;
+        border-radius: var(--radius-pill, 9999px);
         display: inline-block;
         line-height: 1.4;
         max-width: 100%;
         overflow-wrap: break-word;
-        padding: 4px 9px;
+        padding: 4px 10px;
         white-space: normal;
         word-break: break-word;
     }

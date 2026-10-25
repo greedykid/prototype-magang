@@ -36,11 +36,11 @@ return [
     ],
 
     'sheets' => [
-        'feed_key' => env('SHEETS_FEED_KEY', 'simasadi-live'),
+        'feed_key' => env('SHEETS_FEED_KEY'),
     ],
 
     'recaptcha' => [
-        'enabled' => env('RECAPTCHA_ENABLED', false),
+        'enabled' => filter_var(env('RECAPTCHA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
         'site_key' => env('RECAPTCHA_SITE_KEY', ''),
         'secret_key' => env('RECAPTCHA_SECRET_KEY', ''),
     ],

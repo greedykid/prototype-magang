@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Data LPK | SIMASADI')
+@section('title', 'Daftar Laboratorium | SIMASADI')
 
 @section('content')
 <x-page-header
-    title="Daftar LPK"
-    subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi LPK."
+    title="Daftar Laboratorium"
+    subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
-        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-        <span>Google Sheets & Ekspor</span>
+        <x-icon name="export" size="16" />
+        <span>Ekspor Data</span>
     </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-lpk')">
         <x-icon name="import" size="16" />
@@ -22,7 +22,7 @@
 </x-page-header>
 
 @if(!empty($linkedOwnersCount) && $linkedOwnersCount > 0)
-    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border, #bae6fd); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+    <div style="background: var(--info-bg, #e0f2fe); border: 1px solid var(--info-border); border-radius: var(--radius-xl, 18px); padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="color: var(--info-text, #0284c7); display: inline-flex;">
                 <x-icon name="link" size="18" />
@@ -31,7 +31,7 @@
                 Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data laboratorium. LPK tersebut tersimpan terpisah di detail akun masing-masing.
             </div>
         </div>
-        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
+        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
             <span>Buka Akun Tertaut</span>
             <x-icon name="chevron-right" size="13" />
         </a>
@@ -40,10 +40,15 @@
 
 <section class="panel table-panel-borderless">
     <form id="lpk-filter-form" class="table-filters" method="GET" action="{{ route('lpks.index') }}" data-partial-filter="true" data-target="#lpk-table-container">
-        <div class="table-filter-grid">
+        <input type="hidden" name="per_page" value="{{ $perPage }}">
+
+        <div class="table-filter-grid-4col">
             <label for="filter-lpk-search">
                 Cari LPK
-                <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                <div class="table-filter-search-wrap">
+                    <x-icon name="search" size="16" class="table-filter-search-icon" />
+                    <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                </div>
             </label>
             <label for="filter-lpk-status">
                 Status LPK
@@ -80,6 +85,7 @@
                 </select>
             </label>
         </div>
+
         <div class="table-filter-actions" id="lpk-filter-actions" style="margin-top: 8px;">
             <span id="lpk-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
                 <span class="filter-live-spinner"></span>
@@ -100,7 +106,9 @@
         @php
             $statusLabels = [
                 'ACTIVE' => 'Aktif',
+                'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
                 'SUSPENDED' => 'Dibekukan',
+                'REVOKED' => 'Dicabut',
                 'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
                 'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
                 'EXPIRED' => 'Kedaluwarsa',
@@ -166,12 +174,13 @@
 
 <x-sheets-modal
     modal-id="modal-sheets-sync-lpks"
-    title="Integrasi Google Sheets: Data Master LPK"
-    subtitle="Sinkronkan data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar ke Google Sheets Anda secara langsung."
+    title="Ekspor Data Master LPK"
+    subtitle="Unduh data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.lpks.export')"
-    :feed-url="route('feeds.lpks', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')])"
+    :feed-url="route('feeds.lpks', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="data-master-lpk-simasadi.csv"
-    :columns="['ID LPK', 'No. Akreditasi', 'Nama LPK', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
+    :columns="['ID LPK', 'No. Akreditasi', 'Nama Laboratorium', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
+    :show-feed="false"
 />
 
 @include('lpks.partials.import-modal')

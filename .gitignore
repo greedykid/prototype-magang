@@ -37,9 +37,20 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/docs/references/*
-!/docs/references/.gitkeep
+# Docs: hanya melacak 7 berkas Markdown utama, abaikan berkas dan folder lainnya
+/docs/*
+!/docs/01-gambaran-umum.md
+!/docs/02-tahap-perencanaan.md
+!/docs/03-tahap-analisis.md
+!/docs/04-tahap-perancangan.md
+!/docs/05-implementasi-dan-pengujian.md
+!/docs/PERANCANGAN_SISTEM.md
+!/docs/project-state.md
 /scratch
 ~$*
 *.bak
+/.github
+/anti-slop
+/.codegraph
+
 

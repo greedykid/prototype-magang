@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\Lpk;
+use App\Traits\ImportsSpreadsheetData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssessmentImportController extends Controller
 {
+    use ImportsSpreadsheetData;
     /**
      * Unduh template resmi untuk impor data program asesmen (CSV atau XLSX).
      */
@@ -215,19 +217,63 @@ class AssessmentImportController extends Controller
         $skippedCount = 0;
         $unmatchedLpks = [];
 
-        // Cache LPKs dan Asesmen untuk performa (disesuaikan dengan hak akses PIC / Admin)
+        // Kumpulkan identifier dari baris input untuk query selektif hemat RAM
+        $incomingRegs = [];
+        $incomingNames = [];
+        foreach ($rows as $rowItem) {
+            $rowValues = $rowItem['values'] ?? [];
+            $rowData = [];
+            foreach ($headers as $colIdx => $colName) {
+                if (isset($rowValues[$colIdx])) {
+                    $rowData[$colName] = trim((string) $rowValues[$colIdx]);
+                }
+            }
+            if (! empty($rowData['registration_number'])) {
+                $incomingRegs[] = strtoupper($rowData['registration_number']);
+            }
+            if (! empty($rowData['lpk_name'])) {
+                $incomingNames[] = strtolower($rowData['lpk_name']);
+            }
+        }
+        $incomingRegs = array_values(array_unique(array_filter($incomingRegs)));
+        $incomingNames = array_values(array_unique(array_filter($incomingNames)));
+
+        // Cache LPKs dan Asesmen terproyeksi hanya untuk LPK yang cocok dengan file input
         $user = auth()->user();
-        $accessibleLpks = Lpk::accessibleBy($user)->get();
-        $lpksByReg = $accessibleLpks->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
+        $accessibleLpksQuery = Lpk::manageableBy($user)
+            ->select(['id', 'no_reg', 'accreditation_number', 'registration_number', 'name', 'address', 'pic_id']);
+
+        if (! empty($incomingRegs) || ! empty($incomingNames)) {
+            $accessibleLpksQuery->where(function ($q) use ($incomingRegs, $incomingNames) {
+                if (! empty($incomingRegs)) {
+                    $q->whereIn('registration_number', $incomingRegs)
+                      ->orWhereIn('accreditation_number', $incomingRegs)
+                      ->orWhereIn('no_reg', $incomingRegs);
+                }
+                if (! empty($incomingNames)) {
+                    $q->orWhereIn('name', $incomingNames);
+                }
+            });
+        } else {
+            $accessibleLpksQuery->whereRaw('1 = 0');
+        }
+
+        $accessibleLpks = $accessibleLpksQuery->get();
+        $lpksByReg = $accessibleLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
+        $lpksByAccred = $accessibleLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
+        $lpksByNoReg = $accessibleLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        // Pre-load existing assessments untuk mengeliminasi query N+1
-        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))->get();
+        // Pre-load existing assessments hanya untuk LPK yang relevan
+        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))
+            ->get();
 
         DB::transaction(function () use (
             $rows,
             $headers,
             $lpksByReg,
+            $lpksByAccred,
+            $lpksByNoReg,
             $lpksByName,
             $existingAssessments,
             $userId,
@@ -256,18 +302,24 @@ class AssessmentImportController extends Controller
 
                 // Cari LPK
                 $matchedLpk = null;
-                if (! empty($regInput) && isset($lpksByReg[$regInput])) {
-                    $matchedLpk = $lpksByReg[$regInput];
-                } elseif (! empty($data['lpk_name'])) {
+                if (! empty($regInput)) {
+                    $matchedLpk = $lpksByReg[$regInput]
+                        ?? $lpksByAccred[$regInput]
+                        ?? $lpksByNoReg[$regInput]
+                        ?? null;
+                }
+                if (! $matchedLpk && ! empty($data['lpk_name'])) {
                     $lpkNameKey = strtolower(trim((string) $data['lpk_name']));
                     $matchedLpk = $lpksByName[$lpkNameKey] ?? null;
                 }
 
-                if (! $matchedLpk) {
+                if (! $matchedLpk && ! empty($regInput)) {
                     // Coba substring match jika ada format LP-XXX
                     if (preg_match('/(L[PKI]-\d+-IDN)/i', $regInput, $m)) {
                         $normReg = strtoupper($m[1]);
-                        $matchedLpk = $lpksByReg[$normReg] ?? null;
+                        $matchedLpk = $lpksByAccred[$normReg]
+                            ?? $lpksByReg[$normReg]
+                            ?? null;
                     }
                 }
 
@@ -286,12 +338,12 @@ class AssessmentImportController extends Controller
                 if (! $startAt) {
                     $startAt = now()->addDays(7)->setTime(9, 0);
                 }
-                if (! $endAt) {
+                if (! $endAt || $endAt->lt($startAt)) {
                     $endAt = (clone $startAt)->addDays(2)->setTime(17, 0);
                 }
 
                 // Judul agenda default bila kosong
-                $typeInput = $this->normalizeAssessmentType($data['assessment_type'] ?? 'Surveilen');
+                $typeInput = Assessment::normalizeType($data['assessment_type'] ?? 'Surveilen 1', $titleInput ?? '');
                 if (empty($titleInput)) {
                     $titleInput = "Asesmen {$typeInput} - {$matchedLpk->name}";
                 }
@@ -360,47 +412,6 @@ class AssessmentImportController extends Controller
         return redirect()->route('assessments.index')->with('success', $msg);
     }
 
-    /**
-     * Parsing string CSV mentah menjadi headers dan rows.
-     */
-    protected function parseCsvContent(string $csvContent): array
-    {
-        $csvContent = preg_replace('/^\xEF\xBB\xBF/', '', trim($csvContent));
-
-        if (empty($csvContent)) {
-            return ['error' => 'Berkas atau spreadsheet tidak memiliki data untuk diimpor.'];
-        }
-
-        $lines = preg_split('/\r\n|\r|\n/', $csvContent);
-        if (empty($lines)) {
-            return ['error' => 'Format data spreadsheet tidak dikenali.'];
-        }
-
-        $firstLine = $lines[0];
-        $delimiter = substr_count($firstLine, ';') > substr_count($firstLine, ',') ? ';' : ',';
-
-        $headerRaw = str_getcsv(array_shift($lines), $delimiter, '"', '\\');
-        $headers = $this->normalizeHeaders($headerRaw);
-
-        $rows = [];
-        $lineNum = 1;
-        foreach ($lines as $line) {
-            $lineNum++;
-            if (trim($line) === '') {
-                continue;
-            }
-            $rowValues = str_getcsv($line, $delimiter, '"', '\\');
-            $rows[] = [
-                'row_number' => $lineNum,
-                'values' => $rowValues,
-            ];
-        }
-
-        return [
-            'headers' => $headers,
-            'rows' => $rows,
-        ];
-    }
 
     /**
      * Parsing berkas Excel (.xlsx) menjadi headers dan rows.
@@ -486,33 +497,6 @@ class AssessmentImportController extends Controller
         }, $headerRaw);
     }
 
-    protected function normalizeAssessmentType(string $input): string
-    {
-        $input = trim($input);
-        $lower = strtolower($input);
-
-        if (str_contains($lower, 'awal') || str_contains($lower, 'initial')) {
-            return 'Asesmen Awal';
-        }
-        if (str_contains($lower, 'surveilen') || str_contains($lower, 'surveillance')) {
-            return 'Surveilen';
-        }
-        if (str_contains($lower, 're-') || str_contains($lower, 'reasesmen') || str_contains($lower, 'reakreditasi') || str_contains($lower, 'reassessment')) {
-            return 'Re-asesmen';
-        }
-        if (str_contains($lower, 'kecukupan') || str_contains($lower, 'adequacy')) {
-            return 'Audit Kecukupan';
-        }
-        if (str_contains($lower, 'witness') || str_contains($lower, 'pemasaksian') || str_contains($lower, 'penyaksian')) {
-            return 'Penyaksian';
-        }
-        if (str_contains($lower, 'perluasan') || str_contains($lower, 'extension')) {
-            return 'Perluasan Lingkup';
-        }
-
-        return $input ?: 'Surveilen';
-    }
-
     protected function normalizeStatus(string $input): string
     {
         $input = strtoupper(trim($input));
@@ -546,8 +530,10 @@ class AssessmentImportController extends Controller
             return null;
         }
 
+        $normalized = $this->normalizeDateString($value);
+
         try {
-            return Carbon::parse($value);
+            return Carbon::parse($normalized);
         } catch (\Throwable) {
             return null;
         }
@@ -559,34 +545,42 @@ class AssessmentImportController extends Controller
             return null;
         }
 
+        $normalized = $this->normalizeDateString($value);
+
         try {
-            return Carbon::parse($value)->toDateString();
+            return Carbon::parse($normalized)->toDateString();
         } catch (\Throwable) {
             return null;
         }
     }
 
-    protected function normalizeGoogleSheetsUrl(string $url): ?string
+    protected function normalizeDateString(?string $value): ?string
     {
-        $parsed = parse_url($url);
-        if (! isset($parsed['scheme'], $parsed['host'])) {
+        if (empty($value)) {
             return null;
         }
 
-        if (strtolower($parsed['scheme']) !== 'https' || strtolower($parsed['host']) !== 'docs.google.com') {
-            return null;
+        $val = trim($value);
+
+        if (preg_match('/^\d{4}$/', $val)) {
+            return "{$val}-12-31";
         }
 
-        if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $url, $matches)) {
-            $sheetId = $matches[1];
-            $gid = '0';
-            if (preg_match('/[#&?]gid=([0-9]+)/', $url, $gidMatches)) {
-                $gid = $gidMatches[1];
-            }
+        $idMonths = [
+            'januari' => 'january', 'februari' => 'february', 'maret' => 'march',
+            'april' => 'april', 'mei' => 'may', 'juni' => 'june',
+            'juli' => 'july', 'agustus' => 'august', 'september' => 'september',
+            'oktober' => 'october', 'november' => 'november', 'desember' => 'december',
+            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
+        ];
 
-            return "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
+        $lower = strtolower($val);
+        foreach ($idMonths as $id => $en) {
+            $lower = str_replace($id, $en, $lower);
         }
 
-        return null;
+        return str_replace('/', '-', $lower);
     }
+
+
 }

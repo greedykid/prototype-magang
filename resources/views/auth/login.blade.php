@@ -87,7 +87,7 @@
             <div class="login-recaptcha-box" style="margin: 14px 0 8px 0; display: flex; flex-direction: column; align-items: center; width: 100%;">
                 <div class="g-recaptcha" id="g-recaptcha-widget" data-sitekey="{{ config('services.recaptcha.site_key') }}" data-theme="light"></div>
                 @error('g-recaptcha-response')
-                    <span class="field-error" style="color: #e11d48; font-size: 12.5px; font-weight: 500; margin-top: 6px; text-align: center; display: block;" role="alert">
+                    <span class="field-error" style="color: var(--danger-text); font-size: 12.5px; font-weight: 500; margin-top: 6px; text-align: center; display: block;" role="alert">
                         {{ $message }}
                     </span>
                 @enderror

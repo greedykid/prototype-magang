@@ -29,7 +29,7 @@ class UpdateLpkRequest extends FormRequest
             'accreditation_number' => ['nullable', 'string', 'max:50'],
             'accreditation_type' => ['nullable', 'string', 'max:50'],
             'registration_number' => ['nullable', 'string', 'max:50', 'unique:lpks,registration_number,'.$id],
-            'name' => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:255'],
             'scope' => ['nullable', 'string', 'max:50000'],
             'certificate_date' => ['nullable', 'date'],
             'address' => ['nullable', 'string'],
@@ -70,7 +70,7 @@ class UpdateLpkRequest extends FormRequest
         }
 
         if (empty($data['registration_number'])) {
-            $data['registration_number'] = $data['accreditation_number'] ?: ($data['no_reg'] ?? 'LPK-' . time());
+            $data['registration_number'] = !empty($data['accreditation_number']) ? $data['accreditation_number'] : (!empty($data['no_reg']) ? $data['no_reg'] : null);
         }
 
         if (empty($data['accreditation_type'])) {

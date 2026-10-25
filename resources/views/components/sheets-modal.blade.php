@@ -1,18 +1,19 @@
 @props([
     'modalId' => 'modal-sheets-sync',
-    'title' => 'Integrasi Google Sheets & Ekspor Data',
-    'subtitle' => 'Sinkronkan data secara langsung ke Google Sheets atau unduh arsip berkas CSV.',
+    'title' => 'Ekspor Data',
+    'subtitle' => 'Unduh data dalam format berkas Excel (.xlsx) atau CSV standar.',
     'exportUrl' => '#',
     'feedUrl' => '#',
     'fileName' => 'laporan-simasadi.csv',
-    'columns' => []
+    'columns' => [],
+    'showFeed' => false,
 ])
 
 <div class="simasadi-modal" id="{{ $modalId }}" role="dialog" aria-modal="true" aria-labelledby="{{ $modalId }}-title">
     <div class="simasadi-modal-box" style="max-width: 620px;">
         <div class="simasadi-modal-head">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <x-icon name="sheets" size="20" style="color: #0f9d58;" />
+                <x-icon :name="$showFeed ? 'sheets' : 'download'" size="20" style="{{ $showFeed ? 'color: #0f9d58;' : 'color: var(--primary);' }}" />
                 <h4 id="{{ $modalId }}-title" style="margin: 0; font-size: 17px; font-weight: 700;">{{ $title }}</h4>
             </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('{{ $modalId }}')" aria-label="Tutup modal">&times;</button>
@@ -23,65 +24,86 @@
                 {{ $subtitle }}
             </p>
 
-            {{-- Metode 1: Live Feed Google Sheets (Formula =IMPORTDATA) --}}
-            <div style="border: 1px solid rgba(16, 185, 129, 0.35); background: var(--mint, rgba(16, 185, 129, 0.08)); border-radius: 8px; padding: 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="background: #0f9d58; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
-                            Rekomendasi
-                        </span>
-                        <strong style="font-size: 14px; color: var(--green, #10b981);">Sinkronisasi Otomatis Google Sheets (=IMPORTDATA)</strong>
+            @if($showFeed)
+                {{-- Metode 1: Live Feed Google Sheets (Formula =IMPORTDATA) --}}
+                <div style="border: 1px solid rgba(16, 185, 129, 0.35); background: var(--mint, rgba(16, 185, 129, 0.08)); border-radius: var(--radius-xl, 18px); padding: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="background: #0f9d58; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill, 9999px); text-transform: uppercase;">
+                                Rekomendasi
+                            </span>
+                            <strong style="font-size: 14px; color: var(--green, #10b981);">Sinkronisasi Otomatis Google Sheets (=IMPORTDATA)</strong>
+                        </div>
+                    </div>
+                    <p style="margin: 0 0 12px; font-size: 12.5px; color: var(--muted); line-height: 1.45;">
+                        Data di spreadsheet akan <strong>otomatis terbarui</strong> dari SIMASADI tanpa perlu mengunggah ulang berkas.
+                    </p>
+
+                    @php
+                        $formula = '=IMPORTDATA("' . $feedUrl . '")';
+                        $inputFeedId = 'feed-formula-' . md5($modalId);
+                    @endphp
+
+                    <div style="position: relative; display: flex; gap: 8px;">
+                        <input
+                            type="text"
+                            id="{{ $inputFeedId }}"
+                            readonly
+                            value="{{ $formula }}"
+                            style="width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; padding: 8px 12px; background: var(--input-bg, #ffffff); border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); color: var(--ink); font-weight: 600;"
+                        />
+                        <button
+                            type="button"
+                            class="button primary"
+                            style="background: #0f9d58; border-color: #0b8043; white-space: nowrap; padding: 8px 14px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"
+                            onclick="copyFormulaToClipboard('{{ $inputFeedId }}', this)"
+                        >
+                            <x-icon name="copy" size="14" />
+                            <span>Salin Rumus</span>
+                        </button>
+                    </div>
+
+                    {{-- Panduan Penggunaan --}}
+                    <div style="margin-top: 14px; background: var(--surface, #fafaf9); border: 1px solid var(--line); border-radius: var(--radius-md, 10px); padding: 10px 12px; font-size: 12px; color: var(--ink);">
+                        <strong>Cara Penggunaan di Google Sheets:</strong>
+                        <ol style="margin: 4px 0 0 16px; padding: 0; line-height: 1.6; color: var(--muted);">
+                            <li>Buka spreadsheet baru di Google Drive (atau ketik <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" style="color: var(--green, #10b981); font-weight: 600; text-decoration: none;">sheets.new</a>).</li>
+                            <li>Klik pada sel <strong>A1</strong>.</li>
+                            <li>Tempelkan (Paste) rumus di atas, lalu tekan <strong>Enter</strong>. Tabel akan langsung terisi!</li>
+                            <li><em>Tips Tampilan Rapi:</em> Tekan <strong>Ctrl + A</strong> (pilih semua) lalu klik ganda (double-click) batas garis pemisah antar-kolom di bagian atas agar lebar kolom menyesuaikan otomatis (Auto-fit).</li>
+                        </ol>
                     </div>
                 </div>
-                <p style="margin: 0 0 12px; font-size: 12.5px; color: var(--muted); line-height: 1.45;">
-                    Data di spreadsheet akan <strong>otomatis terbarui</strong> dari SIMASADI tanpa perlu mengunggah ulang berkas.
-                </p>
+            @endif
 
-                @php
-                    $formula = '=IMPORTDATA("' . $feedUrl . '")';
-                    $inputFeedId = 'feed-formula-' . md5($modalId);
-                @endphp
-
-                <div style="position: relative; display: flex; gap: 8px;">
-                    <input
-                        type="text"
-                        id="{{ $inputFeedId }}"
-                        readonly
-                        value="{{ $formula }}"
-                        style="width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; padding: 8px 12px; background: var(--input-bg, #ffffff); border: 1px solid var(--input-border, var(--line)); border-radius: 6px; color: var(--ink); font-weight: 600;"
-                    />
-                    <button
-                        type="button"
-                        class="button primary"
-                        style="background: #0f9d58; border-color: #0b8043; white-space: nowrap; padding: 8px 14px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"
-                        onclick="copyFormulaToClipboard('{{ $inputFeedId }}', this)"
-                    >
-                        <x-icon name="copy" size="14" />
-                        <span>Salin Rumus</span>
-                    </button>
+            {{-- Metode 2: Unduh Berkas Spreadsheet & CSV --}}
+            <div style="border: 1px solid var(--line); background: var(--surface-subtle, var(--surface)); border-radius: var(--radius-xl, 18px); padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line-subtle, var(--line));">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <strong style="font-size: 13.5px; color: var(--ink);">Unduh Berkas Excel Spreadsheet (.xlsx)</strong>
+                            <span style="background: var(--primary, #0075de); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: var(--radius-pill, 9999px); text-transform: uppercase;">
+                                Rekomendasi
+                            </span>
+                        </div>
+                        <span style="font-size: 12px; color: var(--muted); display: block; margin-top: 3px;">
+                            Format resmi Microsoft Excel dengan header rapi, freeze baris atas, dan auto-filter kolom.
+                        </span>
+                    </div>
+                    <a href="{{ $exportUrl }}{{ str_contains($exportUrl, '?') ? '&' : '?' }}format=xlsx" class="button primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+                        <x-icon name="download" size="15" />
+                        <span>Unduh Excel (.xlsx)</span>
+                    </a>
                 </div>
 
-                {{-- Panduan 3 Langkah --}}
-                <div style="margin-top: 14px; background: var(--surface, #fafaf9); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: 12px; color: var(--ink);">
-                    <strong>Cara Penggunaan di Google Sheets:</strong>
-                    <ol style="margin: 4px 0 0 16px; padding: 0; line-height: 1.6; color: var(--muted);">
-                        <li>Buka spreadsheet baru di Google Drive (atau ketik <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" style="color: var(--green, #10b981); font-weight: 600; text-decoration: underline;">sheets.new</a>).</li>
-                        <li>Klik pada sel <strong>A1</strong>.</li>
-                        <li>Tempelkan (Paste) rumus di atas, lalu tekan <strong>Enter</strong>. Tabel akan langsung terisi!</li>
-                    </ol>
-                </div>
-            </div>
-
-            {{-- Metode 2: Unduh Berkas CSV --}}
-            <div style="border: 1px solid var(--line); background: var(--surface-subtle, var(--surface)); border-radius: 8px; padding: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                     <div>
                         <strong style="font-size: 13.5px; color: var(--ink); display: block;">Unduh Berkas CSV Standar (.csv)</strong>
                         <span style="font-size: 12px; color: var(--muted); display: block; margin-top: 2px;">
-                            Kompatibel dengan Microsoft Excel, LibreOffice Calc, atau impor manual Google Drive.
+                            Format teks standar untuk integrasi aplikasi pihak ketiga atau olah data manual.
                         </span>
                     </div>
-                    <a href="{{ $exportUrl }}" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+                    <a href="{{ $exportUrl }}{{ str_contains($exportUrl, '?') ? '&' : '?' }}format=csv" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
                         <x-icon name="download" size="15" />
                         <span>Unduh CSV</span>
                     </a>
@@ -93,7 +115,7 @@
                     <strong style="color: var(--ink);">Kolom yang disertakan:</strong>
                     <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
                         @foreach($columns as $col)
-                            <span style="background: var(--surface-hover, var(--surface)); padding: 2px 7px; border-radius: 4px; font-size: 11px; border: 1px solid var(--line); color: var(--ink);">{{ $col }}</span>
+                            <span style="background: var(--surface-hover, var(--surface)); padding: 2px 7px; border-radius: var(--radius-pill, 9999px); font-size: 11px; border: 1px solid var(--line); color: var(--ink);">{{ $col }}</span>
                         @endforeach
                     </div>
                 </div>
@@ -105,42 +127,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    function copyFormulaToClipboard(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-
-        input.select();
-        input.setSelectionRange(0, 99999);
-
-        navigator.clipboard.writeText(input.value).then(() => {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span>Tersalin!</span>';
-            btn.style.background = '#2e7d32';
-
-            if (typeof Swal !== 'undefined') {
-                const isMobile = window.innerWidth <= 640;
-
-                Swal.fire({
-                    target: document.body,
-                    toast: true,
-                    position: isMobile ? 'top' : 'top-end',
-                    icon: 'success',
-                    title: 'Rumus Google Sheets berhasil disalin!',
-                    text: 'Tempelkan di sel A1 Google Sheets Anda.',
-                    showConfirmButton: false,
-                    timer: 2500,
-                    timerProgressBar: true
-                });
-            }
-
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '#0f9d58';
-            }, 2000);
-        }).catch(err => {
-            console.error('Gagal menyalin:', err);
-        });
-    }
-</script>

@@ -37,20 +37,22 @@
         @include('layouts.partials.topbar')
 
         <div class="page-wrap" id="page-content-wrapper">
-            @if(!empty($globalSurveillanceAlerts))
+            @if(!empty($globalSurveillanceAlerts) && !request()->routeIs(['assessments.show', 'lpks.show', 'account-links.show', 'account-links.assessments.show', 'account-links.lpks.show']))
                 <aside id="persistent-surveillance-banner" class="persistent-surveillance-banner" aria-label="Peringatan Siklus Pengawasan Akreditasi">
                     <div class="persistent-surveillance-banner-inner">
                         <div class="persistent-surveillance-banner-main">
-                            <div class="persistent-surveillance-banner-badge">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                <span>PERINGATAN KAN</span>
+                            <div class="banner-compact-row">
+                                <div class="persistent-surveillance-banner-badge">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    <span>PERINGATAN KAN</span>
+                                </div>
+                                <strong class="persistent-surveillance-banner-title">
+                                    Peringatan Siklus Pengawasan: {{ count($globalSurveillanceAlerts) }} Kunjungan Memerlukan Tindak Lanjut!
+                                </strong>
+                                <span class="persistent-surveillance-banner-desc">
+                                    (Bulan ke-13 S1, Bulan ke-34 S2, atau Bulan ke-48 RA standar KAN U-01)
+                                </span>
                             </div>
-                            <strong class="persistent-surveillance-banner-title">
-                                Peringatan Siklus Pengawasan Akreditasi: {{ count($globalSurveillanceAlerts) }} Kunjungan Memerlukan Tindak Lanjut!
-                            </strong>
-                            <p class="persistent-surveillance-banner-desc">
-                                Sesuai siklus KAN, notifikasi aktif di <strong>Bulan ke-14 (S1)</strong>, <strong>Bulan ke-35 (S2)</strong>, dan <strong>1 Bulan sebelum kedaluwarsa (Re-Akreditasi)</strong>.
-                            </p>
                         </div>
                         <div class="persistent-surveillance-banner-action">
                             @if(request()->routeIs('dashboard'))
@@ -60,7 +62,7 @@
                                 </a>
                             @endif
                             <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button danger persistent-surveillance-banner-btn">
-                                <span>Tinjau LPK Jatuh Tempo</span>
+                                <span>Tinjau LPK ({{ count($globalSurveillanceAlerts) }})</span>
                                 <x-icon name="chevron-right" size="14" />
                             </a>
                         </div>
@@ -82,6 +84,8 @@
         </div>
     </main>
 </div>
+
+@include('layouts.partials.bottom-nav')
 
 <div class="drawer-backdrop" data-drawer-close></div>
 

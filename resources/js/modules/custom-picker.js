@@ -42,6 +42,7 @@ const setupGlobalPickerListeners = () => {
     globalPickerListenersAdded = true;
 
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         if (!event.target.closest('.custom-datepicker-wrapper, .custom-clockpicker-wrapper')) {
             closeAllCustomPickers();
         }
@@ -60,24 +61,29 @@ const setupGlobalPickerListeners = () => {
         closeAllCustomPickers();
     });
 
+    let scrollRafId = null;
     window.addEventListener('scroll', (event) => {
         if (event.target && event.target.closest && event.target.closest('.custom-picker-popover')) {
             return;
         }
-        const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
-        if (openPicker) {
-            const trigger = openPicker.querySelector('.custom-picker-trigger');
-            if (trigger) {
-                const triggerRect = trigger.getBoundingClientRect();
-                const topbar = document.querySelector('.topbar');
-                const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
-                if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
-                    closeAllCustomPickers();
-                    return;
+        if (scrollRafId) return;
+        scrollRafId = requestAnimationFrame(() => {
+            scrollRafId = null;
+            const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
+            if (openPicker) {
+                const trigger = openPicker.querySelector('.custom-picker-trigger');
+                if (trigger) {
+                    const triggerRect = trigger.getBoundingClientRect();
+                    const topbar = document.querySelector('.topbar');
+                    const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+                    if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
+                        closeAllCustomPickers();
+                        return;
+                    }
+                    adjustPickerPosition(openPicker, trigger);
                 }
-                adjustPickerPosition(openPicker, trigger);
             }
-        }
+        });
     }, true);
 };
 
@@ -85,6 +91,9 @@ const elevateParents = (wrapper, isOpen) => {
     let el = wrapper.parentElement;
     while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
         if (el.tagName === 'LABEL' ||
+            (el.id && el.id.startsWith('modal-section-')) ||
+            el.classList.contains('tp-modal-panel') ||
+            el.classList.contains('simasadi-modal-box') ||
             el.classList.contains('modal-form-grid-2col') ||
             el.classList.contains('lpk-field-row') ||
             el.classList.contains('lpk-field') ||
@@ -125,80 +134,56 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
     const measuredWidth = popover && popover.offsetWidth > 50 ? popover.offsetWidth : 0;
 
     const isClock = wrapper.classList.contains('custom-clockpicker-wrapper');
-    const defaultHeight = isClock ? 380 : 360;
+    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
+    const defaultHeight = isClock ? 380 : (modalBox ? 260 : 360);
+    const defaultWidth = modalBox ? 280 : 300;
     const popoverHeight = explicitHeight || measuredHeight || defaultHeight;
-    const popoverWidth = explicitWidth || measuredWidth || 300;
+    const popoverWidth = explicitWidth || measuredWidth || defaultWidth;
 
     const triggerRect = trigger.getBoundingClientRect();
-    const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
 
-    let spaceBelow = window.innerHeight - triggerRect.bottom;
-    let boundaryRight = window.innerWidth - 14;
+    // Available space in viewport
+    const viewportHeight = window.innerHeight;
+    const topbar = document.querySelector('.topbar');
+    const topbarBottom = (topbar && !modalBox) ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+
+    const spaceBelowViewport = viewportHeight - triggerRect.bottom - 12;
+    const spaceAboveViewport = triggerRect.top - Math.max(topbarBottom, 12);
+
+    let spaceBelowContext = spaceBelowViewport;
+    let spaceAboveContext = spaceAboveViewport;
 
     if (modalBox) {
         const modalRect = modalBox.getBoundingClientRect();
-        spaceBelow = modalRect.bottom - triggerRect.bottom;
-        const spaceAbove = triggerRect.top - modalRect.top;
-        boundaryRight = modalRect.right - 14;
-
-        // Inside a modal container with scrollable content (overflow-y: auto):
-        // Dropping up is only allowed if there is guaranteed clearance above the trigger within the modal box,
-        // so that the popover top never extends above modalRect.top (which would be clipped because scrollTop cannot scroll negative).
-        // Therefore, spaceAbove must strictly exceed popoverHeight + 24px safety buffer.
-        // Otherwise, always drop down. Dropping down expands the modal scrollable area,
-        // which ensurePickerInView smoothly scrolls into view with zero clipping.
-        const requiredAbove = popoverHeight + 24;
-        if (spaceBelow < popoverHeight && spaceAbove >= requiredAbove) {
-            wrapper.classList.add('dropup');
-        }
-    } else {
-        // Outside of modal (viewport context)
-        // Measure real available space above the trigger strictly below the sticky topbar!
-        const topbar = document.querySelector('.topbar');
-        const topbarBottom = (topbar && !modalBox) ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
-        const spaceAbove = triggerRect.top - topbarBottom;
-
-        // Only dropup if spaceBelow cannot fit the popover AND spaceAbove has full clearance below the topbar.
-        // Never dropup if it would overlap or enter behind the topbar!
-        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 14) {
-            wrapper.classList.add('dropup');
-        }
-        // Otherwise, always drop down (normal flow). Dropping down stays in the main body where scrolling is natural and clean.
+        spaceBelowContext = modalRect.bottom - triggerRect.bottom - 8;
+        spaceAboveContext = triggerRect.top - modalRect.top - 8;
     }
 
-    if (triggerRect.left + popoverWidth > boundaryRight) {
-        if (triggerRect.right - popoverWidth >= 12 || modalBox) {
-            wrapper.classList.add('align-right');
-        } else if (popover) {
-            const overflowAmount = (triggerRect.left + popoverWidth) - (window.innerWidth - 12);
-            if (overflowAmount > 0) {
-                popover.style.left = `-${overflowAmount}px`;
-            }
-        }
+    // Dynamic responsive flip:
+    // Drop down by default if there is comfortable space below.
+    // If it cannot fit below, flip up if there is more space above or if it fits above.
+    const fitsBelow = (spaceBelowViewport >= popoverHeight) && (!modalBox || spaceBelowContext >= popoverHeight);
+    const fitsAbove = spaceAboveViewport >= popoverHeight;
+
+    if (!fitsBelow && (fitsAbove || spaceAboveViewport > spaceBelowViewport)) {
+        wrapper.classList.add('dropup');
+    }
+
+    // Horizontal alignment
+    const boundaryRight = modalBox ? (modalBox.getBoundingClientRect().right - 14) : (window.innerWidth - 14);
+    const isRightColumn = window.innerWidth > 520 && Boolean(trigger.closest('.modal-form-grid-2col > label:last-child, .modal-form-grid-2col > div:last-child'));
+
+    if (triggerRect.left + popoverWidth > boundaryRight || isRightColumn) {
+        wrapper.classList.add('align-right');
     } else if (triggerRect.left < 12 && popover) {
         popover.style.left = `${12 - triggerRect.left}px`;
     }
 };
 
 const ensurePickerInModalView = (wrapper, modalBox) => {
-    requestAnimationFrame(() => {
-        const popover = wrapper.querySelector('.custom-picker-popover');
-        if (!popover || !wrapper.classList.contains('is-open')) return;
-
-        const popoverRect = popover.getBoundingClientRect();
-        const modalRect = modalBox.getBoundingClientRect();
-
-        // If bottom extends below modal's visible bottom
-        if (popoverRect.bottom > modalRect.bottom - 12) {
-            const scrollDistance = popoverRect.bottom - modalRect.bottom + 24;
-            modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
-        }
-        // If top extends above modal's visible top (in case dropup was used with prior scroll)
-        else if (popoverRect.top < modalRect.top + 12) {
-            const scrollDistance = popoverRect.top - modalRect.top - 24;
-            modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
-        }
-    });
+    // In modal dialogs, do NOT scroll the internal modal container when a picker opens.
+    // The popover floats above form fields and footer buttons via high z-index without shifting scroll position or tabs.
+    return;
 };
 
 const ensurePickerInView = (wrapper) => {
@@ -804,6 +789,9 @@ const createCustomDatePicker = (input) => {
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         currentView = 'days';
         yearGridStart = Math.floor(viewYear / 12) * 12;
         wrapper.classList.add('is-open');
@@ -831,6 +819,9 @@ const createCustomDatePicker = (input) => {
     trigger.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         togglePopover();
     });
 
@@ -839,6 +830,11 @@ const createCustomDatePicker = (input) => {
     input.addEventListener('change', () => syncFromNative());
     input.addEventListener('input', () => syncFromNative());
     input.form?.addEventListener('reset', () => setTimeout(syncFromNative, 20));
+
+    wrapper._customPickerInstance = true;
+    wrapper._customPickerToggle = togglePopover;
+    wrapper._customPickerOpen = openPopover;
+    wrapper._customPickerClose = closePopover;
 
     attachValueInterceptor(input, () => syncFromNative());
 
@@ -1242,6 +1238,9 @@ const createCustomClockPicker = (input) => {
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
         elevateParents(wrapper, true);
@@ -1267,6 +1266,9 @@ const createCustomClockPicker = (input) => {
     trigger.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         togglePopover();
     });
 
@@ -1275,6 +1277,11 @@ const createCustomClockPicker = (input) => {
     input.addEventListener('change', () => syncFromNative());
     input.addEventListener('input', () => syncFromNative());
     input.form?.addEventListener('reset', () => setTimeout(syncFromNative, 20));
+
+    wrapper._customPickerInstance = true;
+    wrapper._customPickerToggle = togglePopover;
+    wrapper._customPickerOpen = openPopover;
+    wrapper._customPickerClose = closePopover;
 
     attachValueInterceptor(input, () => syncFromNative());
 
@@ -1286,6 +1293,20 @@ const createCustomClockPicker = (input) => {
 // ==========================================================================
 export const initCustomDatePickers = (container = document) => {
     setupGlobalPickerListeners();
+
+    // Self-healing: unwrap stale datepicker wrappers if missing active JS instance
+    container.querySelectorAll('.custom-datepicker-wrapper').forEach((wrapper) => {
+        if (!wrapper._customPickerInstance) {
+            const nativeInput = wrapper.querySelector('input.custom-picker-native') || wrapper.querySelector('input[type="date"]');
+            if (nativeInput) {
+                nativeInput.classList.remove('custom-picker-native');
+                delete nativeInput.dataset.customPickerInit;
+                wrapper.parentNode.insertBefore(nativeInput, wrapper);
+            }
+            wrapper.remove();
+        }
+    });
+
     const inputs = container.querySelectorAll('input[type="date"]:not([data-custom-picker-init])');
     inputs.forEach((input) => {
         if (input.dataset.noCustom !== undefined) return;
@@ -1296,6 +1317,20 @@ export const initCustomDatePickers = (container = document) => {
 
 export const initCustomClockPickers = (container = document) => {
     setupGlobalPickerListeners();
+
+    // Self-healing: unwrap stale clockpicker wrappers if missing active JS instance
+    container.querySelectorAll('.custom-clockpicker-wrapper').forEach((wrapper) => {
+        if (!wrapper._customPickerInstance) {
+            const nativeInput = wrapper.querySelector('input.custom-picker-native') || wrapper.querySelector('input[type="time"]');
+            if (nativeInput) {
+                nativeInput.classList.remove('custom-picker-native');
+                delete nativeInput.dataset.customPickerInit;
+                wrapper.parentNode.insertBefore(nativeInput, wrapper);
+            }
+            wrapper.remove();
+        }
+    });
+
     const inputs = container.querySelectorAll('input[type="time"]:not([data-custom-picker-init])');
     inputs.forEach((input) => {
         if (input.dataset.noCustom !== undefined) return;

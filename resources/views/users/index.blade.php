@@ -53,7 +53,10 @@
         <div class="table-filter-grid">
             <label>
                 Cari Pengguna
-                <input type="search" name="search" value="{{ $search }}" placeholder="Nama atau alamat email..." autocomplete="off">
+                <div class="table-filter-search-wrap">
+                    <x-icon name="search" size="16" class="table-filter-search-icon" />
+                    <input type="search" name="search" value="{{ $search }}" placeholder="Nama atau alamat email..." autocomplete="off">
+                </div>
             </label>
 
             <label>

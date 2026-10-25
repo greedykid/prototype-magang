@@ -38,7 +38,7 @@ class GoogleSheetsIntegrationTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
         $content = $response->streamedContent();
-        $this->assertStringContainsString('Nomor Registrasi', $content);
+        $this->assertStringContainsString('No Reg LPK', $content);
         $this->assertStringContainsString('Nama Lembaga Penilaian Kesesuaian', $content);
         $this->assertStringContainsString('Lab Kalibrasi Presisi Nasional', $content);
         $this->assertStringContainsString('LK-777-IDN', $content);
@@ -64,6 +64,8 @@ class GoogleSheetsIntegrationTest extends TestCase
 
     public function test_google_sheets_live_feed_endpoint_with_valid_key(): void
     {
+        config(['services.sheets.feed_key' => 'valid-secret-key-kan-2026']);
+
         $lpk = Lpk::factory()->create(['name' => 'LPK Pengujian Unggulan']);
         Assessment::factory()->create([
             'lpk_id' => $lpk->id,
@@ -71,7 +73,7 @@ class GoogleSheetsIntegrationTest extends TestCase
         ]);
 
         // Akses publik oleh crawler Google Sheets via feed endpoint
-        $response = $this->get(route('feeds.assessments', ['key' => 'simasadi-live']));
+        $response = $this->get(route('feeds.assessments', ['key' => 'valid-secret-key-kan-2026']));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
@@ -82,26 +84,36 @@ class GoogleSheetsIntegrationTest extends TestCase
         $this->assertStringContainsString('Asesmen Lapangan Bersama', $content);
     }
 
+    public function test_google_sheets_live_feed_endpoint_rejects_default_placeholder_key(): void
+    {
+        config(['services.sheets.feed_key' => 'simasadi-live']);
+
+        $response = $this->get(route('feeds.assessments', ['key' => 'simasadi-live']));
+
+        $response->assertStatus(401);
+        $this->assertStringContainsString('Unauthorized', $response->getContent());
+    }
+
     public function test_google_sheets_live_feed_endpoint_rejects_invalid_key(): void
     {
+        config(['services.sheets.feed_key' => 'valid-secret-key-kan-2026']);
+
         $response = $this->get(route('feeds.assessments', ['key' => 'invalid-token-123']));
 
         $response->assertStatus(401);
         $this->assertStringContainsString('Unauthorized', $response->getContent());
     }
 
-    public function test_ui_renders_google_sheets_modal_and_formula(): void
+    public function test_ui_renders_export_modal(): void
     {
         $assessmentsPage = $this->actingAs($this->user)->get(route('assessments.index'));
         $assessmentsPage->assertOk();
-        $assessmentsPage->assertSee('Google Sheets');
+        $assessmentsPage->assertSee('Ekspor Data');
         $assessmentsPage->assertSee('modal-sheets-sync-assessments');
-        $assessmentsPage->assertSee('=IMPORTDATA(', false);
 
         $lpksPage = $this->actingAs($this->user)->get(route('lpks.index'));
         $lpksPage->assertOk();
-        $lpksPage->assertSee('Google Sheets');
+        $lpksPage->assertSee('Ekspor Data');
         $lpksPage->assertSee('modal-sheets-sync-lpks');
-        $lpksPage->assertSee('=IMPORTDATA(', false);
     }
 }

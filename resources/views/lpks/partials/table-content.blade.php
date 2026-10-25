@@ -15,9 +15,9 @@
                     <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
                         <input type="checkbox" class="table-select-all" data-table-id="lpks-table" aria-label="Pilih semua LPK di halaman ini">
                     </th>
-                    <th data-label="No Akreditasi" class="col-th-no">NO. AKREDITASI</th>
-                    <th data-label="Nama LPK" class="col-th-name">NAMA LPK</th>
-                    <th data-label="Masa Berlaku" class="col-th-validity">
+                    <th data-label="No Akreditasi" class="col-th-no" data-sort-field="accreditation_number">NO. AKREDITASI</th>
+                    <th data-label="Nama Laboratorium" class="col-th-name" data-sort-field="name">NAMA LABORATORIUM</th>
+                    <th data-label="Masa Berlaku" class="col-th-validity" data-sort-field="expired_at">
                         <div class="th-header-dual">
                             <span class="th-title-main">MASA BERLAKU</span>
                             <span class="th-title-sub">AWAL &amp; AKHIR</span>
@@ -38,15 +38,15 @@
                         <!-- 1. NO AKREDITASI -->
                         <td class="col-lpk-no" data-sort-value="{{ $lpk->accreditation_number ?: $lpk->registration_number }}">
                             <div class="lpk-card-reg-wrap">
-                                <a href="{{ route('lpks.show', $lpk) }}" class="hover-underline lpk-reg-link" title="Buka rincian LPK">
+                                <a href="{{ route('lpks.show', $lpk) }}" class="lpk-reg-link" title="Buka rincian LPK">
                                     {{ $lpk->accreditation_number ?: $lpk->registration_number }}
                                 </a>
                             </div>
                         </td>
 
-                        <!-- 2. NAMA LPK -->
+                        <!-- 2. NAMA LABORATORIUM -->
                         <td class="col-lpk-name" data-sort-value="{{ $lpk->name }}">
-                            <a href="{{ route('lpks.show', $lpk) }}" class="hover-underline lpk-name-link" title="Buka rincian LPK">
+                            <a href="{{ route('lpks.show', $lpk) }}" class="lpk-name-link" title="Buka rincian LPK">
                                 {{ $lpk->name }}
                             </a>
                             <div class="lpk-status-wrap">
@@ -135,23 +135,20 @@
                                     @if(str_contains($dynamicKet, ':'))
                                         @php
                                             [$processName, $statusDetail] = explode(':', $dynamicKet, 2);
+                                            $cleanProcessName = str_replace([' (Akreditasi Ulang)', ' (RA)'], '', trim($processName));
                                         @endphp
                                         <div class="lpk-note-header">
                                             <span class="lpk-note-badge">
-                                                {{ trim($processName) }}
+                                                {{ $cleanProcessName }}
                                             </span>
-                                            <span class="lpk-cat-tag">
-                                                {{ $catLabel }}
-                                            </span>
+                                            <span class="lpk-cat-tag">[{{ $catLabel }}]</span>
                                         </div>
                                         <div class="lpk-note-body">
                                             {{ trim($statusDetail) }}
                                         </div>
                                     @else
                                         <div class="lpk-note-header">
-                                            <span class="lpk-cat-tag">
-                                                {{ $catLabel }}
-                                            </span>
+                                            <span class="lpk-cat-tag">[{{ $catLabel }}]</span>
                                         </div>
                                         <div class="lpk-note-body font-semibold">
                                             {{ $dynamicKet }}

@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\AccountLinkController;
-use App\Http\Controllers\AccreditationController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentImportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
@@ -33,6 +33,7 @@ Route::middleware('throttle:60,1')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     // 1. Fitur bersama & operasional unit internal (Admin & PIC)
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/search/live', [GlobalSearchController::class, 'search'])->name('search.live');
     Route::get('/calendar', [CalendarEventController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events/create', [CalendarEventController::class, 'create'])->name('calendar.events.create');
     Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar.events.store');
@@ -46,7 +47,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/lpks/create', [LpkController::class, 'create'])->name('lpks.create');
     Route::post('/lpks', [LpkController::class, 'store'])->name('lpks.store');
     Route::get('/lpks/import/template', [LpkImportController::class, 'downloadTemplate'])->name('lpks.import.template');
-    Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import');
+    Route::post('/lpks/import', [LpkImportController::class, 'import'])->name('lpks.import')->middleware('throttle:15,1');
     Route::get('/lpks/{lpk}', [LpkController::class, 'show'])->name('lpks.show')->whereNumber('lpk');
     Route::get('/lpks/{lpk}/edit', [LpkController::class, 'edit'])->name('lpks.edit')->whereNumber('lpk');
     Route::put('/lpks/{lpk}', [LpkController::class, 'update'])->name('lpks.update')->whereNumber('lpk');
@@ -61,7 +62,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/assessments/create', [AssessmentController::class, 'create'])->name('assessments.create');
     Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
     Route::get('/assessments/import/template', [AssessmentImportController::class, 'downloadTemplate'])->name('assessments.import.template');
-    Route::post('/assessments/import', [AssessmentImportController::class, 'import'])->name('assessments.import');
+    Route::post('/assessments/import', [AssessmentImportController::class, 'import'])->name('assessments.import')->middleware('throttle:15,1');
     Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show')->whereNumber('assessment');
     Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit')->whereNumber('assessment');
     Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])->name('assessments.update')->whereNumber('assessment');
@@ -70,8 +71,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/assessments/{assessment}/tp-tracking', [AssessmentController::class, 'updateTp'])->name('assessments.tp.update')->whereNumber('assessment');
 
     // Ekspor CSV Terotentikasi & Integrasi Google Sheets
-    Route::get('/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
-    Route::get('/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
+    Route::match(['get', 'post'], '/reports/lpks/export', [GoogleSheetsReportController::class, 'exportLpks'])->name('reports.lpks.export');
+    Route::match(['get', 'post'], '/reports/assessments/export', [GoogleSheetsReportController::class, 'exportAssessments'])->name('reports.assessments.export');
 
     // Pengaturan Profil & Kata Sandi Pengguna
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -91,8 +92,5 @@ Route::middleware('auth')->group(function (): void {
         // Manajemen Anggota (Pengguna & Hak Akses PIC / Admin)
         Route::resource('users', UserController::class);
         Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
-
-        Route::get('/accreditations', [AccreditationController::class, 'index'])->name('accreditations.index');
-        Route::get('/accreditations/{accreditation}', [AccreditationController::class, 'show'])->name('accreditations.show');
     });
 });

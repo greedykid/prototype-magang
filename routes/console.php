@@ -11,8 +11,21 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna}', function () {
+Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna} {--force : Jalankan pengosongan data tanpa konfirmasi interaktif}', function () {
     $includeUsers = (bool) $this->option('include-users');
+    $force = (bool) $this->option('force');
+
+    if (app()->isProduction() && ! $force) {
+        $this->error('Perintah data:clear dilarang dijalankan pada environment production tanpa opsi --force!');
+        return 1;
+    }
+
+    if (! $force) {
+        if (! $this->confirm('PERINGATAN: Perintah ini akan menghapus seluruh data operasional SIMASADI. Apakah Anda yakin ingin melanjutkan?')) {
+            $this->info('Operasi pengosongan data dibatalkan.');
+            return 0;
+        }
+    }
 
     $this->warn('Mengosongkan data transaksi dan master SIMASADI...');
 
@@ -24,7 +37,8 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     }
 
     $tables = [
-        'accreditations',
+        'lpk_members',
+        'user_account_links',
         'assessments',
         'calendar_events',
         'lpks',
@@ -61,47 +75,63 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $force = (bool) $this->option('force');
     $this->info('Memeriksa status siklus pengawasan KAN (S1, S2, Re-Akreditasi)...');
 
-    $lpks = \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])->get();
     $notifiedCount = 0;
     $activeNoticeCount = 0;
 
-    // Alur Opsi 2: Ambil seluruh email staf PIC internal Unit Akreditasi Laboratorium BSN
-    $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
-    if (empty($picEmails)) {
-        $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
+    // Fallback penerima jika LPK belum memiliki PIC yang ditugaskan
+    $fallbackEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
+    if (empty($fallbackEmails)) {
+        $fallbackEmails = [config('mail.from.address', 'simasadi@kan.or.id')];
     }
-    if (empty($picEmails)) {
-        $picEmails = [config('mail.from.address', 'simasadi@kan.or.id')];
-    }
-    $picSummary = implode(', ', $picEmails);
-    $this->line("Target penerima pengingat internal: {$picSummary}");
 
-    foreach ($lpks as $lpk) {
-        $alerts = $lpk->getActiveSurveillanceAlerts();
-        if (empty($alerts)) {
-            continue;
-        }
+    \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
+        ->with(['assessments', 'pic', 'members'])
+        ->chunk(100, function ($lpks) use (&$notifiedCount, &$activeNoticeCount, $force, $fallbackEmails) {
+            foreach ($lpks as $lpk) {
+                $alerts = $lpk->getActiveSurveillanceAlerts();
+                if (empty($alerts)) {
+                    continue;
+                }
 
-        $activeNoticeCount += count($alerts);
+                $activeNoticeCount += count($alerts);
 
-        foreach ($alerts as $alert) {
-            $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
+                if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
+                    $this->line("  ℹ {$lpk->registration_number} - {$lpk->name}: Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
+                    continue;
+                }
 
-            if (! $force && $lpk->last_surveillance_notified_at && $lpk->last_surveillance_notified_at->isToday()) {
-                $this->line("    ℹ Email sudah dikirim hari ini ({$lpk->last_surveillance_notified_at->format('H:i')}). Gunakan --force untuk mengirim ulang.");
-                continue;
+                $targetEmails = array_values(array_unique(array_filter([
+                    $lpk->pic?->email,
+                    ...$lpk->members->pluck('email')->all(),
+                ])));
+
+                if (empty($targetEmails)) {
+                    $targetEmails = $fallbackEmails;
+                }
+                $targetSummary = implode(', ', $targetEmails);
+
+                $hasSentForLpk = false;
+
+                foreach ($alerts as $alert) {
+                    $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
+
+                    try {
+                        $delay = now()->addSeconds($notifiedCount * 2);
+                        $mailable = (new \App\Mail\SurveillanceReminderMail($lpk, $alert))->delay($delay);
+                        \Illuminate\Support\Facades\Mail::to($targetEmails)->queue($mailable);
+                        $notifiedCount++;
+                        $hasSentForLpk = true;
+                        $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim ({$targetSummary}).");
+                    } catch (\Throwable $e) {
+                        $this->error("    ✗ Gagal mengirim email pengingat: " . $e->getMessage());
+                    }
+                }
+
+                if ($hasSentForLpk) {
+                    $lpk->update(['last_surveillance_notified_at' => now()]);
+                }
             }
-
-            try {
-                \Illuminate\Support\Facades\Mail::to($picEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $alert));
-                $lpk->update(['last_surveillance_notified_at' => now()]);
-                $notifiedCount++;
-                $this->info("    ✓ Email pengingat internal berhasil dikirim ke PIC ({$picSummary}) via Mailtrap.");
-            } catch (\Throwable $e) {
-                $this->error("    ✗ Gagal mengirim email ke PIC: " . $e->getMessage());
-            }
-        }
-    }
+        });
 
     $this->info("Pemeriksaan selesai. Total {$activeNoticeCount} notifikasi aktif terdeteksi, {$notifiedCount} email pemberitahuan terkirim.");
 })->purpose('Memeriksa jadwal jatuh tempo pengawasan KAN untuk seluruh LPK dan mengirim email pengingat ke staf/PIC internal Unit Akreditasi Laboratorium BSN.');
@@ -109,16 +139,17 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
 Artisan::command('lpk:generate-assessments', function () {
     $this->info('Menjalankan pembuatan otomatis agenda asesmen surveilen & re-akreditasi LPK...');
 
-    $lpks = \App\Models\Lpk::all();
     $totalCreated = 0;
 
-    foreach ($lpks as $lpk) {
-        $count = $lpk->generateSurveillanceAssessments();
-        if ($count > 0) {
-            $this->line("  ✓ {$lpk->registration_number} ({$lpk->name}): {$count} agenda asesmen berhasil dibuat.");
-            $totalCreated += $count;
+    \App\Models\Lpk::with('assessments')->chunkById(100, function ($lpks) use (&$totalCreated) {
+        foreach ($lpks as $lpk) {
+            $count = $lpk->generateSurveillanceAssessments();
+            if ($count > 0) {
+                $this->line("  ✓ {$lpk->registration_number} ({$lpk->name}): {$count} agenda asesmen berhasil dibuat.");
+                $totalCreated += $count;
+            }
         }
-    }
+    });
 
     $this->info("Selesai! Sebanyak {$totalCreated} agenda asesmen surveilen berhasil dibuat/disinkronkan.");
 })->purpose('Otomatis membuat agenda asesmen surveilen (S1, S2) dan Re-Akreditasi (RA) untuk seluruh LPK berdasarkan siklus tanggal sertifikat KAN.');
@@ -129,10 +160,26 @@ Schedule::command('lpk:check-surveillance')
     ->runInBackground();
 
 Artisan::command('assessments:sync-overdue-status', function () {
-    $count = \App\Models\Assessment::query()
+    $count = 0;
+
+    \App\Models\Assessment::query()
+        ->with('lpk')
         ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
         ->tpOverdue()
-        ->update(['status' => 'SUSPENDED']);
+        ->chunkById(100, function ($assessments) use (&$count) {
+            foreach ($assessments as $assessment) {
+                // Cegah pembekuan otomatis untuk riwayat surveilen siklus lampau pada LPK aktif
+                if ($assessment->isPastSurveillanceForActiveLpk()) {
+                    continue;
+                }
+
+                $assessment->status = 'SUSPENDED';
+                $assessment->save();
+                $count++;
+            }
+        });
+
+    \App\Services\LpkSurveillanceService::invalidateAlertsCache();
 
     $this->info("Sinkronisasi status selesai: {$count} asesmen yang melewati batas waktu KAN diperbarui menjadi SUSPENDED.");
 })->purpose('Menyinkronkan status asesmen yang melewati batas waktu tindakan perbaikan menjadi SUSPENDED.');

@@ -44,10 +44,15 @@
                 <x-icon name="edit" size="16" />
                 <span>Ubah agenda</span>
             </a>
-            <form method="POST" action="{{ route('calendar.events.destroy', $event) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus agenda \'{{ addslashes($event->title) }}\'? Tindakan ini tidak dapat dibatalkan.');" style="margin: 0; display: inline-block;">
+            <form method="POST" action="{{ route('calendar.events.destroy', $event) }}"
+                  data-confirm-delete
+                  data-confirm-title="Hapus Agenda Kegiatan?"
+                  data-confirm-text="Apakah Anda yakin ingin menghapus agenda '{{ $event->title }}'? Tindakan ini tidak dapat dibatalkan."
+                  data-confirm-btn="Ya, Hapus Agenda"
+                  style="margin: 0; display: inline-block;">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="button danger" style="background: #dc2626; border-color: #b91c1c; color: #ffffff; display: inline-flex; align-items: center; gap: 6px;" title="Hapus Agenda">
+                <button type="submit" class="button danger" style="display: inline-flex; align-items: center; gap: 6px;" title="Hapus Agenda">
                     <x-icon name="trash" size="16" />
                     <span>Hapus</span>
                 </button>

@@ -1,6 +1,6 @@
 @if($users->count() > 0)
     <div class="table-wrap">
-        <table>
+        <table id="users-table">
             <thead>
                 <tr>
                     <th style="min-width: 200px;">Identitas Anggota</th>
@@ -20,11 +20,11 @@
                                 </span>
                                 <div style="min-width: 0;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="color: var(--ink); font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
+                                        <a href="{{ route('users.show', $userItem) }}" style="color: var(--ink); font-size: 13.5px; font-weight: 700; text-decoration: none;" title="Buka rincian profil dan LPK yang dikerjakan">
                                             {{ $userItem->name }}
                                         </a>
                                         @if(auth()->id() === $userItem->id)
-                                            <span class="badge badge-counter" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px;">Akun Anda</span>
+                                            <span class="badge badge-counter" style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: var(--radius-pill, 9999px);">Akun Anda</span>
                                         @endif
                                     </div>
                                     <div style="color: var(--muted); font-size: 12px; margin-top: 2px;">{{ $userItem->email }}</div>
@@ -32,9 +32,14 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge-role {{ $userItem->role_badge_class }}">
-                                {{ $userItem->role_label }}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span class="badge-role {{ $userItem->role_badge_class }}">
+                                    {{ $userItem->role_label }}
+                                </span>
+                                <span class="badge" style="font-size: 11px; font-weight: 600; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-pill, 9999px); padding: 1px 7px;" title="Akun terdaftar dan aktif di sistem">
+                                    Aktif
+                                </span>
+                            </div>
                         </td>
                         <td>
                             @php
@@ -43,7 +48,7 @@
                                 $totalLab = $leadCount + $memberCount;
                             @endphp
                             @if($totalLab > 0)
-                                <a href="{{ route('users.show', $userItem) }}" class="hover-underline" style="display: inline-flex; flex-direction: column; gap: 3px; text-decoration: none;" title="Lihat rincian {{ $totalLab }} laboratorium yang dikerjakan">
+                                <a href="{{ route('users.show', $userItem) }}" style="display: inline-flex; flex-direction: column; gap: 3px; text-decoration: none;" title="Lihat rincian {{ $totalLab }} laboratorium yang dikerjakan">
                                     <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                                         @if($leadCount > 0)
                                             <span class="badge badge-pic-lead">

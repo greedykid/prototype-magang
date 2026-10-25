@@ -19,7 +19,7 @@
                 @foreach($assessments as $assessment)
                     <tr class="clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->display_title }}">
                         <td>
-                            <a href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" class="hover-underline" style="font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block;">
+                            <a href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" style="font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block;">
                                 {{ $assessment->display_title }}
                             </a>
                             @php
@@ -47,7 +47,7 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="hover-underline" style="color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; display: block;" title="Buka rincian LPK">
+                            <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" style="color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; display: block;" title="Buka rincian LPK">
                                 {{ $assessment->lpk->name }}
                             </a>
                             <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 2px;">{{ $assessment->lpk->registration_number }}</span>
@@ -56,17 +56,15 @@
                             {{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}
                         </td>
                         <td>
-                            @php $badge = $assessment->tp_sla_badge; @endphp
-                            <div style="display: flex; flex-direction: column; gap: 3px;">
-                                <span class="badge-tp badge-tp-{{ $badge['type'] }}" title="{{ $badge['detail'] }}">
-                                    {{ $badge['label'] }}
-                                </span>
-                                @if($assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE)
-                                    <small style="color: var(--muted); font-size: 11px;">
-                                        Batas: {{ $assessment->effective_tp_due_date->format('d/m/Y') }}
-                                    </small>
-                                @endif
-                            </div>
+                            @php
+                                $badge = $assessment->tp_sla_badge;
+                                $hasDueDate = $assessment->effective_tp_due_date && $assessment->tp_status !== \App\Models\Assessment::TP_STATUS_NONE;
+                            @endphp
+                            @if($hasDueDate)
+                                <strong style="font-size: 14px; font-weight: 700; color: var(--ink); display: inline-block;" title="{{ $badge['label'] }} - {{ $badge['detail'] }}">{{ $assessment->effective_tp_due_date->format('d/m/Y') }}</strong>
+                            @else
+                                <span style="color: var(--muted); font-size: 13px;">-</span>
+                            @endif
                         </td>
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
@@ -95,16 +93,16 @@
         {{ $assessments->links() }}
     </div>
 @else
-    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 8px; margin-top: 16px;">
+    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px); margin-top: 16px;">
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 12px;">
             <x-icon name="assessments" size="24" />
         </div>
-        <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Tidak Ada Program Asesmen Ditemukan</div>
+        <div style="font-size: 14px; font-weight: 600; color: var(--ink);">Tidak Ada Asesmen Ditemukan</div>
         <p style="font-size: 12.5px; color: var(--muted); margin: 4px 0 0; line-height: 1.5;">
             @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))
                 Tidak ada agenda asesmen milik akun {{ $owner->name }} yang sesuai dengan kriteria filter saat ini.
             @else
-                Akun {{ $owner->name }} saat ini belum memiliki agenda program asesmen terdaftar.
+                Akun {{ $owner->name }} saat ini belum memiliki agenda asesmen terdaftar.
             @endif
         </p>
         @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))

@@ -1,12 +1,13 @@
 import { setDrawerState } from './sidebar.js';
 import { returnModalToPlaceholder, closeModal } from './modals.js';
-import { returnPopoverToPlaceholder, closeEventPopover } from './calendar.js';
+import { returnPopoverToPlaceholder, closeEventPopover, stopGcalLiveTimeLine } from './calendar.js';
 import { closeAllCustomPickers } from './custom-picker.js';
 import { renderSkeletonForType } from './spa/skeletons.js';
 import { getPageTypeAndTitle } from './spa/route-matcher.js';
 import {
     PAGE_CACHE_TTL,
     pageCache,
+    setPageCache,
     prefetchInFlight,
     clearPageCache,
     clearCalendarCache,
@@ -20,7 +21,10 @@ import {
     prefetchUrl
 } from './spa/router-cache.js';
 import { handleCalendarTransition } from './spa/calendar-handler.js';
+import { syncBottomNavActive, setBottomSheetState } from './bottom-nav.js';
 
+let currentNavSequence = 0;
+let activeNavAbortController = null;
 let isNavigating = false;
 let onNavigateCallback = null;
 
@@ -28,6 +32,8 @@ let onNavigateCallback = null;
  * Clean up active popovers, modals, and custom pickers prior to navigation
  */
 const cleanupActiveOverlays = () => {
+    if (typeof stopGcalLiveTimeLine === 'function') stopGcalLiveTimeLine();
+
     if (typeof closeEventPopover === 'function') closeEventPopover();
     else window.closeEventPopover?.();
 
@@ -38,6 +44,9 @@ const cleanupActiveOverlays = () => {
 
     if (typeof closeAllCustomPickers === 'function') closeAllCustomPickers();
     else window.closeAllCustomPickers?.();
+
+    if (typeof setBottomSheetState === 'function') setBottomSheetState(false);
+    else window.setBottomSheetState?.(false);
 
     window.closeNotificationDropdown?.();
 
@@ -71,6 +80,12 @@ const updateActiveNavLinks = (targetPath) => {
             : (targetPath.startsWith(linkPath) && linkPath !== '/');
         link.classList.toggle('active', isActive);
     });
+
+    if (typeof syncBottomNavActive === 'function') {
+        syncBottomNavActive(targetPath);
+    } else if (typeof window.syncBottomNavActive === 'function') {
+        window.syncBottomNavActive(targetPath);
+    }
 };
 
 /**
@@ -120,7 +135,14 @@ const navigateTo = async (url, pushState = true) => {
         return;
     }
 
-    if (isNavigating) return;
+    // Sequence control: cancel any in-flight navigation if user switched quickly
+    const thisNavSequence = ++currentNavSequence;
+    if (activeNavAbortController) {
+        activeNavAbortController.abort();
+    }
+    activeNavAbortController = new AbortController();
+    const { signal } = activeNavAbortController;
+
     isNavigating = true;
 
     try {
@@ -172,20 +194,27 @@ const navigateTo = async (url, pushState = true) => {
             htmlText = await prefetchInFlight.get(cleanTargetUrl);
         }
 
+        if (thisNavSequence !== currentNavSequence) return;
+
         if (!htmlText) {
             // Debounced skeleton: Only show skeleton if fetch takes longer than 150ms
             const skeletonTimer = setTimeout(() => {
-                skeletonRendered = true;
-                pageWrap.innerHTML = renderSkeletonForType(type);
+                if (thisNavSequence === currentNavSequence) {
+                    skeletonRendered = true;
+                    pageWrap.innerHTML = renderSkeletonForType(type);
+                }
             }, 150);
 
             const response = await fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                signal
             });
 
             clearTimeout(skeletonTimer);
+
+            if (thisNavSequence !== currentNavSequence) return;
 
             if (response.redirected) {
                 if (skeletonRendered) {
@@ -198,12 +227,14 @@ const navigateTo = async (url, pushState = true) => {
             fetchUrlRedirect = response.url;
             htmlText = await response.text();
             if (isCacheableUrl(url)) {
-                pageCache.set(cleanTargetUrl, {
+                setPageCache(cleanTargetUrl, {
                     htmlText,
                     timestamp: Date.now()
                 });
             }
         }
+
+        if (thisNavSequence !== currentNavSequence) return;
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
@@ -226,36 +257,68 @@ const navigateTo = async (url, pushState = true) => {
             contextTitle.textContent = newContextTitle.textContent;
         }
 
-        pageWrap.innerHTML = newContent.innerHTML;
-
-        pageWrap.classList.remove('page-enter-active');
-        void pageWrap.offsetWidth;
-        pageWrap.classList.add('page-enter-active');
-
-        if (pushState) {
-            window.history.pushState({ url }, '', url);
+        const newMetaCsrf = doc.querySelector('meta[name="csrf-token"]');
+        if (newMetaCsrf) {
+            const currentMeta = document.querySelector('meta[name="csrf-token"]');
+            if (currentMeta) {
+                currentMeta.setAttribute('content', newMetaCsrf.getAttribute('content'));
+            }
         }
 
-        reexecuteScripts(pageWrap);
+        const commitPageUpdate = () => {
+            pageWrap.innerHTML = newContent.innerHTML;
 
-        if (typeof onNavigateCallback === 'function') {
-            onNavigateCallback();
-        } else if (typeof window.initPageComponents === 'function') {
-            window.initPageComponents();
+            const activeCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (activeCsrfToken) {
+                pageWrap.querySelectorAll('input[name="_token"]').forEach(input => {
+                    input.value = activeCsrfToken;
+                });
+            }
+
+            if (pushState) {
+                window.history.pushState({ url }, '', url);
+            }
+
+            reexecuteScripts(pageWrap);
+
+            if (typeof onNavigateCallback === 'function') {
+                onNavigateCallback();
+            } else if (typeof window.initPageComponents === 'function') {
+                window.initPageComponents();
+            }
+
+            window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
+
+            // Schedule proactive idle prewarm for adjacent menus
+            scheduleNavigationPrewarm();
+
+            scrollToAnchorHash(targetUrlObj.hash);
+        };
+
+        if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.startViewTransition(() => {
+                commitPageUpdate();
+            });
+        } else {
+            pageWrap.classList.remove('page-enter-active');
+            commitPageUpdate();
+            requestAnimationFrame(() => {
+                pageWrap.classList.add('page-enter-active');
+            });
         }
-
-        window.dispatchEvent(new CustomEvent('simasadi:page-loaded'));
-
-        // Schedule proactive idle prewarm for adjacent menus
-        scheduleNavigationPrewarm();
-
-        scrollToAnchorHash(targetUrlObj.hash);
     } catch (err) {
+        if (err.name === 'AbortError' || thisNavSequence !== currentNavSequence) {
+            // Superseded by newer navigation request, ignore silently
+            return;
+        }
         console.error('Page transition error, falling back:', err);
         window.location.href = url;
     } finally {
-        document.querySelector('.gcal-shell')?.classList.remove('gcal-is-updating');
-        isNavigating = false;
+        if (thisNavSequence === currentNavSequence) {
+            document.querySelector('.gcal-shell')?.classList.remove('gcal-is-updating');
+            isNavigating = false;
+            activeNavAbortController = null;
+        }
     }
 };
 
@@ -270,6 +333,7 @@ const initSpaRouter = (callback) => {
 
     // Intercept internal link clicks
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const link = event.target.closest('a');
         if (!link) return;
 
@@ -291,8 +355,7 @@ const initSpaRouter = (callback) => {
         const url = new URL(link.href, window.location.origin);
         if (url.origin !== window.location.origin) return;
 
-        if (link.closest('form')) return;
-        if (link.closest('.lpk-table-container .pagination, .lpk-table-container nav[role="navigation"]')) return;
+        if (link.closest('.lpk-table-container .pagination, .lpk-table-container nav[role="navigation"], .assessment-table-container .pagination, .assessment-table-container nav[role="navigation"], .user-table-container .pagination, .user-table-container nav[role="navigation"]')) return;
 
         event.preventDefault();
         navigateTo(link.href);
@@ -301,6 +364,7 @@ const initSpaRouter = (callback) => {
     // Intercept GET filter forms for smooth skeleton transitions
     document.addEventListener('submit', (event) => {
         if (event.defaultPrevented) return;
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const form = event.target.closest('form');
         if (!form || form.method.toUpperCase() !== 'GET') return;
         if (form.hasAttribute('data-partial-filter')) return;
@@ -321,6 +385,7 @@ const initSpaRouter = (callback) => {
 
     // Prefetch on hover (pointerenter), touchstart, and pointerdown (instant mousedown trigger)
     const handlePrefetch = (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const link = event.target.closest('a');
         if (!link) return;
         const href = link.getAttribute('href');
@@ -345,10 +410,18 @@ const initSpaRouter = (callback) => {
     document.addEventListener('pointerdown', handlePrefetch, { passive: true, capture: true });
     document.addEventListener('touchstart', handlePrefetch, { passive: true, capture: true });
 
-    // Invalidate caches when mutative form submits
+    // Invalidate caches and refresh token when mutative form submits
     document.addEventListener('submit', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const form = event.target.closest('form');
         if (form && form.method.toUpperCase() !== 'GET') {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (token) {
+                const tokenInput = form.querySelector('input[name="_token"]');
+                if (tokenInput && tokenInput.value !== token) {
+                    tokenInput.value = token;
+                }
+            }
             clearPageCache();
             clearCalendarCache();
         }

@@ -19,26 +19,25 @@ export const getPageTypeAndTitle = (url) => {
     }
     if (path.includes('/create') || path.includes('/edit')) {
         let title = 'Formulir';
-        if (path.startsWith('/lpks')) title = 'Data LPK';
-        else if (path.startsWith('/accreditations')) title = 'Proses Akreditasi';
-        else if (path.startsWith('/assessments')) title = 'Program Asesmen';
+        if (path.startsWith('/lpks')) title = 'Daftar Laboratorium';
+        else if (path.startsWith('/assessments')) title = 'Daftar Asesmen';
         else if (path.startsWith('/users')) title = 'Manajemen Pengguna';
         else if (path.startsWith('/profile')) title = 'Profil Pengguna';
         return { type: 'form', title };
     }
-    if (path.match(/\/(lpks|accreditations|assessments|users)\/\d+$/)) {
+    if (path.match(/\/(lpks|assessments|users|account-links)\/\d+$/)) {
         let title = 'Detail Data';
-        if (path.startsWith('/lpks')) title = 'Data LPK';
-        else if (path.startsWith('/accreditations')) title = 'Proses Akreditasi';
-        else if (path.startsWith('/assessments')) title = 'Program Asesmen';
+        if (path.startsWith('/lpks')) title = 'Daftar Laboratorium';
+        else if (path.startsWith('/assessments')) title = 'Daftar Asesmen';
         else if (path.startsWith('/users')) title = 'Detail Anggota';
+        else if (path.startsWith('/account-links')) title = 'Akun Tertaut';
         return { type: 'detail', title };
     }
     if (path.startsWith('/profile')) return { type: 'form', title: 'Profil Pengguna' };
-    if (path.startsWith('/assessments')) return { type: 'table', title: 'Program Asesmen' };
-    if (path.startsWith('/lpks')) return { type: 'table', title: 'Data LPK' };
-    if (path.startsWith('/accreditations')) return { type: 'table', title: 'Proses Akreditasi' };
+    if (path.startsWith('/assessments')) return { type: 'table', title: 'Daftar Asesmen' };
+    if (path.startsWith('/lpks')) return { type: 'table', title: 'Daftar Laboratorium' };
     if (path.startsWith('/users')) return { type: 'table', title: 'Manajemen Pengguna' };
+    if (path.startsWith('/account-links')) return { type: 'table', title: 'Akun Tertaut' };
 
     return { type: 'table', title: 'Workspace' };
 };

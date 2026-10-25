@@ -25,7 +25,7 @@
 
 <section class="panel" style="max-width: 680px;">
     @if($errors->any())
-        <div class="alert danger" style="margin-bottom: 20px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+        <div class="alert danger">
             <strong style="display: block; margin-bottom: 6px;">Terdapat kesalahan pada formulir:</strong>
             <ul style="margin: 0; padding-left: 18px;">
                 @foreach($errors->all() as $error)
@@ -43,14 +43,18 @@
 
         <label class="full">
             Nama Lengkap
-            <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Nama resmi personel atau perwakilan laboratorium.</small>
+            <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T." class="@error('name') is-invalid @enderror">
+            @error('name')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
         </label>
 
         <label class="full">
             Alamat Email
-            <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id">
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Digunakan sebagai identitas masuk (login) ke aplikasi.</small>
+            <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id" class="@error('email') is-invalid @enderror">
+            @error('email')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
         </label>
 
         <label class="full">
@@ -60,7 +64,7 @@
                     ->when($user->exists, fn ($q) => $q->where('id', '!=', $user->id))
                     ->exists();
             @endphp
-            <select name="role" required>
+            <select name="role" required class="@error('role') is-invalid @enderror">
                 @if(!$adminExists)
                     <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
                         Ketua Tim (Dit. Akreditasi Laboratorium KAN)
@@ -74,13 +78,12 @@
                     PIC Laboratorium (Laboratorium Penguji / Kalibrasi / Medik)
                 </option>
             </select>
+            @error('role')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
             @if($user->exists && auth()->id() === $user->id)
-                <small style="color: #b91c1c; font-size: 11.5px; display: block; margin-top: 4px;">
+                <small style="color: var(--danger-text, #ef4444); font-size: 11.5px; display: block; margin-top: 4px;">
                     Catatan: Anda tidak dapat mengubah peran akun Anda sendiri untuk menghindari terkunci dari hak akses Ketua Tim.
-                </small>
-            @else
-                <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
-                    Pilih peran sesuai tanggung jawab penugasan pengguna di sistem SIMASADI.
                 </small>
             @endif
         </label>
@@ -88,34 +91,44 @@
         <label class="full">
             Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}">
+                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}" class="@error('password') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                 </button>
             </div>
-            <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
-                {{ $user->exists ? 'Isi bidang ini hanya jika ingin mengatur ulang (reset) kata sandi pengguna.' : 'Kata sandi awal untuk masuk ke akun. Minimal 8 karakter.' }}
-            </small>
+            @error('password')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
         </label>
 
         <label class="full">
             Konfirmasi Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi">
+                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi" class="@error('password_confirmation') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
                 </button>
             </div>
+            @error('password_confirmation')
+                <span class="field-error-text">{{ $message }}</span>
+            @enderror
         </label>
 
-        <div class="form-actions full" style="margin-top: 12px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-            <a href="{{ route('users.index') }}" class="button ghost">Batal</a>
-            <button type="submit" class="button primary">
-                <x-icon name="check" size="16" />
-                <span>{{ $user->exists ? 'Perbarui Pengguna' : 'Simpan Pengguna Baru' }}</span>
-            </button>
+        {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
+        <div class="form-sticky-footer full">
+            <div class="form-sticky-hint">
+                <x-icon name="info" size="15" />
+                <span>{{ $user->exists ? 'Periksa hak akses peran dan kata sandi sebelum memperbarui.' : 'Pastikan seluruh informasi akun pengguna terisi lengkap.' }}</span>
+            </div>
+            <div class="form-sticky-actions">
+                <a href="{{ route('users.index') }}" class="button ghost">Batal</a>
+                <button type="submit" class="button primary">
+                    <x-icon :name="$user->exists ? 'check' : 'plus'" size="16" />
+                    <span>{{ $user->exists ? 'Perbarui Pengguna' : 'Simpan Pengguna Baru' }}</span>
+                </button>
+            </div>
         </div>
     </form>
 </section>

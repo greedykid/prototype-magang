@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLpkRequest;
 use App\Http\Requests\UpdateLpkNotesRequest;
 use App\Http\Requests\UpdateLpkRequest;
+use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -28,18 +29,27 @@ class LpkController extends Controller
             $perPage = 10;
         }
 
+        $searchTerms = Assessment::expandSearchTerms($search);
         $query = Lpk::query()
             ->primaryFor($user)
-            ->when($search, fn ($query) => $query->where(fn ($query) => $query
+            ->when($search, fn ($query) => $query->where(fn ($subQuery) => $subQuery
                 ->where('name', 'like', "%{$search}%")
+                ->orWhere('registration_number', 'like', "%{$search}%")
                 ->orWhere('no_reg', 'like', "%{$search}%")
                 ->orWhere('accreditation_number', 'like', "%{$search}%")
                 ->orWhere('accreditation_type', 'like', "%{$search}%")
-                ->orWhere('registration_number', 'like', "%{$search}%")
                 ->orWhere('scope', 'like', "%{$search}%")
                 ->orWhere('address', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhereHas('assessments', function ($aq) use ($searchTerms, $search) {
+                    $aq->where(function ($sub) use ($searchTerms) {
+                        foreach ($searchTerms as $term) {
+                            $sub->orWhere('title', 'like', "%{$term}%")
+                                ->orWhere('assessment_type', 'like', "%{$term}%");
+                        }
+                    })
+                    ->orWhere('sk_number', 'like', "%{$search}%")
+                    ->orWhere('lead_assessor', 'like', "%{$search}%");
+                })
             ));
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
@@ -56,43 +66,19 @@ class LpkController extends Controller
             $query->where('status', 'INACTIVE');
         }
 
-        $needsDynamicStatusFilter = in_array($status, [
-            'GRACE_PERIOD', 'REVOKED', 'SUSPENDED', 'SURVEILLANCE_OVERDUE', 'SURVEILLANCE_DUE', 'EXPIRED', 'ACTIVE',
-        ], true);
-        $needsSurveillanceFilter = ! empty($surveillance);
+        $query->filterDynamicStatusAndSurveillance($status, $surveillance);
 
-        if ($needsDynamicStatusFilter || $needsSurveillanceFilter) {
-            $candidateLpks = (clone $query)->with('assessments')->get();
-            foreach ($candidateLpks as $candidate) {
-                foreach ($candidate->assessments as $asm) {
-                    $asm->setRelation('lpk', $candidate);
-                }
-            }
+        $sort = $request->input('sort');
+        $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['name', 'accreditation_number', 'registration_number', 'no_reg', 'created_at', 'expired_at'];
 
-            if ($needsDynamicStatusFilter) {
-                $candidateLpks = $candidateLpks->filter(fn (Lpk $lpk) => $lpk->dynamic_status === $status);
-            }
-
-            if ($needsSurveillanceFilter) {
-                $candidateLpks = $candidateLpks->filter(function (Lpk $lpk) use ($surveillance) {
-                    $alerts = $lpk->getActiveSurveillanceAlerts();
-                    $milestones = $lpk->surveillance_milestones;
-
-                    return match ($surveillance) {
-                        'NEEDS_ACTION' => count($alerts) > 0,
-                        'DUE_S1' => in_array($milestones['s1']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_S2' => in_array($milestones['s2']['status'] ?? '', ['DUE', 'OVERDUE', 'SUSPENDED'], true),
-                        'DUE_RA' => in_array($milestones['ra']['status'] ?? '', ['DUE', 'OVERDUE', 'EXPIRED', 'SUSPENDED'], true),
-                        'OVERDUE' => collect($alerts)->contains('is_urgent', true),
-                        default => true,
-                    };
-                });
-            }
-
-            $query->whereIn('id', $candidateLpks->pluck('id'));
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->latest();
         }
 
-        $lpks = $query->with(['assessments', 'pic'])->withCount(['accreditations'])->latest()->paginate($perPage)->withQueryString();
+        $lpks = $query->with(['assessments', 'pic', 'members'])->paginate($perPage)->withQueryString();
         foreach ($lpks as $lpk) {
             foreach ($lpk->assessments as $assessment) {
                 $assessment->setRelation('lpk', $lpk);
@@ -100,12 +86,12 @@ class LpkController extends Controller
         }
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage'));
+            return view('lpks.partials.table-content', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'sort', 'direction'));
         }
 
         $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
-        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'linkedOwnersCount'));
+        return view('lpks.index', compact('lpks', 'search', 'status', 'surveillance', 'expiry', 'perPage', 'linkedOwnersCount', 'sort', 'direction'));
     }
 
     public function create(Request $request): View
@@ -136,7 +122,12 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        return view('lpks.show', ['lpk' => $lpk->load(['accreditations', 'assessments', 'pic.linkedViewers', 'members'])]);
+        $lpk->load(['assessments', 'pic.linkedViewers']);
+        foreach ($lpk->assessments as $assessment) {
+            $assessment->setRelation('lpk', $lpk);
+        }
+
+        return view('lpks.show', ['lpk' => $lpk]);
     }
 
     public function edit(Lpk $lpk, Request $request): View
@@ -160,12 +151,12 @@ class LpkController extends Controller
 
         $data = $request->normalizedData();
         if ($user && $user->isPic()) {
-            $data['pic_id'] = $lpk->pic_id ?: $user->id;
+            $data['pic_id'] = $lpk->pic_id;
         }
 
         $lpk->update($data);
 
-        return redirect()->route('lpks.index')->with('success', 'Data LPK berhasil diperbarui.');
+        return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
     }
 
     public function updateNotes(UpdateLpkNotesRequest $request, Lpk $lpk): RedirectResponse
@@ -188,14 +179,18 @@ class LpkController extends Controller
     public function destroy(Lpk $lpk, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && ! $lpk->canManage($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini.');
+        if ($user && ! $lpk->canDelete($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus data LPK ini. LPK yang memiliki PIC hanya dapat dihapus oleh PIC pengelola bersangkutan.');
         }
 
         $lpkId = $lpk->id;
         $name = $lpk->name;
         $reg = $lpk->registration_number;
-        $lpk->delete();
+
+        DB::transaction(function () use ($lpk) {
+            $lpk->delete();
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache();
+        });
 
         Log::info('LPK deleted', [
             'lpk_id' => $lpkId,
@@ -227,31 +222,28 @@ class LpkController extends Controller
             return back()->with('error', 'Tidak ada data LPK yang dipilih.');
         }
 
-        $query = Lpk::whereIn('id', $ids);
-        if ($user && $user->isPic()) {
-            $query->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        $records = $query->get();
+        $records = Lpk::deletableBy($user)->whereIn('id', $ids)->get();
         $count = $records->count();
 
         if ($count === 0) {
+            $msg = 'Tidak ada data LPK yang dapat dihapus. LPK yang memiliki PIC hanya dapat dihapus oleh PIC pengelola bersangkutan.';
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada data LPK yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                    'message' => $msg,
                 ], 403);
             }
-            return back()->with('error', 'Tidak ada data LPK yang dapat dihapus.');
+            return back()->with('error', $msg);
         }
 
-        DB::transaction(function () use ($records) {
-            foreach ($records as $record) {
-                $record->delete();
-            }
+        $idsToDelete = $records->pluck('id')->all();
+
+        DB::transaction(function () use ($idsToDelete) {
+            \App\Models\Assessment::whereIn('lpk_id', $idsToDelete)->delete();
+            DB::table('lpk_members')->whereIn('lpk_id', $idsToDelete)->delete();
+            DB::table('calendar_events')->whereIn('lpk_id', $idsToDelete)->delete();
+            Lpk::whereIn('id', $idsToDelete)->delete();
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache();
         });
 
         Log::info('LPKs bulk deleted', [
@@ -261,7 +253,11 @@ class LpkController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        $skippedCount = count($ids) - $count;
         $message = "{$count} data LPK berhasil dihapus.";
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} data dilewati karena bukan wewenang Anda).";
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -284,8 +280,26 @@ class LpkController extends Controller
                 return back()->with('error', 'Tidak ada jadwal notifikasi pengawasan (S1, S2, atau Re-Akreditasi) yang sedang aktif untuk LPK ini.');
             }
 
-            // Alur Opsi 2: Notifikasi kerja internal ditujukan ke staf/PIC internal Unit Akreditasi Lab BSN
-            $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+            // Alur Opsi 2: Prioritaskan pengiriman notifikasi kerja ke PIC penanggung jawab LPK ini
+            $assignedEmails = [];
+            if ($lpk->pic && ! empty($lpk->pic->email)) {
+                $assignedEmails[] = $lpk->pic->email;
+            }
+
+            $leadMemberEmails = $lpk->members()
+                ->wherePivot('role', 'lead')
+                ->pluck('email')
+                ->filter()
+                ->all();
+
+            $assignedEmails = array_values(array_unique(array_filter(array_merge($assignedEmails, $leadMemberEmails))));
+
+            // Fallback: Jika LPK belum memiliki PIC yang ditugaskan, kirim ke seluruh PIC unit atau Admin
+            if (! empty($assignedEmails)) {
+                $picEmails = $assignedEmails;
+            } else {
+                $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
+            }
 
             // Jika belum ada pengguna ber-peran PIC, fallback ke admin sistem atau user yang sedang login
             if (empty($picEmails)) {
@@ -340,56 +354,14 @@ class LpkController extends Controller
                 ];
             }
 
-            // Konfigurasi SMTP dinamis: Cegah host 127.0.0.1 lokal dan dukung port 587/2525 secara otomatis
-            $host = config('mail.mailers.smtp.host');
-            if (empty($host) || $host === '127.0.0.1') {
-                $host = 'sandbox.smtp.mailtrap.io';
-            }
+            \Illuminate\Support\Facades\Mail::to($recipientEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
 
-            $port = (int) (config('mail.mailers.smtp.port') ?: 587);
-            if ($port !== 587 && $port !== 2525 && empty($port)) {
-                $port = 587;
-            }
-
-            $username = config('mail.mailers.smtp.username');
-            $password = config('mail.mailers.smtp.password');
-            $encryption = config('mail.mailers.smtp.encryption') ?: 'tls';
-
-            // Selalu bersihkan cache mailer agar instance lama di php artisan serve tidak digunakan
-            \Illuminate\Support\Facades\Mail::purge('smtp');
-            config([
-                'mail.default' => 'smtp',
-                'mail.mailers.smtp.transport' => 'smtp',
-                'mail.mailers.smtp.host' => $host,
-                'mail.mailers.smtp.port' => $port,
-                'mail.mailers.smtp.username' => $username,
-                'mail.mailers.smtp.password' => $password,
-                'mail.mailers.smtp.encryption' => $encryption,
-                'mail.mailers.smtp.timeout' => 10,
-            ]);
-
-            try {
-                \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
-            } catch (\Throwable $sendException) {
-                // Auto-fallback dual-port: jika port 587/2525 terkendala di network lokal atau cloud, coba port pasangannya secara otomatis
-                if (str_contains($host, 'mailtrap.io') && in_array($port, [587, 2525], true)) {
-                    $altPort = ($port === 587) ? 2525 : 587;
-                    \Illuminate\Support\Facades\Mail::purge('smtp');
-                    config(['mail.mailers.smtp.port' => $altPort]);
-                    \Illuminate\Support\Facades\Mail::mailer('smtp')->to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
-                } else {
-                    throw $sendException;
-                }
-            }
-
-            if (\Illuminate\Support\Facades\Schema::hasColumn('lpks', 'last_surveillance_notified_at')) {
-                $lpk->update(['last_surveillance_notified_at' => now()]);
-            }
+            $lpk->update(['last_surveillance_notified_at' => now()]);
 
             $recipientCount = count($recipientEmails);
             $recipientSummary = $recipientCount === 1 ? $recipientEmails[0] : "{$recipientCount} PIC Unit (" . implode(', ', $recipientEmails) . ')';
             $prefix = $isSimulation ? 'Simulasi email pengingat' : 'Email pengingat';
-            return back()->with('success', "{$prefix} jadwal {$targetAlert['name']} untuk {$lpk->name} berhasil dikirimkan ke PIC internal unit BSN ({$recipientSummary}).");
+            return back()->with('success', "{$prefix} jadwal {$targetAlert['name']} untuk {$lpk->name} berhasil dimasukkan ke antrean pengiriman ke PIC internal unit BSN ({$recipientSummary}).");
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Surveillance Reminder Mail Error: ' . $e->getMessage(), [
                 'exception' => $e,

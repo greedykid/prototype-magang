@@ -63,14 +63,10 @@ class AssessmentTpService
             return null;
         }
 
-        $type = strtoupper(trim((string) $assessment->assessment_type));
-        $eligibleTypes = [
-            'S1', 'S2', 'STT',
-            'SURVEILEN 1', 'SURVEILEN 2', 'SURVEILEN TIDAK TERJADWAL',
-            'SURVEILEN', 'SURVEILLANCE',
-        ];
+        $type = strtoupper(trim((string) $assessment->assessment_type_label));
+        $isEligible = str_contains($type, 'SURVEILEN') || str_contains($type, 'STT') || in_array($type, ['S1', 'S2'], true);
 
-        if (! in_array($type, $eligibleTypes, true)) {
+        if (! $isEligible) {
             return null;
         }
 
@@ -90,12 +86,17 @@ class AssessmentTpService
         }
 
         if ($assessment->tp_has_extension && $assessment->tp_extension_months > 0) {
-            $defaultBase = $this->calculateDefaultTpDueDate($assessment);
             $extensionMonths = min(1, max(1, (int) $assessment->tp_extension_months));
 
-            // Jika tp_due_date sudah sama persis dengan tanggal setelah perpanjangan,
-            // gunakan tp_due_date tersebut agar tidak bertambah dobel menjadi +2 bulan.
-            if ($defaultBase && $assessment->tp_due_date && $assessment->tp_due_date->toDateString() === $defaultBase->copy()->addMonths($extensionMonths)->toDateString()) {
+            // Jika ada tanggal perpanjangan spesifik yang lebih besar dari baseDate, gunakan tanggal tersebut
+            if ($assessment->tp_extension_date && $assessment->tp_extension_date->gt($baseDate)) {
+                return $assessment->tp_extension_date->copy()->startOfDay();
+            }
+
+            // Jika baseDate sama dengan defaultBase + extensionMonths (misal karena form sebelumnya sudah menambahkan +1 bulan),
+            // dan tidak ada tp_extension_date spesifik, maka baseDate tersebut adalah tanggal perpanjangannya.
+            $defaultBase = $this->calculateDefaultTpDueDate($assessment);
+            if ($defaultBase && $assessment->tp_due_date && ! $assessment->tp_extension_date && $assessment->tp_due_date->toDateString() === $defaultBase->copy()->addMonths($extensionMonths)->toDateString()) {
                 return $assessment->tp_due_date->copy()->startOfDay();
             }
 
@@ -124,7 +125,7 @@ class AssessmentTpService
      */
     public function isTpOverdue(Assessment $assessment): bool
     {
-        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at) || ! empty($assessment->sk_number)) {
+        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
             return false;
         }
 
@@ -212,26 +213,27 @@ class AssessmentTpService
         if ($this->isTpOverdue($assessment) || $assessment->status === 'SUSPENDED') {
             $days = $this->calculateDaysRemainingTp($assessment);
             $overdueDays = abs($days ?? 0);
+            $deadlineLabel = $assessment->tp_has_extension ? 'tenggat waktu perpanjangan' : 'tenggat waktu TP';
             return [
                 'type' => 'suspended',
                 'label' => 'Dibekukan (Terlambat ' . ($overdueDays > 0 ? $overdueDays . ' Hari' : '') . ')',
-                'detail' => 'Status dibekukan: melewati batas waktu awal (' . ($assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-') . ') belum dinyatakan memenuhi',
+                'detail' => "Status dibekukan: melewati {$deadlineLabel} (" . ($assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-') . ') belum dinyatakan memenuhi',
             ];
         }
 
         if (in_array($assessment->status, ['PLANNED', 'SCHEDULED'], true) && $assessment->tp_status === Assessment::TP_STATUS_NONE) {
             return [
                 'type' => 'neutral',
-                'label' => 'Belum Asesmen',
-                'detail' => 'Kunjungan asesmen belum dilaksanakan (belum ada temuan KNC)',
+                'label' => 'Belum Ditentukan',
+                'detail' => 'Pelaksanaan asesmen belum berjalan (batas waktu TP belum ditentukan)',
             ];
         }
 
         if ($assessment->tp_status === Assessment::TP_STATUS_NONE) {
             return [
                 'type' => 'neutral',
-                'label' => 'Nihil Temuan',
-                'detail' => 'Tidak memerlukan perbaikan',
+                'label' => 'Belum Ditentukan',
+                'detail' => 'Belum ada penetapan batas waktu tindakan perbaikan',
             ];
         }
 

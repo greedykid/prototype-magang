@@ -19,7 +19,7 @@ export function returnModalToPlaceholder(modal) {
 let savedModalScrollY = 0;
 let previousActiveElement = null;
 
-export function openModal(modalId) {
+export function openModal(modalId, targetSectionId = null) {
     let modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
     if (!modal) {
         console.warn('Modal element not found:', modalId);
@@ -41,6 +41,26 @@ export function openModal(modalId) {
     if (!document.querySelector('.simasadi-modal.is-active')) {
         previousActiveElement = document.activeElement;
         savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    }
+
+    modal.classList.remove('is-closing');
+
+    const isTpModal = (modalId === 'modal-tp-tracking' || (modal && modal.id === 'modal-tp-tracking'));
+    if (isTpModal) {
+        let tabKey = 'tp';
+        if (targetSectionId) {
+            const cleanTarget = String(targetSectionId).replace(/^#/, '').toLowerCase();
+            if (cleanTarget === 'eha' || cleanTarget.includes('eha')) {
+                tabKey = 'eha';
+            } else if (cleanTarget === 'sk' || cleanTarget.includes('sk')) {
+                tabKey = 'sk';
+            } else {
+                tabKey = 'tp';
+            }
+        }
+        if (typeof window.switchModalTpTab === 'function') {
+            window.switchModalTpTab(tabKey);
+        }
     }
 
     // Teleport to document.body so modal escapes any ancestor containing block,
@@ -65,27 +85,59 @@ export function openModal(modalId) {
     document.documentElement.classList.add('modal-open');
     document.body.classList.add('modal-open');
 
-    // Auto-focus first input on non-touch devices without causing scroll jumps or focus outlines on the close button
+    const modalBox = modal.querySelector('.simasadi-modal-box');
     const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 768);
-    if (!isTouch) {
-        const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');
-        if (focusable) {
-            setTimeout(() => {
-                try {
-                    focusable.focus({ preventScroll: true });
-                } catch {
-                    focusable.focus();
+
+    const isTabTarget = isTpModal && targetSectionId && ['tp', 'eha', 'sk', 'modal-tp-panel-tp', 'modal-tp-panel-eha', 'modal-tp-panel-sk'].includes(String(targetSectionId).replace(/^#/, '').toLowerCase());
+
+    if (targetSectionId && !isTabTarget) {
+        setTimeout(() => {
+            const targetEl = typeof targetSectionId === 'string'
+                ? (modal.querySelector(targetSectionId.startsWith('#') ? targetSectionId : `#${targetSectionId}`) || document.getElementById(targetSectionId))
+                : targetSectionId;
+
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (!isTouch) {
+                    const inputs = Array.from(targetEl.querySelectorAll('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])'));
+                    const focusable = inputs.find((el) => !el.value) || inputs[0];
+                    if (focusable) {
+                        try {
+                            focusable.focus({ preventScroll: true });
+                        } catch {
+                            focusable.focus();
+                        }
+                    }
                 }
-            }, 60);
-        } else {
-            const modalBox = modal.querySelector('.simasadi-modal-box') || modal;
-            if (!modalBox.hasAttribute('tabindex')) {
-                modalBox.setAttribute('tabindex', '-1');
             }
-            try {
-                modalBox.focus({ preventScroll: true });
-            } catch {
-                modalBox.focus();
+        }, 80);
+    } else {
+        if (modalBox) {
+            modalBox.scrollTop = 0;
+            requestAnimationFrame(() => {
+                if (modalBox) modalBox.scrollTop = 0;
+            });
+        }
+        if (!isTouch) {
+            const focusable = modal.querySelector('input:not([type="hidden"]):not(.custom-select-native):not([disabled]), .custom-select-trigger, select:not(.custom-select-native):not([disabled]), textarea:not([disabled])');
+            if (focusable) {
+                setTimeout(() => {
+                    try {
+                        focusable.focus({ preventScroll: true });
+                    } catch {
+                        focusable.focus();
+                    }
+                }, 60);
+            } else {
+                const boxOrModal = modalBox || modal;
+                if (!boxOrModal.hasAttribute('tabindex')) {
+                    boxOrModal.setAttribute('tabindex', '-1');
+                }
+                try {
+                    boxOrModal.focus({ preventScroll: true });
+                } catch {
+                    boxOrModal.focus();
+                }
             }
         }
     }
@@ -94,29 +146,38 @@ export function openModal(modalId) {
 export function closeModal(modalIdOrEl) {
     closeAllCustomPickers();
 
-    const activeModals = document.querySelectorAll('.simasadi-modal.is-active');
+    const activeModals = document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)');
     if (!activeModals.length && !document.body.classList.contains('modal-open')) {
         return;
     }
 
-    if (!modalIdOrEl) {
-        document.querySelectorAll('.simasadi-modal').forEach((m) => {
-            m.classList.remove('is-active');
+    const performClose = (m) => {
+        if (!m || m.classList.contains('is-closing') || !m.classList.contains('is-active')) return;
+        m.classList.add('is-closing');
+
+        setTimeout(() => {
+            m.classList.remove('is-active', 'is-closing');
             returnModalToPlaceholder(m);
             try {
                 m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
+                window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: m.id, modal: m } }));
             } catch (_) {}
-        });
-        try {
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
-        } catch (_) {}
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
-            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
-        }
-        savedModalScrollY = 0;
-        restoreFocus();
+
+            // Remove modal-open only if no other modal is currently active
+            if (!document.querySelector('.simasadi-modal.is-active:not(.is-closing)')) {
+                document.documentElement.classList.remove('modal-open');
+                document.body.classList.remove('modal-open');
+                if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+                    window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+                }
+                savedModalScrollY = 0;
+                restoreFocus();
+            }
+        }, 180);
+    };
+
+    if (!modalIdOrEl) {
+        document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)').forEach(performClose);
         return;
     }
 
@@ -128,34 +189,9 @@ export function closeModal(modalIdOrEl) {
     }
 
     if (modal) {
-        modal.classList.remove('is-active');
-        returnModalToPlaceholder(modal);
-        try {
-            modal.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: modal.id } }));
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: modal.id, modal } }));
-        } catch (_) {}
+        performClose(modal);
     } else {
-        document.querySelectorAll('.simasadi-modal').forEach((m) => {
-            m.classList.remove('is-active');
-            returnModalToPlaceholder(m);
-            try {
-                m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
-            } catch (_) {}
-        });
-        try {
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
-        } catch (_) {}
-    }
-
-    // Remove modal-open only if no other modal is currently active
-    if (!document.querySelector('.simasadi-modal.is-active')) {
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
-            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
-        }
-        savedModalScrollY = 0;
-        restoreFocus();
+        document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)').forEach(performClose);
     }
 }
 
@@ -255,3 +291,39 @@ export const initModalListeners = () => {
         }
     }, { passive: false });
 };
+
+export function copyFormulaToClipboard(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(input.value).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span>Tersalin!</span>';
+        btn.style.background = '#2e7d32';
+
+        if (typeof window.Swal !== 'undefined') {
+            const isMobile = window.innerWidth <= 640;
+            window.Swal.fire({
+                target: document.body,
+                toast: true,
+                position: isMobile ? 'top' : 'top-end',
+                icon: 'success',
+                title: 'Rumus Google Sheets berhasil disalin!',
+                text: 'Tempelkan di sel A1 Google Sheets Anda.',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        }
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '#0f9d58';
+        }, 2000);
+    }).catch(err => {
+        console.error('Gagal menyalin:', err);
+    });
+}

@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Program Asesmen | SIMASADI')
+@section('title', 'Daftar Asesmen | SIMASADI')
 
 @section('content')
 <x-page-header
-    title="Program asesmen"
-    subtitle="Jadwal dan progres asesmen semua LPK."
+    title="Daftar asesmen"
+    subtitle="Jadwal dan progres asesmen semua laboratorium."
 >
+    <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
+        <x-icon name="export" size="16" />
+        <span>Ekspor Data</span>
+    </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
         <x-icon name="import" size="16" />
-        <span>Import Asesmen</span>
-    </button>
-    <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
-        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-        <span>Google Sheets & Ekspor</span>
+        <span>Impor Asesmen</span>
     </button>
     <a class="button primary" href="{{ route('assessments.create') }}">
         <x-icon name="plus" size="16" />
@@ -22,16 +22,16 @@
 </x-page-header>
 
 @if(($linkedOwnersCount ?? 0) > 0)
-    <div class="panel" style="margin-bottom: 16px; padding: 12px 16px; background: var(--info-bg, #f0f9ff); border: 1px solid var(--info-border, #bae6fd); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+    <div class="panel" style="margin-bottom: 16px; padding: 12px 16px; background: var(--info-bg, #f0f9ff); border: 1px solid var(--info-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="color: var(--info-text, #0284c7); display: flex; align-items: center;">
                 <x-icon name="assessments" size="18" />
             </div>
             <div style="font-size: 13px; color: var(--ink);">
-                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data agenda asesmen. Program asesmen tersebut tersimpan terpisah di detail akun masing-masing.
+                Anda memiliki <strong>{{ $linkedOwnersCount }} akun tertaut</strong> yang membagikan data agenda asesmen. Daftar asesmen tersebut tersimpan terpisah di detail akun masing-masing.
             </div>
         </div>
-        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border, #bae6fd); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
+        <a href="{{ route('account-links.index') }}" class="button secondary" style="font-size: 12px; padding: 4px 12px; background: var(--surface); border-color: var(--info-border); color: var(--info-text, #0284c7); font-weight: 600; text-decoration: none;">
             <span>Buka Akun Tertaut</span>
             <x-icon name="chevron-right" size="13" />
         </a>
@@ -40,23 +40,84 @@
 
 <section class="panel table-panel-borderless">
     <form id="assessment-filter-form" class="table-filters" method="GET" action="{{ route('assessments.index') }}" data-partial-filter="true" data-target="#assessment-table-container">
-        <div class="table-filter-grid">
-            <label for="filter-asm-search">Cari agenda<input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda" autocomplete="off"></label>
-            <label for="filter-asm-lpk">LPK<select id="filter-asm-lpk" name="lpk_id"><option value="">Semua LPK</option>@foreach($lpks as $lpk)<option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>@endforeach</select></label>
-            <label for="filter-asm-type">Jenis<select id="filter-asm-type" name="assessment_type"><option value="">Semua jenis (KAN U-01)</option>@foreach($assessmentTypes as $key => $label)<option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>@endforeach</select></label>
-            <label for="filter-asm-status">Status Pelaksanaan<select id="filter-asm-status" name="status"><option value="">Semua status</option>@foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)<option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>@endforeach</select></label>
-            <label for="filter-asm-tp-status">Status TP (Batas Waktu)
-                <select id="filter-asm-tp-status" name="tp_status">
-                    <option value="">Semua status TP</option>
-                    <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
-                    <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
-                    <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
-                    <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
-                    <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
-                </select>
-            </label>
-            <label for="filter-asm-start-from">Mulai dari<input id="filter-asm-start-from" type="date" name="start_from" value="{{ $startFrom }}"></label>
-            <label for="filter-asm-start-to">Mulai sampai<input id="filter-asm-start-to" type="date" name="start_to" value="{{ $startTo }}"></label>
+        <input type="hidden" name="per_page" value="{{ $perPage }}">
+        @php
+            $secondaryFiltersCount = 0;
+            if (!empty($tpFilter)) $secondaryFiltersCount++;
+            if ($startFrom) $secondaryFiltersCount++;
+            if ($startTo) $secondaryFiltersCount++;
+        @endphp
+
+        <div class="table-filter-primary-row">
+            <div class="table-filter-primary-search table-filter-grid-4col">
+                <label for="filter-asm-search">
+                    Cari agenda
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda..." autocomplete="off">
+                    </div>
+                </label>
+                <label for="filter-asm-lpk">
+                    Laboratorium (LPK)
+                    <select id="filter-asm-lpk" name="lpk_id">
+                        <option value="">Semua LPK</option>
+                        @foreach($lpks as $lpk)
+                            <option value="{{ $lpk->id }}" @selected($lpkId === $lpk->id)>{{ $lpk->registration_number }} - {{ $lpk->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label for="filter-asm-type">
+                    Jenis Asesmen
+                    <select id="filter-asm-type" name="assessment_type">
+                        <option value="">Semua jenis (KAN U-01)</option>
+                        @foreach($assessmentTypes as $key => $label)
+                            <option value="{{ $key }}" @selected($assessmentType === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label for="filter-asm-status">
+                    Status Pelaksanaan
+                    <select id="filter-asm-status" name="status">
+                        <option value="">Semua status</option>
+                        @foreach(['PLANNED' => 'Direncanakan', 'SCHEDULED' => 'Terjadwal', 'IN_PROGRESS' => 'Sedang Berlangsung', 'SUSPENDED' => 'Dibekukan', 'COMPLETED' => 'Selesai', 'CANCELLED' => 'Dibatalkan'] as $value => $label)
+                            <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
+            <div class="table-filter-toggle-wrap">
+                <button type="button" class="btn-toggle-advanced-filters" id="toggle-assessment-advanced-filters" aria-expanded="{{ $secondaryFiltersCount > 0 ? 'true' : 'false' }}" aria-controls="assessment-advanced-filters" title="Buka atau tutup filter status TP dan tanggal">
+                    <x-icon name="filter" size="14" />
+                    <span>Filter Lanjutan</span>
+                    @if($secondaryFiltersCount > 0)
+                        <span class="filter-count-badge">{{ $secondaryFiltersCount }}</span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <div class="table-filter-advanced" id="assessment-advanced-filters" style="{{ $secondaryFiltersCount > 0 ? '' : 'display: none;' }}">
+            <div class="table-filter-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                <label for="filter-asm-tp-status">
+                    Status TP (Batas Waktu)
+                    <select id="filter-asm-tp-status" name="tp_status">
+                        <option value="">Semua status TP</option>
+                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Belum Ditentukan</option>
+                        <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
+                        <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (&le; 14 Hari)</option>
+                        <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
+                        <option value="SATISFIED" @selected(($tpFilter ?? '') === 'SATISFIED')>Dinyatakan Memenuhi</option>
+                    </select>
+                </label>
+                <label for="filter-asm-start-from">
+                    Mulai dari
+                    <input id="filter-asm-start-from" type="date" name="start_from" value="{{ $startFrom }}">
+                </label>
+                <label for="filter-asm-start-to">
+                    Mulai sampai
+                    <input id="filter-asm-start-to" type="date" name="start_to" value="{{ $startTo }}">
+                </label>
+            </div>
         </div>
         <div class="table-filter-actions" id="assessment-filter-actions" style="margin-top: 8px;">
             <span id="assessment-filter-loading" class="filter-live-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);" aria-live="polite">
@@ -88,7 +149,7 @@
                 'CANCELLED' => 'Dibatalkan',
             ];
             $tpLabels = [
-                'NONE' => 'Nihil / Belum Ada Temuan',
+                'NONE' => 'Belum Ditentukan',
                 'ACTIVE' => 'Sedang Perbaikan / Verifikasi',
                 'DUE_SOON' => 'Jatuh Tempo (≤ 14 Hari)',
                 'OVERDUE' => 'Melewati Batas Waktu (Dibekukan)',
@@ -161,15 +222,16 @@
 
 <x-sheets-modal
     modal-id="modal-sheets-sync-assessments"
-    title="Integrasi Google Sheets: Data Program Asesmen"
-    subtitle="Sinkronkan jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) secara langsung ke Google Sheets Anda."
+    title="Ekspor Data Daftar Asesmen"
+    subtitle="Unduh jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.assessments.export')"
-    :feed-url="route('feeds.assessments', ['key' => env('SHEETS_FEED_KEY', 'simasadi-live')])"
-    file-name="program-asesmen-simasadi.csv"
+    :feed-url="route('feeds.assessments', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
+    file-name="daftar-asesmen-simasadi.csv"
     :columns="[
-        'ID Asesmen', 'Judul Agenda Asesmen', 'Nama LPK', 'Jenis Asesmen',
+        'ID Asesmen', 'Judul Agenda Asesmen', 'Nama Laboratorium', 'Jenis Asesmen',
         'Tanggal Mulai', 'Tanggal Selesai', 'Status Asesmen'
     ]"
+    :show-feed="false"
 />
 
 @include('assessments.partials.import-modal')

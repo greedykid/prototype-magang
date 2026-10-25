@@ -37,10 +37,6 @@
             </div>
 
             <div class="lpk-header-actions">
-                <a href="{{ route('lpks.index', ['pic_id' => $user->id]) }}" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
-                    <x-icon name="lpks" size="14" />
-                    <span>Filter di Data Lab</span>
-                </a>
                 <a href="{{ route('users.edit', $user) }}" class="button secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 6px 14px;">
                     <x-icon name="edit" size="14" />
                     <span>Ubah Data</span>
@@ -52,7 +48,7 @@
     {{-- Metrik Ringkas Beban Kerja PIC --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border, #bae6fd); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); border: 1px solid var(--info-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <x-icon name="lpks" size="22" />
             </div>
             <div>
@@ -63,7 +59,7 @@
         </div>
 
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--mint, #ecfdf5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
             <div>
@@ -74,7 +70,7 @@
         </div>
 
         <div class="panel" style="padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border, #cbd5e1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--neutral-chip-bg, #f1f5f9); color: var(--neutral-chip-text, #475569); border: 1px solid var(--neutral-chip-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
             <div>
@@ -85,7 +81,7 @@
         </div>
     </div>
 
-    {{-- Tabel Daftar LPK yang Dikerjakan --}}
+    {{-- Tabel Daftar Laboratorium yang Dikerjakan --}}
     <section class="panel table-panel-borderless">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px;">
             <div>
@@ -122,12 +118,12 @@
                             @endphp
                             <tr class="clickable-row" data-href="{{ route('lpks.show', $lpkItem) }}" tabindex="0" role="link" title="Buka rincian {{ $lpkItem->name }}">
                                 <td data-sort-value="{{ $lpkItem->accreditation_number ?: $lpkItem->registration_number }}">
-                                    <a href="{{ route('lpks.show', $lpkItem) }}" class="hover-underline" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); text-decoration: none;">
+                                    <a href="{{ route('lpks.show', $lpkItem) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); text-decoration: none;">
                                         {{ $lpkItem->accreditation_number ?: ($lpkItem->registration_number ?: '-') }}
                                     </a>
                                 </td>
                                 <td data-sort-value="{{ $lpkItem->name }}">
-                                    <a href="{{ route('lpks.show', $lpkItem) }}" class="hover-underline" style="font-weight: 700; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;">
+                                    <a href="{{ route('lpks.show', $lpkItem) }}" style="font-weight: 700; color: var(--ink); text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block;">
                                         {{ $lpkItem->name }}
                                     </a>
                                     @if($lpkItem->scope)
@@ -180,8 +176,8 @@
                 </table>
             </div>
         @else
-            <div style="text-align: center; padding: 40px 16px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: 8px;">
-                <div style="width: 48px; height: 48px; border-radius: 24px; background: var(--neutral-chip-bg); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="text-align: center; padding: 40px 16px; background: var(--surface-subtle); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px);">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-pill, 9999px); background: var(--neutral-chip-bg); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
                     <x-icon name="lpks" size="22" />
                 </div>
                 <h3 style="font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 4px 0;">Belum Ada Laboratorium</h3>

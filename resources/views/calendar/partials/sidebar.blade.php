@@ -121,7 +121,7 @@
                             $accNo = $lpk->accreditation_number ?: $lpk->registration_number;
                         @endphp
                         <option value="{{ $lpk->id }}" @if($accNo) data-badge="{{ $accNo }}" data-accreditation-no="{{ $accNo }}" @endif>
-                            {{ $accNo ? $accNo . ' — ' : '' }}{{ $lpk->name }}
+                            {{ $accNo ? $accNo . ' - ' : '' }}{{ $lpk->name }}
                         </option>
                     @endforeach
                 </select>

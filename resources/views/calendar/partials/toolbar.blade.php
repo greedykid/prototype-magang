@@ -27,32 +27,43 @@
                 @endphp
 
                 <div class="gcal-nav-group">
-                    <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}" class="button secondary gcal-btn-today">
-                        Hari ini
-                    </a>
+                    <div class="gcal-nav-cluster">
+                        @php
+                            $isViewingToday = ($viewMode === 'month')
+                                ? now()->isSameMonth($currentMonth)
+                                : ($activeDate && now()->isSameDay($activeDate));
+                        @endphp
+                        <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => now()->toDateString(), 'selected' => 1]) }}"
+                           class="button secondary gcal-btn-today {{ $isViewingToday ? 'is-today-active' : '' }}"
+                           title="{{ $isViewingToday ? 'Sedang berada pada periode saat ini' : 'Kembali ke tanggal hari ini' }}">
+                            Hari ini
+                        </a>
 
-                    <button type="button" class="button secondary gcal-btn-range" onclick="window.toggleRangeSelectionMode()" id="gcal-btn-range-mode" title="Pilih rentang tanggal agenda melintasi bulan atau tahun">
-                        <x-icon name="calendar" size="14" />
-                        <span class="gcal-btn-range-label">Pilih Rentang</span>
-                    </button>
-
-                    <div class="gcal-nav-arrows">
-                        @if($viewMode === 'month')
-                            <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $prevMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
-                                <x-icon name="chevron-left" size="16" />
-                            </a>
-                            <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $nextMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
-                                <x-icon name="chevron-right" size="16" />
-                            </a>
-                        @else
-                            <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $prevDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
-                                <x-icon name="chevron-left" size="16" />
-                            </a>
-                            <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $nextDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
-                                <x-icon name="chevron-right" size="16" />
-                            </a>
-                        @endif
+                        <div class="gcal-nav-arrows">
+                            @if($viewMode === 'month')
+                                <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $prevMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
+                                    <x-icon name="chevron-left" size="16" />
+                                </a>
+                                <a href="{{ route('calendar.index', ['view' => 'month', 'month' => $nextMonth->format('Y-m')]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
+                                    <x-icon name="chevron-right" size="16" />
+                                </a>
+                            @else
+                                <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $prevDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Sebelumnya">
+                                    <x-icon name="chevron-left" size="16" />
+                                </a>
+                                <a href="{{ route('calendar.index', ['view' => $viewMode, 'date' => $nextDate]) }}" class="button ghost gcal-arrow-btn" aria-label="Berikutnya">
+                                    <x-icon name="chevron-right" size="16" />
+                                </a>
+                            @endif
+                        </div>
                     </div>
+
+                    @if($viewMode === 'month')
+                        <button type="button" class="button secondary gcal-btn-range" onclick="window.toggleRangeSelectionMode()" id="gcal-btn-range-mode" title="Pilih rentang tanggal agenda melintasi bulan atau tahun">
+                            <x-icon name="calendar" size="14" />
+                            <span class="gcal-btn-range-label">Pilih Rentang</span>
+                        </button>
+                    @endif
                 </div>
 
                 @php
@@ -95,14 +106,14 @@
                         </div>
                     @elseif($viewMode === 'week')
                         <h2 class="gcal-title-label">
-                            {{ $weekStart->translatedFormat('d M') }} &ndash; {{ $weekEnd->translatedFormat('d M Y') }}
+                            {{ $weekStart->translatedFormat('d M') }} - {{ $weekEnd->translatedFormat('d M Y') }}
                         </h2>
                         <div class="gcal-title-selects is-compact" role="group" aria-label="Lompat ke bulan dan tahun">
                             <label class="sr-only" for="gcal-select-month">Lompat bulan</label>
                             <div class="gcal-select-wrapper gcal-select-wrapper-month">
                                 <select id="gcal-select-month" class="gcal-nav-select gcal-select-month" aria-label="Lompat bulan" data-no-search="true" data-calendar-base-url="{{ route('calendar.index') }}">
                                     @foreach($indonesianMonths as $num => $name)
-                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ substr($name, 0, 3) }}</option>
+                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -125,7 +136,7 @@
                             <div class="gcal-select-wrapper gcal-select-wrapper-month">
                                 <select id="gcal-select-month" class="gcal-nav-select gcal-select-month" aria-label="Lompat bulan" data-no-search="true" data-calendar-base-url="{{ route('calendar.index') }}">
                                     @foreach($indonesianMonths as $num => $name)
-                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ substr($name, 0, 3) }}</option>
+                                        <option value="{{ sprintf('%02d', $num) }}"{{ $currentMonth->month === $num ? ' selected' : '' }}>{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>

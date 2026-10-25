@@ -1,9 +1,9 @@
-/* Pagination Component - Notion Design System */
+/* Pagination Component - Crisp Design System */
 /* ========================================================================== */
 .pagination-container {
     align-items: center;
     animation: pagination-fade-up 240ms var(--ease-out-expo) both;
-    border-top: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+    border-top: 1px solid var(--line);
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
@@ -24,7 +24,7 @@
 }
 
 .pagination-info p {
-    color: var(--muted, #615d59);
+    color: var(--muted);
     font-size: 13px;
     line-height: 1.5;
     margin: 0;
@@ -32,7 +32,7 @@
 
 .pagination-info p span,
 .pagination-info p strong {
-    color: var(--ink, #191918);
+    color: var(--ink);
     font-weight: 600;
 }
 
@@ -45,10 +45,10 @@
 
 .pagination-item {
     align-items: center;
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
-    border-radius: var(--radius-sm, 6px);
-    color: var(--ink, #191918);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm, 8px);
+    color: var(--ink);
     cursor: pointer;
     display: inline-flex;
     font-family: inherit;
@@ -60,16 +60,21 @@
     min-width: 34px;
     padding: 0 10px;
     text-decoration: none;
-    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 70ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
     user-select: none;
 }
 
 .pagination-item.pagination-link:hover,
 .pagination-item.pagination-link:focus-visible {
-    background: var(--surface-hover, #efedea);
-    border-color: var(--color-gray-400, #a39e98);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    color: var(--ink, #000000);
+    background: var(--surface-hover);
+    border-color: var(--line-subtle);
+    box-shadow: var(--shadow-xs);
+    color: var(--ink);
+}
+
+.pagination-item.pagination-link:active {
+    transform: scale(0.95);
+    transition-duration: 70ms;
 }
 
 .pagination-item:focus-visible {
@@ -80,8 +85,8 @@
 .pagination-item.pagination-active {
     background: var(--primary, #0075de);
     border-color: var(--primary, #0075de);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-    color: #ffffff;
+    box-shadow: var(--shadow-xs);
+    color: #ffffff !important;
     cursor: default;
     font-weight: 600;
 }
@@ -121,6 +126,7 @@
         flex-direction: column;
         gap: 12px;
         text-align: center;
+        margin-bottom: 8px;
     }
 
     .pagination-links {
@@ -141,7 +147,7 @@
 html[data-theme="dark"] .pagination-item.pagination-link:hover,
 html[data-theme="dark"] .pagination-item.pagination-link:focus-visible {
     background: var(--surface-hover);
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -153,4 +159,10 @@ html[data-theme="dark"] .pagination-item.pagination-disabled {
 
 html[data-theme="dark"] .pagination-item.pagination-disabled svg {
     color: var(--color-gray-500, #78736f);
+}
+
+html[data-theme="dark"] .pagination-item.pagination-active {
+    background: var(--primary, #62aef0);
+    border-color: var(--primary, #62aef0);
+    color: #191918 !important;
 }

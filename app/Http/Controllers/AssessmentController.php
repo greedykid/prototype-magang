@@ -25,8 +25,8 @@ class AssessmentController extends Controller
         $assessmentType = $request->string('assessment_type')->toString();
         $status = $request->string('status')->toString();
         $tpFilter = $request->string('tp_status')->toString();
-        $startFrom = $request->date('start_from')?->format('Y-m-d');
-        $startTo = $request->date('start_to')?->format('Y-m-d');
+        $startFrom = rescue(fn () => $request->date('start_from')?->format('Y-m-d'), null, false);
+        $startTo = rescue(fn () => $request->date('start_to')?->format('Y-m-d'), null, false);
         $perPage = $request->integer('per_page', 10);
         if (!in_array($perPage, [10, 25, 50, 100], true)) {
             $perPage = 10;
@@ -35,132 +35,56 @@ class AssessmentController extends Controller
         $user = $request->user();
         $isPic = $user && $user->isPic();
 
-        $assessments = Assessment::query()
+        $query = Assessment::query()
             ->with(['lpk'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
-            ->when($search, fn ($query) => $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('sk_number', 'like', "%{$search}%")
-                  ->orWhereHas('lpk', fn ($lpkQ) => $lpkQ
-                      ->where('name', 'like', "%{$search}%")
-                      ->orWhere('registration_number', 'like', "%{$search}%")
-                  );
-            }))
-            ->when($lpkId, fn ($query) => $query->where('lpk_id', $lpkId))
-            ->when($assessmentType, function ($query) use ($assessmentType) {
-                if ($assessmentType === Assessment::TYPE_AKREDITASI_AWAL || $assessmentType === 'Asesmen Awal') {
-                    $query->whereIn('assessment_type', [Assessment::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA']);
-                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1) {
-                    $query->where(function ($q) {
-                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, 'S1'])
-                            ->orWhere(function ($sq) {
-                                $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
-                                    ->where(function ($titleQ) {
-                                        $titleQ->where('title', 'like', '%Surveilen 1%')
-                                            ->orWhere('title', 'like', '%(S1)%')
-                                            ->orWhere('title', 'like', '% S1 %');
-                                    })
-                                    ->where('title', 'not like', '%PRL%');
-                            });
-                    });
-                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_1_PRL) {
-                    $query->where(function ($q) {
-                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1_PRL, 'S1 + PRL'])
-                            ->orWhere(function ($sq) {
-                                $sq->where('title', 'like', '%Surveilen 1%')
-                                    ->where('title', 'like', '%PRL%');
-                            });
-                    });
-                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2) {
-                    $query->where(function ($q) {
-                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2, 'S2'])
-                            ->orWhere(function ($sq) {
-                                $sq->whereIn('assessment_type', ['Surveilen', 'SURVEILLANCE'])
-                                    ->where(function ($titleQ) {
-                                        $titleQ->where('title', 'like', '%Surveilen 2%')
-                                            ->orWhere('title', 'like', '%(S2)%')
-                                            ->orWhere('title', 'like', '% S2 %');
-                                    })
-                                    ->where('title', 'not like', '%PRL%');
-                            });
-                    });
-                } elseif ($assessmentType === Assessment::TYPE_SURVEILEN_2_PRL) {
-                    $query->where(function ($q) {
-                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_2_PRL, 'S2 + PRL'])
-                            ->orWhere(function ($sq) {
-                                $sq->where('title', 'like', '%Surveilen 2%')
-                                    ->where('title', 'like', '%PRL%');
-                            });
-                    });
-                } elseif ($assessmentType === Assessment::TYPE_STT) {
-                    $query->whereIn('assessment_type', [Assessment::TYPE_STT, 'STT', 'Surveilen Tidak Terjadwal']);
-                } elseif ($assessmentType === Assessment::TYPE_PRL) {
-                    $query->whereIn('assessment_type', [Assessment::TYPE_PRL, 'PRL', 'Perluasan Ruang Lingkup', 'Perluasan Lingkup']);
-                } elseif ($assessmentType === Assessment::TYPE_RE_AKREDITASI || $assessmentType === 'Re-asesmen') {
-                    $query->whereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'RA', 'Re-asesmen', 'REASSESSMENT']);
-                } elseif ($assessmentType === 'Surveilen') {
-                    $query->where(function ($q) {
-                        $q->whereIn('assessment_type', [Assessment::TYPE_SURVEILEN_1, Assessment::TYPE_SURVEILEN_2, 'Surveilen', 'SURVEILLANCE', 'S1', 'S2']);
-                    });
-                } else {
-                    $query->where('assessment_type', $assessmentType);
-                }
-            })
-            ->when($status, function ($query, $status) {
-                if ($status === 'SUSPENDED') {
-                    $query->where(function ($q) {
-                        $q->where('status', 'SUSPENDED')
-                            ->orWhere(fn ($sub) => $sub->tpOverdue());
-                    });
-                } elseif ($status === 'IN_PROGRESS') {
-                    $query->where('status', 'IN_PROGRESS')
-                        ->whereNotIn('id', Assessment::select('id')->tpOverdue());
-                } else {
-                    $query->where('status', $status);
-                }
-            })
-            ->when($tpFilter, function ($query) use ($tpFilter) {
-                if ($tpFilter === 'OVERDUE') {
-                    $query->tpOverdue();
-                } elseif ($tpFilter === 'DUE_SOON') {
-                    $query->tpDueSoon();
-                } elseif ($tpFilter === 'ACTIVE') {
-                    $query->tpActive();
-                } else {
-                    $query->where('tp_status', $tpFilter);
-                }
-            })
-            ->when($startFrom, fn ($query) => $query->whereDate('start_at', '>=', $startFrom))
-            ->when($startTo, fn ($query) => $query->whereDate('start_at', '<=', $startTo))
-            ->orderBy('start_at')
+            ->filterByCriteria([
+                'search' => $search,
+                'lpk_id' => $lpkId,
+                'assessment_type' => $assessmentType,
+                'status' => $status,
+                'tp_status' => $tpFilter,
+                'start_from' => $startFrom,
+                'start_to' => $startTo,
+            ]);
+
+        $sort = $request->input('sort');
+        $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['title', 'start_at', 'status', 'created_at'];
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('start_at');
+        }
+
+        $assessments = $query
             ->paginate($perPage)
             ->withQueryString();
 
         $linkedOwnersCount = ($user && $user->isPic()) ? $user->linkedOwners()->count() : 0;
 
         if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage'));
+            return view('assessments.partials.table-content', compact('assessments', 'search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage', 'sort', 'direction'));
         }
+
+        $filterLpks = ($user && $user->isAdmin())
+            ? DB::table('lpks')->select(['id', 'registration_number', 'name'])->orderBy('registration_number')->get()
+            : Lpk::primaryFor($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']);
 
         return view('assessments.index', array_merge([
             'assessments' => $assessments,
-            'lpks' => Lpk::primaryFor($user)->orderBy('registration_number')->get(['id', 'registration_number', 'name']),
+            'lpks' => $filterLpks,
             'assessmentTypes' => Assessment::TYPES,
             'tpStatuses' => Assessment::TP_STATUSES,
             'linkedOwnersCount' => $linkedOwnersCount,
-        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage')));
+        ], compact('search', 'lpkId', 'assessmentType', 'status', 'tpFilter', 'startFrom', 'startTo', 'perPage', 'sort', 'direction')));
     }
 
     public function create(Request $request): View
     {
         $user = $request->user();
-        $lpksQuery = Lpk::orderBy('name');
-        if ($user && $user->isPic()) {
-            $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
+        $lpks = Lpk::manageableBy($user)->orderBy('name')->get();
 
         $assessment = new Assessment;
 
@@ -176,31 +100,31 @@ class AssessmentController extends Controller
 
                 $alertCode = strtoupper((string) $request->input('alert_code', ''));
                 $targetDateStr = $request->input('target_date');
+                $requestedType = (string) $request->input('assessment_type', '');
 
-                if ($alertCode === 'S1') {
-                    $assessment->assessment_type = 'SURVEILLANCE';
-                    $assessment->title = 'Surveilen 1 Siklus KAN - ' . $lpk->name;
-                } elseif ($alertCode === 'S2') {
-                    $assessment->assessment_type = 'SURVEILLANCE_2';
-                    $assessment->title = 'Surveilen 2 Siklus KAN - ' . $lpk->name;
-                } elseif ($alertCode === 'RA') {
-                    $assessment->assessment_type = 'REASSESSMENT';
-                    $assessment->title = 'Re-asesmen Siklus KAN - ' . $lpk->name;
-                } elseif ($request->filled('assessment_type')) {
-                    $assessment->assessment_type = $request->input('assessment_type');
-                    $assessment->title = ($assessment->assessment_type ?: 'Asesmen') . ' - ' . $lpk->name;
+                $isLpkRevoked = $lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED';
+
+                // LPK berstatus dicabut (REVOKED) tidak diperbolehkan menjadwalkan Re-Akreditasi atau Surveilen siklus lama.
+                // Sesuai regulasi KAN U-01, alur otomatis dialihkan ke Akreditasi Awal (INITIAL).
+                if ($isLpkRevoked && ($alertCode === 'RA' || str_contains(strtoupper($requestedType), 'RE_') || str_contains(strtoupper($requestedType), 'REAK'))) {
+                    $normalizedType = Assessment::TYPE_AKREDITASI_AWAL;
                 } else {
-                    $assessment->assessment_type = 'SURVEILLANCE';
-                    $assessment->title = 'Asesmen Surveilen KAN - ' . $lpk->name;
+                    $normalizedType = Assessment::normalizeType(
+                        $alertCode ?: $requestedType,
+                        (string) $request->input('title', '')
+                    );
                 }
+                $assessment->assessment_type = $normalizedType;
+                $assessment->title = ($normalizedType ?: 'Asesmen') . ' - ' . $lpk->name;
 
-                if ($targetDateStr) {
-                    try {
-                        $targetDate = Carbon::parse($targetDateStr);
+                $isTargetPast = false;
+                $targetDate = $targetDateStr ? rescue(fn () => Carbon::parse($targetDateStr), null, false) : null;
+                if ($targetDate) {
+                    if ($targetDate->endOfDay()->isPast()) {
+                        $isTargetPast = true;
+                    } else {
                         $assessment->start_at = $targetDate->copy()->setTime(9, 0);
                         $assessment->end_at = $targetDate->copy()->addDays(2)->setTime(17, 0);
-                    } catch (\Throwable $e) {
-                        // Abaikan error parsing tanggal
                     }
                 } else {
                     $defaultStart = now()->addDays(14)->setTime(9, 0);
@@ -215,35 +139,27 @@ class AssessmentController extends Controller
         if ($request->filled('title')) {
             $assessment->title = $request->input('title');
         }
-        if ($request->filled('assessment_type')) {
-            $assessment->assessment_type = $request->input('assessment_type');
+        if (empty($assessment->assessment_type) && $request->filled('assessment_type')) {
+            $assessment->assessment_type = Assessment::normalizeType($request->input('assessment_type'), (string) ($assessment->title ?: $request->input('title', '')));
         }
         if ($request->filled('location')) {
             $assessment->location = $request->input('location');
         }
         if ($request->filled('start_date')) {
-            try {
-                $time = $request->input('start_time', '09:00');
-                $assessment->start_at = Carbon::parse($request->input('start_date').' '.$time);
-            } catch (\Throwable $e) {}
+            $time = $request->input('start_time', '09:00');
+            $assessment->start_at = rescue(fn () => Carbon::parse($request->input('start_date').' '.$time), null, false);
         } elseif ($request->filled('start_at')) {
-            try {
-                $assessment->start_at = Carbon::parse($request->input('start_at'));
-            } catch (\Throwable $e) {}
+            $assessment->start_at = rescue(fn () => Carbon::parse($request->input('start_at')), null, false);
         }
 
         if ($request->filled('end_date')) {
-            try {
-                $time = $request->input('end_time', '17:00');
-                $assessment->end_at = Carbon::parse($request->input('end_date').' '.$time);
-            } catch (\Throwable $e) {}
+            $time = $request->input('end_time', '17:00');
+            $assessment->end_at = rescue(fn () => Carbon::parse($request->input('end_date').' '.$time), null, false);
         } elseif ($request->filled('end_at')) {
-            try {
-                $assessment->end_at = Carbon::parse($request->input('end_at'));
-            } catch (\Throwable $e) {}
+            $assessment->end_at = rescue(fn () => Carbon::parse($request->input('end_at')), null, false);
         }
 
-        if (! $assessment->start_at) {
+        if (! $assessment->start_at && empty($isTargetPast)) {
             $defaultStart = now()->addDays(14)->setTime(9, 0);
             $assessment->start_at = $defaultStart;
             $assessment->end_at = $defaultStart->copy()->addDays(2)->setTime(17, 0);
@@ -254,19 +170,21 @@ class AssessmentController extends Controller
         }
 
         if ($request->filled('submission_due_date')) {
-            try {
-                $assessment->submission_due_date = Carbon::parse($request->input('submission_due_date'));
-            } catch (\Throwable $e) {}
+            $assessment->submission_due_date = rescue(fn () => Carbon::parse($request->input('submission_due_date')), null, false);
         }
 
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
+        return view('assessments.form', [
+            'assessment' => $assessment,
+            'lpks' => $lpks,
+            'isTargetPast' => $isTargetPast ?? false,
+        ]);
     }
 
     public function store(StoreAssessmentRequest $request): RedirectResponse
     {
         $data = $request->normalizedPayload();
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
-        if ($data['tp_has_extension']) {
+        $hasExt = (bool) ($data['tp_has_extension'] ?? false);
+        if ($hasExt) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
                     'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
@@ -275,6 +193,11 @@ class AssessmentController extends Controller
             if (empty($data['tp_extension_months'])) {
                 $data['tp_extension_months'] = 1;
             }
+        } else {
+            $data['tp_extension_months'] = 0;
+            $data['tp_extension_letter_no'] = null;
+            $data['tp_extension_date'] = null;
+            $data['tp_extension_notes'] = null;
         }
 
         $user = $request->user();
@@ -285,14 +208,14 @@ class AssessmentController extends Controller
 
         $assessment = Assessment::create($data + ['created_by' => $user->id]);
 
-        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil dicatat.');
+        return redirect()->route('assessments.index')->with('success', 'Asesmen berhasil dicatat.');
     }
 
     public function show(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canView($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk melihat program asesmen ini.');
+        if (! $assessment->canView($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk melihat asesmen ini.');
         }
 
         return view('assessments.show', ['assessment' => $assessment->load(['lpk'])]);
@@ -301,25 +224,17 @@ class AssessmentController extends Controller
     public function edit(Assessment $assessment, Request $request): View
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
+        if (! $assessment->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah asesmen ini.');
         }
 
-        $lpksQuery = Lpk::orderBy('name');
-        if ($user && $user->isPic()) {
-            $lpksQuery->where(function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => $lpksQuery->get()]);
+        return view('assessments.form', ['assessment' => $assessment, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get()]);
     }
 
     public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah program asesmen ini.');
         }
 
@@ -331,8 +246,8 @@ class AssessmentController extends Controller
             }
         }
 
-        $data['tp_has_extension'] = $request->boolean('tp_has_extension') || ! empty($data['tp_extension_letter_no']);
-        if ($data['tp_has_extension']) {
+        $hasExt = (bool) ($data['tp_has_extension'] ?? false);
+        if ($hasExt) {
             if (empty($data['tp_status']) || $data['tp_status'] === Assessment::TP_STATUS_NONE) {
                 throw ValidationException::withMessages([
                     'tp_has_extension' => 'Perpanjangan waktu tindakan perbaikan (+1 bulan) hanya dapat diajukan jika terdapat upaya perbaikan (status Penyusunan Perbaikan atau Verifikasi Tim Asesor), bukan Nihil / Tanpa Tindakan Perbaikan.',
@@ -341,36 +256,42 @@ class AssessmentController extends Controller
             if (empty($data['tp_extension_months'])) {
                 $data['tp_extension_months'] = 1;
             }
+        } else {
+            $data['tp_extension_months'] = 0;
+            $data['tp_extension_letter_no'] = null;
+            $data['tp_extension_date'] = null;
+            $data['tp_extension_notes'] = null;
         }
 
         $assessment->update($data);
 
-        return redirect()->route('assessments.index')->with('success', 'Program asesmen berhasil diperbarui.');
+        return redirect()->route('assessments.show', $assessment)->with('success', 'Asesmen berhasil diperbarui.');
     }
 
     public function updateTp(UpdateAssessmentTpRequest $request, Assessment $assessment): RedirectResponse
     {
         $user = request()->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
+        if (! $assessment->isManagedBy($user)) {
             abort(403, 'Anda tidak memiliki hak untuk memperbarui status tindakan perbaikan pada asesmen ini.');
         }
 
         $validated = $request->normalizedData($assessment);
         $assessment->update($validated);
 
-        return back()->with('success', 'Status Tindakan Perbaikan (TP & VTP) serta milestone asesmen berhasil diperbarui.');
+        return back()->with('success', 'Pembaruan tindak lanjut asesmen berhasil disimpan.');
     }
 
     public function destroy(Assessment $assessment, Request $request): RedirectResponse
     {
         $user = $request->user();
-        if ($user && $assessment->lpk && ! $assessment->lpk->canManage($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus program asesmen ini.');
+        if (! $assessment->isManagedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus asesmen ini.');
         }
 
         $assessmentId = $assessment->id;
         $title = $assessment->title;
-        $assessment->delete();
+
+        DB::transaction(fn () => $assessment->delete());
 
         Log::info('Assessment deleted', [
             'assessment_id' => $assessmentId,
@@ -379,7 +300,7 @@ class AssessmentController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('assessments.index')->with('success', "Program asesmen {$title} berhasil dihapus.");
+        return redirect()->route('assessments.index')->with('success', "Asesmen {$title} berhasil dihapus.");
     }
 
     public function bulkDestroy(Request $request): RedirectResponse|JsonResponse
@@ -395,37 +316,35 @@ class AssessmentController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada program asesmen yang dipilih.',
+                    'message' => 'Tidak ada asesmen yang dipilih.',
                 ], 422);
             }
-            return back()->with('error', 'Tidak ada program asesmen yang dipilih.');
+            return back()->with('error', 'Tidak ada asesmen yang dipilih.');
         }
 
-        $query = Assessment::with('lpk')->whereIn('id', $ids);
-        if ($user && $user->isPic()) {
-            $query->whereHas('lpk', function ($q) use ($user) {
-                $q->where('pic_id', $user->id)
-                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $user->id)->where('lpk_members.role', 'lead'));
-            });
-        }
-
-        $records = $query->get();
+        $records = Assessment::with('lpk')->manageableBy($user)->whereIn('id', $ids)->get();
         $count = $records->count();
 
         if ($count === 0) {
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada program asesmen yang dapat dihapus atau Anda tidak memiliki hak akses.',
+                    'message' => 'Tidak ada asesmen yang dapat dihapus atau Anda tidak memiliki hak akses.',
                 ], 403);
             }
-            return back()->with('error', 'Tidak ada program asesmen yang dapat dihapus.');
+            return back()->with('error', 'Tidak ada asesmen yang dapat dihapus.');
         }
 
-        DB::transaction(function () use ($records) {
-            foreach ($records as $record) {
-                $record->delete();
+        $idsToDelete = $records->pluck('id')->all();
+        $affectedLpks = $records->pluck('lpk')->filter()->unique('id');
+
+        DB::transaction(function () use ($idsToDelete, $affectedLpks) {
+            Assessment::whereIn('id', $idsToDelete)->delete();
+            foreach ($affectedLpks as $lpk) {
+                $lpk->touch();
+                \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
             }
+            \App\Services\LpkSurveillanceService::invalidateAlertsCache();
         });
 
         Log::info('Assessments bulk deleted', [
@@ -435,7 +354,7 @@ class AssessmentController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $message = "{$count} program asesmen berhasil dihapus.";
+        $message = "{$count} asesmen berhasil dihapus.";
 
         if ($request->wantsJson()) {
             return response()->json([

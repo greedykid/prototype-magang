@@ -29,10 +29,8 @@ export const initAuthTransitions = () => {
             loginCard.classList.add('is-submitting');
         }
 
-        // Allow the spinner to rotate and user to feel smooth feedback before unload
-        setTimeout(() => {
-            form.submit();
-        }, 480);
+        // Submit immediately without artificial delay while CSS transitions remain active
+        form.submit();
     });
 
     // ==========================================================================
@@ -58,6 +56,8 @@ export const initAuthTransitions = () => {
             confirmButtonText: 'Ya, Keluar',
             cancelButtonText: 'Batal',
             reverseButtons: true,
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: {
                 popup: 'simasadi-swal-popup',
                 confirmButton: 'simasadi-swal-btn',
@@ -73,9 +73,7 @@ export const initAuthTransitions = () => {
                     curtain.classList.add('is-active');
                     curtain.setAttribute('aria-hidden', 'false');
                 }
-                setTimeout(() => {
-                    form.submit();
-                }, 450);
+                form.submit();
             }
         });
     });

@@ -4,6 +4,7 @@
 
 import { initCustomSelects } from './custom-select.js';
 import { syncTableState } from './table-multiselect.js';
+import { executePartialFilter } from './live-filter.js';
 
 export const createViewToggle = (className, label, views, activeView, onChange) => {
     const toggle = document.createElement('div');
@@ -81,9 +82,6 @@ export const parseCellValue = (rawText) => {
 };
 
 export const sortTableByColumn = (table, colIndex, targetTh) => {
-    const tbody = table.querySelector('tbody');
-    if (!tbody) return;
-
     const currentSort = targetTh.getAttribute('aria-sort') || 'none';
     const nextSort = currentSort === 'ascending' ? 'descending' : 'ascending';
 
@@ -92,6 +90,55 @@ export const sortTableByColumn = (table, colIndex, targetTh) => {
         th.setAttribute('aria-sort', 'none');
     });
     targetTh.setAttribute('aria-sort', nextSort);
+
+    const sortField = targetTh.dataset.sortField;
+    const filterForm = table.closest('.panel')?.querySelector('form[data-partial-filter="true"]') ||
+                       document.querySelector('form[data-partial-filter="true"]');
+
+    if (sortField && filterForm) {
+        let sortInput = filterForm.querySelector('input[name="sort"]');
+        if (!sortInput) {
+            sortInput = document.createElement('input');
+            sortInput.type = 'hidden';
+            sortInput.name = 'sort';
+            filterForm.appendChild(sortInput);
+        }
+        let dirInput = filterForm.querySelector('input[name="direction"]');
+        if (!dirInput) {
+            dirInput = document.createElement('input');
+            dirInput.type = 'hidden';
+            dirInput.name = 'direction';
+            filterForm.appendChild(dirInput);
+        }
+
+        sortInput.value = sortField;
+        dirInput.value = nextSort === 'ascending' ? 'asc' : 'desc';
+
+        // Preserve active per_page
+        const tableWrap = table.closest('.table-wrap');
+        const toolbarSelect = tableWrap?.previousElementSibling?.querySelector('.table-length-select') ||
+                              document.querySelector('.table-length-select');
+        const currentPerPage = toolbarSelect?.value ||
+                               new URLSearchParams(window.location.search).get('per_page') ||
+                               filterForm.querySelector('input[name="per_page"]')?.value;
+
+        if (currentPerPage) {
+            let perPageInput = filterForm.querySelector('input[name="per_page"]');
+            if (!perPageInput) {
+                perPageInput = document.createElement('input');
+                perPageInput.type = 'hidden';
+                perPageInput.name = 'per_page';
+                filterForm.appendChild(perPageInput);
+            }
+            perPageInput.value = currentPerPage;
+        }
+
+        executePartialFilter(filterForm, true);
+        return;
+    }
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
     if (!rows.length) return;
@@ -125,6 +172,10 @@ export const initSortableHeaders = (table) => {
     const theadThs = table.querySelectorAll('thead th');
     if (!theadThs.length) return;
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeSortField = urlParams.get('sort');
+    const activeSortDir = urlParams.get('direction') === 'desc' ? 'descending' : 'ascending';
+
     const sortSvg = `
         <span class="table-sort-icon" aria-hidden="true">
             <svg class="sort-arrows-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,7 +200,12 @@ export const initSortableHeaders = (table) => {
         th.classList.add('is-sortable');
         th.setAttribute('tabindex', '0');
         th.setAttribute('role', 'columnheader');
-        th.setAttribute('aria-sort', 'none');
+
+        if (activeSortField && th.dataset.sortField === activeSortField) {
+            th.setAttribute('aria-sort', activeSortDir);
+        } else {
+            th.setAttribute('aria-sort', 'none');
+        }
 
         const label = document.createElement('span');
         label.className = 'th-label';
@@ -183,6 +239,21 @@ export const initTableToolbar = (tableWrap) => {
     const url = new URL(window.location.href);
     const currentPerPage = url.searchParams.get('per_page') || '10';
 
+    // Ensure active table filters maintain the initial per_page value
+    const filterForm = tableWrap.parentElement?.querySelector('.table-filters') ||
+                       tableWrap.closest('.panel')?.querySelector('.table-filters') ||
+                       document.querySelector('.table-filters');
+    if (filterForm) {
+        let hiddenPerPage = filterForm.querySelector('input[name="per_page"]');
+        if (!hiddenPerPage) {
+            hiddenPerPage = document.createElement('input');
+            hiddenPerPage.type = 'hidden';
+            hiddenPerPage.name = 'per_page';
+            filterForm.appendChild(hiddenPerPage);
+        }
+        hiddenPerPage.value = currentPerPage;
+    }
+
     const toolbar = document.createElement('div');
     toolbar.className = 'table-toolbar';
 
@@ -207,16 +278,23 @@ export const initTableToolbar = (tableWrap) => {
         const val = select.value;
 
         // Ensure active table filters maintain the chosen per_page value
-        const filterForm = tableWrap.parentElement?.querySelector('.table-filters') || document.querySelector('.table-filters');
-        if (filterForm) {
-            let hiddenPerPage = filterForm.querySelector('input[name="per_page"]');
+        const targetForm = tableWrap.parentElement?.querySelector('.table-filters') ||
+                           tableWrap.closest('.panel')?.querySelector('.table-filters') ||
+                           document.querySelector('.table-filters');
+        if (targetForm) {
+            let hiddenPerPage = targetForm.querySelector('input[name="per_page"]');
             if (!hiddenPerPage) {
                 hiddenPerPage = document.createElement('input');
                 hiddenPerPage.type = 'hidden';
                 hiddenPerPage.name = 'per_page';
-                filterForm.appendChild(hiddenPerPage);
+                targetForm.appendChild(hiddenPerPage);
             }
             hiddenPerPage.value = val;
+
+            if (targetForm.dataset.partialFilter === 'true') {
+                executePartialFilter(targetForm, true);
+                return;
+            }
         }
 
         const newUrl = new URL(window.location.href);
@@ -285,6 +363,8 @@ export function syncViewToggleLocation() {
         }
     });
 }
+
+let tableFilterEscapeBound = false;
 
 export const initDataTables = () => {
     // 1. Table view mode toggles, Table sorting, and Table length controls
@@ -381,12 +461,42 @@ export const initDataTables = () => {
         const filterIconSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
         toggle.innerHTML = `<span class="filter-toggle-icon" aria-hidden="true">${filterIconSvg}</span><span>Filter data</span>`;
 
+        const sheetHeader = document.createElement('div');
+        sheetHeader.className = 'filter-sheet-header';
+
+        const sheetHandle = document.createElement('div');
+        sheetHandle.className = 'filter-sheet-handle';
+        sheetHandle.setAttribute('aria-hidden', 'true');
+
+        const sheetTitleRow = document.createElement('div');
+        sheetTitleRow.className = 'filter-sheet-title-row';
+
+        const sheetTitle = document.createElement('h3');
+        sheetTitle.className = 'filter-sheet-title';
+        sheetTitle.textContent = 'Filter Data';
+
         const closeButton = document.createElement('button');
         closeButton.className = 'filter-drawer-close';
         closeButton.type = 'button';
         closeButton.setAttribute('aria-label', 'Tutup filter');
-        closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
-        filter.prepend(closeButton);
+        closeButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+        sheetTitleRow.appendChild(sheetTitle);
+        sheetTitleRow.appendChild(closeButton);
+        sheetHeader.appendChild(sheetHandle);
+        sheetHeader.appendChild(sheetTitleRow);
+        filter.prepend(sheetHeader);
+
+        // Add a bottom "Tutup Filter" button in actions if not present
+        const actions = filter.querySelector('.table-filter-actions');
+        if (actions && !actions.querySelector('.filter-sheet-done-btn')) {
+            const doneButton = document.createElement('button');
+            doneButton.type = 'button';
+            doneButton.className = 'button secondary filter-sheet-done-btn';
+            doneButton.textContent = 'Tutup Filter';
+            doneButton.addEventListener('click', () => closeDrawer());
+            actions.appendChild(doneButton);
+        }
 
         const backdrop = document.createElement('div');
         backdrop.className = 'filter-drawer-backdrop';
@@ -394,12 +504,16 @@ export const initDataTables = () => {
         filter.classList.add('filter-drawer');
 
         const closeDrawer = () => {
+            filter.style.transform = '';
+            filter.style.transition = '';
             filter.classList.remove('filters-open');
             toggle.setAttribute('aria-expanded', 'false');
             document.body.classList.remove('filter-drawer-open');
         };
 
         const openDrawer = () => {
+            filter.style.transform = '';
+            filter.style.transition = '';
             filter.classList.add('filters-open');
             toggle.setAttribute('aria-expanded', 'true');
             document.body.classList.add('filter-drawer-open');
@@ -417,15 +531,68 @@ export const initDataTables = () => {
         closeButton.addEventListener('click', closeDrawer);
         backdrop.addEventListener('click', closeDrawer);
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && filter.classList.contains('filters-open')) {
+        if (!tableFilterEscapeBound) {
+            tableFilterEscapeBound = true;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const openFilter = document.querySelector('.table-filters.filters-open');
+                    if (openFilter) {
+                        openFilter.style.transform = '';
+                        openFilter.style.transition = '';
+                        openFilter.classList.remove('filters-open');
+                        const openToggle = openFilter.parentElement?.querySelector('.filter-toggle');
+                        openToggle?.setAttribute('aria-expanded', 'false');
+                        document.body.classList.remove('filter-drawer-open');
+                    }
+                }
+            });
+        }
+
+        // Touch drag down to dismiss bottom sheet
+        let touchStartY = 0;
+        let touchCurrentY = 0;
+        let isDraggingSheet = false;
+
+        filter.addEventListener('touchstart', (e) => {
+            if (!filter.classList.contains('filters-open')) return;
+            if (filter.scrollTop <= 0) {
+                touchStartY = e.touches[0].clientY;
+                touchCurrentY = touchStartY;
+                isDraggingSheet = true;
+            } else {
+                isDraggingSheet = false;
+            }
+        }, { passive: true });
+
+        filter.addEventListener('touchmove', (e) => {
+            if (!isDraggingSheet) return;
+            touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchCurrentY - touchStartY;
+            if (deltaY > 0) {
+                filter.style.transform = `translateY(${deltaY}px)`;
+                filter.style.transition = 'none';
+            } else {
+                filter.style.transform = '';
+            }
+        }, { passive: true });
+
+        const finishDrag = () => {
+            if (!isDraggingSheet) return;
+            isDraggingSheet = false;
+            const deltaY = touchCurrentY - touchStartY;
+            filter.style.transform = '';
+            filter.style.transition = '';
+            if (deltaY > 70) {
                 closeDrawer();
             }
-        });
+        };
 
-        // Ensure drawer and backdrop are mounted directly to document.body on mobile screens
+        filter.addEventListener('touchend', finishDrag, { passive: true });
+        filter.addEventListener('touchcancel', finishDrag, { passive: true });
+
+        // Ensure bottom sheet and backdrop are mounted directly to document.body on mobile screens
         const syncDrawerMount = () => {
-            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            const isMobile = window.matchMedia('(max-width: 680px)').matches;
             if (isMobile) {
                 if (filter.parentElement !== document.body) {
                     document.body.appendChild(backdrop);
@@ -655,17 +822,21 @@ export const initDataTables = () => {
 };
 
 let viewToggleResizeTimer;
-window.addEventListener('resize', () => {
-    clearTimeout(viewToggleResizeTimer);
-    viewToggleResizeTimer = setTimeout(syncViewToggleLocation, 50);
-});
+if (typeof window !== 'undefined') {
+    window.addEventListener('resize', () => {
+        clearTimeout(viewToggleResizeTimer);
+        viewToggleResizeTimer = setTimeout(syncViewToggleLocation, 50);
+    });
+}
 
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-        document.querySelectorAll('.filter-drawer.filters-open').forEach((filter) => {
-            filter.classList.remove('filters-open');
-            filter.querySelector('.filter-toggle')?.setAttribute('aria-expanded', 'false');
-        });
-        document.body.classList.remove('filter-drawer-open');
-    }
-});
+if (typeof document !== 'undefined') {
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('.filter-drawer.filters-open').forEach((filter) => {
+                filter.classList.remove('filters-open');
+                filter.querySelector('.filter-toggle')?.setAttribute('aria-expanded', 'false');
+            });
+            document.body.classList.remove('filter-drawer-open');
+        }
+    });
+}

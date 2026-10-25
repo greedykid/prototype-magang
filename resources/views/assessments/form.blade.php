@@ -62,7 +62,9 @@
             $tpHasExtVal,
             $tpExtMonthsVal,
             $tpSatisfiedCarbon,
-            $typeVal
+            $typeVal,
+            $assessment->tp_extension_date,
+            old('eha_status', $assessment->eha_status)
         );
     }
     $statusLabels = [
@@ -80,7 +82,7 @@
             : 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'SCHEDULED' => 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'IN_PROGRESS' => 'Otomatis: Saat ini dalam periode pelaksanaan atau tindak lanjut asesmen.',
-        'SUSPENDED' => 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.',
+        'SUSPENDED' => 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.',
         'COMPLETED' => 'Otomatis: Tindakan perbaikan memenuhi atau SK KAN telah terbit.',
         'CANCELLED' => 'Asesmen dibatalkan.',
     ];
@@ -115,7 +117,7 @@
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Dibekukan (Lewat Batas Waktu)';
         $initialComputedTpBadgeClass = 'status-suspended';
-        $initialComputedTpDesc = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi.';
+        $initialComputedTpDesc = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi.';
     } elseif ($hasActiveTp || ($isVisitFinished && ! $isOverdueWithoutAction) || $hasExecutionProof || ($hasExplicitTpDate && $isVisitFinished)) {
         $initialComputedTpStatus = 'IN_PROGRESS';
         $initialComputedTpLabel = 'Sedang Berlangsung';
@@ -132,9 +134,9 @@
 <div class="lpk-form-container">
     {{-- Navigasi Breadcrumb Kembali (Notion Style) --}}
     <div class="lpk-header-back-wrap">
-        <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke {{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}">
+        <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen">
             <x-icon name="chevron-left" size="16" />
-            <span>{{ auth()->check() && auth()->user()->isPic() ? 'Jadwal Asesmen' : 'Program Asesmen' }}</span>
+            <span>Daftar Asesmen</span>
         </a>
     </div>
 
@@ -149,21 +151,11 @@
 
                 @if($assessment->exists)
                     <div class="lpk-header-badges">
-                        <span class="lpk-badge-reg">{{ $assessment->lpk->registration_number ?? '-' }}</span>
+                        <span class="lpk-badge-reg">{{ $assessment->lpk->accreditation_number ?: ($assessment->lpk->no_reg ?: '-') }}</span>
                         <span class="lpk-badge-type">{{ $assessment->assessment_type_label }}</span>
                         <x-status :value="$assessment->status" />
                     </div>
                 @endif
-            </div>
-
-            <div class="lpk-header-actions">
-                <a class="button ghost" href="{{ route('assessments.index') }}">
-                    Batal
-                </a>
-                <button class="button primary" type="submit" form="assessment-main-form">
-                    <x-icon :name="$assessment->exists ? 'check' : 'plus'" size="16" />
-                    <span>{{ $assessment->exists ? 'Simpan perubahan' : 'Simpan asesmen' }}</span>
-                </button>
             </div>
         </div>
     </div>
@@ -174,20 +166,37 @@
             $prefilledLpk = $lpks->firstWhere('id', old('lpk_id', $assessment->lpk_id ?: request('lpk_id')));
         @endphp
         @if($prefilledLpk)
-            <div class="lpk-alert-callout is-success">
-                <div class="lpk-alert-callout-content">
-                    <div class="lpk-alert-callout-head">
-                        <x-icon name="check-circle" size="18" style="flex-shrink: 0;" />
-                        <strong>Jadwal Kunjungan Otomatis Disiapkan</strong>
+            @if(!empty($isTargetPast))
+                <div class="lpk-alert-callout is-warning">
+                    <div class="lpk-alert-callout-content">
+                        <div class="lpk-alert-callout-head">
+                            <x-icon name="alert-triangle" size="18" style="flex-shrink: 0;" />
+                            <strong>Data Laboratorium Dimuat (Input Jadwal Diperlukan)</strong>
+                        </div>
+                        <p class="lpk-alert-callout-desc">
+                            Form telah dimuat untuk <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->accreditation_number ?: ($prefilledLpk->no_reg ?: '-') }}). Karena batas waktu surveilen telah lampau, tanggal pelaksanaan dikosongkan agar Anda dapat menentukan tanggal rencana kunjungan baru secara manual.
+                        </p>
                     </div>
-                    <p class="lpk-alert-callout-desc">
-                        Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->registration_number }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
-                    </p>
+                    <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
+                        Jadwal Manual
+                    </span>
                 </div>
-                <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px;">
-                    Auto Pre-filled
-                </span>
-            </div>
+            @else
+                <div class="lpk-alert-callout is-success">
+                    <div class="lpk-alert-callout-content">
+                        <div class="lpk-alert-callout-head">
+                            <x-icon name="check-circle" size="18" style="flex-shrink: 0;" />
+                            <strong>Jadwal Kunjungan Otomatis Disiapkan</strong>
+                        </div>
+                        <p class="lpk-alert-callout-desc">
+                            Form telah terisi otomatis berdasarkan data <strong>{{ $prefilledLpk->name }}</strong> ({{ $prefilledLpk->accreditation_number ?: ($prefilledLpk->no_reg ?: '-') }}). Silakan sesuaikan tanggal dan rincian sebelum disimpan.
+                        </p>
+                    </div>
+                    <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
+                        Auto Pre-filled
+                    </span>
+                </div>
+            @endif
         @endif
     @endif
 
@@ -225,7 +234,7 @@
                             <span>LPK / Laboratorium Sasaran</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <select id="assessment-lpk-id" name="lpk_id" required>
+                        <select id="assessment-lpk-id" name="lpk_id" required class="@error('lpk_id') is-invalid @enderror">
                             <option value="">Pilih LPK</option>
                             @foreach($lpks as $lpk)
                                 @php
@@ -249,6 +258,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        @error('lpk_id')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                         <span class="lpk-field-hint">Lembaga Penilaian Kesesuaian yang terdaftar di Komite Akreditasi Nasional.</span>
 
                         {{-- Info Kecil Detail LPK Terpilih --}}
@@ -284,8 +296,10 @@
                             <span>Judul Agenda Asesmen</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)">
-                        <span class="lpk-field-hint">Nama penugasan yang tercantum pada surat tugas dan kalender asesmen.</span>
+                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)" class="@error('title') is-invalid @enderror">
+                        @error('title')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <div class="lpk-field-row">
@@ -294,33 +308,33 @@
                                 <span>Jenis Asesmen (Standar KAN U-01)</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <select id="assessment-type-select" name="assessment_type" required>
+                            <select id="assessment-type-select" name="assessment_type" required class="@error('assessment_type') is-invalid @enderror">
                                 <option value="">Pilih jenis asesmen</option>
                                 @foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)
                                     <option value="{{ $typeKey }}" @selected(
                                         old('assessment_type', $assessment->assessment_type ?: request('assessment_type')) === $typeKey ||
-                                        (old('assessment_type') === null && request('assessment_type') === null && (
-                                             ($typeKey === 'Asesmen Awal' && $assessment->assessment_type === 'INITIAL') ||
-                                             ($typeKey === 'Surveilen' && $assessment->assessment_type === 'SURVEILLANCE') ||
-                                             ($typeKey === 'Re-asesmen' && $assessment->assessment_type === 'REASSESSMENT')
-                                        ))
+                                        (old('assessment_type') === null && request('assessment_type') === null && \App\Models\Assessment::normalizeType($assessment->assessment_type, (string) $assessment->title) === $typeKey)
                                     )>
                                         {{ $typeLabel }}
                                     </option>
                                 @endforeach
                             </select>
-                            <span class="lpk-field-hint">Jenis siklus akreditasi KAN (Asesmen Awal, Surveilen, Re-asesmen, STT/PRL).</span>
+                            @error('assessment_type')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </div>
 
                         <div class="lpk-field">
-                            <label class="lpk-label">
-                                <span>Status Asesmen</span>
-                            </label>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; flex-wrap: wrap; gap: 4px;">
+                                <label class="lpk-label" style="margin-bottom: 0;">
+                                    <span>Status Asesmen</span>
+                                </label>
+                                <span class="status-auto-tag">Otomatis</span>
+                            </div>
                             <div class="lpk-status-preview-box">
                                 <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
                                     {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
                                 </span>
-                                <span class="status-auto-tag">Otomatis</span>
                                 <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
                             </div>
                             <span id="status-desc-preview" class="lpk-field-hint">{{ $initialComputedDesc }}</span>
@@ -356,8 +370,13 @@
                                 <span>Tanggal Mulai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-start-date" type="date" name="start_date" value="{{ $startDateVal }}" required>
-                            <span class="lpk-field-hint">Tanggal pembukaan opening meeting asesmen.</span>
+                            <input id="assessment-start-date" type="date" name="start_date" value="{{ $startDateVal }}" required class="@error('start_date') is-invalid @enderror @error('start_at') is-invalid @enderror">
+                            @error('start_date')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
+                            @error('start_at')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </div>
 
                         <div class="lpk-field">
@@ -365,10 +384,26 @@
                                 <span>Tanggal Selesai Pelaksanaan</span>
                                 <span class="lpk-required-dot">*</span>
                             </label>
-                            <input id="assessment-end-date" type="date" name="end_date" value="{{ $endDateVal }}" required>
-                            <span class="lpk-field-hint">Tanggal penutupan closing meeting asesmen.</span>
+                            <input id="assessment-end-date" type="date" name="end_date" value="{{ $endDateVal }}" required class="@error('end_date') is-invalid @enderror @error('end_at') is-invalid @enderror">
+                            @error('end_date')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
+                            @error('end_at')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
+
+                    <div class="assessment-duration-toolbar">
+                        <span class="duration-toolbar-label">Pintasan Durasi:</span>
+                        <div class="duration-chips-group">
+                            <button type="button" class="duration-chip-btn" data-days="1" title="Set selesai di hari yang sama">1 Hari</button>
+                            <button type="button" class="duration-chip-btn" data-days="2" title="Set selesai keesokan harinya">2 Hari</button>
+                            <button type="button" class="duration-chip-btn" data-days="3" title="Set selesai 3 hari kunjungan">3 Hari</button>
+                        </div>
+                        <div id="assessment-duration-badge" class="assessment-duration-badge" style="display: none;"></div>
+                    </div>
+
 
                     <div class="lpk-field" style="margin-bottom: 18px;">
                         <label class="lpk-label" for="assessment-submission-due-date">
@@ -376,7 +411,7 @@
                         </label>
                         <input id="assessment-submission-due-date" type="date" name="submission_due_date" value="{{ $submissionDueDateVal }}" data-default-date="{{ $defaultSubmissionDueDateVal }}">
                         <span id="assessment-submission-due-date-hint" class="lpk-field-hint">
-                            Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).
+                            Maksimal batas toleransi pengisian dokumen (bawaan: {{ $assessment->submission_cycle_hint }} / dapat diubah sesuai kondisi proses tertentu).
                         </span>
                     </div>
 
@@ -386,7 +421,6 @@
                                 <span>Lokasi Kunjungan / Audit</span>
                             </label>
                             <input id="assessment-location" name="location" value="{{ old('location', $assessment->location ?: request('location')) }}" placeholder="Contoh: Gedung Laboratorium Kimia & Fisika, Bandung">
-                            <span class="lpk-field-hint">Lokasi fisik pengujian atau audit lapangan.</span>
                         </div>
 
                         <div class="lpk-field">
@@ -394,7 +428,6 @@
                                 <span>Lead Assessor (Asesor Kepala)</span>
                             </label>
                             <input id="assessment-lead-assessor" name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: ($assessment->assessment_team ?: request('lead_assessor'))) }}" placeholder="Nama asesor kepala">
-                            <span class="lpk-field-hint">Penanggung jawab tim asesmen KAN.</span>
                         </div>
                     </div>
 
@@ -403,7 +436,6 @@
                             <span>Susunan Tim Asesmen (Asesor &amp; Tenaga Ahli)</span>
                         </label>
                         <input id="assessment-team" name="assessment_team" value="{{ old('assessment_team', $assessment->assessment_team ?: $assessment->lead_assessor) }}" placeholder="Contoh: Dr. Ir. Budi (Ketua), Siti Rahma (Asesor), Hendra (Tenaga Ahli)">
-                        <span class="lpk-field-hint">Daftar nama lengkap asesor dan tenaga ahli yang ditugaskan.</span>
                     </div>
 
                     <div class="lpk-field">
@@ -415,7 +447,7 @@
                 </div>
             </div>
 
-            {{-- KOLOM KANAN: Standar KAN (TP/VTP, Evaluasi EHA, dan Keputusan SK) --}}
+            {{-- KOLOM KANAN: Standar KAN (TP/VTP, Rapat Panitia Teknis, dan Keputusan SK) --}}
             <div class="lpk-form-column">
                 {{-- KARTU 3: Tindakan Perbaikan & Verifikasi (TP & VTP) - Standar KAN --}}
                 <div class="lpk-form-card">
@@ -436,7 +468,7 @@
                         <label class="lpk-label">
                             <span>Status Tindakan Perbaikan</span>
                         </label>
-                        <div style="display: flex; align-items: center; min-height: 32px; margin-top: 4px; margin-bottom: 4px;">
+                        <div style="display: flex; align-items: center; margin: 2px 0 4px;">
                             <span id="tp-status-badge-preview" class="status {{ $initialComputedTpBadgeClass }}" style="font-weight: 600; font-size: 12px;">
                                 {{ $initialComputedTpLabel }}
                             </span>
@@ -447,8 +479,8 @@
 
                     <div class="lpk-field-row" style="align-items: start; margin-bottom: 18px;">
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-tp-due-date" style="min-height: 34px; align-items: flex-start;">
-                                <span>Batas Waktu Awal</span>
+                            <label class="lpk-label" for="assessment-tp-due-date">
+                                <span>Tenggat Waktu TP</span>
                             </label>
                             <input id="assessment-tp-due-date" type="date" name="tp_due_date" value="{{ $initTpDueDate }}" data-base-date="{{ $baseTpDate }}" data-is-extended="{{ $tpHasExtVal ? '1' : '0' }}">
                             <div id="tp-due-date-ext-badge-wrap" style="display: {{ $tpHasExtVal ? 'block' : 'none' }}; margin-top: 6px;">
@@ -461,17 +493,16 @@
                                 @if($tpHasExtVal)
                                     * Otomatis diperpanjang +1 bulan karena ada surat permohonan perpanjangan LPK.
                                 @else
-                                    Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.
+                                    Otomatis dihitung +2 atau +3 bulan dari selesai asesmen. Ubah hanya jika ada kesepakatan tanggal khusus di berita acara.
                                 @endif
                             </span>
                         </div>
 
                         <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-tp-satisfied-at" style="min-height: 34px; align-items: flex-start;">
-                                <span>Tanggal Dinyatakan Memenuhi</span>
+                            <label class="lpk-label" for="assessment-tp-satisfied-at">
+                                <span>Dinyatakan Memenuhi</span>
                             </label>
                             <input id="assessment-tp-satisfied-at" type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}">
-                            <span class="lpk-field-hint" style="margin-top: 4px;">Diisi saat verifikasi tindakan perbaikan telah disetujui.</span>
                         </div>
                     </div>
 
@@ -489,15 +520,17 @@
                             <div class="lpk-field">
                                 <label class="lpk-label" for="assessment-ext-letter-no">
                                     <span>Nomor Surat Resmi LPK</span>
+                                    <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}">
+                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @endif>
                             </div>
 
                             <div class="lpk-field">
                                 <label class="lpk-label" for="assessment-ext-date">
                                     <span>Tanggal Surat</span>
+                                    <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}">
+                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" @if($tpHasExtVal) required @endif>
                             </div>
 
                             <div class="lpk-field" style="grid-column: 1 / -1;">
@@ -517,7 +550,7 @@
                     </div>
                 </div>
 
-                {{-- KARTU 4: Laporan Asesmen & Evaluasi Hasil Asesmen (EHA) --}}
+                {{-- KARTU 4: Laporan Asesmen & Rapat Panitia Teknis --}}
                 <div class="lpk-form-card">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-rose">
@@ -530,7 +563,7 @@
                             </svg>
                         </div>
                         <div class="lpk-card-header-text">
-                            <h2>Laporan Asesmen &amp; Evaluasi (EHA)</h2>
+                            <h2>Laporan Asesmen &amp; Rapat Panitia Teknis</h2>
                             <p>Pencatatan laporan akhir dan evaluasi hasil asesmen oleh Panitia Teknis sebelum penerbitan SK.</p>
                         </div>
                     </div>
@@ -545,14 +578,14 @@
 
                         <div class="lpk-field">
                             <label class="lpk-label" for="assessment-eha-date">
-                                <span>Pelaksanaan EHA (Panitia Teknis)</span>
+                                <span>Pelaksanaan Rapat Panitia Teknis</span>
                             </label>
                             <input id="assessment-eha-date" type="date" name="eha_date" value="{{ old('eha_date', $assessment->eha_date?->format('Y-m-d')) }}">
                         </div>
 
                         <div class="lpk-field">
                             <label class="lpk-label" for="assessment-eha-status">
-                                <span>Status Hasil EHA</span>
+                                <span>Status Hasil Rapat Panitia Teknis</span>
                             </label>
                             <select id="assessment-eha-status" name="eha_status">
                                 @foreach(\App\Models\Assessment::EHA_STATUSES as $ehaKey => $ehaLabel)
@@ -566,7 +599,7 @@
 
                     <div class="lpk-field">
                         <label class="lpk-label" for="assessment-eha-notes">
-                            <span>Catatan / Rekomendasi Hasil Evaluasi (EHA)</span>
+                            <span>Catatan / Rekomendasi Hasil Rapat Panitia Teknis</span>
                         </label>
                         <textarea id="assessment-eha-notes" name="eha_notes" rows="2" placeholder="Catatan panitia teknis, rekomendasi kelanjutan, atau tindak lanjut hasil evaluasi...">{{ old('eha_notes', $assessment->eha_notes) }}</textarea>
                     </div>
@@ -617,18 +650,42 @@
                 </div>
             </div>
         </div>
+
+        {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
+        <div class="form-sticky-footer">
+            <div class="form-sticky-hint">
+                <x-icon name="info" size="15" />
+                <span>{{ $assessment->exists ? 'Pastikan data asesmen dan jadwal telah sesuai sebelum menyimpan perubahan.' : 'Lengkapi data asesmen lalu simpan jadwal kunjungan.' }}</span>
+            </div>
+            <div class="form-sticky-actions">
+                <a class="button ghost" href="{{ route('assessments.index') }}">
+                    Batal
+                </a>
+                <button class="button primary" type="submit">
+                    <x-icon :name="$assessment->exists ? 'check' : 'plus'" size="16" />
+                    <span>{{ $assessment->exists ? 'Simpan perubahan' : 'Simpan asesmen' }}</span>
+                </button>
+            </div>
+        </div>
     </form>
 </div>
 
 <script>
 (function() {
     function initAutoAssessmentStatus() {
+        const form = document.getElementById('assessment-main-form');
+        if (!form || form.dataset.autoStatusInit === 'true') {
+            return;
+        }
+        form.dataset.autoStatusInit = 'true';
+
         const startDateInput = document.querySelector('input[name="start_date"]');
         const startTimeInput = document.querySelector('input[name="start_time"]');
         const endDateInput = document.querySelector('input[name="end_date"]');
         const endTimeInput = document.querySelector('input[name="end_time"]');
         const hiddenStartInput = document.getElementById('assessment-start-at');
         const hiddenEndInput = document.getElementById('assessment-end-at');
+        const titleInput = document.getElementById('assessment-title');
         const lpkSelect = document.getElementById('assessment-lpk-id');
         const submissionDueDateInput = document.getElementById('assessment-submission-due-date');
         const assessmentTypeSelect = document.querySelector('select[name="assessment_type"]');
@@ -643,6 +700,8 @@
         const reportDateInput = document.querySelector('input[name="report_date"]');
         const ehaDateInput = document.querySelector('input[name="eha_date"]');
         const skNumberInput = document.querySelector('input[name="sk_number"]');
+        const durationBadge = document.getElementById('assessment-duration-badge');
+        const durationBtns = document.querySelectorAll('.duration-chip-btn');
 
         const badge = document.getElementById('status-badge-preview');
         const desc = document.getElementById('status-desc-preview');
@@ -790,11 +849,17 @@
                 const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
                 const lowerType = typeVal.toLowerCase();
                 if (lowerType.includes('ra') || lowerType.includes('re-akreditasi') || lowerType.includes('akreditasi ulang')) {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi bulan ke-60 / tanggal kedaluwarsa sertifikat akreditasi KAN).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi bulan ke-60 / akhir siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
                 } else if (lowerType.includes('s2') || typeVal === 'Surveilen 2') {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 36-39 siklus akreditasi KAN).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 36-39 siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('awal')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: batas toleransi proses asesmen awal KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('stt') || lowerType.includes('tidak terjadwal')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: surveilen tidak terjadwal / khusus KAN / dapat diubah sesuai kondisi proses tertentu).';
+                } else if (lowerType.includes('prl') || lowerType.includes('perluasan')) {
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: proses perluasan ruang lingkup KAN / dapat diubah sesuai kondisi proses tertentu).';
                 } else {
-                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus akreditasi KAN / dapat diubah sesuai kondisi proses tertentu).';
+                    hintEl.textContent = 'Maksimal batas toleransi pengisian dokumen (bawaan: masa pengisian bulan 15-18 siklus KAN / dapat diubah sesuai kondisi proses tertentu).';
                 }
             }
         }
@@ -804,17 +869,29 @@
 
             const letterVal = tpExtLetterNoInput ? tpExtLetterNoInput.value.trim() : '';
             const hasLetter = letterVal.length > 0;
-            const isChecked = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
 
             if (triggeredFromLetter && hasLetter && tpHasExtCheckbox && !tpHasExtCheckbox.checked) {
                 tpHasExtCheckbox.checked = true;
             }
 
-            const shouldExtend = hasLetter || (tpHasExtCheckbox ? tpHasExtCheckbox.checked : false);
+            const shouldExtend = tpHasExtCheckbox ? tpHasExtCheckbox.checked : false;
 
             if (formExtBlock) {
                 formExtBlock.style.display = shouldExtend ? 'grid' : 'none';
             }
+
+            const tpExtDateInput = document.getElementById('assessment-ext-date');
+            const formExtReqDots = document.querySelectorAll('.form-ext-req-dot');
+
+            if (tpExtLetterNoInput) {
+                tpExtLetterNoInput.required = shouldExtend;
+            }
+            if (tpExtDateInput) {
+                tpExtDateInput.required = shouldExtend;
+            }
+            formExtReqDots.forEach(function(dot) {
+                dot.style.display = shouldExtend ? 'inline' : 'none';
+            });
 
             const isExtended = tpDueDateInput.dataset.isExtended === '1';
 
@@ -855,7 +932,7 @@
                     updatePickerDisplay(tpDueDateInput);
                     if (tpDueDateExtBadgeWrap) tpDueDateExtBadgeWrap.style.display = 'none';
                     if (tpDueDateExtBadge) tpDueDateExtBadge.style.display = 'none';
-                    if (tpDueDateHint) tpDueDateHint.textContent = 'Kosongkan jika ingin dihitung otomatis sesuai jenis asesmen.';
+                    if (tpDueDateHint) tpDueDateHint.textContent = 'Otomatis dihitung +2 atau +3 bulan dari selesai asesmen. Ubah hanya jika ada kesepakatan tanggal khusus di berita acara.';
                 }
             }
 
@@ -898,6 +975,58 @@
             }
 
             card.style.display = 'block';
+        }
+
+        const knownTypeNames = [
+            'Akreditasi Awal', 'Surveilen 1 + PRL', 'Surveilen 2 + PRL',
+            'Surveilen 1', 'Surveilen 2', 'Surveilen Tidak Terjadwal (STT)', 'Surveilen Tidak Terjadwal',
+            'Perluasan Ruang Lingkup (PRL)', 'Perluasan Ruang Lingkup', 'PRL', 'STT', 'S1', 'S2', 'RA',
+            'Re-Akreditasi (Akreditasi Ulang)', 'Re-Akreditasi', 'Re-asesmen', 'Akreditasi Ulang',
+            'Asesmen Surveilen 1 (S1)', 'Asesmen Surveilen 2 (S2)', 'Asesmen Re-Akreditasi (RA)', 'Asesmen Akreditasi Awal'
+        ];
+
+        function syncTitle() {
+            if (!titleInput) return;
+            const currentVal = titleInput.value.trim();
+
+            let typeLabel = '';
+            if (assessmentTypeSelect && assessmentTypeSelect.selectedIndex >= 0) {
+                const opt = assessmentTypeSelect.options[assessmentTypeSelect.selectedIndex];
+                if (opt && opt.value) {
+                    typeLabel = opt.textContent.trim();
+                }
+            }
+
+            let lpkName = '';
+            if (lpkSelect && lpkSelect.selectedIndex >= 0) {
+                const opt = lpkSelect.options[lpkSelect.selectedIndex];
+                if (opt && opt.value) {
+                    lpkName = opt.dataset.name || '';
+                }
+            }
+
+            if (!typeLabel) return;
+
+            const newStandardTitle = lpkName ? `${typeLabel} - ${lpkName}` : typeLabel;
+
+            if (!currentVal || titleInput.dataset.userCustom !== 'true') {
+                titleInput.value = newStandardTitle;
+                return;
+            }
+
+            for (let i = 0; i < knownTypeNames.length; i++) {
+                const ktp = knownTypeNames[i];
+                const prefix = ktp.toLowerCase() + ' - ';
+                if (currentVal.toLowerCase().startsWith(prefix)) {
+                    const currentSuffix = currentVal.substring(prefix.length).trim();
+                    const suffix = lpkName || currentSuffix;
+                    titleInput.value = `${typeLabel} - ${suffix}`;
+                    return;
+                } else if (currentVal.toLowerCase() === ktp.toLowerCase()) {
+                    titleInput.value = newStandardTitle;
+                    return;
+                }
+            }
         }
 
         function updateStatus() {
@@ -949,7 +1078,11 @@
             const isSlaPassed = effectiveDueDate && now > effectiveDueDate;
             const isTpSatisfied = tpSatisfiedVal !== '';
             const hasExecutionProof = reportDateVal !== '' || ehaDateVal !== '';
-            const hasCompletedAction = skNumberVal !== '' || isTpSatisfied;
+            const ehaStatusSelect = document.getElementById('assessment-eha-status');
+            const ehaStatusVal = ehaStatusSelect ? ehaStatusSelect.value : '';
+            const hasEhaCompleted = (ehaStatusVal === 'DIREKOMENDASIKAN' || ehaStatusVal === 'SUDAH_EHA')
+                || (ehaDateVal !== '' && ehaStatusVal !== 'BELUM_EHA' && ehaStatusVal !== 'PERLU_VERIFIKASI');
+            const hasCompletedAction = skNumberVal !== '' || (isTpSatisfied && hasEhaCompleted);
             const isVisitFinished = endDate && (now > endDate);
             const isVisitInProgress = startDate && endDate && (now >= startDate && now <= endDate);
             const isFutureDate = startDate && (now < startDate);
@@ -979,7 +1112,7 @@
                 tpStatus = 'IN_PROGRESS';
                 tpLabel = 'Dibekukan (Lewat Batas Waktu)';
                 tpBadgeClass = 'status-suspended';
-                tpDescription = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
+                tpDescription = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
             } else if (hasActiveTpRecord || (isVisitFinished && !isOverdueWithoutAction) || hasExecutionProof || (tpDueDateVal && isVisitFinished)) {
                 tpStatus = 'IN_PROGRESS';
                 tpLabel = 'Sedang Berlangsung';
@@ -1009,12 +1142,19 @@
             let badgeClass = 'status-planned';
             let description = 'Otomatis: Agenda asesmen direncanakan.';
 
-            // a. Jika SK KAN sudah terbit atau Tindakan Perbaikan (TP) memenuhi
+            // a. Jika SK KAN sudah terbit atau Tindakan Perbaikan (TP) memenuhi DAN Rapat Panitia Teknis/Laporan selesai
             if (hasCompletedAction) {
                 status = 'COMPLETED';
                 label = 'Selesai';
                 badgeClass = 'status-completed';
-                description = 'Otomatis: SK KAN telah terbit atau tindakan perbaikan (TP) telah memenuhi.';
+                description = 'Otomatis: SK KAN telah terbit atau rapat Panitia Teknis telah merekomendasikan/selesai.';
+            }
+            // a.2. Jika TP memenuhi namun Rapat Panitia Teknis belum terlaksana
+            else if (isTpSatisfied) {
+                status = 'IN_PROGRESS';
+                label = 'Sedang Berlangsung (Menunggu Rapat Panitia Teknis)';
+                badgeClass = 'status-in_progress';
+                description = 'Otomatis: Tindakan perbaikan memenuhi, menunggu pelaksanaan Rapat Panitia Teknis.';
             }
             // b. Jika tanggal pelaksanaan telah lewat namun belum ada tindakan apapun
             else if (isOverdueWithoutAction && !tpDueDateVal) {
@@ -1023,12 +1163,12 @@
                 badgeClass = 'status-planned';
                 description = 'Otomatis: Tanggal pelaksanaan telah lewat namun belum ada tindakan/pelaporan asesmen (Lewat Jadwal).';
             }
-            // c. Jika melewati batas waktu awal belum ada yang dinyatakan memenuhi -> DIBEKUKAN
+            // c. Jika melewati tenggat waktu TP belum ada yang dinyatakan memenuhi -> DIBEKUKAN
             else if (isSlaPassed) {
                 status = 'SUSPENDED';
                 label = 'Dibekukan';
                 badgeClass = 'status-suspended';
-                description = 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
+                description = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
             }
             // d. Jika kunjungan sedang berlangsung di lapangan saat ini
             else if (isVisitInProgress) {
@@ -1080,8 +1220,68 @@
             });
         }
 
+        function updateDurationDisplay() {
+            if (!startDateInput || !endDateInput || !durationBadge) return;
+            const startVal = startDateInput.value;
+            const endVal = endDateInput.value;
+
+            if (!startVal || !endVal) {
+                durationBadge.style.display = 'none';
+                durationBtns.forEach(btn => btn.classList.remove('is-active'));
+                return;
+            }
+
+            const startD = new Date(startVal + 'T00:00:00');
+            const endD = new Date(endVal + 'T00:00:00');
+            const diffTime = endD.getTime() - startD.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            durationBtns.forEach(btn => {
+                const days = parseInt(btn.dataset.days, 10);
+                if (days === diffDays) {
+                    btn.classList.add('is-active');
+                } else {
+                    btn.classList.remove('is-active');
+                }
+            });
+
+            durationBadge.style.display = 'inline-flex';
+            if (diffDays < 1) {
+                durationBadge.className = 'assessment-duration-badge badge-danger';
+                durationBadge.textContent = 'Tanggal selesai mendahului tanggal mulai';
+            } else if (diffDays === 1) {
+                durationBadge.className = 'assessment-duration-badge badge-success';
+                durationBadge.textContent = '1 Hari Kerja (Selesai hari yang sama)';
+            } else {
+                durationBadge.className = 'assessment-duration-badge badge-info';
+                durationBadge.textContent = `${diffDays} Hari Kunjungan Lapangan`;
+            }
+        }
+
+        if (startDateInput) {
+            startDateInput.addEventListener('change', function() {
+                if (startDateInput.value && endDateInput) {
+                    endDateInput.min = startDateInput.value;
+                    if (!endDateInput.value || endDateInput.value < startDateInput.value) {
+                        endDateInput.value = startDateInput.value;
+                        updatePickerDisplay(endDateInput);
+                        endDateInput.dispatchEvent(new Event('change'));
+                    }
+                }
+                updateDurationDisplay();
+            });
+            startDateInput.addEventListener('input', function() {
+                if (startDateInput.value && endDateInput) {
+                    endDateInput.min = startDateInput.value;
+                }
+                updateDurationDisplay();
+            });
+        }
+
         if (endDateInput) {
+            endDateInput.addEventListener('input', updateDurationDisplay);
             endDateInput.addEventListener('change', function() {
+                updateDurationDisplay();
                 if (tpDueDateInput && !tpDueDateInput.dataset.manualEdit) {
                     const typeVal = (assessmentTypeSelect ? assessmentTypeSelect.value : '') || '';
                     const months = (typeVal === 'Akreditasi Awal' || typeVal === 'INITIAL') ? 3 : 2;
@@ -1099,6 +1299,35 @@
             });
         }
 
+        durationBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!startDateInput || !startDateInput.value) {
+                    startDateInput.focus();
+                    return;
+                }
+                const addDays = parseInt(this.dataset.days, 10) - 1;
+                const d = new Date(startDateInput.value + 'T00:00:00');
+                d.setDate(d.getDate() + addDays);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                if (endDateInput) {
+                    endDateInput.value = `${year}-${month}-${day}`;
+                    updatePickerDisplay(endDateInput);
+                    endDateInput.dispatchEvent(new Event('change'));
+                }
+                updateDurationDisplay();
+                updateStatus();
+            });
+        });
+
+
+        if (titleInput) {
+            titleInput.addEventListener('input', function() {
+                titleInput.dataset.userCustom = 'true';
+            });
+        }
+
         if (submissionDueDateInput) {
             submissionDueDateInput.addEventListener('input', function() {
                 submissionDueDateInput.dataset.userModified = 'true';
@@ -1113,6 +1342,7 @@
         if (lpkSelect) {
             lpkSelect.addEventListener('change', function() {
                 updateSelectedLpkInfo();
+                syncTitle();
                 syncSubmissionDueDate(true);
                 updateStatus();
             });
@@ -1120,6 +1350,7 @@
 
         if (assessmentTypeSelect) {
             assessmentTypeSelect.addEventListener('change', function() {
+                syncTitle();
                 syncSubmissionDueDate(true);
                 updateStatus();
             });
@@ -1153,7 +1384,8 @@
             tpSatisfiedInput,
             reportDateInput,
             ehaDateInput,
-            skNumberInput
+            skNumberInput,
+            document.getElementById('assessment-eha-status')
         ];
         watchElements.forEach(function(el) {
             if (el) {
@@ -1167,7 +1399,12 @@
         }
 
         // Jalankan penentuan info LPK dan status otomatis saat form dimuat
+        if (startDateInput && startDateInput.value && endDateInput) {
+            endDateInput.min = startDateInput.value;
+        }
+        updateDurationDisplay();
         updateSelectedLpkInfo();
+        handleExtensionSync(false);
         updateStatus();
 
         // Auto-scroll dan fokus langsung ke pengisian SK jika diakses dari notifikasi SK
@@ -1220,7 +1457,6 @@
     } else {
         initAutoAssessmentStatus();
     }
-    window.addEventListener('simasadi:page-loaded', initAutoAssessmentStatus);
 })();
 </script>
 @endsection

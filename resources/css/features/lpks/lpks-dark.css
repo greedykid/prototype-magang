@@ -31,10 +31,16 @@ html[data-theme="dark"] .lpk-field textarea:focus {
 }
 
 html[data-theme="dark"] .lpk-label,
-html[data-theme="dark"] .lpk-label span,
+html[data-theme="dark"] .lpk-label span:not(.lpk-required-dot),
 html[data-theme="dark"] .lpk-checkbox-card label,
 html[data-theme="dark"] .lpk-checkbox-card label span {
     color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-required-dot,
+html[data-theme="dark"] .lpk-label .lpk-required-dot,
+html[data-theme="dark"] .required-mark {
+    color: #ef4444 !important;
 }
 
 html[data-theme="dark"] .lpk-field-hint,
@@ -71,7 +77,7 @@ html[data-theme="dark"] .lpk-selected-name {
 }
 
 html[data-theme="dark"] .lpk-selected-info-meta {
-    border-top-color: #1e293b;
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-selected-cert strong {
@@ -132,16 +138,22 @@ html[data-theme="dark"] .lpk-step-bullet {
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-current .lpk-step-bullet {
-    background: #ffffff;
-    border-color: #ffffff;
-    color: #191918;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(25, 114, 245, 0.3);
 }
 
 html[data-theme="dark"] .lpk-cycle-step-item.is-completed .lpk-step-bullet {
     background: #10b981;
     border-color: #10b981;
     color: #ffffff;
+}
+
+html[data-theme="dark"] .lpk-cycle-step-item.is-draft-saved .lpk-step-bullet {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px dashed rgba(255, 255, 255, 0.2);
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .lpk-step-num {
@@ -176,17 +188,21 @@ html[data-theme="dark"] .lpk-cycle-step-line.is-passed {
     background: var(--color-green-500, #10b981);
 }
 
+html[data-theme="dark"] .lpk-cycle-step-line.is-active {
+    background: linear-gradient(90deg, var(--color-green-500, #10b981) 0%, var(--primary, #4a9df8) 100%);
+}
+
 /* LPK Detail Milestone Cards */
 html[data-theme="dark"] .lpk-milestone-card {
     background: var(--surface);
     border-color: var(--line);
-    border-top-color: #475569;
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming {
     background: var(--surface);
-    border-color: #334155;
-    border-top-color: #64748b;
+    border-color: var(--line);
+    border-top-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag {
@@ -194,8 +210,8 @@ html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-phase-tag
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-milestone-key-target {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--surface-subtle);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-key-target-header {
@@ -207,52 +223,67 @@ html[data-theme="dark"] .lpk-milestone-card.is-upcoming .lpk-target-value {
     color: var(--ink);
 }
 
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan,
-html[data-theme="dark"] .lpk-milestone-card.is-completed,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress,
-html[data-theme="dark"] .lpk-milestone-card.is-planned {
+/* Completed (Hijau) */
+html[data-theme="dark"] .lpk-milestone-card.is-completed {
     background: rgba(34, 197, 94, 0.08);
     border-color: rgba(74, 222, 128, 0.3);
     border-top-color: #22c55e;
 }
-
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-milestone-phase-tag,
-html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-phase-tag,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag,
-html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-milestone-phase-tag {
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-phase-tag {
     color: #4ade80;
 }
-
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-milestone-key-target,
-html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-key-target,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-key-target,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-key-target,
-html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-milestone-key-target {
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-milestone-key-target {
     background: rgba(34, 197, 94, 0.12);
     border-color: rgba(74, 222, 128, 0.25);
 }
-
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-key-target-header,
-html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-key-target-header,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-header,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-header,
-html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-key-target-header {
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-key-target-header {
     color: #86efac;
 }
-
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-key-target-date,
 html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-key-target-date,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-date,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-date,
-html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-key-target-date,
-html[data-theme="dark"] .lpk-milestone-card.is-pelaksanaan .lpk-target-value,
-html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-target-value,
-html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-target-value,
-html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-target-value,
-html[data-theme="dark"] .lpk-milestone-card.is-planned .lpk-target-value {
+html[data-theme="dark"] .lpk-milestone-card.is-completed .lpk-target-value {
     color: #f0fdf4;
+}
+
+/* In Progress (Amber) */
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress {
+    background: rgba(234, 179, 8, 0.08);
+    border-color: rgba(250, 204, 21, 0.3);
+    border-top-color: #eab308;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-phase-tag {
+    color: #fde047;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-milestone-key-target {
+    background: rgba(234, 179, 8, 0.12);
+    border-color: rgba(250, 204, 21, 0.25);
+}
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-header {
+    color: #fef08a;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-in-progress .lpk-target-value {
+    color: #fef9c3;
+}
+
+/* Scheduled (Biru) */
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(96, 165, 250, 0.3);
+    border-top-color: #3b82f6;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-phase-tag {
+    color: #93c5fd;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-milestone-key-target {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(96, 165, 250, 0.25);
+}
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-header {
+    color: #bfdbfe;
+}
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-key-target-date,
+html[data-theme="dark"] .lpk-milestone-card.is-scheduled .lpk-target-value {
+    color: #dbeafe;
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-reminder,
@@ -382,7 +413,7 @@ html[data-theme="dark"] .lpk-milestone-card.is-suspended .lpk-target-value {
 }
 
 html[data-theme="dark"] .lpk-milestone-card.is-current-focus {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 0 2px var(--primary-border, #3d7fde), 0 8px 24px -4px rgba(0, 0, 0, 0.5);
 }
 
 html[data-theme="dark"] .badge-focus {
@@ -416,7 +447,7 @@ html[data-theme="dark"] .lpk-agenda-chip {
 }
 
 html[data-theme="dark"] .lpk-agenda-chip:hover {
-    border-color: #64748b;
+    border-color: var(--line-strong, var(--line));
     color: #ffffff;
 }
 
@@ -436,6 +467,12 @@ html[data-theme="dark"] .lpk-agenda-unassigned {
     background: var(--surface-subtle);
     border-color: var(--line);
     color: #64748b;
+}
+
+html[data-theme="dark"] .lpk-agenda-unassigned.is-historical {
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #4ade80;
 }
 
 html[data-theme="dark"] .lpk-delay-penalty-banner {
@@ -460,9 +497,9 @@ html[data-theme="dark"] .lpk-team-member.is-lead {
 }
 
 html[data-theme="dark"] .lpk-member-avatar {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .lpk-member-avatar.is-lead {
@@ -498,7 +535,7 @@ html[data-theme="dark"] .lpk-assessment-card-item {
 }
 
 html[data-theme="dark"] .lpk-assessment-card-item:hover {
-    border-color: #475569;
+    border-color: var(--line-strong, var(--line));
 }
 
 /* Tambah LPK Visual Guidance Callout */
@@ -521,26 +558,34 @@ html[data-theme="dark"] .kan-cycle-notice {
     border-top-color: var(--line);
 }
 
-/* Global LPK Back Navigation Button (Dark Mode Notion) */
+/* Global LPK Back Navigation Button (Dark Mode Tactile Navigation Pill) */
 html[data-theme="dark"] .lpk-back-btn {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--muted, #a39e98);
-}
-
-html[data-theme="dark"] .lpk-back-btn:hover {
-    background: var(--surface-hover, rgba(255, 255, 255, 0.065));
-    border-color: transparent;
-    color: var(--ink, #f6f5f4);
+    background: var(--surface, #1e1e1e);
+    border-color: var(--line, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: var(--ink, #f6f5f4) !important;
 }
 
 html[data-theme="dark"] .lpk-back-btn svg {
     color: var(--muted, #a39e98);
 }
 
+html[data-theme="dark"] .lpk-back-btn:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: var(--line-strong, rgba(255, 255, 255, 0.22));
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+    color: #ffffff !important;
+}
+
 html[data-theme="dark"] .lpk-back-btn:hover svg {
-    color: var(--ink, #f6f5f4);
+    color: var(--primary, #4a9df8);
+    transform: translateX(-3px);
+}
+
+html[data-theme="dark"] .lpk-back-btn:active {
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.05));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transform: translateY(0) scale(0.98);
 }
 
 .lpk-alert-callout.is-warning {
@@ -559,10 +604,10 @@ html[data-theme="dark"] .lpk-back-btn:hover svg {
 .lpk-grace-warning-box {
     font-size: 12.5px;
     line-height: 1.5;
-    color: #78350f;
-    background: #fef3c7;
-    border: 1px solid #fde68a;
-    border-radius: 6px;
+    color: var(--warning-fg);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-lg, 12px);
     padding: 8px 12px;
     margin-top: 6px;
 }
@@ -636,6 +681,49 @@ html[data-theme="dark"] .lpk-grace-warning-box {
     background: rgba(245, 158, 11, 0.15);
     border-color: rgba(245, 158, 11, 0.35);
 }
+
+/* Assessment Duration Toolbar Dark Mode */
+html[data-theme="dark"] .assessment-duration-toolbar {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .duration-chip-btn {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .duration-chip-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+html[data-theme="dark"] .duration-chip-btn.is-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-info {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+html[data-theme="dark"] .assessment-duration-badge.badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
 
 
 

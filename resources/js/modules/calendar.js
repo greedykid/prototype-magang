@@ -74,6 +74,15 @@ function showEventPopover(triggerEl, eventData) {
 
     if (titleEl) {
         titleEl.textContent = hasLpk ? eventData.lpk_name : (eventData.title || 'Agenda Kegiatan');
+        if (hasLpk && eventData.lpk_id) {
+            titleEl.href = `/lpks/${eventData.lpk_id}`;
+            titleEl.setAttribute('title', 'Buka profil Laboratorium');
+            titleEl.classList.add('has-link');
+        } else {
+            titleEl.removeAttribute('href');
+            titleEl.removeAttribute('title');
+            titleEl.classList.remove('has-link');
+        }
     }
 
     const timeEl = popover.querySelector('#popover-time');
@@ -135,8 +144,22 @@ function showEventPopover(triggerEl, eventData) {
 
     // 7. Action Links: Detail & Edit
     const detailLink = popover.querySelector('#popover-detail-link');
+    const detailLabel = popover.querySelector('#popover-detail-label') || detailLink?.querySelector('span');
     if (detailLink) {
         detailLink.href = eventData.url || '#';
+        if (detailLabel) {
+            let labelText = 'Detail Lengkap';
+            if (eventData.detail_label) {
+                labelText = eventData.detail_label;
+            } else if (eventData.source === 'assessment' || eventData.source === 'assessment_tp' || eventData.source === 'assessment_reminder') {
+                labelText = 'Detail Asesmen';
+            } else if (eventData.source === 'calendar_event') {
+                labelText = 'Detail Agenda';
+            } else if (eventData.source && eventData.source.startsWith('lpk_')) {
+                labelText = 'Detail Lab';
+            }
+            detailLabel.textContent = labelText;
+        }
     }
 
     const editLink = popover.querySelector('#popover-edit-link');
@@ -315,6 +338,13 @@ function quickAddAtRange(startDateStr, endDateStr, timeStr = '09:00') {
         if (modalHeading) modalHeading.textContent = `Buat Agenda Rentang (${diffDays} Hari)`;
         if (modalSubtitle) modalSubtitle.textContent = `Rentang kegiatan: ${formattedStart} s.d. ${formattedEnd}`;
     }
+
+    const titleInput = document.getElementById('quick-input-title');
+    if (titleInput) titleInput.value = '';
+    const notesInput = document.getElementById('quick-input-notes');
+    if (notesInput) notesInput.value = '';
+    const typeSelect = document.getElementById('quick-input-type');
+    if (typeSelect) typeSelect.value = 'AGENDA_INTERNAL';
 
     initQuickAddDateSync();
     openModal('modal-quick-add-event');
@@ -510,7 +540,7 @@ function openQuickAddWithType(type = 'PRL') {
         modalHeading.textContent = headingText;
     }
 
-    if (typeSelect) {
+    if (typeSelect && typeSelect.options) {
         let matched = false;
         for (const opt of typeSelect.options) {
             if (opt.value === targetValue) {
@@ -535,10 +565,16 @@ function openQuickAddWithType(type = 'PRL') {
         // Dispatch change event to immediately sync custom-select UI
         typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
         typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (typeSelect) {
+        typeSelect.value = targetValue;
     }
 
     if (titleInput) {
         titleInput.value = defaultTitle;
+    }
+    const notesInput = document.getElementById('quick-input-notes');
+    if (notesInput) {
+        notesInput.value = '';
     }
 
     openModal('modal-quick-add-event');
@@ -654,6 +690,13 @@ function initGcalLiveTimeLine() {
     updateTimeLine();
     if (!window.__gcalLiveTimer) {
         window.__gcalLiveTimer = setInterval(updateTimeLine, 30000);
+    }
+}
+
+function stopGcalLiveTimeLine() {
+    if (window.__gcalLiveTimer) {
+        clearInterval(window.__gcalLiveTimer);
+        window.__gcalLiveTimer = null;
     }
 }
 
@@ -1100,29 +1143,6 @@ function initCalendarRangeSelection() {
     monthGrid._rangeCaptureClickHandler = handleCaptureClick;
     monthGrid.addEventListener('click', handleCaptureClick, true);
 
-    // Mousedown listener for in-month drag-to-select
-    monthGrid.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-
-        if (e.target.closest('button, a, input, select, .gcal-event-chip, .gcal-more-chip, .gcal-day-badge, .gcal-cell-add-btn')) {
-            return;
-        }
-
-        const cell = e.target.closest('.gcal-month-cell');
-        if (!cell || !cell.dataset.date) return;
-
-        if (getRangeAnchor() || isRangePendingStart()) return;
-
-        isMouseDown = true;
-        isDragging = false;
-        justDragged = false;
-        dragStartDate = cell.dataset.date;
-        currentHoverDate = cell.dataset.date;
-        startX = e.clientX;
-        startY = e.clientY;
-        window._lastClickedCalendarDate = dragStartDate;
-    });
-
     const handleMouseMove = (e) => {
         if (!isMouseDown) return;
 
@@ -1144,6 +1164,9 @@ function initCalendarRangeSelection() {
     };
 
     const handleMouseUp = (e) => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+
         if (!isMouseDown) return;
 
         const wasDragging = isDragging;
@@ -1166,18 +1189,31 @@ function initCalendarRangeSelection() {
         }
     };
 
-    if (monthGrid._docRangeMoveHandler) {
-        document.removeEventListener('mousemove', monthGrid._docRangeMoveHandler);
-    }
-    if (monthGrid._docRangeUpHandler) {
-        document.removeEventListener('mouseup', monthGrid._docRangeUpHandler);
-    }
+    // Mousedown listener for in-month drag-to-select
+    monthGrid.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
 
-    monthGrid._docRangeMoveHandler = handleMouseMove;
-    monthGrid._docRangeUpHandler = handleMouseUp;
+        if (e.target.closest('button, a, input, select, .gcal-event-chip, .gcal-more-chip, .gcal-day-badge, .gcal-cell-add-btn')) {
+            return;
+        }
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+        const cell = e.target.closest('.gcal-month-cell');
+        if (!cell || !cell.dataset.date) return;
+
+        if (getRangeAnchor() || isRangePendingStart()) return;
+
+        isMouseDown = true;
+        isDragging = false;
+        justDragged = false;
+        dragStartDate = cell.dataset.date;
+        currentHoverDate = cell.dataset.date;
+        startX = e.clientX;
+        startY = e.clientY;
+        window._lastClickedCalendarDate = dragStartDate;
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    });
 
     // Automatically clear range highlights whenever modal-quick-add-event is closed or hidden
     const quickAddModal = document.getElementById('modal-quick-add-event');
@@ -1239,6 +1275,7 @@ export {
     openQuickAddWithType,
     updateQuickAddType,
     initGcalLiveTimeLine,
+    stopGcalLiveTimeLine,
     initGcalFilters,
     initGcalMonthYearPicker,
     initCalendarHighlight,

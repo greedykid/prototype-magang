@@ -9,7 +9,7 @@
             <thead>
                 <tr>
                     <th data-label="No Akreditasi" class="col-th-no">NO. AKREDITASI</th>
-                    <th data-label="Nama LPK" class="col-th-name">NAMA LPK</th>
+                    <th data-label="Nama Laboratorium" class="col-th-name">NAMA LABORATORIUM</th>
                     <th data-label="Masa Berlaku" class="col-th-validity">
                         <div class="th-header-dual">
                             <span class="th-title-main">MASA BERLAKU</span>
@@ -28,15 +28,15 @@
                         <!-- 1. NO AKREDITASI -->
                         <td class="col-lpk-no" data-sort-value="{{ $lpk->accreditation_number ?: $lpk->registration_number }}">
                             <div class="lpk-card-reg-wrap">
-                                <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="hover-underline lpk-reg-link" title="Buka rincian LPK">
+                                <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="lpk-reg-link" title="Buka rincian LPK">
                                     {{ $lpk->accreditation_number ?: $lpk->registration_number }}
                                 </a>
                             </div>
                         </td>
 
-                        <!-- 2. NAMA LPK -->
+                        <!-- 2. NAMA LABORATORIUM -->
                         <td class="col-lpk-name" data-sort-value="{{ $lpk->name }}">
-                            <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="hover-underline lpk-name-link" title="Buka rincian LPK">
+                            <a href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" class="lpk-name-link" title="Buka rincian LPK">
                                 {{ $lpk->name }}
                             </a>
                             <div class="lpk-status-wrap">
@@ -103,7 +103,7 @@
         {{ $lpks->links() }}
     </div>
 @else
-    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: 8px; margin-top: 16px;">
+    <div style="padding: 48px 16px; text-align: center; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 18px); margin-top: 16px;">
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--neutral-chip-bg, #f1f5f9); color: var(--muted); margin-bottom: 12px;">
             <x-icon name="building" size="24" />
         </div>

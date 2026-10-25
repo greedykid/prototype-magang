@@ -15,7 +15,7 @@
     <div>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
             <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: var(--ink);">Data Akun Tertaut</h1>
-            <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 5px;">
+            <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #065f46); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-pill, 9999px);">
                 Mode Pemantauan (Viewer)
             </span>
         </div>
@@ -33,6 +33,7 @@
               style="margin: 0;">
             @csrf
             @method('DELETE')
+            <input type="hidden" name="type" value="owner">
             <button type="submit" class="button secondary" style="font-size: 12.5px; padding: 7px 12px; color: #dc2626; border-color: rgba(239, 68, 68, 0.3);">
                 <x-icon name="unlink" size="14" />
                 <span>Lepas Akses Akun</span>
@@ -51,7 +52,7 @@
     <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}"
        style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {{ $tab === 'assessments' ? 'var(--primary, #0284c7)' : 'transparent' }}; color: {{ $tab === 'assessments' ? 'var(--primary, #0284c7)' : 'var(--muted)' }}; transition: all 120ms ease;">
         <x-icon name="assessments" size="16" />
-        <span>Program Asesmen ({{ $totalAssessmentCount }})</span>
+        <span>Daftar Asesmen ({{ $totalAssessmentCount }})</span>
     </a>
 </div>
 
@@ -72,7 +73,7 @@
 
         {{-- Total LPK --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border, #bae6fd);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
                 <x-icon name="building" size="20" />
             </div>
             <div>
@@ -83,7 +84,7 @@
 
         {{-- LPK Aktif --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
                 <x-icon name="shield-check" size="20" />
             </div>
             <div>
@@ -97,10 +98,14 @@
     <section class="panel table-panel-borderless">
         <form id="linked-lpk-filter-form" class="table-filters" method="GET" action="{{ route('account-links.show', $owner) }}" data-partial-filter="true" data-target="#linked-lpk-table-container">
             <input type="hidden" name="tab" value="lpks">
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
             <div class="table-filter-grid">
                 <label for="filter-lpk-search">
                     Cari LPK
-                    <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-lpk-search" type="search" name="search" value="{{ $search }}" placeholder="Cari no. akreditasi, nama, lingkup, alamat..." autocomplete="off">
+                    </div>
                 </label>
                 <label for="filter-lpk-status">
                     Status LPK
@@ -217,11 +222,11 @@
     </section>
 
 @else
-    {{-- Kartu Ringkasan Program Asesmen --}}
+    {{-- Kartu Ringkasan Daftar Asesmen --}}
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
         {{-- Total Asesmen --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--info-bg, #e0f2fe); color: var(--info-text, #0284c7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border, #bae6fd);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--info-bg); color: var(--info-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--info-border);">
                 <x-icon name="assessments" size="20" />
             </div>
             <div>
@@ -232,23 +237,23 @@
 
         {{-- Asesmen Terjadwal & Berjalan --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid #fde68a;">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--warning-bg); color: var(--warning-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--warning-border);">
                 <x-icon name="calendar" size="20" />
             </div>
             <div>
                 <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);">Terjadwal & Berjalan</div>
-                <div style="font-size: 20px; font-weight: 800; color: #b45309;">{{ $activeAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Agenda</span></div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--warning-text);">{{ $activeAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Agenda</span></div>
             </div>
         </div>
 
         {{-- Asesmen Selesai --}}
         <div class="panel" style="margin: 0; padding: 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--mint, #ecfdf5); color: var(--green, #047857); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="width: 44px; height: 44px; border-radius: var(--radius-md, 12px); background: var(--success-bg); color: var(--success-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; border: 1px solid var(--success-border);">
                 <x-icon name="check-circle" size="20" />
             </div>
             <div>
                 <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);">Asesmen Selesai</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--green, #047857);">{{ $completedAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Selesai</span></div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--success-text);">{{ $completedAssessmentCount }} <span style="font-size: 13px; font-weight: 500; color: var(--muted);">Selesai</span></div>
             </div>
         </div>
     </div>
@@ -257,10 +262,14 @@
     <section class="panel table-panel-borderless">
         <form id="linked-asm-filter-form" class="table-filters" method="GET" action="{{ route('account-links.show', $owner) }}" data-partial-filter="true" data-target="#linked-assessment-table-container">
             <input type="hidden" name="tab" value="assessments">
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
             <div class="table-filter-grid">
                 <label for="filter-asm-search">
                     Cari Agenda
-                    <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda atau no. SK..." autocomplete="off">
+                    <div class="table-filter-search-wrap">
+                        <x-icon name="search" size="16" class="table-filter-search-icon" />
+                        <input id="filter-asm-search" type="search" name="search" value="{{ $search }}" placeholder="Judul agenda atau no. SK..." autocomplete="off">
+                    </div>
                 </label>
                 <label for="filter-asm-lpk">
                     LPK Terpilih
@@ -295,7 +304,7 @@
                     Status TP (Batas Waktu)
                     <select id="filter-asm-tp-status" name="tp_status">
                         <option value="">Semua status TP</option>
-                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Nihil / Belum Ada Temuan</option>
+                        <option value="NONE" @selected(($tpFilter ?? '') === 'NONE')>Belum Ditentukan</option>
                         <option value="ACTIVE" @selected(($tpFilter ?? '') === 'ACTIVE')>Sedang Perbaikan / Verifikasi</option>
                         <option value="DUE_SOON" @selected(($tpFilter ?? '') === 'DUE_SOON')>Jatuh Tempo (<= 14 Hari)</option>
                         <option value="OVERDUE" @selected(($tpFilter ?? '') === 'OVERDUE')>Melewati Batas Waktu (Dibekukan)</option>
@@ -331,7 +340,7 @@
                     'CANCELLED' => 'Dibatalkan',
                 ];
                 $tpLabels = [
-                    'NONE' => 'Nihil / Belum Ada Temuan',
+                    'NONE' => 'Belum Ditentukan',
                     'ACTIVE' => 'Sedang Perbaikan / Verifikasi',
                     'DUE_SOON' => 'Jatuh Tempo (<= 14 Hari)',
                     'OVERDUE' => 'Melewati Batas Waktu (Dibekukan)',

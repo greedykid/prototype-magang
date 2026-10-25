@@ -4,7 +4,26 @@
             <a href="{{ route('dashboard') }}" class="brand-mark" title="SIMASADI - Badan Standardisasi Nasional">
                 <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="brand-logo-img" width="34" height="34">
             </a>
-            <div class="brand-text"><strong>SIMASADI</strong><small>Unit Akreditasi Lab KAN</small></div>
+            <div class="brand-text"><strong>SIMASADI</strong><small>Akreditasi Laboratorium</small></div>
+        </div>
+    </div>
+    {{-- Widget Waktu Operasional Real-time (Hari, Tanggal, Jam WIB) --}}
+    @php
+        $nowJakarta = now()->setTimezone('Asia/Jakarta');
+        $initialDate = $nowJakarta->translatedFormat('l, d F Y');
+        $initialTime = $nowJakarta->format('H:i:s') . ' WIB';
+    @endphp
+    <div class="sidebar-datetime-card" id="sidebar-datetime-card" title="{{ $initialDate }} &bull; {{ $initialTime }}">
+        <div class="sidebar-datetime-icon" aria-hidden="true">
+            <x-icon name="clock" size="15" />
+        </div>
+        <div class="sidebar-datetime-content">
+            <div class="sidebar-clock-row">
+                <span class="sidebar-clock-time" id="sidebar-clock-time">{{ $initialTime }}</span>
+            </div>
+            <div class="sidebar-date-row">
+                <span class="sidebar-date-text" id="sidebar-date-text">{{ $initialDate }}</span>
+            </div>
         </div>
     </div>
     <button class="drawer-close" type="button" aria-label="Tutup navigasi"><span aria-hidden="true">&times;</span></button>
@@ -21,13 +40,13 @@
 
             <div class="nav-section">
                 <span class="nav-section-title">Laboratorium Terakreditasi</span>
-                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data Laboratorium">
+                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Daftar Laboratorium">
                     <x-icon name="lpks" size="18" />
-                    <span class="nav-label">Data Laboratorium</span>
+                    <span class="nav-label">Daftar Laboratorium</span>
                 </a>
-                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Jadwal Asesmen">
+                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Daftar Asesmen">
                     <x-icon name="assessments" size="18" />
-                    <span class="nav-label">Jadwal Asesmen</span>
+                    <span class="nav-label">Daftar Asesmen</span>
                 </a>
                 <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender Pengawasan">
                     <x-icon name="calendar" size="18" />
@@ -50,17 +69,17 @@
 
             <div class="nav-section">
                 <span class="nav-section-title">Administrasi Laboratorium</span>
-                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Data Lab (LPK)">
+                <a href="{{ route('lpks.index') }}" class="{{ request()->routeIs('lpks.*') ? 'active' : '' }}" data-tooltip="Daftar Laboratorium">
                     <x-icon name="lpks" size="18" />
-                    <span class="nav-label">Data Lab (LPK)</span>
+                    <span class="nav-label">Daftar Laboratorium</span>
                 </a>
             </div>
 
             <div class="nav-section">
                 <span class="nav-section-title">Asesmen & Jadwal</span>
-                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Program Asesmen">
+                <a href="{{ route('assessments.index') }}" class="{{ request()->routeIs('assessments.*') ? 'active' : '' }}" data-tooltip="Daftar Asesmen">
                     <x-icon name="assessments" size="18" />
-                    <span class="nav-label">Program Asesmen</span>
+                    <span class="nav-label">Daftar Asesmen</span>
                 </a>
                 <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}" data-tooltip="Kalender">
                     <x-icon name="calendar" size="18" />
@@ -73,10 +92,6 @@
                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}" data-tooltip="Manajemen Anggota">
                     <x-icon name="users" size="18" />
                     <span class="nav-label">Manajemen Anggota</span>
-                </a>
-                <a href="{{ route('account-links.index') }}" class="{{ request()->routeIs('account-links.*') ? 'active' : '' }}" data-tooltip="Tautan Akun">
-                    <x-icon name="link" size="18" />
-                    <span class="nav-label">Tautan Akun</span>
                 </a>
             </div>
         @endif

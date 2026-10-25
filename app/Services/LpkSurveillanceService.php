@@ -18,6 +18,10 @@ class LpkSurveillanceService
      */
     public function calculateMilestones(Lpk $lpk): array
     {
+        if ($lpk->hasMemoizedMilestones()) {
+            return $lpk->getMemoizedMilestones();
+        }
+
         /** @var Carbon|null $cycleEnd */
         $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
         /** @var Carbon|null $cycleStart */
@@ -57,6 +61,7 @@ class LpkSurveillanceService
         ];
 
         if (! $cycleStart || ! $cycleEnd) {
+            $lpk->setMemoizedMilestones($milestones);
             return $milestones;
         }
 
@@ -83,8 +88,8 @@ class LpkSurveillanceService
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's1');
                 $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->subMonths(2)) && $item->start_at->lte($cycleStart->copy()->addMonths(26));
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -102,8 +107,8 @@ class LpkSurveillanceService
                 $milestones['s1']['status'] = 'SUSPENDED';
             } elseif ($hasS1) {
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
-            } elseif ($isLpkActive && $isCertValid && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
-                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
+            } elseif ($isLpkActive && ($isCertValid || $lpk->isInGracePeriod() || $lpk->hasReaccreditationInFlight()) && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
+                // Untuk LPK yang aktif (termasuk masa tenggang Re-Akreditasi), jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s1']['target_date'])) {
                 $milestones['s1']['status'] = 'OVERDUE';
@@ -124,8 +129,8 @@ class LpkSurveillanceService
                 $isSurv = str_contains(strtolower($item->assessment_type ?: ''), 'survei') || str_contains(strtolower($item->title ?: ''), 's2');
                 $isWithinRange = $item->start_at && $item->start_at->gte($cycleStart->copy()->addMonths(24)) && $item->start_at->lte($cycleStart->copy()->addMonths(46));
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -143,8 +148,8 @@ class LpkSurveillanceService
                 $milestones['s2']['status'] = 'SUSPENDED';
             } elseif ($hasS2) {
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
-            } elseif ($isLpkActive && $isCertValid && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
-                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
+            } elseif ($isLpkActive && ($isCertValid || $lpk->isInGracePeriod() || $lpk->hasReaccreditationInFlight()) && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
+                // Untuk LPK yang aktif (termasuk masa tenggang Re-Akreditasi), jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s2']['target_date'])) {
                 $milestones['s2']['status'] = 'OVERDUE';
@@ -162,8 +167,8 @@ class LpkSurveillanceService
                     return false;
                 }
 
-                // Toleransi pengisian asesmen maksimal hingga akhir bulan dan tahun yang sama dari waktu kunjungan
-                if ($item->end_at && $now->gt($item->end_at->copy()->endOfMonth()->endOfDay()) && $item->status !== 'COMPLETED') {
+                // Lewati jika asesmen dibatalkan atau telah melewati batas toleransi pengisian dokumen (submission overdue)
+                if ($item->status === 'CANCELLED' || $item->is_submission_overdue) {
                     return false;
                 }
 
@@ -194,10 +199,10 @@ class LpkSurveillanceService
                 $milestones['ra']['status'] = 'SUSPENDED';
             } elseif ($cycleEnd && $now->gt($cycleEnd->copy()->addMonths(6))) {
                 $milestones['ra']['status'] = 'REVOKED';
-            } elseif ($cycleEnd && $now->gte($cycleEnd)) {
-                $milestones['ra']['status'] = 'EXPIRED';
             } elseif ($hasRA) {
                 $milestones['ra']['status'] = 'COMPLETED_OR_SCHEDULED';
+            } elseif ($cycleEnd && $now->gte($cycleEnd)) {
+                $milestones['ra']['status'] = 'EXPIRED';
             } elseif ($now->gte($milestones['ra']['notice_date'])) {
                 $milestones['ra']['status'] = 'DUE';
             } else {
@@ -205,6 +210,7 @@ class LpkSurveillanceService
             }
         }
 
+        $lpk->setMemoizedMilestones($milestones);
         return $milestones;
     }
 
@@ -218,31 +224,10 @@ class LpkSurveillanceService
         // 1. Cek status kritis tingkat LPK (Pencabutan Akreditasi, Masa Tenggang, atau Pembekuan)
         $dynamicStatus = $lpk->dynamic_status;
 
-        if ($dynamicStatus === 'REVOKED') {
-            $expStr = $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-';
-            $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : $expStr;
-            $desc = ! $lpk->hasReaccreditationInFlight()
-                ? "Siklus akreditasi 5 tahun telah berakhir ({$expStr}) tanpa pelaksanaan asesmen akreditasi ulang (RA). Status akreditasi resmi dicabut."
-                : "Melewati batas 6 bulan masa tenggang Re-Akreditasi ({$deadline}) tanpa penetapan status baru. Status akreditasi resmi dicabut.";
-
-            $alerts[] = [
-                'lpk_id' => $lpk->id,
-                'lpk_reg' => $lpk->registration_number,
-                'lpk_name' => $lpk->name,
-                'lpk_email' => $lpk->email,
-                'code' => 'RA',
-                'name' => Assessment::TYPE_RE_AKREDITASI,
-                'notice_date' => $lpk->expired_at,
-                'target_date' => $lpk->expired_at,
-                'status' => 'REVOKED',
-                'status_label' => 'AKREDITASI DICABUT',
-                'is_urgent' => true,
-                'severity' => 'danger',
-                'description' => $desc,
-                'last_notified_at' => $lpk->last_surveillance_notified_at,
-            ];
-
-            return $alerts;
+        if ($dynamicStatus === 'REVOKED' || $lpk->isRevocationOverdue()) {
+            // Sesuai KAN U-01, status akreditasi yang telah dicabut tidak lagi memiliki agenda pengawasan atau Re-Akreditasi.
+            // LPK wajib mengajukan permohonan baru sebagai Akreditasi Awal.
+            return [];
         }
 
         if ($dynamicStatus === 'GRACE_PERIOD') {
@@ -273,9 +258,23 @@ class LpkSurveillanceService
             $activeAssessment = $lpk->getActiveOrUpcomingAssessment();
             $code = 'S1';
             $name = Assessment::TYPE_SURVEILEN_1;
+            $noticeDate = $activeAssessment?->start_at;
+            $targetDate = $activeAssessment?->effective_tp_due_date ?: $activeAssessment?->submission_due_date;
+            $desc = "Akreditasi laboratorium dibekukan karena melewati batas waktu surveilen atau tindakan perbaikan.";
+
             if ($activeAssessment) {
                 $code = str_contains(strtolower($activeAssessment->title ?: ''), 's2') ? 'S2' : (str_contains(strtolower($activeAssessment->title ?: ''), 'ra') ? 'RA' : 'S1');
                 $name = $activeAssessment->assessment_type_label;
+            } else {
+                $milestones = $this->calculateMilestones($lpk);
+                $overdueMilestone = collect($milestones)->first(fn ($m) => ($m['status'] ?? '') === 'OVERDUE');
+                if ($overdueMilestone) {
+                    $code = $overdueMilestone['code'];
+                    $name = $overdueMilestone['name'];
+                    $noticeDate = $overdueMilestone['notice_date'];
+                    $targetDate = $overdueMilestone['target_date'];
+                    $desc = "Akreditasi laboratorium dibekukan karena melewati batas waktu maksimal {$name} sesuai regulasi KAN U-01.";
+                }
             }
 
             $alerts[] = [
@@ -285,13 +284,13 @@ class LpkSurveillanceService
                 'lpk_email' => $lpk->email,
                 'code' => $code,
                 'name' => $name,
-                'notice_date' => $activeAssessment?->start_at,
-                'target_date' => $activeAssessment?->effective_tp_due_date ?: $activeAssessment?->submission_due_date,
+                'notice_date' => $noticeDate,
+                'target_date' => $targetDate,
                 'status' => 'SUSPENDED',
                 'status_label' => 'STATUS DIBEKUKAN',
                 'is_urgent' => true,
                 'severity' => 'danger',
-                'description' => "Akreditasi laboratorium dibekukan karena melewati batas waktu surveilen atau tindakan perbaikan.",
+                'description' => $desc,
                 'last_notified_at' => $lpk->last_surveillance_notified_at,
             ];
 
@@ -302,14 +301,13 @@ class LpkSurveillanceService
         $milestones = $this->calculateMilestones($lpk);
 
         foreach ($milestones as $milestone) {
-            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED', 'GRACE_PERIOD', 'SUSPENDED', 'REVOKED'], true)) {
-                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED', 'SUSPENDED', 'REVOKED'], true);
+            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED', 'GRACE_PERIOD', 'SUSPENDED'], true)) {
+                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED', 'SUSPENDED'], true);
 
                 $label = match ($milestone['status']) {
                     'OVERDUE' => 'MELEWATI JADWAL',
                     'EXPIRED' => 'SERTIFIKAT KEDALUWARSA',
                     'GRACE_PERIOD' => 'MASA TENGGANG (6 BLN)',
-                    'REVOKED' => 'AKREDITASI DICABUT',
                     'SUSPENDED' => 'DIBEKUKAN',
                     default => 'WAKTU NOTIFIKASI AKTIF',
                 };
@@ -350,7 +348,8 @@ class LpkSurveillanceService
      */
     public function generateAssessments(Lpk $lpk, ?int $creatorId = null): int
     {
-        /** @var Carbon|null $cycleEnd */
+        return DB::transaction(function () use ($lpk, $creatorId) {
+            /** @var Carbon|null $cycleEnd */
         $cycleEnd = $lpk->expired_at ?: ($lpk->certificate_date ? $lpk->certificate_date->copy()->addYears(5) : null);
         if (! $cycleEnd) {
             return 0;
@@ -416,7 +415,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $s1Assessment->tp_satisfied_at ?: $s1End->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $s1IsPast && in_array($s1Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s1Assessment->report_date) && empty($s1Assessment->sk_number)) {
+            } elseif (! $s1IsPast && $s1Assessment->status === 'PLANNED' && empty($s1Assessment->report_date) && empty($s1Assessment->sk_number)) {
                 $s1Assessment->update([
                     'start_at' => $s1Target,
                     'end_at' => $s1End,
@@ -465,7 +464,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $s2Assessment->tp_satisfied_at ?: $s2End->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $s2IsPast && in_array($s2Assessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($s2Assessment->report_date) && empty($s2Assessment->sk_number)) {
+            } elseif (! $s2IsPast && $s2Assessment->status === 'PLANNED' && empty($s2Assessment->report_date) && empty($s2Assessment->sk_number)) {
                 $s2Assessment->update([
                     'start_at' => $s2Target,
                     'end_at' => $s2End,
@@ -514,7 +513,7 @@ class LpkSurveillanceService
                     'tp_status' => Assessment::TP_STATUS_SATISFIED,
                     'tp_satisfied_at' => $raAssessment->tp_satisfied_at ?: $raEnd->copy()->addMonth()->startOfDay(),
                 ]);
-            } elseif (! $raIsPast && in_array($raAssessment->status, ['PLANNED', 'SUSPENDED', 'REVOKED'], true) && empty($raAssessment->report_date) && empty($raAssessment->sk_number)) {
+            } elseif (! $raIsPast && $raAssessment->status === 'PLANNED' && empty($raAssessment->report_date) && empty($raAssessment->sk_number)) {
                 $raAssessment->update([
                     'start_at' => $raTarget,
                     'end_at' => $raEnd,
@@ -523,7 +522,8 @@ class LpkSurveillanceService
             }
         }
 
-        return $created;
+            return $created;
+        });
     }
 
     /**
@@ -595,7 +595,7 @@ class LpkSurveillanceService
             || ($milestones['s2']['status'] ?? '') === 'OVERDUE';
 
         if ($isOverdue) {
-            return 'SURVEILLANCE_OVERDUE';
+            return 'SUSPENDED';
         }
 
         // Cek apakah ada notifikasi surveilen yang sedang aktif (due)
@@ -633,14 +633,51 @@ class LpkSurveillanceService
      */
     public function determineDynamicStatusLabel(Lpk $lpk): string
     {
-        return match ($this->determineDynamicStatus($lpk)) {
+        $status = $this->determineDynamicStatus($lpk);
+
+        if ($status === 'SURVEILLANCE_DUE') {
+            $milestones = $this->calculateMilestones($lpk);
+            if (($milestones['ra']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Re-Akreditasi';
+            }
+            if (($milestones['s2']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Surveilen 2';
+            }
+            if (($milestones['s1']['status'] ?? '') === 'DUE') {
+                return 'Jatuh Tempo Surveilen 1';
+            }
+            return 'Jatuh Tempo Pengawasan';
+        }
+
+        if ($status === 'SURVEILLANCE_OVERDUE') {
+            $milestones = $this->calculateMilestones($lpk);
+            if (($milestones['ra']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Re-Akreditasi';
+            }
+            if (($milestones['s2']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Surveilen 2';
+            }
+            if (($milestones['s1']['status'] ?? '') === 'OVERDUE') {
+                return 'Lewat Jadwal Surveilen 1';
+            }
+            return 'Lewat Jadwal Pengawasan';
+        }
+
+        if ($status === 'ACTIVE') {
+            $activeAssessment = $lpk->getActiveOrUpcomingAssessment();
+            if ($activeAssessment && in_array($activeAssessment->status, ['IN_PROGRESS', 'SCHEDULED'], true)) {
+                $short = $activeAssessment->short_type;
+                return "Aktif (Proses {$short})";
+            }
+            return 'Aktif';
+        }
+
+        return match ($status) {
             'INACTIVE' => 'Tidak Aktif',
             'REVOKED' => 'Dicabut',
             'SUSPENDED' => 'Dibekukan',
             'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
             'EXPIRED' => 'Kedaluwarsa',
-            'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
-            'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
             default => 'Aktif',
         };
     }
@@ -730,14 +767,14 @@ class LpkSurveillanceService
                 return "{$typeLabel}: Selesai (TP Memenuhi).";
             }
 
-            // 4. Tahap Evaluasi Hasil Asesmen (EHA)
+            // 4. Tahap Rapat Panitia Teknis
             if (! empty($activeAssessment->eha_status) && $activeAssessment->eha_status !== Assessment::EHA_STATUS_BELUM) {
-                return "{$typeLabel}: Evaluasi Hasil Asesmen ({$activeAssessment->eha_status_label}).";
+                return "{$typeLabel}: Rapat Panitia Teknis ({$activeAssessment->eha_status_label}).";
             }
 
-            // 5. Laporan asesmen telah terbit, menunggu EHA
+            // 5. Laporan asesmen telah terbit, menunggu Rapat Panitia Teknis
             if ($activeAssessment->report_date) {
-                return "{$typeLabel}: Laporan terbit ({$activeAssessment->report_date->format('d/m/Y')}), proses EHA.";
+                return "{$typeLabel}: Laporan terbit ({$activeAssessment->report_date->format('d/m/Y')}), proses Rapat Panitia Teknis.";
             }
 
             // 6. Sedang berlangsung (kunjungan lapangan)
@@ -770,6 +807,9 @@ class LpkSurveillanceService
                 default => $firstAlert['name'] ?? Assessment::TYPE_SURVEILEN_1,
             };
             $target = ! empty($firstAlert['target_date']) ? ' (' . $firstAlert['target_date']->format('d/m/Y') . ')' : '';
+            if (($firstAlert['status'] ?? '') === 'SUSPENDED') {
+                return "{$milestoneName}: Dibekukan (melewati batas waktu surveilen KAN{$target}).";
+            }
             return "{$milestoneName}: Periode jatuh tempo KAN{$target}.";
         }
 
@@ -830,15 +870,13 @@ class LpkSurveillanceService
             return false;
         }
 
-        // Update LPK ke siklus 5 tahun berikutnya secara atomik
+        // Update LPK ke siklus 5 tahun berikutnya secara atomik (model event updated otomatis sinkronisasi agenda asesmen)
         return DB::transaction(function () use ($lpk, $newCertDate, $newExpDate): bool {
             $lpk->update([
                 'certificate_date' => $newCertDate->toDateString(),
                 'expired_at' => $newExpDate->toDateString(),
                 'status' => 'ACTIVE',
             ]);
-
-            $this->generateAssessments($lpk);
 
             return true;
         });
@@ -867,4 +905,42 @@ class LpkSurveillanceService
 
         return $this->renewAccreditationCycle($lpk, $latestRa);
     }
+
+    /**
+     * Dapatkan cache key notifikasi surveilen yang terisolasi per peran & PIC.
+     */
+    public static function getAlertsCacheKey(?User $user): string
+    {
+        $epoch = (int) \Illuminate\Support\Facades\Cache::get('simasadi_alerts_epoch', 1);
+        if ($user && $user->isAdmin()) {
+            return "simasadi_alerts_admin_e{$epoch}";
+        }
+
+        $userId = $user ? $user->id : 'guest';
+        return "simasadi_alerts_user_{$userId}_e{$epoch}";
+    }
+
+    /**
+     * Invalidate cache notifikasi secara terarah (targeted).
+     */
+    public static function invalidateAlertsCache(?Lpk $lpk = null, ?User $user = null): void
+    {
+        $epoch = (int) \Illuminate\Support\Facades\Cache::get('simasadi_alerts_epoch', 1);
+        \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_admin_e{$epoch}");
+
+        if ($lpk && $lpk->pic_id) {
+            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$lpk->pic_id}_e{$epoch}");
+            if ($lpk->relationLoaded('members')) {
+                foreach ($lpk->members as $member) {
+                    \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$member->id}_e{$epoch}");
+                }
+            }
+        } elseif ($user) {
+            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$user->id}_e{$epoch}");
+        } else {
+            // Jika LPK tidak spesifik (misal bulk import atau artisan sync), naikkan epoch
+            \Illuminate\Support\Facades\Cache::put('simasadi_alerts_epoch', $epoch + 1);
+        }
+    }
 }
+

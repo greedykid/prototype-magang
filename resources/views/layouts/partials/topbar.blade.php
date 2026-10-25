@@ -1,20 +1,19 @@
 <header class="topbar">
     <div class="topbar-nav-left">
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">
-            <span class="sr-only">Buka navigasi</span>
-            <span class="menu-icon" aria-hidden="true"></span>
-        </button>
+        <a href="{{ route('dashboard') }}" class="topbar-brand-mark" title="SIMASADI">
+            <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="topbar-brand-img">
+        </a>
         <button class="navbar-sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
             <x-icon name="panel-left" size="18" />
         </button>
         <div class="page-context">
-            <span class="context-label" title="Unit Akreditasi Laboratorium &bull; Direktorat Akreditasi Laboratorium KAN">Unit Akreditasi Lab &bull; Dit. Akreditasi Laboratorium KAN</span>
+            <span class="context-label" title="Direktorat Akreditasi Laboratorium">Direktorat Akreditasi Laboratorium</span>
             <strong class="context-title">@php
                 $isPic = auth()->user()?->isPic();
                 $menuTitle = match (true) {
                     request()->routeIs('dashboard') => 'Dasbor',
-                    request()->routeIs('lpks.*', 'accreditations.*') => $isPic ? 'Data Laboratorium' : 'Data Lab (LPK)',
-                    request()->routeIs('assessments.*') => $isPic ? 'Jadwal Asesmen' : 'Program Asesmen',
+                    request()->routeIs('lpks.*') => 'Daftar Laboratorium',
+                    request()->routeIs('assessments.*') => 'Daftar Asesmen',
                     request()->routeIs('calendar.*') => $isPic ? 'Kalender Pengawasan' : 'Kalender',
                     request()->routeIs('users.*') => 'Manajemen Anggota',
                     request()->routeIs('account-links.*') => 'Tautan Akun',
@@ -27,6 +26,53 @@
     </div>
     @if(auth()->check())
         <div class="topbar-actions">
+            {{-- Mobile Search Trigger Icon Button --}}
+            <button type="button"
+                    class="topbar-search-mobile-trigger"
+                    id="topbar-search-mobile-trigger"
+                    aria-label="Buka pencarian"
+                    aria-expanded="false"
+                    aria-controls="topbar-search-container"
+                    title="Buka pencarian">
+                <x-icon name="search" size="18" />
+            </button>
+
+            {{-- Mobile Search Backdrop --}}
+            <div id="topbar-search-mobile-backdrop" class="topbar-search-mobile-backdrop" style="display: none;" aria-hidden="true"></div>
+
+            {{-- Global Search Bar Container & Live Dropdown --}}
+            <div class="topbar-search-container" id="topbar-search-container">
+                <form action="{{ route('lpks.index') }}" method="GET" class="topbar-search-form" role="search" id="topbar-search-form">
+                    <div class="topbar-search-wrap">
+                        <x-icon name="search" size="15" class="topbar-search-icon" />
+                        <span class="topbar-search-spinner" id="topbar-search-spinner" style="display: none;" aria-hidden="true"></span>
+                        <input type="search"
+                               id="topbar-search-input"
+                               name="search"
+                               class="topbar-search-input"
+                               placeholder="Cari LPK, Asesmen, dan Tautan Akun"
+                               aria-label="Cari LPK, Asesmen, dan Tautan Akun"
+                               autocomplete="off"
+                               aria-autocomplete="list"
+                               aria-expanded="false"
+                               aria-controls="topbar-search-dropdown"
+                               value="{{ request('search') }}">
+                        <button type="button" class="topbar-search-clear" id="topbar-search-clear" style="display: none;" aria-label="Hapus teks pencarian" title="Hapus teks pencarian">
+                            <x-icon name="x" size="13" />
+                        </button>
+                    </div>
+                </form>
+
+                <button type="button"
+                        class="topbar-search-mobile-close"
+                        id="topbar-search-mobile-close"
+                        aria-label="Batal pencarian"
+                        title="Batal pencarian">
+                    Batal
+                </button>
+                <div id="topbar-search-dropdown" class="topbar-search-dropdown" style="display: none;" role="listbox" aria-label="Hasil pencarian"></div>
+            </div>
+
             {{-- Theme Switcher (1-click Instant Toggle) --}}
             <button type="button" id="theme-toggle-btn" class="topbar-theme-btn" aria-label="Beralih ke mode gelap" title="Beralih ke mode gelap">
                 <span class="theme-icon-sun">
@@ -176,7 +222,7 @@
                             </a>
                         @endif
                         <a href="{{ route('lpks.index', $alertCount > 0 ? ['surveillance' => 'NEEDS_ACTION'] : []) }}" class="notif-footer-link">
-                            <span>Lihat Semua di Daftar LPK</span>
+                            <span>Lihat Semua di Daftar Laboratorium</span>
                             <x-icon name="chevron-right" size="12" />
                         </a>
                     </div>
@@ -185,13 +231,8 @@
 
             {{-- User Profile Avatar & Dropdown --}}
             <div class="topbar-user-dropdown">
-                <button type="button" id="user-dropdown-btn" class="topbar-user-btn" aria-expanded="false" aria-haspopup="true" title="Profil Pengguna &amp; Akun ({{ auth()->user()->name }})" aria-label="Menu profil {{ auth()->user()->name }} ({{ auth()->user()->role_label }})">
+                <button type="button" id="user-dropdown-btn" class="topbar-user-btn topbar-user-btn-compact" aria-expanded="false" aria-haspopup="true" title="Profil Pengguna &amp; Akun ({{ auth()->user()->name }})" aria-label="Menu profil {{ auth()->user()->name }}">
                     <span class="user-avatar" aria-hidden="true">{{ auth()->user()->initials }}</span>
-                    <div class="topbar-user-meta">
-                        <strong class="topbar-user-name">{{ auth()->user()->name }}</strong>
-                        <span class="topbar-user-role">{{ auth()->user()->role_label }}</span>
-                    </div>
-                    <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
 
                 <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">

@@ -6,15 +6,9 @@
 ### 2.1 Metodologi Pengembangan Perangkat Lunak
 Pengembangan sistem SIMASADI mengadopsi metodologi **Iterative Prototyping** dengan pendekatan kerja lincah (**Agile SDLC**). Pendekatan ini dipilih karena karakteristik domain akreditasi KAN yang sarat dengan aturan regulasi spesifik (seperti pedoman KAN U-01 dan batasan SLA tindakan perbaikan), sehingga membutuhkan validasi berkelanjutan dan penyempurnaan alur secara cepat.
 
-```mermaid
-flowchart LR
-    A["1. Identifikasi Regulasi & Kebutuhan KAN"] --> B["2. Perancangan Cepat Logika & Antarmuka"]
-    B --> C["3. Pembangunan Prototype & Rule Engine"]
-    C --> D["4. Evaluasi, Uji Otomatis, & Simulasi"]
-    D --> E{"Apakah Alur & Aturan Kepatuhan Sesuai?"}
-    E -- "Butuh Penyesuaian Aturan" --> B
-    E -- "Sesuai Regulasi KAN" --> F["5. Finalisasi, Uji Regresi, & Dokumentasi"]
-```
+[![Diagram Alur Metodologi Pengembangan SIMASADI](diagrams/02-metodologi-pengembangan.svg)](diagrams/02-metodologi-pengembangan.html "Buka diagram interaktif")
+
+> *Gambar 2.1: Alur Siklus Hidup Pengembangan Sistem SIMASADI (Iterative Prototyping & Agile KAN)* — [Buka Versi Interaktif HTML](diagrams/02-metodologi-pengembangan.html)
 
 #### Prinsip Kerja yang Diterapkan:
 1. **Iterasi Berbasis Regulasi:** Setiap aturan bisnis baru (misalnya siklus toleransi pengisian surveilen 3 tahap, SLA tindakan perbaikan, dan skema import massal) diimplementasikan dan diverifikasi langsung melalui unit & feature test sebelum melangkah ke modul berikutnya.

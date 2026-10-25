@@ -19,6 +19,8 @@ export function handleFlashNotifications() {
                 confirmButtonText: 'Selesai',
                 timer: 3500,
                 timerProgressBar: true,
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',
@@ -32,6 +34,7 @@ export function handleFlashNotifications() {
     // 2. Flash Error Notification
     const errorEl = document.getElementById('flash-error-data');
     if (errorEl) {
+        window.resetButtonLoaders?.();
         const message = errorEl.dataset.message;
         errorEl.remove();
         if (message) {
@@ -41,6 +44,8 @@ export function handleFlashNotifications() {
                 text: message,
                 confirmButtonColor: '#5645d4',
                 confirmButtonText: 'Tutup',
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',
@@ -54,6 +59,7 @@ export function handleFlashNotifications() {
     // 3. Validation Errors Notification
     const errorsEl = document.getElementById('flash-errors-data');
     if (errorsEl) {
+        window.resetButtonLoaders?.();
         const title = errorsEl.dataset.title || 'Periksa Kembali Input';
         let errors = [];
         try {
@@ -73,6 +79,8 @@ export function handleFlashNotifications() {
                 html: listHtml,
                 confirmButtonColor: '#5645d4',
                 confirmButtonText: 'Mengerti',
+                heightAuto: false,
+                scrollbarPadding: false,
                 customClass: {
                     popup: 'simasadi-swal-popup',
                     confirmButton: 'simasadi-swal-btn',
@@ -94,5 +102,39 @@ export function initPersistentSurveillanceBanner() {
     } catch {
         // Ignore storage exceptions
     }
+
+    if (!window._surveillanceJumpHandlerAttached) {
+        window._surveillanceJumpHandlerAttached = true;
+        document.addEventListener('click', (event) => {
+            const jumpBtn = event.target.closest('.persistent-surveillance-banner-jump-btn');
+            if (!jumpBtn) return;
+
+            const href = jumpBtn.getAttribute('href');
+            if (!href || !href.startsWith('#')) return;
+
+            const targetId = href.slice(1);
+            const targetEl = document.getElementById(targetId) ||
+                             document.getElementById('surveillance-section') ||
+                             document.getElementById('surveillance-heading');
+
+            if (targetEl) {
+                event.preventDefault();
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                const panel = targetEl.closest('.dashboard-status-panel') || targetEl;
+                panel.classList.remove('surveillance-jump-pulse');
+                void panel.offsetWidth;
+                panel.classList.add('surveillance-jump-pulse');
+                setTimeout(() => {
+                    panel.classList.remove('surveillance-jump-pulse');
+                }, 2000);
+            }
+        });
+    }
+
+    // Ensure surveillance banner is not suppressed by any past session state
+    try {
+        sessionStorage.removeItem('surveillance_banner_dismissed');
+    } catch (_) {}
 }
 

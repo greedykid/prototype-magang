@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Accreditation;
 use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
@@ -93,9 +92,6 @@ class RoleAccessControlTest extends TestCase
             ->assertOk()
             ->assertSee('Ubah asesmen');
 
-        // 5. PIC DITOLAK (403) mengakses proses akreditasi internal
-        $this->actingAs($pic)->get(route('accreditations.index'))->assertForbidden();
-
         // Tampilan Dashboard PIC TIDAK memuat tombol atau tautan yang dibatasi (403)
         $picDashboard = $this->actingAs($pic)->get(route('dashboard'));
         $picDashboard->assertOk()
@@ -103,7 +99,6 @@ class RoleAccessControlTest extends TestCase
             ->assertSee('Data Laboratorium')
             ->assertDontSee('<span class="nav-label">Administrasi Laboratorium</span>', false)
             ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
-            ->assertDontSee(route('accreditations.index'))
             ->assertDontSee('Finansial &amp; Administrasi', false);
     }
 

@@ -3,9 +3,20 @@
  * Delivers zero-delay (0ms) instant page switches across all application menus.
  */
 
-export const PAGE_CACHE_TTL = 15 * 60 * 1000; // 15 minutes TTL (matches calendar cache)
+export const PAGE_CACHE_TTL = 30 * 1000; // 30 seconds TTL (ensures fresh operational data)
+export const MAX_PAGE_CACHE_SIZE = 20;
 export const pageCache = new Map();
 export const prefetchInFlight = new Map();
+
+export const setPageCache = (cleanUrl, cacheData) => {
+    if (pageCache.has(cleanUrl)) {
+        pageCache.delete(cleanUrl);
+    } else if (pageCache.size >= MAX_PAGE_CACHE_SIZE) {
+        const oldestKey = pageCache.keys().next().value;
+        pageCache.delete(oldestKey);
+    }
+    pageCache.set(cleanUrl, cacheData);
+};
 
 export const clearPageCache = () => {
     pageCache.clear();
@@ -13,8 +24,19 @@ export const clearPageCache = () => {
 };
 
 export const calendarCache = new Map();
-export const CALENDAR_CACHE_TTL = 15 * 60 * 1000; // 15 minutes TTL
+export const CALENDAR_CACHE_TTL = 60 * 1000; // 60 seconds TTL
+export const MAX_CALENDAR_CACHE_SIZE = 20;
 export const calendarPrefetchInFlight = new Map();
+
+export const setCalendarCache = (cacheKey, cacheData) => {
+    if (calendarCache.has(cacheKey)) {
+        calendarCache.delete(cacheKey);
+    } else if (calendarCache.size >= MAX_CALENDAR_CACHE_SIZE) {
+        const oldestKey = calendarCache.keys().next().value;
+        calendarCache.delete(oldestKey);
+    }
+    calendarCache.set(cacheKey, cacheData);
+};
 
 export const clearCalendarCache = () => {
     calendarCache.clear();
@@ -58,7 +80,10 @@ export const isCacheableUrl = (urlStr) => {
         if (
             u.pathname.includes('/logout') ||
             u.pathname.includes('/export') ||
-            u.pathname.includes('/download')
+            u.pathname.includes('/download') ||
+            u.pathname.includes('/create') ||
+            u.pathname.includes('/edit') ||
+            u.pathname.includes('/password')
         ) {
             return false;
         }
@@ -69,7 +94,7 @@ export const isCacheableUrl = (urlStr) => {
 };
 
 /**
- * Store current active page in memory cache immediately
+ * Store current active page in memory cache immediately with pristine server HTML
  */
 export const cacheCurrentPage = () => {
     try {
@@ -77,13 +102,10 @@ export const cacheCurrentPage = () => {
         if (!isCacheableUrl(currentUrl)) return;
         const cleanUrl = getCleanPageUrl(currentUrl);
         if (!pageCache.has(cleanUrl)) {
-            pageCache.set(cleanUrl, {
-                htmlText: document.documentElement.outerHTML,
-                timestamp: Date.now()
-            });
+            prefetchUrl(cleanUrl);
         }
     } catch (_) {
-        // Silently ignore DOM snapshot errors
+        // Silently ignore prefetch errors
     }
 };
 
@@ -114,7 +136,7 @@ export const prefetchCalendarPartial = async (rawUrl) => {
             calendarPrefetchInFlight.delete(cacheKey);
             if (!response.ok || response.redirected) return null;
             const text = await response.text();
-            calendarCache.set(cacheKey, {
+            setCalendarCache(cacheKey, {
                 htmlText: text,
                 timestamp: Date.now()
             });
@@ -156,7 +178,7 @@ export const prefetchUrl = (urlStr) => {
             prefetchInFlight.delete(cleanUrl);
             if (!response.ok || response.redirected) return null;
             const text = await response.text();
-            pageCache.set(cleanUrl, {
+            setPageCache(cleanUrl, {
                 htmlText: text,
                 timestamp: Date.now()
             });
@@ -180,21 +202,18 @@ export const scheduleAdjacentCalendarPrefetch = () => {
         const shell = document.querySelector('.gcal-shell');
         if (!shell) return;
 
-        // 1. Simpan shell yang sedang aktif ke cache jika belum ada
+        // 1. Simpan partial kalender yang sedang aktif ke cache jika belum ada
         const currentKey = getCalendarCacheKey(window.location.href);
         if (!calendarCache.has(currentKey)) {
-            calendarCache.set(currentKey, {
-                htmlText: shell.outerHTML,
-                timestamp: Date.now()
-            });
+            prefetchCalendarPartial(window.location.href);
         }
 
-        // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, serta tombol hari ini
-        const arrowLinks = document.querySelectorAll(
-            '.gcal-nav-arrows a.gcal-arrow-btn, .gcal-mini-nav a.gcal-mini-nav-btn, .gcal-nav-group a.gcal-btn-today'
+        // 2. Prefetch link panah bulan sebelumnya dan berikutnya dari toolbar & mini sidebar, tombol hari ini, serta tab tampilan kalender
+        const prefetchLinks = document.querySelectorAll(
+            '.gcal-nav-arrows a.gcal-arrow-btn, .gcal-mini-nav a.gcal-mini-nav-btn, .gcal-nav-group a.gcal-btn-today, .gcal-view-switcher a.gcal-view-tab'
         );
-        arrowLinks.forEach((link) => {
-            if (link.href) {
+        prefetchLinks.forEach((link) => {
+            if (link.href && !link.classList.contains('is-active')) {
                 prefetchCalendarPartial(link.href);
             }
         });
@@ -221,9 +240,9 @@ export const scheduleNavigationPrewarm = () => {
             scheduleAdjacentCalendarPrefetch();
         }
 
-        // 3. Prewarm semua tautan navigasi utama di sidebar & topbar
+        // 3. Prewarm semua tautan navigasi utama di sidebar, topbar & bottom nav
         const primaryLinks = document.querySelectorAll(
-            '#primary-navigation a[href], .brand a[href], .brand-mark[href], .topbar a[href], .user-nav a[href]'
+            '#primary-navigation a[href], .brand a[href], .brand-mark[href], .topbar a[href], .user-nav a[href], .bottom-nav a[href], .bottom-sheet a[href]'
         );
 
         primaryLinks.forEach((link) => {

@@ -45,9 +45,17 @@ class UserController extends Controller
             return view('users.partials.table-content', compact('users', 'search', 'role', 'perPage'));
         }
 
-        $totalCount = User::count();
-        $adminCount = User::where('role', User::ROLE_ADMIN)->count();
-        $picCount = User::where('role', User::ROLE_PIC)->count();
+        $userStats = User::query()
+            ->selectRaw("
+                count(*) as total,
+                count(case when role = '" . User::ROLE_ADMIN . "' then 1 end) as admin_count,
+                count(case when role = '" . User::ROLE_PIC . "' then 1 end) as pic_count
+            ")
+            ->first();
+
+        $totalCount = (int) ($userStats->total ?? 0);
+        $adminCount = (int) ($userStats->admin_count ?? 0);
+        $picCount = (int) ($userStats->pic_count ?? 0);
 
         return view('users.index', compact(
             'users',
@@ -65,42 +73,37 @@ class UserController extends Controller
      */
     public function show(User $user, Request $request): View
     {
-        // 1. LPK Utama (Lead PIC / Pemilik Utama)
+        // 1. LPK Utama (Lead PIC / Pemilik Utama yang ditugaskan langsung)
         $leadLpks = $user->lpks()
             ->with(['assessments'])
             ->orderBy('name')
             ->get();
 
-        // 2. LPK Kolaborasi (Anggota / Viewer LPK)
+        // 2. LPK Kolaborasi (Anggota Tim Teknis yang ditugaskan per LPK)
         $memberLpks = $user->memberLpks()
             ->with(['assessments'])
             ->orderBy('name')
             ->get();
 
-        // 3. LPK dari Tautan Akun (Account-level Viewer)
-        $linkedOwners = $user->linkedOwners()->withCount('lpks')->get();
-        $linkedOwnerLpks = \App\Models\Lpk::whereIn('pic_id', $linkedOwners->pluck('id'))
-            ->with(['assessments'])
-            ->orderBy('name')
-            ->get();
-
-        $linkedViewers = $user->linkedViewers()->withCount('lpks')->get();
-
-        // 4. Gabungan unik LPK
-        $allLpks = $leadLpks->concat($memberLpks)->concat($linkedOwnerLpks)->unique('id');
+        // 3. Gabungan LPK yang benar-benar dikerjakan / menjadi tanggung jawab anggota ini
+        // Catatan: LPK milik PIC lain dari Tautan Akun (user_account_links) tidak dimasukkan ke beban kerja
+        // karena itu adalah data milik PIC lain yang hanya dapat dilihat di menu Akun Tertaut.
+        $allLpks = $leadLpks->concat($memberLpks)->unique('id');
+        foreach ($allLpks as $lpkItem) {
+            foreach ($lpkItem->assessments as $asm) {
+                $asm->setRelation('lpk', $lpkItem);
+            }
+        }
 
         // Statistik ringkas
         $totalLead = $leadLpks->count();
-        $totalViewer = max(0, $allLpks->count() - $totalLead);
+        $totalViewer = $memberLpks->count();
         $totalLpks = $allLpks->count();
 
         return view('users.show', compact(
             'user',
             'leadLpks',
             'memberLpks',
-            'linkedOwnerLpks',
-            'linkedOwners',
-            'linkedViewers',
             'allLpks',
             'totalLead',
             'totalViewer',
@@ -229,6 +232,9 @@ class UserController extends Controller
         $userId = $user->id;
         $userEmail = $user->email;
         $userName = $user->name;
+
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache(user: $user);
+
         $user->delete();
 
         Log::info('User account deleted', [

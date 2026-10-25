@@ -88,7 +88,7 @@ export function clearTableSelection(tableId) {
 /**
  * Handle bulk export
  */
-function handleBulkExport(bulkBar) {
+function handleBulkExport(bulkBar, format = 'xlsx') {
     const tableId = bulkBar.dataset.tableTarget;
     const exportUrl = bulkBar.dataset.exportUrl;
     const selectedSet = getSelectedSet(tableId);
@@ -98,11 +98,37 @@ function handleBulkExport(bulkBar) {
     }
 
     const ids = Array.from(selectedSet).join(',');
-    const url = new URL(exportUrl, window.location.origin);
-    url.searchParams.set('ids', ids);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    // Trigger file download
-    window.location.href = url.toString();
+    // Create a temporary hidden POST form to avoid HTTP 414 URI Too Long on large selections
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = exportUrl;
+    form.style.display = 'none';
+
+    if (csrfToken) {
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = csrfToken;
+        form.appendChild(tokenInput);
+    }
+
+    const idsInput = document.createElement('input');
+    idsInput.type = 'hidden';
+    idsInput.name = 'ids';
+    idsInput.value = ids;
+    form.appendChild(idsInput);
+
+    const formatInput = document.createElement('input');
+    formatInput.type = 'hidden';
+    formatInput.name = 'format';
+    formatInput.value = format;
+    form.appendChild(formatInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => form.remove(), 1000);
 }
 
 /**
@@ -132,6 +158,8 @@ async function handleBulkDelete(bulkBar) {
         cancelButtonText: 'Batal',
         reverseButtons: true,
         focusCancel: true,
+        heightAuto: false,
+        scrollbarPadding: false,
         customClass: {
             popup: 'simasadi-swal-popup',
             confirmButton: 'simasadi-swal-btn simasadi-swal-danger-btn',
@@ -179,6 +207,8 @@ async function handleBulkDelete(bulkBar) {
             text: data.message || `${count} data berhasil dihapus.`,
             timer: 2200,
             showConfirmButton: false,
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: { popup: 'simasadi-swal-popup' },
         });
 
@@ -197,6 +227,8 @@ async function handleBulkDelete(bulkBar) {
             icon: 'error',
             title: 'Gagal Menghapus Data',
             text: err.message || 'Terjadi kesalahan pada server saat menghapus data terpilih.',
+            heightAuto: false,
+            scrollbarPadding: false,
             customClass: { popup: 'simasadi-swal-popup' },
         });
     }
@@ -294,7 +326,8 @@ export function initTableMultiselect() {
         const tableId = bulkBar.dataset.tableTarget;
 
         if (action === 'export') {
-            handleBulkExport(bulkBar);
+            const format = btn.dataset.format || 'xlsx';
+            handleBulkExport(bulkBar, format);
         } else if (action === 'delete') {
             handleBulkDelete(bulkBar);
         } else if (action === 'clear') {

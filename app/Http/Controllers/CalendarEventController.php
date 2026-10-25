@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCalendarEventRequest;
-use App\Http\Requests\UpdateCalendarEventRequest;
+use App\Http\Requests\CalendarEventRequest;
 use App\Models\Assessment;
 use App\Models\CalendarEvent;
 use App\Models\Lpk;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -18,7 +18,7 @@ class CalendarEventController extends Controller
     public function index(Request $request): View
     {
         $viewMode = $request->string('view')->trim()->toString() ?: 'month';
-        if (!in_array($viewMode, ['month', 'week', 'day', 'agenda'], true)) {
+        if (! in_array($viewMode, ['month', 'week', 'day', 'agenda'], true)) {
             $viewMode = 'month';
         }
 
@@ -26,71 +26,12 @@ class CalendarEventController extends Controller
         $monthParam = $request->string('month')->trim()->toString();
         $highlightParam = $request->string('highlight')->trim()->toString();
 
-        // Auto-resolve date from highlight if date parameter was not provided
-        if (empty($dateParam) && !empty($highlightParam)) {
-            if (str_starts_with($highlightParam, 'tp_')) {
-                $tpId = (int) substr($highlightParam, 3);
-                $tpAss = Assessment::find($tpId);
-                if ($tpAss) {
-                    $dateParam = ($tpAss->effective_tp_due_date ?: $tpAss->start_at)?->toDateString();
-                }
-            } elseif (str_starts_with($highlightParam, 'reminder_tp_')) {
-                $tpId = (int) substr($highlightParam, 12);
-                $tpAss = Assessment::find($tpId);
-                if ($tpAss && $tpAss->end_at) {
-                    $remDate = $tpAss->calculateDefaultTpReminderDate();
-                    if ($remDate) {
-                        $dateParam = CarbonImmutable::parse($remDate)->toDateString();
-                    }
-                }
-            } elseif (str_starts_with($highlightParam, 'reminder_sk_')) {
-                $skId = (int) substr($highlightParam, 12);
-                $skAss = Assessment::find($skId);
-                if ($skAss) {
-                    $skDate = $skAss->calculateDefaultSkReminderDate();
-                    if ($skDate) {
-                        $dateParam = CarbonImmutable::parse($skDate)->toDateString();
-                    }
-                }
-            } elseif (str_starts_with($highlightParam, 'lpk_jt_') || str_starts_with($highlightParam, 'lpk_rem_')) {
-                $parts = explode('_', $highlightParam);
-                if (count($parts) >= 4) {
-                    $type = $parts[1];
-                    $code = $parts[2];
-                    $lpkId = (int) $parts[3];
-                    $lpkItem = Lpk::find($lpkId);
-                    if ($lpkItem) {
-                        $ms = $lpkItem->surveillance_milestones[$code] ?? null;
-                        if ($ms) {
-                            $target = ($type === 'rem' ? ($ms['notice_date'] ?? $ms['target_date']) : ($ms['target_date'] ?? $ms['notice_date']));
-                            if ($target) {
-                                $dateParam = CarbonImmutable::parse($target)->toDateString();
-                            }
-                        }
-                    }
-                }
-            } elseif (str_starts_with($highlightParam, 'lpk_exp_')) {
-                $lpkId = (int) substr($highlightParam, 8);
-                $lpkItem = Lpk::find($lpkId);
-                if ($lpkItem && $lpkItem->expired_at) {
-                    $dateParam = CarbonImmutable::parse($lpkItem->expired_at)->toDateString();
-                }
-            } elseif (str_starts_with($highlightParam, 'event-')) {
-                $cevId = (int) substr($highlightParam, 6);
-                $cev = CalendarEvent::find($cevId);
-                if ($cev && $cev->start_at) {
-                    $dateParam = $cev->start_at->toDateString();
-                }
-            } else {
-                $assId = (int) str_replace('assessment-', '', $highlightParam);
-                $ass = Assessment::find($assId);
-                if ($ass && $ass->start_at) {
-                    $dateParam = $ass->start_at->toDateString();
-                }
-            }
+        // Resolusi tanggal aktif secara otomatis dari parameter highlight bila date tidak disertakan
+        if (empty($dateParam) && ! empty($highlightParam)) {
+            $dateParam = $this->resolveDateFromHighlight($highlightParam) ?: $dateParam;
         }
 
-        $isSelected = $request->boolean('selected') || !empty($highlightParam) || ($request->has('date') && $viewMode === 'day');
+        $isSelected = $request->boolean('selected') || ! empty($highlightParam) || ($request->has('date') && $viewMode === 'day');
 
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateParam)) {
             $activeDate = CarbonImmutable::createFromFormat('!Y-m-d', $dateParam);
@@ -110,21 +51,16 @@ class CalendarEventController extends Controller
         $gridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
         $gridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
 
-        // Month grid days (all cells in month grid)
+        // Seluruh hari pada kisi kalender bulanan
         $monthWeeks = [];
         for ($day = $gridStart; $day <= $gridEnd; $day = $day->addDay()) {
             $monthWeeks[] = $day;
         }
 
-        // Mini calendar grid (always shows month of activeDate)
-        $miniGridStart = $firstDay->startOfWeek(CarbonImmutable::MONDAY);
-        $miniGridEnd = $currentMonth->endOfMonth()->endOfWeek(CarbonImmutable::SUNDAY);
-        $miniWeeks = [];
-        for ($day = $miniGridStart; $day <= $miniGridEnd; $day = $day->addDay()) {
-            $miniWeeks[] = $day;
-        }
+        // Mini kalender selalu merujuk pada bulan aktif
+        $miniWeeks = $monthWeeks;
 
-        // Week view days (7 days of active week: Monday to Sunday)
+        // 7 hari pada tampilan mingguan aktif (Senin s.d. Minggu)
         $weekStart = $activeDate->startOfWeek(CarbonImmutable::MONDAY);
         $weekEnd = $activeDate->endOfWeek(CarbonImmutable::SUNDAY);
         $weekDays = [];
@@ -132,41 +68,283 @@ class CalendarEventController extends Controller
             $weekDays[] = $day;
         }
 
-        // Query date range spanning all needed dates
+        // Rentang tanggal query mencakup seluruh tanggal yang ditampilkan
         $queryStart = min($gridStart, $weekStart, $activeDate)->startOfDay();
         $queryEnd = max($gridEnd, $weekEnd, $activeDate->addDays(35))->endOfDay();
 
         $user = $request->user();
-        $isPic = $user && $user->isPic();
-        $isAdmin = $user && $user->isAdmin();
         $picFilter = $request->input('pic_id') ?: $request->input('pic');
 
-        // 1. Fetch CalendarEvent
+        // Memuat seluruh sumber entitas kalender secara modular
+        $calendarEventResults = $this->fetchCalendarEvents($queryStart, $queryEnd, $user, $picFilter);
+        $assessmentResults = $this->fetchAssessmentEvents($queryStart, $queryEnd, $user, $picFilter);
+        $tpResults = $this->fetchAssessmentTpEvents($queryStart, $queryEnd, $user, $picFilter);
+        $milestoneResults = $this->fetchLpkMilestoneEvents($queryStart, $queryEnd, $user, $picFilter);
+
+        $unifiedEvents = collect()
+            ->concat($calendarEventResults['events'])
+            ->concat($assessmentResults)
+            ->concat($tpResults)
+            ->concat($milestoneResults);
+
+        $eventsByDate = $this->groupEventsByDate($unifiedEvents);
+
+        // Kompatibilitas pengujian otomatis yang mengakses $events dan $weeks
+        $events = $calendarEventResults['raw_models']->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
+        $weeks = $monthWeeks;
+
+        $pics = $user ? $user->getAccessiblePics() : collect();
+        $lpks = Lpk::accessibleBy($user)
+            ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
+                $sub->where('lpks.pic_id', $picFilter)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter));
+            }))
+            ->orderBy('name')
+            ->get(['id', 'name', 'accreditation_number', 'registration_number', 'no_reg']);
+        $hoursRange = range(7, 19);
+
+        $viewData = compact(
+            'currentMonth',
+            'activeDate',
+            'selectedDate',
+            'viewMode',
+            'monthWeeks',
+            'miniWeeks',
+            'weekDays',
+            'weekStart',
+            'weekEnd',
+            'eventsByDate',
+            'unifiedEvents',
+            'lpks',
+            'pics',
+            'picFilter',
+            'hoursRange',
+            'weeks',
+            'events',
+            'highlightParam'
+        );
+        $viewData['highlightId'] = $highlightParam;
+
+        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
+            return view('calendar.partials.calendar-shell', $viewData);
+        }
+
+        return view('calendar.index', $viewData);
+    }
+
+    public function create(Request $request): View
+    {
+        $event = new CalendarEvent;
+        $selectedDate = rescue(fn () => $request->date('date')?->toDateString(), null, false);
+
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::manageableBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
+    }
+
+    public function store(CalendarEventRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($request->filled('lpk_id')) {
+            $lpk = Lpk::find($request->input('lpk_id'));
+            if ($lpk) {
+                if ($user && ! $lpk->canManage($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk menambah agenda pada LPK ini.');
+                }
+                if ($lpk->status === 'INACTIVE') {
+                    return back()->withInput()->with('error', 'Tidak dapat menambahkan agenda pada LPK yang berstatus nonaktif.');
+                }
+            }
+        }
+
+        $event = CalendarEvent::create($request->validated() + ['created_by' => $user->id]);
+
+        return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil ditambahkan.');
+    }
+
+    public function show(CalendarEvent $event, Request $request): View
+    {
+        $user = $request->user();
+        if ($user) {
+            if ($event->lpk_id && $event->lpk) {
+                if (! $event->lpk->canView($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+                }
+            } elseif (! $user->isAdmin() && (int) $event->created_by !== (int) $user->id) {
+                abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
+            }
+        }
+
+        return view('calendar.show', ['event' => $event->load(['lpk', 'creator'])]);
+    }
+
+    public function edit(CalendarEvent $event, Request $request): View
+    {
+        $user = $request->user();
+        if (! $this->canUserManageEvent($user, $event)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
+        }
+
+        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
+    }
+
+    public function update(CalendarEventRequest $request, CalendarEvent $event): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $this->canUserManageEvent($user, $event)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
+        }
+
+        $validated = $request->validated();
+        if (! empty($validated['lpk_id']) && (int) $validated['lpk_id'] !== (int) $event->lpk_id) {
+            $newLpk = Lpk::find($validated['lpk_id']);
+            if ($newLpk) {
+                if ($user && ! $newLpk->canManage($user)) {
+                    abort(403, 'Anda tidak memiliki hak untuk memindahkan agenda ke LPK ini.');
+                }
+                if ($newLpk->status === 'INACTIVE') {
+                    return back()->withInput()->with('error', 'Tidak dapat memindahkan agenda ke LPK yang berstatus nonaktif.');
+                }
+            }
+        }
+
+        $event->update($validated);
+
+        return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');
+    }
+
+    public function destroy(CalendarEvent $event, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $this->canUserManageEvent($user, $event)) {
+            abort(403, 'Anda tidak memiliki hak untuk menghapus agenda ini.');
+        }
+
+        $title = $event->title;
+        $event->delete();
+
+        Log::info('Calendar event deleted', [
+            'event_id' => $event->id,
+            'title' => $title,
+            'deleted_by' => $user?->id,
+            'ip' => $request->ip(),
+        ]);
+
+        return redirect()->route('calendar.index')->with('success', "Agenda \"{$title}\" berhasil dihapus.");
+    }
+
+    /**
+     * Resolusi tanggal aktif dari target parameter highlight bila date tidak disertakan.
+     */
+    protected function resolveDateFromHighlight(string $highlightParam): ?string
+    {
+        if (str_starts_with($highlightParam, 'tp_')) {
+            $tpId = (int) substr($highlightParam, 3);
+            if ($tpId <= 0) {
+                return null;
+            }
+            $tpAss = Assessment::select(['id', 'lpk_id', 'assessment_type', 'start_at', 'end_at', 'tp_due_date', 'tp_has_extension', 'tp_extension_months', 'tp_extension_date'])->find($tpId);
+            return ($tpAss?->effective_tp_due_date ?: $tpAss?->start_at)?->toDateString();
+        }
+
+        if (str_starts_with($highlightParam, 'reminder_tp_')) {
+            $tpId = (int) substr($highlightParam, 12);
+            if ($tpId <= 0) {
+                return null;
+            }
+            $tpAss = Assessment::select(['id', 'assessment_type', 'title', 'end_at'])->find($tpId);
+            if ($tpAss && $tpAss->end_at) {
+                $remDate = $tpAss->calculateDefaultTpReminderDate();
+                return $remDate ? CarbonImmutable::parse($remDate)->toDateString() : null;
+            }
+            return null;
+        }
+
+        if (str_starts_with($highlightParam, 'reminder_sk_')) {
+            $skId = (int) substr($highlightParam, 12);
+            if ($skId <= 0) {
+                return null;
+            }
+            $skAss = Assessment::select(['id', 'assessment_type', 'tp_satisfied_at'])->find($skId);
+            if ($skAss) {
+                $skDate = $skAss->calculateDefaultSkReminderDate();
+                return $skDate ? CarbonImmutable::parse($skDate)->toDateString() : null;
+            }
+            return null;
+        }
+
+        if (str_starts_with($highlightParam, 'lpk_jt_') || str_starts_with($highlightParam, 'lpk_rem_')) {
+            $parts = explode('_', $highlightParam);
+            if (count($parts) >= 4) {
+                $type = $parts[1];
+                $code = $parts[2];
+                $lpkId = (int) $parts[3];
+                if ($lpkId <= 0) {
+                    return null;
+                }
+                $lpkItem = Lpk::select(['id', 'status', 'certificate_date', 'expired_at'])->find($lpkId);
+                if ($lpkItem) {
+                    $ms = $lpkItem->surveillance_milestones[$code] ?? null;
+                    if ($ms) {
+                        $target = ($type === 'rem' ? ($ms['notice_date'] ?? $ms['target_date']) : ($ms['target_date'] ?? $ms['notice_date']));
+                        return $target ? CarbonImmutable::parse($target)->toDateString() : null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        if (str_starts_with($highlightParam, 'lpk_exp_')) {
+            $lpkId = (int) substr($highlightParam, 8);
+            if ($lpkId <= 0) {
+                return null;
+            }
+            $expDate = Lpk::where('id', $lpkId)->value('expired_at');
+            return $expDate ? CarbonImmutable::parse($expDate)->toDateString() : null;
+        }
+
+        if (str_starts_with($highlightParam, 'event-')) {
+            $cevId = (int) substr($highlightParam, 6);
+            if ($cevId <= 0) {
+                return null;
+            }
+            $startAt = CalendarEvent::where('id', $cevId)->value('start_at');
+            return $startAt ? CarbonImmutable::parse($startAt)->toDateString() : null;
+        }
+
+        $cleanHighlight = str_replace('assessment-', '', $highlightParam);
+        if (is_numeric($cleanHighlight) && (int) $cleanHighlight > 0) {
+            $assId = (int) $cleanHighlight;
+            $startAt = Assessment::where('id', $assId)->value('start_at');
+            return $startAt ? CarbonImmutable::parse($startAt)->toDateString() : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Memuat agenda internal kalender dan memformat ke bentuk entitas seragam.
+     *
+     * @return array{events: Collection<int, array<string, mixed>>, raw_models: Collection<int, CalendarEvent>}
+     */
+    protected function fetchCalendarEvents(CarbonImmutable $queryStart, CarbonImmutable $queryEnd, ?\App\Models\User $user, ?string $picFilter): array
+    {
+        $isPic = $user && $user->isPic();
+        $isAdmin = $user && $user->isAdmin();
+
         $calendarEvents = CalendarEvent::with('lpk')
             ->when($isPic, fn ($q) => $q->where(function ($sub) use ($user) {
-                $sub->whereNull('lpk_id')
+                $sub->where(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $user->id))
                     ->orWhereHas('lpk', fn ($lq) => $lq->accessibleBy($user));
             }))
             ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
-                $sub->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter))
+                $sub->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter)))
                     ->orWhere(fn ($sq) => $sq->whereNull('lpk_id')->where('created_by', $picFilter));
             }))
-            ->whereBetween('start_at', [$queryStart, $queryEnd])
+            ->where('start_at', '<=', $queryEnd)
+            ->where('end_at', '>=', $queryStart)
             ->orderBy('start_at')
             ->get();
 
-        // 2. Fetch Assessment (Integrated Calendar)
-        $assessments = Assessment::with('lpk')
-            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
-            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
-            ->whereBetween('start_at', [$queryStart, $queryEnd])
-            ->orderBy('start_at')
-            ->get();
-
-        // Standardize into unified items
-        $unifiedEvents = collect();
-
-        foreach ($calendarEvents as $item) {
+        $events = $calendarEvents->map(function ($item) use ($isAdmin, $user) {
             $typeStr = strtoupper(trim((string) $item->event_type));
             $isInternal = ($typeStr === 'AGENDA_INTERNAL' || empty($typeStr));
 
@@ -184,7 +362,7 @@ class CalendarEventController extends Controller
 
             $canManage = $isAdmin || ($item->lpk_id ? ($item->lpk && $item->lpk->canManage($user)) : ($item->created_by === $user?->id));
 
-            $unifiedEvents->push([
+            return [
                 'id' => $item->id,
                 'source' => 'calendar_event',
                 'category' => $isInternal ? 'AGENDA_INTERNAL' : 'ASESMEN_LAPANGAN',
@@ -204,25 +382,35 @@ class CalendarEventController extends Controller
                 'can_manage' => $canManage,
                 'url' => route('calendar.events.show', $item),
                 'edit_url' => $canManage ? route('calendar.events.edit', $item) : null,
-            ]);
-        }
+            ];
+        });
 
-        foreach ($assessments as $item) {
-            $shortType = match (strtoupper(trim((string)$item->assessment_type))) {
-                'S1', 'SURVEILEN 1', 'SURVEILLANCE 1' => 'S1',
-                'SURVEILEN 1 + PRL', 'S1 + PRL', 'S1+PRL' => 'S1+PRL',
-                'S2', 'SURVEILEN 2', 'SURVEILLANCE 2' => 'S2',
-                'SURVEILEN 2 + PRL', 'S2 + PRL', 'S2+PRL' => 'S2+PRL',
-                'RA', 'RE-AKREDITASI', 'REAKREDITASI', 'RE-ASESMEN', 'REASSESSMENT', 'RE-AKREDITASI (AKREDITASI ULANG)' => 'RA',
-                'PRL', 'PERLUASAN RUANG LINGKUP', 'PERLUASAN LINGKUP', 'PERLUASAN RUANG LINGKUP (PRL)' => 'PRL',
-                'STT', 'SURVEILEN TIDAK TERJADWAL', 'SURVEILEN TIDAK TERJADWAL (STT)' => 'STT',
-                'AA', 'ASESMEN AWAL', 'INITIAL', 'AKREDITASI AWAL' => 'AA',
-                default => $item->assessment_type ?: 'Asesmen',
-            };
+        return [
+            'events' => $events,
+            'raw_models' => $calendarEvents,
+        ];
+    }
 
-            if (in_array($shortType, ['Surveilen', 'Asesmen'], true) && preg_match('/\b(S1|S2|RA|PRL|STT|AA)\b/i', (string)$item->title, $m)) {
-                $shortType = strtoupper($m[1]);
-            }
+    /**
+     * Memuat pelaksanaan asesmen lapangan ke entitas kalender seragam.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    protected function fetchAssessmentEvents(CarbonImmutable $queryStart, CarbonImmutable $queryEnd, ?\App\Models\User $user, ?string $picFilter): Collection
+    {
+        $isPic = $user && $user->isPic();
+        $isAdmin = $user && $user->isAdmin();
+
+        $assessments = Assessment::with('lpk')
+            ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter))))
+            ->where('start_at', '<=', $queryEnd)
+            ->where('end_at', '>=', $queryStart)
+            ->orderBy('start_at')
+            ->get();
+
+        return $assessments->map(function ($item) use ($isAdmin, $user) {
+            $shortType = $item->short_type;
 
             $lpkName = $item->lpk?->name ?? 'LPK Terakreditasi';
             $lpkReg = $item->lpk?->registration_number;
@@ -230,7 +418,7 @@ class CalendarEventController extends Controller
 
             $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
 
-            $unifiedEvents->push([
+            return [
                 'id' => $item->id,
                 'source' => 'assessment',
                 'category' => 'ASESMEN_LAPANGAN',
@@ -251,16 +439,33 @@ class CalendarEventController extends Controller
                 'can_manage' => $canManage,
                 'url' => route('assessments.show', $item),
                 'edit_url' => $canManage ? route('assessments.edit', $item) : null,
-            ]);
-        }
+            ];
+        });
+    }
 
-        // 2b. Sinkronisasi Batas Waktu Tindakan Perbaikan (TP & VTP) KAN ke Kalender
+    /**
+     * Memuat batas waktu tindakan perbaikan (TP) dan pengingat (Reminder) ke kalender.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    protected function fetchAssessmentTpEvents(CarbonImmutable $queryStart, CarbonImmutable $queryEnd, ?\App\Models\User $user, ?string $picFilter): Collection
+    {
+        $isPic = $user && $user->isPic();
+        $isAdmin = $user && $user->isAdmin();
+
         $tpAssessments = Assessment::with('lpk')
             ->whereNotNull('tp_status')
             ->where('tp_status', '!=', Assessment::TP_STATUS_NONE)
+            ->where(function ($q) use ($queryStart, $queryEnd) {
+                $q->whereBetween('tp_due_date', [$queryStart->toDateString(), $queryEnd->toDateString()])
+                    ->orWhereBetween('tp_satisfied_at', [$queryStart->subDays(15)->toDateString(), $queryEnd->toDateString()])
+                    ->orWhereBetween('end_at', [$queryStart->subMonths(5), $queryEnd->endOfDay()]);
+            })
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
-            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('pic_id', $picFilter)))
+            ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter))))
             ->get();
+
+        $events = collect();
 
         foreach ($tpAssessments as $item) {
             $effectiveDueDate = $item->effective_tp_due_date;
@@ -280,7 +485,7 @@ class CalendarEventController extends Controller
 
                     $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
 
-                    $unifiedEvents->push([
+                    $events->push([
                         'id' => 'tp_' . $item->id,
                         'source' => 'assessment_tp',
                         'category' => 'BATAS_TP',
@@ -308,7 +513,7 @@ class CalendarEventController extends Controller
                 }
             }
 
-            // 2c. Reminder TP dan VTP (1,5 bulan / 45 hari dari end_at) jika belum SATISFIED
+            // Reminder TP dan VTP (1,5 bulan / 45 hari dari end_at) jika belum SATISFIED
             if ($item->tp_status !== Assessment::TP_STATUS_SATISFIED && $item->end_at) {
                 $tpReminderDate = $item->calculateDefaultTpReminderDate();
                 if ($tpReminderDate) {
@@ -322,7 +527,7 @@ class CalendarEventController extends Controller
 
                         $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
 
-                        $unifiedEvents->push([
+                        $events->push([
                             'id' => 'reminder_tp_' . $item->id,
                             'source' => 'assessment_tp_reminder',
                             'category' => 'REMINDER',
@@ -349,7 +554,7 @@ class CalendarEventController extends Controller
                 }
             }
 
-            // 2d. Reminder Penerbitan SK (10 hari setelah tp_satisfied_at jika sk_number kosong)
+            // Reminder Penerbitan SK (10 hari setelah tp_satisfied_at jika sk_number kosong)
             if (empty($item->sk_number) && $item->tp_satisfied_at) {
                 $skReminderDate = $item->calculateDefaultSkReminderDate();
                 if ($skReminderDate) {
@@ -363,7 +568,7 @@ class CalendarEventController extends Controller
 
                         $canManage = $isAdmin || ($item->lpk && $item->lpk->canManage($user));
 
-                        $unifiedEvents->push([
+                        $events->push([
                             'id' => 'reminder_sk_' . $item->id,
                             'source' => 'assessment_sk_reminder',
                             'category' => 'REMINDER',
@@ -391,17 +596,49 @@ class CalendarEventController extends Controller
             }
         }
 
-        // 3. Fetch LPK Milestones (S1, S2, Re-Akreditasi / Kedaluwarsa)
-        // Optimasi performa: Proyeksikan kolom esensial untuk memangkas footprint RAM dan beban database
-        $lpksWithMilestones = Lpk::accessibleBy($request->user())
+        return $events;
+    }
+
+    /**
+     * Memuat milestone siklus pengawasan LPK (S1, S2, Re-akreditasi) dan tanggal kedaluwarsa ke kalender.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    protected function fetchLpkMilestoneEvents(CarbonImmutable $queryStart, CarbonImmutable $queryEnd, ?\App\Models\User $user, ?string $picFilter): Collection
+    {
+        $isAdmin = $user && $user->isAdmin();
+        $qStartStr = $queryStart->toDateString();
+        $qEndStr = $queryEnd->toDateString();
+
+        $lpksWithMilestones = Lpk::accessibleBy($user)
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
-            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status'])])
-            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
-            ->where(function ($q) {
-                $q->whereNotNull('certificate_date')
-                    ->orWhereNotNull('expired_at');
+            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'tp_satisfied_at', 'sk_number'])])
+            ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
+                $sub->where('lpks.pic_id', $picFilter)
+                    ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter));
+            }))
+            ->where(function ($q) use ($queryStart, $queryEnd, $qStartStr, $qEndStr) {
+                // 1. Kedaluwarsa akreditasi pada bulan kalender aktif
+                $q->whereBetween('expired_at', [$qStartStr, $qEndStr])
+                    // 2. Siklus S1 (reminder bulan ke-13 s.d. target bulan ke-18)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(19)->toDateString(),
+                        $queryEnd->subMonths(12)->toDateString(),
+                    ])
+                    // 3. Siklus S2 (reminder bulan ke-34 s.d. target bulan ke-39)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(40)->toDateString(),
+                        $queryEnd->subMonths(33)->toDateString(),
+                    ])
+                    // 4. Siklus RA (reminder bulan ke-48 s.d. target bulan ke-51)
+                    ->orWhereBetween('certificate_date', [
+                        $queryStart->subMonths(52)->toDateString(),
+                        $queryEnd->subMonths(47)->toDateString(),
+                    ]);
             })
             ->get();
+
+        $events = collect();
 
         foreach ($lpksWithMilestones as $lpkItem) {
             $canManageLpk = $isAdmin || $lpkItem->canManage($user);
@@ -412,13 +649,13 @@ class CalendarEventController extends Controller
             foreach ($milestones as $key => $milestone) {
                 $isCompleted = in_array($milestone['status'], ['COMPLETED_OR_SCHEDULED', 'SUSPENDED'], true);
 
-                // 3a. Reminder Siklus (Kuning / theme-amber) pada notice_date
-                if (!empty($milestone['notice_date']) && !$isCompleted) {
+                // Reminder Siklus (Kuning / theme-amber) pada notice_date
+                if (! empty($milestone['notice_date']) && ! $isCompleted) {
                     $remDate = CarbonImmutable::parse($milestone['notice_date'])->setTime(9, 0);
                     $remDateEnd = $remDate->setTime(17, 0);
 
                     if ($remDate->gte($queryStart->startOfDay()) && $remDate->lte($queryEnd->endOfDay())) {
-                        $unifiedEvents->push([
+                        $events->push([
                             'id' => 'lpk_rem_' . $key . '_' . $lpkItem->id,
                             'source' => 'lpk_milestone_reminder',
                             'category' => 'REMINDER',
@@ -440,7 +677,11 @@ class CalendarEventController extends Controller
                             'url' => route('lpks.show', $lpkItem),
                             'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
-                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'assessment_type' => match ($key) {
+                                    's1' => Assessment::TYPE_SURVEILEN_1,
+                                    's2' => Assessment::TYPE_SURVEILEN_2,
+                                    default => Assessment::TYPE_RE_AKREDITASI,
+                                },
                                 'start_at' => $remDate->format('Y-m-d\T09:00'),
                                 'end_at' => $remDateEnd->format('Y-m-d\T17:00'),
                             ]) : null,
@@ -449,13 +690,13 @@ class CalendarEventController extends Controller
                     }
                 }
 
-                // 3b. Jatuh Tempo Siklus (Merah / theme-rose) pada target_date
-                if (!empty($milestone['target_date']) && !$isCompleted) {
+                // Jatuh Tempo Siklus (Merah / theme-rose) pada target_date
+                if (! empty($milestone['target_date']) && ! $isCompleted) {
                     $targetDate = CarbonImmutable::parse($milestone['target_date'])->setTime(9, 0);
                     $targetDateEnd = $targetDate->setTime(17, 0);
 
                     if ($targetDate->gte($queryStart->startOfDay()) && $targetDate->lte($queryEnd->endOfDay())) {
-                        $unifiedEvents->push([
+                        $events->push([
                             'id' => 'lpk_jt_' . $key . '_' . $lpkItem->id,
                             'source' => 'lpk_milestone_jt',
                             'category' => 'JATUH_TEMPO',
@@ -477,7 +718,11 @@ class CalendarEventController extends Controller
                             'url' => route('lpks.show', $lpkItem),
                             'edit_url' => $canManageLpk ? route('assessments.create', [
                                 'lpk_id' => $lpkItem->id,
-                                'assessment_type' => match ($key) { 's1', 's2' => 'Surveilen', default => 'Re-asesmen' },
+                                'assessment_type' => match ($key) {
+                                    's1' => Assessment::TYPE_SURVEILEN_1,
+                                    's2' => Assessment::TYPE_SURVEILEN_2,
+                                    default => Assessment::TYPE_RE_AKREDITASI,
+                                },
                                 'start_at' => $targetDate->format('Y-m-d\T09:00'),
                                 'end_at' => $targetDateEnd->format('Y-m-d\T17:00'),
                             ]) : null,
@@ -487,13 +732,13 @@ class CalendarEventController extends Controller
                 }
             }
 
-            // 3c. Kedaluwarsa Akreditasi pada expired_at (Merah / theme-rose)
+            // Kedaluwarsa Akreditasi pada expired_at (Merah / theme-rose)
             if ($lpkItem->expired_at) {
                 $expDate = CarbonImmutable::parse($lpkItem->expired_at)->setTime(9, 0);
                 $expDateEnd = $expDate->setTime(17, 0);
 
                 if ($expDate->gte($queryStart->startOfDay()) && $expDate->lte($queryEnd->endOfDay())) {
-                    $unifiedEvents->push([
+                    $events->push([
                         'id' => 'lpk_exp_' . $lpkItem->id,
                         'source' => 'lpk_expired',
                         'category' => 'JATUH_TEMPO',
@@ -520,6 +765,17 @@ class CalendarEventController extends Controller
             }
         }
 
+        return $events;
+    }
+
+    /**
+     * Mengelompokkan entitas kegiatan ke tanggal-tanggal terkait, termasuk rentang multi-hari.
+     *
+     * @param  Collection<int, array<string, mixed>>  $unifiedEvents
+     * @return Collection<string, Collection<int, array<string, mixed>>>
+     */
+    protected function groupEventsByDate(Collection $unifiedEvents): Collection
+    {
         $eventsByDate = collect();
         foreach ($unifiedEvents->sortBy('start_at') as $ev) {
             $startDate = $ev['start_at']->toDateString();
@@ -557,127 +813,7 @@ class CalendarEventController extends Controller
             }
         }
 
-        // For backwards-compatibility with tests that check $events or $weeks
-        $events = $calendarEvents->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
-        $weeks = $monthWeeks;
-
-        $pics = $user ? $user->getAccessiblePics() : collect();
-        $lpks = Lpk::accessibleBy($user)
-            ->when($picFilter, fn ($q) => $q->where('pic_id', $picFilter))
-            ->orderBy('name')
-            ->get(['id', 'name', 'accreditation_number', 'registration_number', 'no_reg']);
-        $hoursRange = range(7, 19);
-
-        $viewData = compact(
-            'currentMonth',
-            'activeDate',
-            'selectedDate',
-            'viewMode',
-            'monthWeeks',
-            'miniWeeks',
-            'weekDays',
-            'weekStart',
-            'weekEnd',
-            'eventsByDate',
-            'unifiedEvents',
-            'lpks',
-            'pics',
-            'picFilter',
-            'hoursRange',
-            'weeks',
-            'events',
-            'highlightParam'
-        );
-        $viewData['highlightId'] = $highlightParam;
-
-        if ($request->ajax() && $request->hasHeader('X-Partial-Content')) {
-            return view('calendar.partials.calendar-shell', $viewData);
-        }
-
-        return view('calendar.index', $viewData);
-    }
-
-    public function create(Request $request): View
-    {
-        $event = new CalendarEvent;
-        $selectedDate = $request->date('date')?->toDateString();
-
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($request->user())->orderBy('name')->get(), 'formTitle' => 'Tambah agenda', 'selectedDate' => $selectedDate]);
-    }
-
-    public function store(StoreCalendarEventRequest $request): RedirectResponse
-    {
-        $user = $request->user();
-        if ($request->filled('lpk_id')) {
-            $lpk = Lpk::find($request->input('lpk_id'));
-            if ($user && $lpk && ! $lpk->canManage($user)) {
-                abort(403, 'Anda tidak memiliki hak untuk menambah agenda pada LPK ini.');
-            }
-        }
-
-        $event = CalendarEvent::create($request->validated() + ['created_by' => $user->id]);
-
-        return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil ditambahkan.');
-    }
-
-    public function show(CalendarEvent $event, Request $request): View
-    {
-        $user = $request->user();
-        if ($user && $event->lpk && ! $event->lpk->canView($user)) {
-            abort(403, 'Anda tidak memiliki hak untuk melihat agenda ini.');
-        }
-
-        return view('calendar.show', ['event' => $event->load(['lpk', 'creator'])]);
-    }
-
-    public function edit(CalendarEvent $event, Request $request): View
-    {
-        $user = $request->user();
-        if (! $this->canUserManageEvent($user, $event)) {
-            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
-        }
-
-        return view('calendar.form', ['event' => $event, 'lpks' => Lpk::accessibleBy($user)->orderBy('name')->get(), 'formTitle' => 'Ubah agenda']);
-    }
-
-    public function update(UpdateCalendarEventRequest $request, CalendarEvent $event): RedirectResponse
-    {
-        $user = $request->user();
-        if (! $this->canUserManageEvent($user, $event)) {
-            abort(403, 'Anda tidak memiliki hak untuk mengubah agenda ini.');
-        }
-
-        $validated = $request->validated();
-        if (! empty($validated['lpk_id']) && (int) $validated['lpk_id'] !== (int) $event->lpk_id) {
-            $newLpk = Lpk::find($validated['lpk_id']);
-            if ($user && $newLpk && ! $newLpk->canManage($user)) {
-                abort(403, 'Anda tidak memiliki hak untuk memindahkan agenda ke LPK ini.');
-            }
-        }
-
-        $event->update($validated);
-
-        return redirect()->route('calendar.events.show', $event)->with('success', 'Agenda berhasil diperbarui.');
-    }
-
-    public function destroy(CalendarEvent $event, Request $request): RedirectResponse
-    {
-        $user = $request->user();
-        if (! $this->canUserManageEvent($user, $event)) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus agenda ini.');
-        }
-
-        $title = $event->title;
-        $event->delete();
-
-        Log::info('Calendar event deleted', [
-            'event_id' => $event->id,
-            'title' => $title,
-            'deleted_by' => $user?->id,
-            'ip' => $request->ip(),
-        ]);
-
-        return redirect()->route('calendar.index')->with('success', "Agenda \"{$title}\" berhasil dihapus.");
+        return $eventsByDate;
     }
 
     protected function canUserManageEvent(?\App\Models\User $user, CalendarEvent $event): bool

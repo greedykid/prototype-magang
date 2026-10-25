@@ -22,7 +22,51 @@ const setupGlobalSelectListeners = () => {
     globalSelectListenersAdded = true;
 
     document.addEventListener('click', (event) => {
-        if (!event.target.closest('.custom-select-wrapper')) {
+        if (!event.target || typeof event.target.closest !== 'function') return;
+        // Delegated trigger click handling (self-healing for any restored DOM)
+        const trigger = event.target.closest('.custom-select-trigger');
+        if (trigger) {
+            const wrapper = trigger.closest('.custom-select-wrapper');
+            if (wrapper) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof window.closeAllCustomPickers === 'function') {
+                    window.closeAllCustomPickers();
+                }
+                if (typeof wrapper._customSelectToggle === 'function') {
+                    wrapper._customSelectToggle();
+                } else {
+                    // Self-healing: if wrapper lost its instance, unwrap and rebuild immediately
+                    const nativeSelect = wrapper.querySelector('select.custom-select-native') || wrapper.querySelector('select');
+                    if (nativeSelect) {
+                        nativeSelect.classList.remove('custom-select-native');
+                        delete nativeSelect.dataset.customSelectInit;
+                        wrapper.parentNode.insertBefore(nativeSelect, wrapper);
+                        wrapper.remove();
+                        createCustomSelect(nativeSelect);
+                        nativeSelect.closest('.custom-select-wrapper')?._customSelectToggle?.();
+                    }
+                }
+                return;
+            }
+        }
+
+        // Delegated option click handling
+        const optionEl = event.target.closest('.custom-select-option');
+        if (optionEl) {
+            const wrapper = optionEl.closest('.custom-select-wrapper');
+            if (wrapper && typeof wrapper._customSelectChoose === 'function') {
+                event.preventDefault();
+                event.stopPropagation();
+                wrapper._customSelectChoose(optionEl.dataset.value);
+                return;
+            }
+        }
+
+        // Safe outside click detection without using brittle CSS :has()
+        const clickedInsideWrapper = !!event.target.closest('.custom-select-wrapper');
+        const clickedInsideLabel = !!(event.target.closest('label')?.querySelector('.custom-select-wrapper'));
+        if (!clickedInsideWrapper && !clickedInsideLabel) {
             closeAllCustomSelects();
         }
     });
@@ -65,6 +109,21 @@ const createCustomSelect = (select) => {
     trigger.setAttribute('aria-haspopup', 'listbox');
     trigger.setAttribute('aria-expanded', 'false');
 
+    const triggerId = select.id ? `${select.id}-trigger` : `custom-select-trigger-${Math.random().toString(36).slice(2, 8)}`;
+    trigger.id = triggerId;
+
+    const enclosingLabel = wrapper.closest('label');
+    const externalLabel = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+
+    if (externalLabel && externalLabel !== enclosingLabel) {
+        externalLabel.setAttribute('for', triggerId);
+    }
+    if (enclosingLabel) {
+        // Enclosing <label> wraps both the trigger button and dropdown menu.
+        // Remove 'for' attribute so browser does not dispatch synthetic clicks to trigger on option selection.
+        enclosingLabel.removeAttribute('for');
+    }
+
     const valueSpan = document.createElement('span');
     valueSpan.className = 'custom-select-value';
 
@@ -83,7 +142,7 @@ const createCustomSelect = (select) => {
     let searchInput = null;
     let emptyNotice = null;
 
-    if (optionsCount > 6 && select.dataset.noSearch === undefined) {
+    if (optionsCount > 8 && select.dataset.noSearch === undefined) {
         const searchWrap = document.createElement('div');
         searchWrap.className = 'custom-select-search-wrap';
         searchWrap.innerHTML = '<svg class="custom-select-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>';
@@ -150,6 +209,7 @@ const createCustomSelect = (select) => {
             `;
 
             optionEl.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 selectOption(opt.value);
             });
@@ -214,9 +274,13 @@ const createCustomSelect = (select) => {
 
     const openMenu = () => {
         closeAllCustomSelects(wrapper);
+        if (typeof window.closeAllCustomPickers === 'function') {
+            window.closeAllCustomPickers();
+        }
 
         const rect = trigger.getBoundingClientRect();
         const modalBox = wrapper.closest('.simasadi-modal-box');
+        const drawer = wrapper.closest('.filter-drawer');
         let spaceBelow = window.innerHeight - rect.bottom;
         let spaceAbove = rect.top;
 
@@ -226,7 +290,8 @@ const createCustomSelect = (select) => {
             spaceAbove = rect.top - modalRect.top;
         }
 
-        if (spaceBelow < 190 && spaceAbove > spaceBelow && spaceAbove >= 190) {
+        const minSpace = drawer ? 240 : 190;
+        if (spaceBelow < minSpace && spaceAbove > spaceBelow && spaceAbove >= 180) {
             wrapper.classList.add('dropup');
         } else {
             wrapper.classList.remove('dropup');
@@ -238,6 +303,10 @@ const createCustomSelect = (select) => {
         let el = wrapper.parentElement;
         while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
             if (el.tagName === 'LABEL' ||
+                (el.id && el.id.startsWith('modal-section-')) ||
+                el.classList.contains('table-filter-grid') ||
+                el.classList.contains('table-filters') ||
+                el.classList.contains('table-filter-actions') ||
                 el.classList.contains('modal-form-grid-2col') ||
                 el.classList.contains('lpk-field-row') ||
                 el.classList.contains('lpk-field') ||
@@ -268,6 +337,18 @@ const createCustomSelect = (select) => {
             if (selectedOption) {
                 selectedOption.scrollIntoView({ block: 'nearest' });
             }
+        }
+
+        if (drawer) {
+            setTimeout(() => {
+                const openMenuEl = wrapper.querySelector('.custom-select-menu');
+                if (openMenuEl && wrapper.classList.contains('is-open')) {
+                    const menuRect = openMenuEl.getBoundingClientRect();
+                    if (menuRect.bottom > window.innerHeight - 16) {
+                        openMenuEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            }, 40);
         }
     };
 
@@ -359,7 +440,12 @@ const createCustomSelect = (select) => {
         });
     }
 
-    menu.addEventListener('click', (e) => e.stopPropagation());
+    menu.addEventListener('click', (e) => {
+        if (!e.target.closest('input')) {
+            e.preventDefault();
+        }
+        e.stopPropagation();
+    });
 
     select.addEventListener('change', () => syncFromNative());
     select.addEventListener('invalid', () => {
@@ -370,12 +456,35 @@ const createCustomSelect = (select) => {
         setTimeout(syncFromNative, 10);
     });
 
+    wrapper._customSelectInstance = true;
+    wrapper._customSelectToggle = toggleMenu;
+    wrapper._customSelectOpen = openMenu;
+    wrapper._customSelectClose = closeMenu;
+    wrapper._customSelectChoose = selectOption;
+    wrapper._customSelectSync = syncFromNative;
+    wrapper._nativeSelect = select;
+
     buildOptions();
     syncFromNative();
 };
 
 const initCustomSelects = (container = document) => {
     setupGlobalSelectListeners();
+
+    // Self-healing: if any custom-select-wrapper exists in the container but lost its active JS instance
+    // (e.g. from DOM snapshot or partial replacement), unwrap native select and rebuild
+    container.querySelectorAll('.custom-select-wrapper').forEach((wrapper) => {
+        if (!wrapper._customSelectInstance) {
+            const nativeSelect = wrapper.querySelector('select.custom-select-native') || wrapper.querySelector('select');
+            if (nativeSelect) {
+                nativeSelect.classList.remove('custom-select-native');
+                delete nativeSelect.dataset.customSelectInit;
+                wrapper.parentNode.insertBefore(nativeSelect, wrapper);
+            }
+            wrapper.remove();
+        }
+    });
+
     const selects = container.querySelectorAll('select:not([data-custom-select-init])');
     selects.forEach((select) => {
         if (select.dataset.noCustom !== undefined) return;

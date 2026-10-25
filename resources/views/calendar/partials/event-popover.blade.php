@@ -8,7 +8,7 @@
         </div>
 
         <div class="gcal-popover-body">
-            <h3 id="popover-title">Nama Lembaga Pemohon</h3>
+            <h3 class="gcal-popover-title-wrap"><a href="#" id="popover-title" class="gcal-popover-title-link" onclick="window.closeEventPopover(this)">Nama Lembaga Pemohon</a></h3>
             <span id="popover-lpk" style="display: none;"></span>
             <div class="gcal-popover-row" id="popover-time-wrap">
                 <x-icon name="calendar" size="16" />
@@ -44,7 +44,7 @@
                     <span id="popover-edit-label">Ubah</span>
                 </a>
                 <a href="#" class="button primary btn-sm" id="popover-detail-link" onclick="window.closeEventPopover(this)">
-                    <span>Detail Lengkap</span>
+                    <span id="popover-detail-label">Detail Lengkap</span>
                 </a>
             </div>
         </div>
