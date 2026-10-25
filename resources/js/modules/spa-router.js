@@ -333,6 +333,7 @@ const initSpaRouter = (callback) => {
 
     // Intercept internal link clicks
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const link = event.target.closest('a');
         if (!link) return;
 
@@ -363,6 +364,7 @@ const initSpaRouter = (callback) => {
     // Intercept GET filter forms for smooth skeleton transitions
     document.addEventListener('submit', (event) => {
         if (event.defaultPrevented) return;
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const form = event.target.closest('form');
         if (!form || form.method.toUpperCase() !== 'GET') return;
         if (form.hasAttribute('data-partial-filter')) return;
@@ -383,6 +385,7 @@ const initSpaRouter = (callback) => {
 
     // Prefetch on hover (pointerenter), touchstart, and pointerdown (instant mousedown trigger)
     const handlePrefetch = (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const link = event.target.closest('a');
         if (!link) return;
         const href = link.getAttribute('href');
@@ -409,6 +412,7 @@ const initSpaRouter = (callback) => {
 
     // Invalidate caches and refresh token when mutative form submits
     document.addEventListener('submit', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         const form = event.target.closest('form');
         if (form && form.method.toUpperCase() !== 'GET') {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');

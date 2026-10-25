@@ -42,6 +42,7 @@ const setupGlobalPickerListeners = () => {
     globalPickerListenersAdded = true;
 
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         if (!event.target.closest('.custom-datepicker-wrapper, .custom-clockpicker-wrapper')) {
             closeAllCustomPickers();
         }
@@ -90,6 +91,8 @@ const elevateParents = (wrapper, isOpen) => {
     let el = wrapper.parentElement;
     while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
         if (el.tagName === 'LABEL' ||
+            (el.id && el.id.startsWith('modal-section-')) ||
+            el.classList.contains('tp-modal-panel') ||
             el.classList.contains('simasadi-modal-box') ||
             el.classList.contains('modal-form-grid-2col') ||
             el.classList.contains('lpk-field-row') ||
@@ -139,49 +142,39 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
 
     const triggerRect = trigger.getBoundingClientRect();
 
-    let spaceBelow = window.innerHeight - triggerRect.bottom;
-    let boundaryRight = window.innerWidth - 14;
+    // Available space in viewport
+    const viewportHeight = window.innerHeight;
+    const topbar = document.querySelector('.topbar');
+    const topbarBottom = (topbar && !modalBox) ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
+
+    const spaceBelowViewport = viewportHeight - triggerRect.bottom - 12;
+    const spaceAboveViewport = triggerRect.top - Math.max(topbarBottom, 12);
+
+    let spaceBelowContext = spaceBelowViewport;
+    let spaceAboveContext = spaceAboveViewport;
 
     if (modalBox) {
         const modalRect = modalBox.getBoundingClientRect();
-        const modalHead = modalBox.querySelector('.simasadi-modal-head');
-        const modalHeadBottom = modalHead ? modalHead.getBoundingClientRect().bottom : modalRect.top;
-        spaceBelow = modalRect.bottom - triggerRect.bottom;
-        const spaceAbove = triggerRect.top - modalHeadBottom;
-        boundaryRight = modalRect.right - 14;
-
-        // Inside a modal container with scrollable content (overflow-y: auto):
-        // Dropping up is only allowed if there is guaranteed clearance above the trigger within the modal box,
-        // so that the popover top never extends above modalHeadBottom.
-        // Therefore, spaceAbove must strictly exceed popoverHeight + 16px safety buffer.
-        const requiredAbove = popoverHeight + 16;
-        if (spaceBelow < popoverHeight && spaceAbove >= requiredAbove) {
-            wrapper.classList.add('dropup');
-        }
-    } else {
-        // Outside of modal (viewport context)
-        // Measure real available space above the trigger strictly below the sticky topbar!
-        const topbar = document.querySelector('.topbar');
-        const topbarBottom = (topbar && !modalBox) ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
-        const spaceAbove = triggerRect.top - topbarBottom;
-
-        // Only dropup if spaceBelow cannot fit the popover AND spaceAbove has full clearance below the topbar.
-        // Never dropup if it would overlap or enter behind the topbar!
-        if (spaceBelow < popoverHeight && spaceAbove >= popoverHeight + 14) {
-            wrapper.classList.add('dropup');
-        }
-        // Otherwise, always drop down (normal flow). Dropping down stays in the main body where scrolling is natural and clean.
+        spaceBelowContext = modalRect.bottom - triggerRect.bottom - 8;
+        spaceAboveContext = triggerRect.top - modalRect.top - 8;
     }
 
-    if (triggerRect.left + popoverWidth > boundaryRight) {
-        if (triggerRect.right - popoverWidth >= 12 || modalBox) {
-            wrapper.classList.add('align-right');
-        } else if (popover) {
-            const overflowAmount = (triggerRect.left + popoverWidth) - (window.innerWidth - 12);
-            if (overflowAmount > 0) {
-                popover.style.left = `-${overflowAmount}px`;
-            }
-        }
+    // Dynamic responsive flip:
+    // Drop down by default if there is comfortable space below.
+    // If it cannot fit below, flip up if there is more space above or if it fits above.
+    const fitsBelow = (spaceBelowViewport >= popoverHeight) && (!modalBox || spaceBelowContext >= popoverHeight);
+    const fitsAbove = spaceAboveViewport >= popoverHeight;
+
+    if (!fitsBelow && (fitsAbove || spaceAboveViewport > spaceBelowViewport)) {
+        wrapper.classList.add('dropup');
+    }
+
+    // Horizontal alignment
+    const boundaryRight = modalBox ? (modalBox.getBoundingClientRect().right - 14) : (window.innerWidth - 14);
+    const isRightColumn = window.innerWidth > 520 && Boolean(trigger.closest('.modal-form-grid-2col > label:last-child, .modal-form-grid-2col > div:last-child'));
+
+    if (triggerRect.left + popoverWidth > boundaryRight || isRightColumn) {
+        wrapper.classList.add('align-right');
     } else if (triggerRect.left < 12 && popover) {
         popover.style.left = `${12 - triggerRect.left}px`;
     }
@@ -796,6 +789,9 @@ const createCustomDatePicker = (input) => {
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         currentView = 'days';
         yearGridStart = Math.floor(viewYear / 12) * 12;
         wrapper.classList.add('is-open');
@@ -823,6 +819,9 @@ const createCustomDatePicker = (input) => {
     trigger.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         togglePopover();
     });
 
@@ -1239,6 +1238,9 @@ const createCustomClockPicker = (input) => {
 
     const openPopover = () => {
         closeAllCustomPickers(wrapper);
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
         elevateParents(wrapper, true);
@@ -1264,6 +1266,9 @@ const createCustomClockPicker = (input) => {
     trigger.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (typeof window.closeAllCustomSelects === 'function') {
+            window.closeAllCustomSelects();
+        }
         togglePopover();
     });
 

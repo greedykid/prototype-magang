@@ -22,6 +22,7 @@ const setupGlobalSelectListeners = () => {
     globalSelectListenersAdded = true;
 
     document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
         // Delegated trigger click handling (self-healing for any restored DOM)
         const trigger = event.target.closest('.custom-select-trigger');
         if (trigger) {
@@ -29,6 +30,9 @@ const setupGlobalSelectListeners = () => {
             if (wrapper) {
                 event.preventDefault();
                 event.stopPropagation();
+                if (typeof window.closeAllCustomPickers === 'function') {
+                    window.closeAllCustomPickers();
+                }
                 if (typeof wrapper._customSelectToggle === 'function') {
                     wrapper._customSelectToggle();
                 } else {
@@ -270,6 +274,9 @@ const createCustomSelect = (select) => {
 
     const openMenu = () => {
         closeAllCustomSelects(wrapper);
+        if (typeof window.closeAllCustomPickers === 'function') {
+            window.closeAllCustomPickers();
+        }
 
         const rect = trigger.getBoundingClientRect();
         const modalBox = wrapper.closest('.simasadi-modal-box');
@@ -296,6 +303,7 @@ const createCustomSelect = (select) => {
         let el = wrapper.parentElement;
         while (el && !el.classList.contains('simasadi-modal') && !el.classList.contains('app-shell') && el !== document.body) {
             if (el.tagName === 'LABEL' ||
+                (el.id && el.id.startsWith('modal-section-')) ||
                 el.classList.contains('table-filter-grid') ||
                 el.classList.contains('table-filters') ||
                 el.classList.contains('table-filter-actions') ||
