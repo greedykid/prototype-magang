@@ -39,12 +39,6 @@
                     </div>
                 </div>
             </div>
-            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
-                <button type="button" class="button secondary tp-manage-btn" onclick="window.openModal('modal-tp-tracking', 'tp')" aria-controls="modal-tp-tracking">
-                    <x-icon name="edit" size="14" />
-                    <span>Kelola Status TP</span>
-                </button>
-            @endif
         </div>
         <p class="tp-tracking-desc">
             Standar KAN: Batas waktu AA 3 bulan, Survailen/PRL/Re-Akreditasi 2 bulan. Perpanjangan maksimal 1 bulan bersyarat ada progres perbaikan nyata.

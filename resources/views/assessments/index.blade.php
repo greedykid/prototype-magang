@@ -8,12 +8,12 @@
     subtitle="Jadwal dan progres asesmen semua laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
-        <x-icon name="sheets" size="16" style="color: #0f9d58;" />
-        <span>Google Sheets & Ekspor</span>
+        <x-icon name="export" size="16" />
+        <span>Ekspor Data</span>
     </button>
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
         <x-icon name="import" size="16" />
-        <span>Import Asesmen</span>
+        <span>Impor Asesmen</span>
     </button>
     <a class="button primary" href="{{ route('assessments.create') }}">
         <x-icon name="plus" size="16" />
@@ -43,15 +43,13 @@
         <input type="hidden" name="per_page" value="{{ $perPage }}">
         @php
             $secondaryFiltersCount = 0;
-            if ($assessmentType) $secondaryFiltersCount++;
-            if ($status) $secondaryFiltersCount++;
             if (!empty($tpFilter)) $secondaryFiltersCount++;
             if ($startFrom) $secondaryFiltersCount++;
             if ($startTo) $secondaryFiltersCount++;
         @endphp
 
         <div class="table-filter-primary-row">
-            <div class="table-filter-primary-search" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr); gap: 12px;">
+            <div class="table-filter-primary-search table-filter-grid-4col">
                 <label for="filter-asm-search">
                     Cari agenda
                     <div class="table-filter-search-wrap">
@@ -68,20 +66,6 @@
                         @endforeach
                     </select>
                 </label>
-            </div>
-            <div class="table-filter-toggle-wrap">
-                <button type="button" class="btn-toggle-advanced-filters" id="toggle-assessment-advanced-filters" aria-expanded="{{ $secondaryFiltersCount > 0 ? 'true' : 'false' }}" aria-controls="assessment-advanced-filters" title="Buka atau tutup filter jenis, status, dan tanggal">
-                    <x-icon name="filter" size="14" />
-                    <span>Filter Lanjutan</span>
-                    @if($secondaryFiltersCount > 0)
-                        <span class="filter-count-badge">{{ $secondaryFiltersCount }}</span>
-                    @endif
-                </button>
-            </div>
-        </div>
-
-        <div class="table-filter-advanced" id="assessment-advanced-filters" style="{{ $secondaryFiltersCount > 0 ? '' : 'display: none;' }}">
-            <div class="table-filter-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                 <label for="filter-asm-type">
                     Jenis Asesmen
                     <select id="filter-asm-type" name="assessment_type">
@@ -100,6 +84,20 @@
                         @endforeach
                     </select>
                 </label>
+            </div>
+            <div class="table-filter-toggle-wrap">
+                <button type="button" class="btn-toggle-advanced-filters" id="toggle-assessment-advanced-filters" aria-expanded="{{ $secondaryFiltersCount > 0 ? 'true' : 'false' }}" aria-controls="assessment-advanced-filters" title="Buka atau tutup filter status TP dan tanggal">
+                    <x-icon name="filter" size="14" />
+                    <span>Filter Lanjutan</span>
+                    @if($secondaryFiltersCount > 0)
+                        <span class="filter-count-badge">{{ $secondaryFiltersCount }}</span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <div class="table-filter-advanced" id="assessment-advanced-filters" style="{{ $secondaryFiltersCount > 0 ? '' : 'display: none;' }}">
+            <div class="table-filter-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
                 <label for="filter-asm-tp-status">
                     Status TP (Batas Waktu)
                     <select id="filter-asm-tp-status" name="tp_status">
@@ -224,8 +222,8 @@
 
 <x-sheets-modal
     modal-id="modal-sheets-sync-assessments"
-    title="Integrasi Google Sheets: Data Daftar Asesmen"
-    subtitle="Sinkronkan jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) secara langsung ke Google Sheets Anda."
+    title="Ekspor Data Daftar Asesmen"
+    subtitle="Unduh jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.assessments.export')"
     :feed-url="route('feeds.assessments', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="daftar-asesmen-simasadi.csv"
@@ -233,6 +231,7 @@
         'ID Asesmen', 'Judul Agenda Asesmen', 'Nama Laboratorium', 'Jenis Asesmen',
         'Tanggal Mulai', 'Tanggal Selesai', 'Status Asesmen'
     ]"
+    :show-feed="false"
 />
 
 @include('assessments.partials.import-modal')

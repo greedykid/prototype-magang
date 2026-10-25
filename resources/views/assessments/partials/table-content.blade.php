@@ -78,13 +78,13 @@
                             @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                 <div style="margin-top: 3px;">
                                     <span class="badge-tp badge-tp-danger" style="font-size: 10px; display: inline-block;" title="Telah melewati batas toleransi pembekuan 1 tahun tanpa penyelesaian">
-                                        Akreditasi Dicabut
+                                        Lewat Batas 1 Tahun
                                     </span>
                                 </div>
                             @elseif($assessment->is_submission_overdue)
                                 <div style="margin-top: 3px;">
                                     <span class="badge-tp badge-tp-suspended" style="font-size: 10px; display: inline-block;" title="Toleransi pengisian dokumen surveilen telah terlampaui (akhir bulan kunjungan), sisa kesempatan pembekuan 1 tahun">
-                                        Toleransi Terlampaui (Dibekukan)
+                                        Toleransi Terlampaui
                                     </span>
                                 </div>
                             @elseif($assessment->is_eha_needs_verification)

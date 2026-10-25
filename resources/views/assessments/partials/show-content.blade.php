@@ -143,12 +143,14 @@
                 <div class="lpk-alert-callout-actions">
                     <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking', '{{ $assessment->is_submission_overdue ? 'sk' : 'tp' }}')" title="Buka modal pembaruan tindak lanjut untuk verifikasi TP, rapat panitia teknis, atau nomor SK KAN">
                         <x-icon name="check-circle" size="14" />
-                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Tindak Lanjut Asesmen' }}</span>
+                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen & Input SK' : 'Tindak Lanjut Asesmen' }}</span>
                     </button>
-                    <button type="button" class="button secondary button-sm lpk-alert-action-btn" onclick="window.openModal('modal-tp-tracking', 'sk')" title="Buka tab Surat Keputusan (SK) KAN pada modal tindak lanjut">
-                        <x-icon name="accreditations" size="14" />
-                        <span>Input SK KAN</span>
-                    </button>
+                    @if(!$assessment->is_submission_overdue && ($assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at)))
+                        <button type="button" class="button secondary button-sm lpk-alert-action-btn" onclick="window.openModal('modal-tp-tracking', 'sk')" title="Buka tab Surat Keputusan (SK) KAN pada modal tindak lanjut">
+                            <x-icon name="accreditations" size="14" />
+                            <span>Input SK KAN</span>
+                        </button>
+                    @endif
                     <a href="{{ route('assessments.edit', $assessment) }}" class="button secondary button-sm lpk-alert-action-btn" title="Ubah tanggal pelaksanaan atau rincian agenda asesmen">
                         <x-icon name="edit" size="14" />
                         <span>Perbarui Asesmen</span>
@@ -160,19 +162,33 @@
 
     {{-- Stepper 4 Tahapan KAN U-01 (Kunjungan -> TP -> Rapat Panitia Teknis -> SK) --}}
     @php
-        $isFieldDone = now()->gt($assessment->end_at) || !empty($assessment->report_date) || !empty($assessment->tp_satisfied_at) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED';
-        $isFieldCurrent = !$isFieldDone && (now()->between($assessment->start_at, $assessment->end_at) || in_array($assessment->status, ['SCHEDULED', 'IN_PROGRESS']));
+        $visitStart = $assessment->start_at ? $assessment->start_at->copy()->startOfDay() : null;
+        $visitEnd = $assessment->end_at ? $assessment->end_at->copy()->endOfDay() : ($visitStart ? $visitStart->copy()->endOfDay() : null);
 
-        $isTpSatisfied = $assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED' || $assessment->isPastSurveillanceForActiveLpk();
-        $isTpCurrent = !$isTpSatisfied && ($isFieldDone || in_array($assessment->tp_status, [\App\Models\Assessment::TP_STATUS_IN_PROGRESS, \App\Models\Assessment::TP_STATUS_UNDER_VERIFICATION]));
+        // Tahap 1: Kunjungan Lapangan
+        $isFieldDone = ($visitEnd && now()->gt($visitEnd)) || !empty($assessment->report_date) || $assessment->isPastSurveillanceForActiveLpk();
+        $isFieldInProgress = !$isFieldDone && $visitStart && $visitEnd && now()->between($visitStart, $visitEnd);
+        $isFieldCurrent = !$isFieldDone && ($isFieldInProgress || in_array($assessment->status, ['SCHEDULED', 'IN_PROGRESS', 'PLANNED']));
 
-        $isEhaSpecialNotes = ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS) && empty($assessment->sk_number);
-        $isEhaNeedsVerification = ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI) && empty($assessment->sk_number);
-        $isEhaDone = (in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true) || !empty($assessment->sk_number) || $assessment->status === 'COMPLETED') && !$isEhaSpecialNotes && !$isEhaNeedsVerification;
-        $isEhaCurrent = !$isEhaDone && $isTpSatisfied;
+        // Tahap 2: Tindakan Perbaikan (TP & VTP)
+        $isTpSatisfiedRaw = $assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at) || $assessment->isPastSurveillanceForActiveLpk();
+        $isTpSatisfied = $isFieldDone && $isTpSatisfiedRaw;
+        $isTpCurrent = $isFieldDone && !$isTpSatisfied;
 
-        $isSkDone = !empty($assessment->sk_number) || $assessment->isPastSurveillanceForActiveLpk();
+        // Tahap 3: Rapat Panitia Teknis (EHA)
+        $isEhaSpecialNotes = $isTpSatisfied && ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS);
+        $isEhaNeedsVerification = $isTpSatisfied && ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI);
+        $isEhaDoneRaw = (in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
+            || (!empty($assessment->eha_date) && !in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_BELUM, \App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI, \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS], true)))
+            || $assessment->isPastSurveillanceForActiveLpk();
+        $isEhaDone = $isTpSatisfied && $isEhaDoneRaw && !$isEhaSpecialNotes && !$isEhaNeedsVerification;
+        $isEhaCurrent = $isTpSatisfied && !$isEhaDone;
+
+        // Tahap 4: Surat Keputusan (SK)
+        $hasSkData = !empty($assessment->sk_number);
+        $isSkDone = ($isEhaDone && $hasSkData) || $assessment->isPastSurveillanceForActiveLpk();
         $isSkCurrent = !$isSkDone && $isEhaDone;
+        $isSkDraftRewound = $hasSkData && !$isSkDone;
     @endphp
 
     <div class="assessment-stepper-cluster">
@@ -189,7 +205,17 @@
             <div class="lpk-step-label-group">
                 <span class="lpk-step-num">Tahap 1</span>
                 <strong class="lpk-step-name">Asesmen Lapangan</strong>
-                <span class="lpk-step-timing">{{ $assessment->end_at ? $assessment->end_at->format('d M Y') : 'Terjadwal' }}</span>
+                <span class="lpk-step-timing">
+                    @if($isFieldDone)
+                        {{ $assessment->end_at ? $assessment->end_at->format('d M Y') : 'Selesai' }}
+                    @elseif($isFieldInProgress)
+                        Sedang Berlangsung
+                    @elseif($assessment->start_at)
+                        {{ $assessment->start_at->format('d M Y') }}
+                    @else
+                        Terjadwal
+                    @endif
+                </span>
             </div>
         </div>
 
@@ -232,10 +258,12 @@
         <div class="lpk-cycle-step-line {{ $isEhaDone ? 'is-passed' : '' }}"></div>
 
         {{-- Tahap 4: Surat Keputusan (SK) --}}
-        <div class="lpk-cycle-step-item {{ $isSkDone ? 'is-completed' : ($isSkCurrent ? 'is-current' : 'is-upcoming') }}">
+        <div class="lpk-cycle-step-item {{ $isSkDone ? 'is-completed' : ($isSkDraftRewound ? 'is-draft-saved' : ($isSkCurrent ? 'is-current' : 'is-upcoming')) }}">
             <div class="lpk-step-bullet">
                 @if($isSkDone)
                     <x-icon name="check" size="13" />
+                @elseif($isSkDraftRewound)
+                    <x-icon name="file-text" size="13" />
                 @else
                     <span>4</span>
                 @endif
@@ -243,7 +271,17 @@
             <div class="lpk-step-label-group">
                 <span class="lpk-step-num">Tahap 4</span>
                 <strong class="lpk-step-name">SK Akreditasi</strong>
-                <span class="lpk-step-timing">{{ $isSkDone ? ($assessment->sk_number ?: 'Terbit') : ($isSkCurrent ? 'Menunggu SK' : 'Keputusan KAN') }}</span>
+                <span class="lpk-step-timing">
+                    @if($isSkDone)
+                        {{ $assessment->sk_number ?: 'Terbit' }}
+                    @elseif($isSkDraftRewound)
+                        Draft SK Tersimpan
+                    @elseif($isSkCurrent)
+                        Menunggu SK
+                    @else
+                        Keputusan KAN
+                    @endif
+                </span>
             </div>
         </div>
     </div>
@@ -271,7 +309,11 @@
             <div class="assessment-stepper-cta-left">
                 <div class="assessment-stepper-cta-icon" aria-hidden="true">
                     @if(!$isFieldDone)
-                        <x-icon name="calendar" size="16" />
+                        @if($isFieldInProgress)
+                            <x-icon name="clock" size="16" />
+                        @else
+                            <x-icon name="calendar" size="16" />
+                        @endif
                     @elseif(!$isTpSatisfied)
                         <x-icon name="alert-triangle" size="16" />
                     @elseif($isEhaNeedsVerification || $isEhaSpecialNotes)
@@ -284,11 +326,21 @@
                 </div>
                 <div class="assessment-stepper-cta-text">
                     @if(!$isFieldDone)
-                        <span class="assessment-stepper-cta-title">Fase Berjalan: Persiapan Asesmen Lapangan</span>
-                        <span class="assessment-stepper-cta-desc">Pastikan jadwal kunjungan dan penetapan tim asesor telah terverifikasi.</span>
+                        @if($isFieldInProgress)
+                            <span class="assessment-stepper-cta-title">Fase Berjalan: Pelaksanaan Asesmen Lapangan Sedang Berlangsung</span>
+                            <span class="assessment-stepper-cta-desc">Kunjungan asesmen lapangan sedang berlangsung di lokasi laboratorium ({{ $assessment->start_at?->format('d M') }} - {{ $assessment->end_at?->format('d M Y') }}).</span>
+                        @else
+                            <span class="assessment-stepper-cta-title">Fase Berjalan: Menunggu Pelaksanaan Kunjungan Lapangan</span>
+                            <span class="assessment-stepper-cta-desc">Jadwal kunjungan lapangan direncanakan pada {{ $assessment->start_at ? $assessment->start_at->format('d M Y') : 'jadwal yang telah ditentukan' }}. Pastikan tim asesor dan dokumen telah siap.</span>
+                        @endif
                     @elseif(!$isTpSatisfied)
-                        <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Perbaikan (TP/VTP)</span>
-                        <span class="assessment-stepper-cta-desc">{{ $assessment->effective_tp_due_date ? 'Batas waktu perbaikan s/d ' . $assessment->effective_tp_due_date->format('d M Y') . ($assessment->tp_days_remaining !== null ? ' (' . $assessment->tp_days_remaining . ' hari lagi)' : '') : 'Menunggu penyelesaian dan verifikasi bukti perbaikan temuan asesmen.' }}</span>
+                        @if($isSkDraftRewound)
+                            <span class="assessment-stepper-cta-title">Perhatian: Draft SK Tersimpan, Selesaikan Verifikasi TP Terlebih Dahulu</span>
+                            <span class="assessment-stepper-cta-desc">Nomor SK KAN telah tersimpan di sistem, namun status kelulusan belum dapat disahkan karena Tindakan Perbaikan (Tahap 2) sedang aktif atau memerlukan verifikasi tindak lanjut.</span>
+                        @else
+                            <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Perbaikan (TP/VTP)</span>
+                            <span class="assessment-stepper-cta-desc">{{ $assessment->effective_tp_due_date ? 'Batas waktu perbaikan s/d ' . $assessment->effective_tp_due_date->format('d M Y') . ($assessment->tp_days_remaining !== null ? ' (' . $assessment->tp_days_remaining . ' hari lagi)' : '') : 'Menunggu penyelesaian dan verifikasi bukti perbaikan temuan asesmen.' }}</span>
+                        @endif
                     @elseif($isEhaNeedsVerification)
                         <span class="assessment-stepper-cta-title">Fase Berjalan: Verifikasi Panitia Teknis Lanjutan</span>
                         <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah dilaksanakan dengan catatan memerlukan verifikasi lanjutan sebelum rekomendasi akreditasi diterbitkan.</span>
@@ -296,8 +348,13 @@
                         <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Catatan Khusus Panitia Teknis</span>
                         <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus panitia teknis. Tindak lanjuti catatan sebelum rekomendasi akreditasi diterbitkan.</span>
                     @elseif(!$isEhaDone)
-                        <span class="assessment-stepper-cta-title">Fase Berjalan: Rapat Panitia Teknis</span>
-                        <span class="assessment-stepper-cta-desc">Perbaikan temuan telah memenuhi. Agenda berikutnya adalah pencatatan Rapat Panitia Teknis.</span>
+                        @if($isSkDraftRewound)
+                            <span class="assessment-stepper-cta-title">Perhatian: Draft SK Tersimpan, Selesaikan Rapat Panitia Teknis Terlebih Dahulu</span>
+                            <span class="assessment-stepper-cta-desc">Nomor SK KAN telah tersimpan di sistem, namun asesmen memerlukan rekomendasi Rapat Panitia Teknis (Tahap 3) sebelum dapat disahkan menjadi Selesai.</span>
+                        @else
+                            <span class="assessment-stepper-cta-title">Fase Berjalan: Rapat Panitia Teknis</span>
+                            <span class="assessment-stepper-cta-desc">Perbaikan temuan telah memenuhi. Agenda berikutnya adalah pencatatan Rapat Panitia Teknis.</span>
+                        @endif
                     @else
                         <span class="assessment-stepper-cta-title">Fase Berjalan: Penetapan Surat Keputusan (SK) KAN</span>
                         <span class="assessment-stepper-cta-desc">Rapat Panitia Teknis telah merekomendasikan akreditasi. Masukkan nomor dan tanggal SK untuk menuntaskan siklus.</span>

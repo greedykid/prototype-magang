@@ -685,6 +685,7 @@
         const endTimeInput = document.querySelector('input[name="end_time"]');
         const hiddenStartInput = document.getElementById('assessment-start-at');
         const hiddenEndInput = document.getElementById('assessment-end-at');
+        const titleInput = document.getElementById('assessment-title');
         const lpkSelect = document.getElementById('assessment-lpk-id');
         const submissionDueDateInput = document.getElementById('assessment-submission-due-date');
         const assessmentTypeSelect = document.querySelector('select[name="assessment_type"]');
@@ -974,6 +975,58 @@
             }
 
             card.style.display = 'block';
+        }
+
+        const knownTypeNames = [
+            'Akreditasi Awal', 'Surveilen 1 + PRL', 'Surveilen 2 + PRL',
+            'Surveilen 1', 'Surveilen 2', 'Surveilen Tidak Terjadwal (STT)', 'Surveilen Tidak Terjadwal',
+            'Perluasan Ruang Lingkup (PRL)', 'Perluasan Ruang Lingkup', 'PRL', 'STT', 'S1', 'S2', 'RA',
+            'Re-Akreditasi (Akreditasi Ulang)', 'Re-Akreditasi', 'Re-asesmen', 'Akreditasi Ulang',
+            'Asesmen Surveilen 1 (S1)', 'Asesmen Surveilen 2 (S2)', 'Asesmen Re-Akreditasi (RA)', 'Asesmen Akreditasi Awal'
+        ];
+
+        function syncTitle() {
+            if (!titleInput) return;
+            const currentVal = titleInput.value.trim();
+
+            let typeLabel = '';
+            if (assessmentTypeSelect && assessmentTypeSelect.selectedIndex >= 0) {
+                const opt = assessmentTypeSelect.options[assessmentTypeSelect.selectedIndex];
+                if (opt && opt.value) {
+                    typeLabel = opt.textContent.trim();
+                }
+            }
+
+            let lpkName = '';
+            if (lpkSelect && lpkSelect.selectedIndex >= 0) {
+                const opt = lpkSelect.options[lpkSelect.selectedIndex];
+                if (opt && opt.value) {
+                    lpkName = opt.dataset.name || '';
+                }
+            }
+
+            if (!typeLabel) return;
+
+            const newStandardTitle = lpkName ? `${typeLabel} - ${lpkName}` : typeLabel;
+
+            if (!currentVal || titleInput.dataset.userCustom !== 'true') {
+                titleInput.value = newStandardTitle;
+                return;
+            }
+
+            for (let i = 0; i < knownTypeNames.length; i++) {
+                const ktp = knownTypeNames[i];
+                const prefix = ktp.toLowerCase() + ' - ';
+                if (currentVal.toLowerCase().startsWith(prefix)) {
+                    const currentSuffix = currentVal.substring(prefix.length).trim();
+                    const suffix = lpkName || currentSuffix;
+                    titleInput.value = `${typeLabel} - ${suffix}`;
+                    return;
+                } else if (currentVal.toLowerCase() === ktp.toLowerCase()) {
+                    titleInput.value = newStandardTitle;
+                    return;
+                }
+            }
         }
 
         function updateStatus() {
@@ -1269,6 +1322,12 @@
         });
 
 
+        if (titleInput) {
+            titleInput.addEventListener('input', function() {
+                titleInput.dataset.userCustom = 'true';
+            });
+        }
+
         if (submissionDueDateInput) {
             submissionDueDateInput.addEventListener('input', function() {
                 submissionDueDateInput.dataset.userModified = 'true';
@@ -1283,6 +1342,7 @@
         if (lpkSelect) {
             lpkSelect.addEventListener('change', function() {
                 updateSelectedLpkInfo();
+                syncTitle();
                 syncSubmissionDueDate(true);
                 updateStatus();
             });
@@ -1290,6 +1350,7 @@
 
         if (assessmentTypeSelect) {
             assessmentTypeSelect.addEventListener('change', function() {
+                syncTitle();
                 syncSubmissionDueDate(true);
                 updateStatus();
             });
