@@ -43,6 +43,8 @@ export function openModal(modalId, targetSectionId = null) {
         savedModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     }
 
+    modal.classList.remove('is-closing');
+
     const isTpModal = (modalId === 'modal-tp-tracking' || (modal && modal.id === 'modal-tp-tracking'));
     if (isTpModal) {
         let tabKey = 'tp';
@@ -144,29 +146,38 @@ export function openModal(modalId, targetSectionId = null) {
 export function closeModal(modalIdOrEl) {
     closeAllCustomPickers();
 
-    const activeModals = document.querySelectorAll('.simasadi-modal.is-active');
+    const activeModals = document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)');
     if (!activeModals.length && !document.body.classList.contains('modal-open')) {
         return;
     }
 
-    if (!modalIdOrEl) {
-        document.querySelectorAll('.simasadi-modal').forEach((m) => {
-            m.classList.remove('is-active');
+    const performClose = (m) => {
+        if (!m || m.classList.contains('is-closing') || !m.classList.contains('is-active')) return;
+        m.classList.add('is-closing');
+
+        setTimeout(() => {
+            m.classList.remove('is-active', 'is-closing');
             returnModalToPlaceholder(m);
             try {
                 m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
+                window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: m.id, modal: m } }));
             } catch (_) {}
-        });
-        try {
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
-        } catch (_) {}
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
-            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
-        }
-        savedModalScrollY = 0;
-        restoreFocus();
+
+            // Remove modal-open only if no other modal is currently active
+            if (!document.querySelector('.simasadi-modal.is-active:not(.is-closing)')) {
+                document.documentElement.classList.remove('modal-open');
+                document.body.classList.remove('modal-open');
+                if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
+                    window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
+                }
+                savedModalScrollY = 0;
+                restoreFocus();
+            }
+        }, 180);
+    };
+
+    if (!modalIdOrEl) {
+        document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)').forEach(performClose);
         return;
     }
 
@@ -178,34 +189,9 @@ export function closeModal(modalIdOrEl) {
     }
 
     if (modal) {
-        modal.classList.remove('is-active');
-        returnModalToPlaceholder(modal);
-        try {
-            modal.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: modal.id } }));
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: modal.id, modal } }));
-        } catch (_) {}
+        performClose(modal);
     } else {
-        document.querySelectorAll('.simasadi-modal').forEach((m) => {
-            m.classList.remove('is-active');
-            returnModalToPlaceholder(m);
-            try {
-                m.dispatchEvent(new CustomEvent('modal:close', { bubbles: true, detail: { modalId: m.id } }));
-            } catch (_) {}
-        });
-        try {
-            window.dispatchEvent(new CustomEvent('modal:closed', { detail: { modalId: null } }));
-        } catch (_) {}
-    }
-
-    // Remove modal-open only if no other modal is currently active
-    if (!document.querySelector('.simasadi-modal.is-active')) {
-        document.documentElement.classList.remove('modal-open');
-        document.body.classList.remove('modal-open');
-        if (typeof savedModalScrollY === 'number' && savedModalScrollY > 0) {
-            window.scrollTo({ top: savedModalScrollY, behavior: 'instant' });
-        }
-        savedModalScrollY = 0;
-        restoreFocus();
+        document.querySelectorAll('.simasadi-modal.is-active:not(.is-closing)').forEach(performClose);
     }
 }
 

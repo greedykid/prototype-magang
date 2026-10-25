@@ -83,6 +83,18 @@ section.has-open-picker,
 .simasadi-modal-box:has(.custom-datepicker-wrapper.is-open),
 .simasadi-modal-box:has(.custom-clockpicker-wrapper.is-open),
 .simasadi-modal-box.has-open-picker,
+.simasadi-modal-box form:has(.custom-datepicker-wrapper.is-open),
+.simasadi-modal-box form:has(.custom-clockpicker-wrapper.is-open),
+.simasadi-modal-box form.has-open-picker,
+.simasadi-modal-box div:has(.custom-datepicker-wrapper.is-open),
+.simasadi-modal-box div:has(.custom-clockpicker-wrapper.is-open),
+.simasadi-modal-box div.has-open-picker,
+[id^="modal-section-"]:has(.custom-datepicker-wrapper.is-open),
+[id^="modal-section-"]:has(.custom-clockpicker-wrapper.is-open),
+[id^="modal-section-"].has-open-picker,
+.tp-modal-panel:has(.custom-datepicker-wrapper.is-open),
+.tp-modal-panel:has(.custom-clockpicker-wrapper.is-open),
+.tp-modal-panel.has-open-picker,
 .simasadi-modal-box label:has(.custom-datepicker-wrapper.is-open),
 .simasadi-modal-box label:has(.custom-clockpicker-wrapper.is-open),
 .simasadi-modal-box label.has-open-picker,
@@ -94,7 +106,7 @@ section.has-open-picker,
 .lpk-field-row.has-open-picker {
     overflow: visible !important;
     position: relative !important;
-    z-index: 250 !important;
+    z-index: 300 !important;
 }
 
 /* Base Wrapper */

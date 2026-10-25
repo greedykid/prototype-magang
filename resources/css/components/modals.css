@@ -74,6 +74,26 @@ body.modal-open .sidebar {
     to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
+@keyframes modal-backdrop-leave {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes modal-content-leave {
+    from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    to { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.98); }
+}
+
+.simasadi-modal.is-closing {
+    display: flex !important;
+    pointer-events: none;
+    animation: modal-backdrop-leave 180ms ease forwards;
+}
+
+.simasadi-modal.is-closing .simasadi-modal-box {
+    animation: modal-content-leave 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .simasadi-modal-head {
     align-items: center;
     background: var(--modal-bg, #ffffff);
@@ -695,6 +715,28 @@ body.modal-open .sidebar {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+.tp-modal-tab-btn:disabled,
+.tp-modal-tab-btn.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--muted) !important;
+    box-shadow: none !important;
+}
+
+.tp-modal-tab-btn:disabled:hover,
+.tp-modal-tab-btn.is-disabled:hover {
+    background: transparent !important;
+    color: var(--muted) !important;
+}
+
+.tp-modal-tab-btn .tp-modal-tab-lock {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.75;
+}
+
 html[data-theme="dark"] .modal-tp-nav-tabs {
     background: rgba(255, 255, 255, 0.04);
     border-color: var(--line);
@@ -716,6 +758,77 @@ html[data-theme="dark"] .tp-modal-tab-btn.is-active {
     border-color: var(--line);
     color: var(--primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .tp-modal-tab-btn:disabled,
+html[data-theme="dark"] .tp-modal-tab-btn.is-disabled {
+    opacity: 0.4;
+    color: var(--muted) !important;
+}
+
+/* TP Modal Tab Panel Animation */
+@keyframes tp-panel-fade-in {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tp-modal-panel.is-active {
+    animation: tp-panel-fade-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tp-modal-panel.has-open-picker,
+.tp-modal-panel:has(.custom-datepicker-wrapper.is-open),
+.tp-modal-panel:has(.custom-clockpicker-wrapper.is-open),
+.tp-modal-panel:has(.custom-select-wrapper.is-open) {
+    z-index: 300 !important;
+    position: relative !important;
+}
+
+/* TP Modal Extension Accordion Animation */
+.modal-tp-extension-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-8px);
+    overflow: hidden;
+    transition: grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 260ms ease,
+                transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.modal-tp-extension-collapse.is-expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.modal-tp-extension-collapse.is-overflow-visible {
+    overflow: visible;
+}
+
+.modal-tp-extension-inner {
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.modal-tp-extension-collapse.is-overflow-visible .modal-tp-extension-inner {
+    overflow: visible;
 }
 
 @media (max-width: 640px) {
