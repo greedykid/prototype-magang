@@ -47,6 +47,7 @@ import { initFileDropzones, initFileDropzone } from './modules/file-dropzone.js'
 import { initBottomNav, syncBottomNavActive, setBottomSheetState } from './modules/bottom-nav.js';
 import { initGlobalSearch } from './modules/global-search.js';
 import { initSidebarClock } from './modules/sidebar-clock.js';
+import { initCharCounters, bindCharCounterEvents } from './modules/char-counter.js';
 
 // ==========================================================================
 // Global Window API (for Inline Blade Callbacks, e.g. onclick="window.openModal(...)")
@@ -58,6 +59,7 @@ window.syncCustomPickers = syncCustomPickers;
 window.initFileDropzones = initFileDropzones;
 window.initFileDropzone = initFileDropzone;
 window.openModal = openModal;
+window.initCharCounters = initCharCounters;
 window.closeModal = closeModal;
 window.returnModalToPlaceholder = returnModalToPlaceholder;
 window.copyFormulaToClipboard = copyFormulaToClipboard;
@@ -331,6 +333,13 @@ export const initComplianceMeterInteractions = () => {
             matchingSeg.style.borderRadius = '';
         });
     });
+
+    // 10. Realtime Character Counters & Hard Limits
+    try {
+        initCharCounters();
+    } catch (err) {
+        console.error('Error initializing char counters:', err);
+    }
 };
 
 window.initPageComponents = initPageComponents;
@@ -405,6 +414,7 @@ initLiveFilters();
 initTheme();
 initPasswordToggles();
 initBottomNav();
+bindCharCounterEvents();
 initSpaRouter(initPageComponents);
 
 if (document.readyState === 'loading') {

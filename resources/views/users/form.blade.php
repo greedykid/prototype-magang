@@ -41,30 +41,30 @@
             @method('PUT')
         @endif
 
-        <label class="full">
+        <label class="full" for="user-input-name">
             Nama Lengkap
-            <input type="text" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T." class="@error('name') is-invalid @enderror">
+            <input type="text" id="user-input-name" name="name" value="{{ old('name', $user->name) }}" required maxlength="100" autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T." class="@error('name') is-invalid @enderror">
             @error('name')
                 <span class="field-error-text">{{ $message }}</span>
             @enderror
         </label>
 
-        <label class="full">
+        <label class="full" for="user-input-email">
             Alamat Email
-            <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id" class="@error('email') is-invalid @enderror">
+            <input type="email" id="user-input-email" name="email" value="{{ old('email', $user->email) }}" required maxlength="100" autocomplete="email" placeholder="Contoh: ahmad@lab-penguji.co.id" class="@error('email') is-invalid @enderror">
             @error('email')
                 <span class="field-error-text">{{ $message }}</span>
             @enderror
         </label>
 
-        <label class="full">
+        <label class="full" for="user-select-role">
             Peran &amp; Hak Akses Pengguna
             @php
                 $adminExists = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)
                     ->when($user->exists, fn ($q) => $q->where('id', '!=', $user->id))
                     ->exists();
             @endphp
-            <select name="role" required class="@error('role') is-invalid @enderror">
+            <select id="user-select-role" name="role" required class="@error('role') is-invalid @enderror">
                 @if(!$adminExists)
                     <option value="admin" @selected(old('role', $user->role ?: 'admin') === 'admin')>
                         Ketua Tim (Dit. Akreditasi Laboratorium KAN)
@@ -88,10 +88,10 @@
             @endif
         </label>
 
-        <label class="full">
+        <label class="full" for="user-input-password">
             Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}" class="@error('password') is-invalid @enderror">
+                <input type="password" id="user-input-password" name="password" maxlength="100" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="{{ $user->exists ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' : 'Minimal 8 karakter' }}" class="@error('password') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
@@ -102,10 +102,10 @@
             @enderror
         </label>
 
-        <label class="full">
+        <label class="full" for="user-input-password-confirmation">
             Konfirmasi Kata Sandi {{ $user->exists ? '(Opsional)' : '' }}
             <div class="password-input-wrap">
-                <input type="password" name="password_confirmation" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi" class="@error('password_confirmation') is-invalid @enderror">
+                <input type="password" id="user-input-password-confirmation" name="password_confirmation" maxlength="100" {{ $user->exists ? '' : 'required' }} autocomplete="new-password" placeholder="Ulangi kata sandi" class="@error('password_confirmation') is-invalid @enderror">
                 <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                     <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                     <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>

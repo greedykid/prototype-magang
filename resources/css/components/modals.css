@@ -1085,4 +1085,45 @@ html[data-theme="dark"] .modal-tp-info-callout {
     color: #c7d2fe;
 }
 
+/* ==========================================================================
+   Reusable Modal Form Controls
+   ========================================================================== */
+.modal-field-label {
+    box-sizing: border-box;
+    display: block;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
+.modal-field-label > span {
+    color: var(--ink);
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.modal-form-input {
+    background: var(--input-bg, #ffffff);
+    border: 1px solid var(--input-border, var(--line));
+    border-radius: var(--radius-lg, 12px);
+    box-sizing: border-box;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 7px 10px;
+    text-overflow: ellipsis;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+    width: 100%;
+}
+
+.modal-form-input:focus {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-focus);
+    outline: none;
+}
+
 

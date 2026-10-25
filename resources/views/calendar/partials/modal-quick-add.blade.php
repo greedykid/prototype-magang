@@ -15,7 +15,7 @@
             <div class="form-grid" style="gap: 12px;">
                 <label class="full">
                     Judul Kegiatan
-                    <input type="text" name="title" id="quick-input-title" required placeholder="Contoh: Rapat Koordinasi Internal / Penilaian Lapangan">
+                    <input type="text" name="title" id="quick-input-title" required maxlength="255" placeholder="Contoh: Rapat Koordinasi Internal / Penilaian Lapangan">
                 </label>
 
                 <label>
@@ -30,7 +30,7 @@
 
                 <label class="full">
                     Lokasi / Tautan Rapat
-                    <input type="text" name="location" id="quick-input-location" placeholder="Contoh: Gedung BSN Lt. 3 / Zoom Meeting">
+                    <input type="text" name="location" id="quick-input-location" maxlength="255" placeholder="Contoh: Gedung BSN Lt. 3 / Zoom Meeting">
                 </label>
 
                 <label class="full">
@@ -45,7 +45,7 @@
 
                 <label class="full">
                     Catatan
-                    <textarea name="notes" id="quick-input-notes" rows="3" placeholder="Tambahkan catatan agenda, pokok pembahasan, atau keterangan penting..."></textarea>
+                    <textarea name="notes" id="quick-input-notes" rows="3" maxlength="2000" placeholder="Tambahkan catatan agenda, pokok pembahasan, atau keterangan penting..."></textarea>
                 </label>
             </div>
 

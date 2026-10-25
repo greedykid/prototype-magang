@@ -36,6 +36,7 @@ const closeAllCustomPickers = (exceptWrapper = null) => {
 
 let globalPickerListenersAdded = false;
 let lastWindowWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+let lastOpenedAt = 0;
 
 const setupGlobalPickerListeners = () => {
     if (globalPickerListenersAdded) return;
@@ -51,6 +52,40 @@ const setupGlobalPickerListeners = () => {
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeAllCustomPickers();
+            return;
+        }
+
+        const openWrapper = document.querySelector('.custom-datepicker-wrapper.is-open');
+        if (!openWrapper) return;
+
+        if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+            const dayButtons = Array.from(openWrapper.querySelectorAll('.custom-datepicker-day'));
+            if (dayButtons.length === 0) return;
+
+            const currentIndex = dayButtons.indexOf(document.activeElement);
+            let nextIndex = -1;
+
+            if (currentIndex === -1) {
+                const selectedDay = openWrapper.querySelector('.custom-datepicker-day.is-selected');
+                const todayDay = openWrapper.querySelector('.custom-datepicker-day.is-today');
+                const firstCurrentDay = openWrapper.querySelector('.custom-datepicker-day:not(.is-outside-month)');
+                const target = selectedDay || todayDay || firstCurrentDay || dayButtons[0];
+                target?.focus();
+                event.preventDefault();
+                return;
+            }
+
+            if (event.key === 'ArrowRight') nextIndex = currentIndex + 1;
+            else if (event.key === 'ArrowLeft') nextIndex = currentIndex - 1;
+            else if (event.key === 'ArrowDown') nextIndex = currentIndex + 7;
+            else if (event.key === 'ArrowUp') nextIndex = currentIndex - 7;
+            else if (event.key === 'Home') nextIndex = currentIndex - (currentIndex % 7);
+            else if (event.key === 'End') nextIndex = currentIndex + (6 - (currentIndex % 7));
+
+            if (nextIndex >= 0 && nextIndex < dayButtons.length) {
+                dayButtons[nextIndex].focus();
+                event.preventDefault();
+            }
         }
     });
 
@@ -61,29 +96,14 @@ const setupGlobalPickerListeners = () => {
         closeAllCustomPickers();
     });
 
-    let scrollRafId = null;
     window.addEventListener('scroll', (event) => {
-        if (event.target && event.target.closest && event.target.closest('.custom-picker-popover')) {
+        if (event.target && typeof event.target.closest === 'function' && event.target.closest('.custom-picker-popover')) {
             return;
         }
-        if (scrollRafId) return;
-        scrollRafId = requestAnimationFrame(() => {
-            scrollRafId = null;
-            const openPicker = document.querySelector('.custom-datepicker-wrapper.is-open, .custom-clockpicker-wrapper.is-open');
-            if (openPicker) {
-                const trigger = openPicker.querySelector('.custom-picker-trigger');
-                if (trigger) {
-                    const triggerRect = trigger.getBoundingClientRect();
-                    const topbar = document.querySelector('.topbar');
-                    const topbarBottom = topbar ? Math.max(0, topbar.getBoundingClientRect().bottom) : 0;
-                    if (triggerRect.bottom < topbarBottom || triggerRect.top > window.innerHeight) {
-                        closeAllCustomPickers();
-                        return;
-                    }
-                    adjustPickerPosition(openPicker, trigger);
-                }
-            }
-        });
+        if (Date.now() - lastOpenedAt < 300) {
+            return;
+        }
+        closeAllCustomPickers();
     }, true);
 };
 
@@ -93,8 +113,9 @@ const elevateParents = (wrapper, isOpen) => {
         if (el.tagName === 'LABEL' ||
             (el.id && el.id.startsWith('modal-section-')) ||
             el.classList.contains('tp-modal-panel') ||
-            el.classList.contains('simasadi-modal-box') ||
             el.classList.contains('modal-form-grid-2col') ||
+            el.classList.contains('modal-tp-extension-collapse') ||
+            el.classList.contains('modal-tp-extension-inner') ||
             el.classList.contains('lpk-field-row') ||
             el.classList.contains('lpk-field') ||
             el.classList.contains('lpk-form-card') ||
@@ -135,8 +156,8 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
 
     const isClock = wrapper.classList.contains('custom-clockpicker-wrapper');
     const modalBox = wrapper.closest('.simasadi-modal-box, .modal-box, .simasadi-modal-body, [role="dialog"]');
-    const defaultHeight = isClock ? 380 : (modalBox ? 260 : 360);
-    const defaultWidth = modalBox ? 280 : 300;
+    const defaultHeight = isClock ? 380 : (modalBox ? 232 : 360);
+    const defaultWidth = modalBox ? 246 : 300;
     const popoverHeight = explicitHeight || measuredHeight || defaultHeight;
     const popoverWidth = explicitWidth || measuredWidth || defaultWidth;
 
@@ -150,22 +171,27 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
     const spaceBelowViewport = viewportHeight - triggerRect.bottom - 12;
     const spaceAboveViewport = triggerRect.top - Math.max(topbarBottom, 12);
 
-    let spaceBelowContext = spaceBelowViewport;
-    let spaceAboveContext = spaceAboveViewport;
+    // Dynamic responsive flip:
+    let fitsBelow = spaceBelowViewport >= (popoverHeight - 20);
+    let fitsAbove = spaceAboveViewport >= popoverHeight;
 
     if (modalBox) {
         const modalRect = modalBox.getBoundingClientRect();
-        spaceBelowContext = modalRect.bottom - triggerRect.bottom - 8;
-        spaceAboveContext = triggerRect.top - modalRect.top - 8;
+        const spaceBelowInModal = modalRect.bottom - triggerRect.bottom;
+        const spaceAboveInModal = triggerRect.top - modalRect.top;
+
+        // Inside modal dialog: if trigger is near the bottom of modal content (< 160px clearance)
+        // and there is comfortable space above inside the modal (>= popoverHeight - 20):
+        // Flip up (dropup) so it stays neatly inside the modal card and doesn't overlap sticky footer buttons.
+        if (spaceBelowInModal < 160 && spaceAboveInModal >= (popoverHeight - 20)) {
+            fitsBelow = false;
+            fitsAbove = true;
+        } else {
+            fitsBelow = true;
+        }
     }
 
-    // Dynamic responsive flip:
-    // Drop down by default if there is comfortable space below.
-    // If it cannot fit below, flip up if there is more space above or if it fits above.
-    const fitsBelow = (spaceBelowViewport >= popoverHeight) && (!modalBox || spaceBelowContext >= popoverHeight);
-    const fitsAbove = spaceAboveViewport >= popoverHeight;
-
-    if (!fitsBelow && (fitsAbove || spaceAboveViewport > spaceBelowViewport)) {
+    if (!fitsBelow && fitsAbove) {
         wrapper.classList.add('dropup');
     }
 
@@ -181,9 +207,29 @@ const adjustPickerPosition = (wrapper, trigger, explicitHeight = null, explicitW
 };
 
 const ensurePickerInModalView = (wrapper, modalBox) => {
-    // In modal dialogs, do NOT scroll the internal modal container when a picker opens.
-    // The popover floats above form fields and footer buttons via high z-index without shifting scroll position or tabs.
-    return;
+    requestAnimationFrame(() => {
+        const popover = wrapper.querySelector('.custom-picker-popover');
+        if (!popover || !wrapper.classList.contains('is-open')) return;
+
+        const popoverRect = popover.getBoundingClientRect();
+        const modalRect = modalBox.getBoundingClientRect();
+
+        if (!wrapper.classList.contains('dropup')) {
+            // Downward popover: scroll down if extends below visible modal area
+            if (popoverRect.bottom > modalRect.bottom - 8 && modalBox.scrollHeight > modalBox.clientHeight) {
+                const scrollDistance = popoverRect.bottom - modalRect.bottom + 24;
+                modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
+            }
+        } else {
+            // Upward (dropup) popover: scroll up if extends under sticky modal head
+            const modalHead = modalBox.querySelector('.simasadi-modal-head');
+            const headBottom = modalHead ? modalHead.getBoundingClientRect().bottom : modalRect.top;
+            if (popoverRect.top < headBottom + 8 && modalBox.scrollTop > 0) {
+                const scrollDistance = popoverRect.top - (headBottom + 12);
+                modalBox.scrollBy({ top: scrollDistance, behavior: 'smooth' });
+            }
+        }
+    });
 };
 
 const ensurePickerInView = (wrapper) => {
@@ -792,6 +838,7 @@ const createCustomDatePicker = (input) => {
         if (typeof window.closeAllCustomSelects === 'function') {
             window.closeAllCustomSelects();
         }
+        lastOpenedAt = Date.now();
         currentView = 'days';
         yearGridStart = Math.floor(viewYear / 12) * 12;
         wrapper.classList.add('is-open');
@@ -1241,6 +1288,7 @@ const createCustomClockPicker = (input) => {
         if (typeof window.closeAllCustomSelects === 'function') {
             window.closeAllCustomSelects();
         }
+        lastOpenedAt = Date.now();
         wrapper.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
         elevateParents(wrapper, true);

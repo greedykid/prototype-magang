@@ -1301,7 +1301,7 @@
                         <span style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">
                             Keterangan Otomatis:
                         </span>
-                        <button type="button" class="button secondary" style="font-size: 11px; padding: 2px 8px; min-height: 24px;" onclick="document.getElementById('input-notes-textarea').value = {{ json_encode($lpk->dynamic_keterangan) }};">
+                        <button type="button" class="button secondary" style="font-size: 11px; padding: 2px 8px; min-height: 24px;" onclick="const t = document.getElementById('input-notes-textarea'); if(t){ t.value = {{ json_encode($lpk->dynamic_keterangan) }}; t.dispatchEvent(new Event('input', { bubbles: true })); }">
                             Gunakan Keterangan Otomatis
                         </button>
                     </div>
@@ -1319,7 +1319,7 @@
 
                 <label>
                     <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Catatan Khusus PIC (Opsional)</span>
-                    <textarea id="input-notes-textarea" name="notes" rows="4" placeholder="Masukkan catatan tambahan PIC jika ada..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); font-family: inherit; font-size: 13.5px; line-height: 1.5; resize: vertical;">{{ old('notes', $lpk->notes) }}</textarea>
+                    <textarea id="input-notes-textarea" name="notes" rows="4" maxlength="5000" placeholder="Masukkan catatan tambahan PIC jika ada..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); font-family: inherit; font-size: 13.5px; line-height: 1.5; resize: vertical;">{{ old('notes', $lpk->notes) }}</textarea>
                     <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">Catatan manual akan selalu ditampilkan berdampingan dengan status otomatis sistem.</small>
                 </label>
             </div>

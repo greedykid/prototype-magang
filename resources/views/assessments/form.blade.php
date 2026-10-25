@@ -296,7 +296,7 @@
                             <span>Judul Agenda Asesmen</span>
                             <span class="lpk-required-dot">*</span>
                         </label>
-                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required placeholder="Contoh: Asesmen Surveilen 1 (S1)" class="@error('title') is-invalid @enderror">
+                        <input id="assessment-title" name="title" value="{{ old('title', $assessment->title ?: request('title')) }}" required maxlength="255" placeholder="Contoh: Asesmen Surveilen 1 (S1)" class="@error('title') is-invalid @enderror">
                         @error('title')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
@@ -420,14 +420,14 @@
                             <label class="lpk-label" for="assessment-location">
                                 <span>Lokasi Kunjungan / Audit</span>
                             </label>
-                            <input id="assessment-location" name="location" value="{{ old('location', $assessment->location ?: request('location')) }}" placeholder="Contoh: Gedung Laboratorium Kimia & Fisika, Bandung">
+                            <input id="assessment-location" name="location" value="{{ old('location', $assessment->location ?: request('location')) }}" maxlength="255" placeholder="Contoh: Gedung Laboratorium Kimia & Fisika, Bandung">
                         </div>
 
                         <div class="lpk-field">
                             <label class="lpk-label" for="assessment-lead-assessor">
                                 <span>Lead Assessor (Asesor Kepala)</span>
                             </label>
-                            <input id="assessment-lead-assessor" name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: ($assessment->assessment_team ?: request('lead_assessor'))) }}" placeholder="Nama asesor kepala">
+                            <input id="assessment-lead-assessor" name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: ($assessment->assessment_team ?: request('lead_assessor'))) }}" maxlength="100" placeholder="Nama asesor kepala">
                         </div>
                     </div>
 
@@ -435,14 +435,14 @@
                         <label class="lpk-label" for="assessment-team">
                             <span>Susunan Tim Asesmen (Asesor &amp; Tenaga Ahli)</span>
                         </label>
-                        <input id="assessment-team" name="assessment_team" value="{{ old('assessment_team', $assessment->assessment_team ?: $assessment->lead_assessor) }}" placeholder="Contoh: Dr. Ir. Budi (Ketua), Siti Rahma (Asesor), Hendra (Tenaga Ahli)">
+                        <input id="assessment-team" name="assessment_team" value="{{ old('assessment_team', $assessment->assessment_team ?: $assessment->lead_assessor) }}" maxlength="1000" placeholder="Contoh: Dr. Ir. Budi (Ketua), Siti Rahma (Asesor), Hendra (Tenaga Ahli)">
                     </div>
 
                     <div class="lpk-field">
                         <label class="lpk-label" for="assessment-notes">
                             <span>Catatan Pelaksanaan / Lingkup Khusus</span>
                         </label>
-                        <textarea id="assessment-notes" name="notes" rows="3" placeholder="Catatan internal pengawasan, agenda khusus, atau arahan logistik tim asesmen...">{{ old('notes', $assessment->notes) }}</textarea>
+                        <textarea id="assessment-notes" name="notes" rows="3" maxlength="5000" placeholder="Catatan internal pengawasan, agenda khusus, atau arahan logistik tim asesmen...">{{ old('notes', $assessment->notes) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -522,7 +522,7 @@
                                     <span>Nomor Surat Resmi LPK</span>
                                     <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @endif>
+                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" maxlength="80" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @endif>
                             </div>
 
                             <div class="lpk-field">
@@ -537,7 +537,7 @@
                                 <label class="lpk-label" for="assessment-ext-notes">
                                     <span>Alasan Permohonan Perpanjangan</span>
                                 </label>
-                                <input id="assessment-ext-notes" type="text" name="tp_extension_notes" placeholder="Contoh: Menunggu pengiriman kalibrator eksternal dan uji profisiensi perbaikan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}">
+                                <input id="assessment-ext-notes" type="text" name="tp_extension_notes" maxlength="1000" placeholder="Contoh: Menunggu pengiriman kalibrator eksternal dan uji profisiensi perbaikan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}">
                             </div>
                         </div>
                     </div>
@@ -546,7 +546,7 @@
                         <label class="lpk-label" for="assessment-tp-notes">
                             <span>Catatan Temuan &amp; Tindakan Perbaikan</span>
                         </label>
-                        <textarea id="assessment-tp-notes" name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau tindakan koreksi yang dilakukan LPK...">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
+                        <textarea id="assessment-tp-notes" name="tp_notes" rows="3" maxlength="5000" placeholder="Rangkuman temuan ketidaksesuaian atau tindakan koreksi yang dilakukan LPK...">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
                     </div>
                 </div>
 
@@ -601,7 +601,7 @@
                         <label class="lpk-label" for="assessment-eha-notes">
                             <span>Catatan / Rekomendasi Hasil Rapat Panitia Teknis</span>
                         </label>
-                        <textarea id="assessment-eha-notes" name="eha_notes" rows="2" placeholder="Catatan panitia teknis, rekomendasi kelanjutan, atau tindak lanjut hasil evaluasi...">{{ old('eha_notes', $assessment->eha_notes) }}</textarea>
+                        <textarea id="assessment-eha-notes" name="eha_notes" rows="2" maxlength="2000" placeholder="Catatan panitia teknis, rekomendasi kelanjutan, atau tindak lanjut hasil evaluasi...">{{ old('eha_notes', $assessment->eha_notes) }}</textarea>
                     </div>
                 </div>
 
@@ -630,7 +630,7 @@
                             <label class="lpk-label" for="assessment-sk-number">
                                 <span>Nomor SK KAN</span>
                             </label>
-                            <input id="assessment-sk-number" type="text" name="sk_number" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}">
+                            <input id="assessment-sk-number" type="text" name="sk_number" maxlength="80" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}">
                         </div>
 
                         <div class="lpk-field">

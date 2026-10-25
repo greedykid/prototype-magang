@@ -80,9 +80,6 @@ section.has-open-picker,
 .modal-form-grid-2col label:has(.custom-datepicker-wrapper.is-open),
 .modal-form-grid-2col label:has(.custom-clockpicker-wrapper.is-open),
 .modal-form-grid-2col label.has-open-picker,
-.simasadi-modal-box:has(.custom-datepicker-wrapper.is-open),
-.simasadi-modal-box:has(.custom-clockpicker-wrapper.is-open),
-.simasadi-modal-box.has-open-picker,
 .simasadi-modal-box form:has(.custom-datepicker-wrapper.is-open),
 .simasadi-modal-box form:has(.custom-clockpicker-wrapper.is-open),
 .simasadi-modal-box form.has-open-picker,
@@ -103,7 +100,11 @@ section.has-open-picker,
 .lpk-field.has-open-picker,
 .lpk-field-row:has(.custom-datepicker-wrapper.is-open),
 .lpk-field-row:has(.custom-clockpicker-wrapper.is-open),
-.lpk-field-row.has-open-picker {
+.lpk-field-row.has-open-picker,
+.modal-tp-extension-collapse:has(.custom-datepicker-wrapper.is-open),
+.modal-tp-extension-collapse.has-open-picker,
+.modal-tp-extension-inner:has(.custom-datepicker-wrapper.is-open),
+.modal-tp-extension-inner.has-open-picker {
     overflow: visible !important;
     position: relative !important;
     z-index: 300 !important;
@@ -265,54 +266,59 @@ section.has-open-picker,
 
 /* Modal Context Optimization */
 .simasadi-modal-box .custom-picker-popover {
-    box-shadow: 0 16px 40px -4px rgba(15, 23, 42, 0.24), 0 4px 16px -2px rgba(15, 23, 42, 0.1);
-    max-width: min(290px, calc(100vw - 32px));
-    padding: 10px 12px;
-    width: 280px;
+    box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.22), 0 4px 14px -2px rgba(15, 23, 42, 0.1);
+    max-width: min(252px, calc(100vw - 32px));
+    padding: 8px 10px;
+    width: 246px;
+    border-radius: var(--radius-lg, 12px);
 }
 
 .simasadi-modal-box .custom-datepicker-header {
-    margin-bottom: 6px;
-    padding-bottom: 6px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
 }
 
 .simasadi-modal-box .custom-datepicker-header-btn {
-    min-height: 26px;
-    padding: 3px 6px;
-    font-size: 12px;
+    min-height: 24px;
+    padding: 2px 5px;
+    font-size: 11.5px;
 }
 
 .simasadi-modal-box .custom-datepicker-weekdays {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .simasadi-modal-box .custom-datepicker-weekday {
-    font-size: 10px;
-    padding: 2px 0;
+    font-size: 9.5px;
+    padding: 1px 0;
 }
 
 .simasadi-modal-box .custom-datepicker-grid {
-    gap: 2px;
-    margin-bottom: 6px;
+    gap: 1.5px;
+    margin-bottom: 4px;
 }
 
 .simasadi-modal-box .custom-datepicker-day {
     aspect-ratio: unset !important;
-    font-size: 11.5px;
-    height: 26px !important;
-    min-height: 26px !important;
-    max-height: 26px !important;
-    line-height: 24px;
+    font-size: 11px;
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px !important;
+    line-height: 22px;
+    border-radius: 4px;
 }
 
 .simasadi-modal-box .custom-picker-footer {
-    padding-top: 6px;
+    padding-top: 4px;
+    gap: 4px;
 }
 
 .simasadi-modal-box .custom-picker-action-btn {
-    font-size: 11.5px;
-    padding: 3px 8px;
+    font-size: 11px;
+    min-height: 24px;
+    padding: 2px 6px;
 }
+
 
 @keyframes picker-dropdown-enter {
     from {

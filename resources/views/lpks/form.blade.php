@@ -98,7 +98,7 @@
                             <label class="lpk-label" for="lpk-no-reg">
                                 <span>No. Reg LPK (ID Unik KAN)</span>
                             </label>
-                            <input id="lpk-no-reg" name="no_reg" value="{{ old('no_reg', $lpk->no_reg) }}" placeholder="Contoh: 3434" class="@error('no_reg') is-invalid @enderror">
+                            <input id="lpk-no-reg" name="no_reg" value="{{ old('no_reg', $lpk->no_reg) }}" maxlength="30" placeholder="Contoh: 3434" class="@error('no_reg') is-invalid @enderror">
                             @error('no_reg')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
@@ -110,7 +110,7 @@
                             <label class="lpk-label" for="lpk-accreditation-number">
                                 <span>No. Akreditasi KAN</span>
                             </label>
-                            <input id="lpk-accreditation-number" name="accreditation_number" value="{{ old('accreditation_number', $lpk->accreditation_number ?: $lpk->registration_number) }}" placeholder="Contoh: LP-021-IDN" class="@error('accreditation_number') is-invalid @enderror">
+                            <input id="lpk-accreditation-number" name="accreditation_number" value="{{ old('accreditation_number', $lpk->accreditation_number ?: $lpk->registration_number) }}" maxlength="50" placeholder="Contoh: LP-021-IDN" class="@error('accreditation_number') is-invalid @enderror">
                             @error('accreditation_number')
                                 <span class="field-error-text">{{ $message }}</span>
                             @enderror
@@ -170,13 +170,12 @@
                         <label class="lpk-label" for="lpk-scope">
                             <span>Uraian Lengkap Ruang Lingkup</span>
                         </label>
-                        <textarea id="lpk-scope" name="scope" rows="8" class="lpk-textarea-scope @error('scope') is-invalid @enderror" placeholder="Masukkan ruang lingkup akreditasi laboratorium secara lengkap (bidang pengujian/kalibrasi, bahan/produk yang diuji, parameter/spesifikasi pengujian, metode uji standar SNI/ISO/IEC/ASTM, dsb.)...">{{ old('scope', $lpk->scope) }}</textarea>
+                        <textarea id="lpk-scope" name="scope" rows="8" maxlength="50000" class="lpk-textarea-scope @error('scope') is-invalid @enderror" placeholder="Masukkan ruang lingkup akreditasi laboratorium secara lengkap (bidang pengujian/kalibrasi, bahan/produk yang diuji, parameter/spesifikasi pengujian, metode uji standar SNI/ISO/IEC/ASTM, dsb.)...">{{ old('scope', $lpk->scope) }}</textarea>
                         @error('scope')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
                         <div class="lpk-scope-meta">
                             <span>Tips: Salin langsung lampiran ruang lingkup dari lampiran resmi sertifikat KAN.</span>
-                            <span id="scope-char-count"></span>
                         </div>
                     </div>
                 </div>
@@ -202,7 +201,7 @@
                             <span>Tautan Google Drive Dokumen</span>
                         </label>
                         <div class="lpk-drive-input-wrap">
-                            <input id="lpk-drive-url" type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)" class="@error('drive_url') is-invalid @enderror">
+                            <input id="lpk-drive-url" type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" maxlength="1000" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)" class="@error('drive_url') is-invalid @enderror">
                             @if($lpk->drive_url)
                                 <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="lpk-drive-preview-btn" title="Buka tautan Google Drive di tab baru">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -319,7 +318,7 @@
                         <label class="lpk-label" for="lpk-email">
                             <span>Email Resmi Laboratorium</span>
                         </label>
-                        <input id="lpk-email" type="email" name="email" value="{{ old('email', $lpk->email) }}" placeholder="laboratorium@instansi.go.id" class="@error('email') is-invalid @enderror">
+                        <input id="lpk-email" type="email" name="email" value="{{ old('email', $lpk->email) }}" maxlength="100" placeholder="laboratorium@instansi.go.id" class="@error('email') is-invalid @enderror">
                         @error('email')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
@@ -329,7 +328,7 @@
                         <label class="lpk-label" for="lpk-phone">
                             <span>Nomor Telepon / Hotline</span>
                         </label>
-                        <input id="lpk-phone" name="phone" value="{{ old('phone', $lpk->phone) }}" placeholder="Contoh: (022) 2503171 / 08123456789" class="@error('phone') is-invalid @enderror">
+                        <input id="lpk-phone" name="phone" value="{{ old('phone', $lpk->phone) }}" maxlength="30" placeholder="Contoh: (022) 2503171 / 08123456789" class="@error('phone') is-invalid @enderror">
                         @error('phone')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror
@@ -339,7 +338,7 @@
                         <label class="lpk-label" for="lpk-address">
                             <span>Alamat Lengkap Fasilitas</span>
                         </label>
-                        <textarea id="lpk-address" name="address" rows="3" class="lpk-textarea-address @error('address') is-invalid @enderror" placeholder="Jalan, nomor gedung, kelurahan, kecamatan, kota/kabupaten, dan provinsi...">{{ old('address', $lpk->address) }}</textarea>
+                        <textarea id="lpk-address" name="address" rows="3" maxlength="500" class="lpk-textarea-address @error('address') is-invalid @enderror" placeholder="Jalan, nomor gedung, kelurahan, kecamatan, kota/kabupaten, dan provinsi...">{{ old('address', $lpk->address) }}</textarea>
                         @error('address')
                             <span class="field-error-text">{{ $message }}</span>
                         @enderror

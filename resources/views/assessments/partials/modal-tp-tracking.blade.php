@@ -81,20 +81,22 @@
 
                     <div class="modal-form-grid-2col">
                         <label style="width: 100%; max-width: 100%; min-width: 0;">
-                            <span style="font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; min-height: 20px; margin-bottom: 4px;">
+                            <span style="font-size: 13px; font-weight: 600; display: flex; align-items: center; min-height: 20px; margin-bottom: 4px; color: var(--ink);">
                                 <span>Tenggat Waktu TP (KAN)</span>
+                            </span>
+                            <input type="date" name="tp_due_date" id="modal_tp_due_date_{{ $assessment->id }}" value="{{ $modalInitTpDueDate }}" data-base-date="{{ $modalBaseTpDate }}" data-is-extended="{{ $modalTpHasExt ? '1' : '0' }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <div style="margin-top: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
                                 <span id="modal-tp-ext-badge-{{ $assessment->id }}" class="badge-tp badge-tp-info" style="font-size: 10px; display: {{ $modalTpHasExt ? 'inline-flex' : 'none' }}; align-items: center; gap: 3px;">
                                     +1 Bulan (Surat LPK)
                                 </span>
-                            </span>
-                            <input type="date" name="tp_due_date" id="modal_tp_due_date_{{ $assessment->id }}" value="{{ $modalInitTpDueDate }}" data-base-date="{{ $modalBaseTpDate }}" data-is-extended="{{ $modalTpHasExt ? '1' : '0' }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
-                            <small id="modal_tp_due_date_hint_{{ $assessment->id }}" style="color: var(--muted); font-size: 11px; display: block; margin-top: 3px; line-height: 1.4;">
-                                @if($modalTpHasExt)
-                                    * Diperpanjang +1 bulan sesuai permohonan resmi LPK.
-                                @else
-                                    Batas akhir penyerahan perbaikan LPK sesuai aturan KAN.
-                                @endif
-                            </small>
+                                <small id="modal_tp_due_date_hint_{{ $assessment->id }}" style="color: var(--muted); font-size: 11px; line-height: 1.4;">
+                                    @if($modalTpHasExt)
+                                        * Diperpanjang sesuai permohonan resmi LPK.
+                                    @else
+                                        Batas akhir penyerahan perbaikan LPK sesuai aturan KAN.
+                                    @endif
+                                </small>
+                            </div>
                         </label>
 
                         <label style="width: 100%; max-width: 100%; min-width: 0;">
@@ -125,7 +127,7 @@
                                         <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink);">
                                             Nomor Surat Resmi LPK <span class="lpk-required-dot modal-ext-req-{{ $assessment->id }}" style="display: {{ $modalTpHasExt ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                         </span>
-                                        <input type="text" name="tp_extension_letter_no" id="modal_tp_ext_letter_no_{{ $assessment->id }}" oninput="window.syncModalTpExtension({{ $assessment->id }}, true)" onchange="window.syncModalTpExtension({{ $assessment->id }}, true)" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($modalTpHasExt) required @endif style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                                        <input type="text" name="tp_extension_letter_no" id="modal_tp_ext_letter_no_{{ $assessment->id }}" oninput="window.syncModalTpExtension({{ $assessment->id }}, true)" onchange="window.syncModalTpExtension({{ $assessment->id }}, true)" maxlength="80" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($modalTpHasExt) required @endif style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
                                     </label>
                                     <label style="width: 100%; max-width: 100%; min-width: 0;">
                                         <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink);">
@@ -136,7 +138,7 @@
                                 </div>
                                 <label style="width: 100%; max-width: 100%; min-width: 0;">
                                     <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink);">Catatan Alasan Perpanjangan</span>
-                                    <input type="text" name="tp_extension_notes" placeholder="Contoh: Pengadaan bahan acuan standar dan kalibrasi ulang memerlukan waktu tambahan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                                    <input type="text" name="tp_extension_notes" maxlength="1000" placeholder="Contoh: Pengadaan bahan acuan standar dan kalibrasi ulang memerlukan waktu tambahan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
                                 </label>
                             </div>
                         </div>
@@ -144,7 +146,7 @@
 
                     <label style="display: block; width: 100%; max-width: 100%; min-width: 0;">
                         <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Catatan Temuan &amp; Bukti Tindakan Perbaikan</span>
-                        <textarea name="tp_notes" rows="3" placeholder="Rangkuman temuan ketidaksesuaian atau status kelengkapan bukti tindakan perbaikan LPK..." style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
+                        <textarea name="tp_notes" rows="3" maxlength="5000" placeholder="Rangkuman temuan ketidaksesuaian atau status kelengkapan bukti tindakan perbaikan LPK..." style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
                     </label>
                 </div>
 
@@ -170,19 +172,19 @@
                             <small style="color: var(--muted); font-size: 11px;">Pencatatan tanggal laporan asesmen tim asesor dan evaluasi oleh panitia teknis KAN.</small>
                         </div>
                         <div class="modal-form-grid-2col">
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tgl Laporan Asesmen</span>
-                                <input type="date" name="report_date" value="{{ old('report_date', $assessment->report_date?->format('Y-m-d')) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Tgl Laporan Asesmen</span>
+                                <input type="date" name="report_date" value="{{ old('report_date', $assessment->report_date?->format('Y-m-d')) }}" class="modal-form-input">
                             </label>
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tgl Rapat Panitia Teknis</span>
-                                <input type="date" name="eha_date" value="{{ old('eha_date', $assessment->eha_date?->format('Y-m-d')) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Tgl Rapat Panitia Teknis</span>
+                                <input type="date" name="eha_date" value="{{ old('eha_date', $assessment->eha_date?->format('Y-m-d')) }}" class="modal-form-input">
                             </label>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;">
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Status Hasil Rapat Panitia Teknis</span>
-                                <select name="eha_status" id="modal_eha_status_select" onchange="if(typeof window.syncModalTpTabGates === 'function'){ window.syncModalTpTabGates(); }" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; text-overflow: ellipsis; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Status Hasil Rapat Panitia Teknis</span>
+                                <select name="eha_status" id="modal_eha_status_select" onchange="if(typeof window.syncModalTpTabGates === 'function'){ window.syncModalTpTabGates(); }" class="modal-form-input">
                                     @foreach(\App\Models\Assessment::EHA_STATUSES as $ehaVal => $ehaText)
                                         <option value="{{ $ehaVal }}" @selected(old('eha_status', $assessment->eha_status ?: \App\Models\Assessment::EHA_STATUS_BELUM) === $ehaVal)>
                                             {{ $ehaText }}
@@ -190,9 +192,9 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Catatan Hasil Rapat Panitia Teknis</span>
-                                <input type="text" name="eha_notes" placeholder="Catatan atau rekomendasi panitia teknis..." value="{{ old('eha_notes', $assessment->eha_notes) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Catatan Hasil Rapat Panitia Teknis</span>
+                                <input type="text" name="eha_notes" maxlength="2000" placeholder="Catatan atau rekomendasi panitia teknis..." value="{{ old('eha_notes', $assessment->eha_notes) }}" class="modal-form-input">
                             </label>
                         </div>
                     </div>
@@ -220,13 +222,13 @@
                             <small style="color: var(--muted); font-size: 11px;">Opsional / Fleksibel: dapat diisi sekarang (jika sudah terbit) atau diisi menyusul setelah dokumen resmi diterima dari KAN.</small>
                         </div>
                         <div class="modal-form-grid-2col">
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Nomor SK KAN</span>
-                                <input type="text" name="sk_number" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Nomor SK KAN</span>
+                                <input type="text" name="sk_number" maxlength="80" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}" class="modal-form-input">
                             </label>
-                            <label style="width: 100%; max-width: 100%; min-width: 0;">
-                                <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px;">Tanggal SK</span>
-                                <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <label class="modal-field-label">
+                                <span>Tanggal SK</span>
+                                <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}" class="modal-form-input">
                             </label>
                         </div>
                         @if($assessment->sk_lead_time_label)
@@ -450,7 +452,7 @@ window.syncModalTpExtension = function(id, fromLetter) {
             dueInput.value = addMonth(base);
             dueInput.dataset.isExtended = '1';
             if (badge) badge.style.display = 'inline-flex';
-            if (hint) hint.textContent = '* Diperpanjang +1 bulan sesuai permohonan resmi LPK.';
+            if (hint) hint.textContent = '* Diperpanjang sesuai permohonan resmi LPK.';
             dueInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     } else if (!shouldExtend && isExtended) {

@@ -335,28 +335,28 @@
                             <span class="compliance-legend-dot dot-active"></span>
                             <div class="compliance-legend-text">
                                 <span class="compliance-legend-label">Aktif Aman</span>
-                                <strong class="compliance-legend-val">{{ $activeCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctActive }}%)</small></strong>
+                                <strong class="compliance-legend-val">{{ $activeCount }} <small style="font-weight: 500; color: var(--muted); font-size: 11px;">({{ $pctActive }}%)</small></strong>
                             </div>
                         </a>
                         <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="compliance-legend-item" data-legend="due" title="Filter laboratorium jatuh tempo pengawasan">
                             <span class="compliance-legend-dot dot-due"></span>
                             <div class="compliance-legend-text">
                                 <span class="compliance-legend-label">Jatuh Tempo</span>
-                                <strong class="compliance-legend-val">{{ $dueLpkCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctDue }}%)</small></strong>
+                                <strong class="compliance-legend-val">{{ $dueLpkCount }} <small style="font-weight: 500; color: var(--muted); font-size: 11px;">({{ $pctDue }}%)</small></strong>
                             </div>
                         </a>
                         <a href="{{ route('lpks.index', ['status' => 'SUSPENDED']) }}" class="compliance-legend-item" data-legend="suspended" title="Filter laboratorium dibekukan">
                             <span class="compliance-legend-dot dot-suspended"></span>
                             <div class="compliance-legend-text">
                                 <span class="compliance-legend-label">Dibekukan</span>
-                                <strong class="compliance-legend-val">{{ $suspCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctSuspended }}%)</small></strong>
+                                <strong class="compliance-legend-val">{{ $suspCount }} <small style="font-weight: 500; color: var(--muted); font-size: 11px;">({{ $pctSuspended }}%)</small></strong>
                             </div>
                         </a>
                         <a href="{{ route('lpks.index', ['status' => 'REVOKED']) }}" class="compliance-legend-item" data-legend="revoked" title="Filter laboratorium dicabut atau masa tenggang habis">
                             <span class="compliance-legend-dot dot-revoked"></span>
                             <div class="compliance-legend-text">
                                 <span class="compliance-legend-label">Dicabut / TG</span>
-                                <strong class="compliance-legend-val">{{ $revCount }} <small style="font-weight: 500; color: var(--muted); font-size: 10px;">({{ $pctRevoked }}%)</small></strong>
+                                <strong class="compliance-legend-val">{{ $revCount }} <small style="font-weight: 500; color: var(--muted); font-size: 11px;">({{ $pctRevoked }}%)</small></strong>
                             </div>
                         </a>
                     </div>

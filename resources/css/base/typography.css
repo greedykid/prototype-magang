@@ -67,11 +67,15 @@ h4 {
 }
 
 .lede {
-    color: var(--muted);
-    font-size: var(--text-sm);
-    line-height: var(--leading-normal);
+    color: var(--ink-secondary, #475569);
+    font-size: 14.5px;
+    line-height: 1.5;
     margin: 0;
     max-width: var(--measure-prose);
+}
+
+html[data-theme="dark"] .lede {
+    color: var(--muted, #94a3b8);
 }
 
 .prose-measure,

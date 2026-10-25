@@ -24,15 +24,15 @@
         </select>
     </label>
     <label class="full">Jenis Agenda / Asesmen<select name="event_type"><option value="">Pilih jenis agenda / asesmen</option>@foreach(\App\Models\Assessment::TYPES as $typeKey => $typeLabel)<option value="{{ $typeKey }}" @selected(old('event_type', $event->event_type) === $typeKey)>{{ $typeLabel }}</option>@endforeach<option value="AGENDA_INTERNAL" @selected(old('event_type', $event->event_type) === 'AGENDA_INTERNAL')>Agenda Umum / Rapat Internal</option></select></label>
-    <label class="full">Judul agenda<input name="title" value="{{ old('title', $event->title) }}" required placeholder="Contoh: Persiapan asesmen awal"></label>
+    <label class="full">Judul agenda<input name="title" value="{{ old('title', $event->title) }}" required maxlength="255" placeholder="Contoh: Persiapan asesmen awal"></label>
     <label>Tanggal mulai<input type="date" name="start_date" value="{{ old('start_date', $event->start_at?->format('Y-m-d') ?: ($selectedDate ?? null)) }}" required></label>
     <label>Jam mulai<input type="time" name="start_time" value="{{ old('start_time', $event->start_at?->format('H:i')) }}" required></label>
     <label>Tanggal selesai<input type="date" name="end_date" value="{{ old('end_date', $event->end_at?->format('Y-m-d') ?: ($selectedDate ?? null)) }}" required></label>
     <label>Jam selesai<input type="time" name="end_time" value="{{ old('end_time', $event->end_at?->format('H:i')) }}" required></label>
-    <label>Lokasi<input name="location" value="{{ old('location', $event->location) }}" placeholder="Ruang atau tautan rapat"></label>
+    <label>Lokasi<input name="location" value="{{ old('location', $event->location) }}" maxlength="255" placeholder="Ruang atau tautan rapat"></label>
     <label>Status<select name="status"><option value="PLANNED" @selected(old('status', $event->status ?: 'PLANNED') === 'PLANNED')>Direncanakan</option><option value="IN_PROGRESS" @selected(old('status', $event->status) === 'IN_PROGRESS')>Sedang Berlangsung</option><option value="COMPLETED" @selected(old('status', $event->status) === 'COMPLETED')>Selesai</option><option value="CANCELLED" @selected(old('status', $event->status) === 'CANCELLED')>Dibatalkan</option></select></label>
-    <label class="full">Deskripsi<textarea name="description" rows="4">{{ old('description', $event->description) }}</textarea></label>
-    <label class="full">Catatan<textarea name="notes" rows="3">{{ old('notes', $event->notes) }}</textarea></label>
+    <label class="full">Deskripsi<textarea name="description" rows="4" maxlength="2000">{{ old('description', $event->description) }}</textarea></label>
+    <label class="full">Catatan<textarea name="notes" rows="3" maxlength="2000">{{ old('notes', $event->notes) }}</textarea></label>
     {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
     <div class="form-sticky-footer full">
         <div class="form-sticky-hint">

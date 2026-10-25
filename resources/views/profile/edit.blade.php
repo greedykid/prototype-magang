@@ -80,7 +80,7 @@
                             <span>Nama Lengkap</span>
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
-                        <input id="profile-name" type="text" name="name" class="profile-input" value="{{ old('name', $user->name) }}" required autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
+                        <input id="profile-name" type="text" name="name" class="profile-input" value="{{ old('name', $user->name) }}" required maxlength="100" autocomplete="name" placeholder="Contoh: Ahmad Hidayat, S.T.">
                     </div>
 
                     <div class="profile-field">
@@ -88,7 +88,7 @@
                             <span>Alamat Email</span>
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
-                        <input id="profile-email" type="email" name="email" class="profile-input" value="{{ old('email', $user->email) }}" required autocomplete="email" placeholder="Contoh: nama@lab.co.id">
+                        <input id="profile-email" type="email" name="email" class="profile-input" value="{{ old('email', $user->email) }}" required maxlength="100" autocomplete="email" placeholder="Contoh: nama@lab.co.id">
                     </div>
 
                     <div class="profile-field">
@@ -158,7 +158,7 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <div class="password-input-wrap">
-                            <input id="current-password" type="password" name="current_password" class="profile-input" required autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
+                            <input id="current-password" type="password" name="current_password" class="profile-input" required maxlength="100" autocomplete="current-password" placeholder="Masukkan kata sandi lama Anda">
                             <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                                 <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                                 <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
@@ -172,7 +172,7 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <div class="password-input-wrap">
-                            <input id="new-password" type="password" name="password" class="profile-input" required autocomplete="new-password" placeholder="Minimal 8 karakter">
+                            <input id="new-password" type="password" name="password" class="profile-input" required maxlength="100" autocomplete="new-password" placeholder="Minimal 8 karakter">
                             <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                                 <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                                 <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
@@ -186,7 +186,7 @@
                             <span class="required-mark" aria-hidden="true">*</span>
                         </label>
                         <div class="password-input-wrap">
-                            <input id="confirm-password" type="password" name="password_confirmation" class="profile-input" required autocomplete="new-password" placeholder="Ulangi kata sandi baru">
+                            <input id="confirm-password" type="password" name="password_confirmation" class="profile-input" required maxlength="100" autocomplete="new-password" placeholder="Ulangi kata sandi baru">
                             <button type="button" class="password-toggle-btn" aria-label="Tampilkan kata sandi" title="Tampilkan kata sandi">
                                 <span class="eye-show" aria-hidden="true"><x-icon name="eye" size="16" /></span>
                                 <span class="eye-hide" aria-hidden="true" style="display: none;"><x-icon name="eye-off" size="16" /></span>
@@ -274,7 +274,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <input type="hidden" name="type" value="viewer">
-                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: var(--danger-text); display: inline-flex; align-items: center; border-radius: var(--radius-xs, 6px);" title="Putuskan tautan">
+                                <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: var(--danger-text); display: inline-flex; align-items: center; border-radius: var(--radius-xs, 6px);" title="Putuskan tautan" aria-label="Putuskan tautan">
                                     <x-icon name="trash" size="14" />
                                 </button>
                             </form>

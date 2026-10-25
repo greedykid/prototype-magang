@@ -1,7 +1,7 @@
 <header class="topbar">
     <div class="topbar-nav-left">
         <a href="{{ route('dashboard') }}" class="topbar-brand-mark" title="SIMASADI">
-            <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="topbar-brand-img">
+            <img src="{{ asset('images/logo-bsn.png') }}" alt="Logo BSN" class="topbar-brand-img" width="58" height="24">
         </a>
         <button class="navbar-sidebar-toggle" id="sidebar-toggle-btn" type="button" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">
             <x-icon name="panel-left" size="18" />

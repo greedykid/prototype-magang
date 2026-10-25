@@ -103,7 +103,7 @@
                             @csrf
                             @method('DELETE')
                             <input type="hidden" name="type" value="viewer">
-                            <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan akses viewer">
+                            <button type="submit" class="button-icon-only text-danger" style="background: none; border: none; padding: 6px; cursor: pointer; color: #ef4444; display: inline-flex; align-items: center;" title="Putuskan akses viewer" aria-label="Putuskan akses viewer">
                                 <x-icon name="trash" size="15" />
                             </button>
                         </form>
