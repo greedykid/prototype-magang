@@ -100,11 +100,20 @@ class AssessmentController extends Controller
 
                 $alertCode = strtoupper((string) $request->input('alert_code', ''));
                 $targetDateStr = $request->input('target_date');
+                $requestedType = (string) $request->input('assessment_type', '');
 
-                $normalizedType = Assessment::normalizeType(
-                    $alertCode ?: (string) $request->input('assessment_type', ''),
-                    (string) $request->input('title', '')
-                );
+                $isLpkRevoked = $lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED';
+
+                // LPK berstatus dicabut (REVOKED) tidak diperbolehkan menjadwalkan Re-Akreditasi atau Surveilen siklus lama.
+                // Sesuai regulasi KAN U-01, alur otomatis dialihkan ke Akreditasi Awal (INITIAL).
+                if ($isLpkRevoked && ($alertCode === 'RA' || str_contains(strtoupper($requestedType), 'RE_') || str_contains(strtoupper($requestedType), 'REAK'))) {
+                    $normalizedType = Assessment::TYPE_AKREDITASI_AWAL;
+                } else {
+                    $normalizedType = Assessment::normalizeType(
+                        $alertCode ?: $requestedType,
+                        (string) $request->input('title', '')
+                    );
+                }
                 $assessment->assessment_type = $normalizedType;
                 $assessment->title = ($normalizedType ?: 'Asesmen') . ' - ' . $lpk->name;
 

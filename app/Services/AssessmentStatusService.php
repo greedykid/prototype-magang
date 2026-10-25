@@ -36,12 +36,12 @@ class AssessmentStatusService
         $hasEhaCompleted = in_array($ehaStatus, [Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true)
             || (! empty($ehaDate) && ! in_array($ehaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI, Assessment::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        // 1. Keputusan akhir: SK KAN sudah terbit
-        if (! empty($skNumber)) {
+        // 1. Keputusan akhir: SK KAN sudah terbit DAN seluruh tahapan hulu telah tuntas
+        if (! empty($skNumber) && $isTpSatisfied && $hasEhaCompleted) {
             return 'COMPLETED';
         }
 
-        // Jika tindakan perbaikan telah memenuhi atau EHA telah selesai namun SK belum terbit,
+        // Jika tindakan perbaikan telah memenuhi atau EHA telah selesai namun SK belum terbit (atau SK ada tapi belum selesai upstream),
         // status asesmen tetap berada dalam tahap berjalan (IN_PROGRESS).
         if ($isTpSatisfied) {
             return 'IN_PROGRESS';
@@ -112,8 +112,8 @@ class AssessmentStatusService
             return $currentStatus ?? 'SCHEDULED';
         }
 
-        // 6. Jika ada laporan atau EHA terisi
-        if (! empty($reportDate) || ! empty($ehaDate)) {
+        // 6. Jika ada laporan, EHA, atau nomor SK terisi (tetapi belum memenuhi syarat COMPLETED)
+        if (! empty($reportDate) || ! empty($ehaDate) || ! empty($skNumber)) {
             return 'IN_PROGRESS';
         }
 

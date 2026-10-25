@@ -125,7 +125,7 @@ class AssessmentTpService
      */
     public function isTpOverdue(Assessment $assessment): bool
     {
-        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at) || ! empty($assessment->sk_number)) {
+        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
             return false;
         }
 

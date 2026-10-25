@@ -111,7 +111,7 @@ class UpdateAssessmentTpRequest extends FormRequest
                             'CATATAN_KHUSUS',
                         ], true));
                     $hasSk = ! empty($validated['sk_number']) || ! empty($assessment->sk_number);
-                    $validated['status'] = $hasSk ? 'COMPLETED' : 'IN_PROGRESS';
+                    $validated['status'] = ($hasSk && $hasEha) ? 'COMPLETED' : 'IN_PROGRESS';
                     break;
                 case 'SUSPENDED':
                     $validated['status'] = 'SUSPENDED';
@@ -141,18 +141,26 @@ class UpdateAssessmentTpRequest extends FormRequest
             }
             unset($validated['unified_status']);
         } elseif (empty($validated['status'])) {
+            if (($validated['tp_status'] ?? null) === Assessment::TP_STATUS_SATISFIED) {
+                if (empty($validated['tp_satisfied_at']) && empty($assessment->tp_satisfied_at)) {
+                    $validated['tp_satisfied_at'] = now()->toDateString();
+                }
+            } else {
+                $validated['tp_satisfied_at'] = null;
+            }
+
             $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
             $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
             $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);
             $tpExtensionDate = ! empty($validated['tp_extension_date']) ? Carbon::parse($validated['tp_extension_date']) : $assessment->tp_extension_date;
-            $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : $assessment->tp_satisfied_at;
+            $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : null;
 
             $validated['status'] = Assessment::determineStatusFromDates(
                 $assessment->start_at,
                 $assessment->end_at,
                 $assessment->status,
-                $validated['tp_status'] ?? null,
-                $validated['sk_number'] ?? null,
+                $validated['tp_status'] ?? $assessment->tp_status,
+                $validated['sk_number'] ?? $assessment->sk_number,
                 ! empty($validated['report_date']) ? Carbon::parse($validated['report_date']) : $assessment->report_date,
                 ! empty($validated['eha_date']) ? Carbon::parse($validated['eha_date']) : $assessment->eha_date,
                 $tpDueDate,

@@ -107,8 +107,8 @@ class LpkSurveillanceService
                 $milestones['s1']['status'] = 'SUSPENDED';
             } elseif ($hasS1) {
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
-            } elseif ($isLpkActive && $isCertValid && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
-                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
+            } elseif ($isLpkActive && ($isCertValid || $lpk->isInGracePeriod() || $lpk->hasReaccreditationInFlight()) && $milestones['s1']['tolerance_date'] && $now->gte($milestones['s1']['tolerance_date'])) {
+                // Untuk LPK yang aktif (termasuk masa tenggang Re-Akreditasi), jadwal S1 lampau yang melewati masa toleransinya dianggap terealisasi
                 $milestones['s1']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s1']['target_date'])) {
                 $milestones['s1']['status'] = 'OVERDUE';
@@ -148,8 +148,8 @@ class LpkSurveillanceService
                 $milestones['s2']['status'] = 'SUSPENDED';
             } elseif ($hasS2) {
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
-            } elseif ($isLpkActive && $isCertValid && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
-                // Untuk LPK yang aktif dan masa akreditasi masih berlaku, jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
+            } elseif ($isLpkActive && ($isCertValid || $lpk->isInGracePeriod() || $lpk->hasReaccreditationInFlight()) && $milestones['s2']['tolerance_date'] && $now->gte($milestones['s2']['tolerance_date'])) {
+                // Untuk LPK yang aktif (termasuk masa tenggang Re-Akreditasi), jadwal S2 lampau yang melewati masa toleransinya dianggap terealisasi
                 $milestones['s2']['status'] = 'COMPLETED_OR_SCHEDULED';
             } elseif ($now->gte($milestones['s2']['target_date'])) {
                 $milestones['s2']['status'] = 'OVERDUE';
@@ -199,10 +199,10 @@ class LpkSurveillanceService
                 $milestones['ra']['status'] = 'SUSPENDED';
             } elseif ($cycleEnd && $now->gt($cycleEnd->copy()->addMonths(6))) {
                 $milestones['ra']['status'] = 'REVOKED';
-            } elseif ($cycleEnd && $now->gte($cycleEnd)) {
-                $milestones['ra']['status'] = 'EXPIRED';
             } elseif ($hasRA) {
                 $milestones['ra']['status'] = 'COMPLETED_OR_SCHEDULED';
+            } elseif ($cycleEnd && $now->gte($cycleEnd)) {
+                $milestones['ra']['status'] = 'EXPIRED';
             } elseif ($now->gte($milestones['ra']['notice_date'])) {
                 $milestones['ra']['status'] = 'DUE';
             } else {
@@ -224,31 +224,10 @@ class LpkSurveillanceService
         // 1. Cek status kritis tingkat LPK (Pencabutan Akreditasi, Masa Tenggang, atau Pembekuan)
         $dynamicStatus = $lpk->dynamic_status;
 
-        if ($dynamicStatus === 'REVOKED') {
-            $expStr = $lpk->expired_at ? $lpk->expired_at->format('d/m/Y') : '-';
-            $deadline = $lpk->grace_period_deadline ? $lpk->grace_period_deadline->format('d/m/Y') : $expStr;
-            $desc = ! $lpk->hasReaccreditationInFlight()
-                ? "Siklus akreditasi 5 tahun telah berakhir ({$expStr}) tanpa pelaksanaan asesmen akreditasi ulang (RA). Status akreditasi resmi dicabut."
-                : "Melewati batas 6 bulan masa tenggang Re-Akreditasi ({$deadline}) tanpa penetapan status baru. Status akreditasi resmi dicabut.";
-
-            $alerts[] = [
-                'lpk_id' => $lpk->id,
-                'lpk_reg' => $lpk->registration_number,
-                'lpk_name' => $lpk->name,
-                'lpk_email' => $lpk->email,
-                'code' => 'RA',
-                'name' => Assessment::TYPE_RE_AKREDITASI,
-                'notice_date' => $lpk->expired_at,
-                'target_date' => $lpk->expired_at,
-                'status' => 'REVOKED',
-                'status_label' => 'AKREDITASI DICABUT',
-                'is_urgent' => true,
-                'severity' => 'danger',
-                'description' => $desc,
-                'last_notified_at' => $lpk->last_surveillance_notified_at,
-            ];
-
-            return $alerts;
+        if ($dynamicStatus === 'REVOKED' || $lpk->isRevocationOverdue()) {
+            // Sesuai KAN U-01, status akreditasi yang telah dicabut tidak lagi memiliki agenda pengawasan atau Re-Akreditasi.
+            // LPK wajib mengajukan permohonan baru sebagai Akreditasi Awal.
+            return [];
         }
 
         if ($dynamicStatus === 'GRACE_PERIOD') {
@@ -322,14 +301,13 @@ class LpkSurveillanceService
         $milestones = $this->calculateMilestones($lpk);
 
         foreach ($milestones as $milestone) {
-            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED', 'GRACE_PERIOD', 'SUSPENDED', 'REVOKED'], true)) {
-                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED', 'SUSPENDED', 'REVOKED'], true);
+            if (in_array($milestone['status'], ['DUE', 'OVERDUE', 'EXPIRED', 'GRACE_PERIOD', 'SUSPENDED'], true)) {
+                $isUrgent = in_array($milestone['status'], ['OVERDUE', 'EXPIRED', 'SUSPENDED'], true);
 
                 $label = match ($milestone['status']) {
                     'OVERDUE' => 'MELEWATI JADWAL',
                     'EXPIRED' => 'SERTIFIKAT KEDALUWARSA',
                     'GRACE_PERIOD' => 'MASA TENGGANG (6 BLN)',
-                    'REVOKED' => 'AKREDITASI DICABUT',
                     'SUSPENDED' => 'DIBEKUKAN',
                     default => 'WAKTU NOTIFIKASI AKTIF',
                 };

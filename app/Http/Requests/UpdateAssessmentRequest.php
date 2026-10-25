@@ -138,6 +138,37 @@ class UpdateAssessmentRequest extends FormRequest
             (string) ($data['title'] ?? ($assessment?->title ?: ''))
         );
 
+        // Sinkronisasi otomatis judul asesmen saat jenis asesmen atau LPK berubah
+        $targetLpk = ! empty($data['lpk_id']) ? \App\Models\Lpk::find($data['lpk_id']) : ($assessment ? $assessment->lpk : null);
+        $lpkName = $targetLpk?->name;
+        $newTypeLabel = $data['assessment_type'];
+        $submittedTitle = trim((string) ($data['title'] ?? ''));
+
+        if (empty($submittedTitle)) {
+            $data['title'] = $lpkName ? "{$newTypeLabel} - {$lpkName}" : $newTypeLabel;
+        } else {
+            $knownTypePatterns = [
+                'Akreditasi Awal', 'Surveilen 1 \\+ PRL', 'Surveilen 2 \\+ PRL',
+                'Surveilen 1', 'Surveilen 2', 'Surveilen Tidak Terjadwal \\(STT\\)', 'Surveilen Tidak Terjadwal',
+                'Perluasan Ruang Lingkup \\(PRL\\)', 'Perluasan Ruang Lingkup', 'PRL', 'STT', 'S1', 'S2', 'RA',
+                'Re-Akreditasi \\(Akreditasi Ulang\\)', 'Re-Akreditasi', 'Re-asesmen', 'Akreditasi Ulang',
+                'Asesmen Surveilen 1 \\(S1\\)', 'Asesmen Surveilen 2 \\(S2\\)', 'Asesmen Re-Akreditasi \\(RA\\)', 'Asesmen Akreditasi Awal'
+            ];
+            $pattern = '/^(' . implode('|', $knownTypePatterns) . ')\s*-\s*(.*)$/iu';
+            if (preg_match($pattern, $submittedTitle, $matches)) {
+                $oldPrefix = trim($matches[1]);
+                $suffix = $lpkName ?: trim($matches[2]);
+                $oldNormalized = Assessment::normalizeType($oldPrefix);
+                if ($oldNormalized !== $newTypeLabel) {
+                    $data['title'] = "{$newTypeLabel} - {$suffix}";
+                } elseif ($lpkName && trim($matches[2]) !== $lpkName) {
+                    $data['title'] = "{$newTypeLabel} - {$lpkName}";
+                }
+            } elseif (in_array(strtolower($submittedTitle), array_map('strtolower', $knownTypePatterns), true)) {
+                $data['title'] = $lpkName ? "{$newTypeLabel} - {$lpkName}" : $newTypeLabel;
+            }
+        }
+
         $data['status'] = Assessment::determineStatusFromDates(
             $startAt,
             $endAt,

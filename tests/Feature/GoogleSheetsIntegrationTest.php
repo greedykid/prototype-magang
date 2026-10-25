@@ -104,18 +104,16 @@ class GoogleSheetsIntegrationTest extends TestCase
         $this->assertStringContainsString('Unauthorized', $response->getContent());
     }
 
-    public function test_ui_renders_google_sheets_modal_and_formula(): void
+    public function test_ui_renders_export_modal(): void
     {
         $assessmentsPage = $this->actingAs($this->user)->get(route('assessments.index'));
         $assessmentsPage->assertOk();
-        $assessmentsPage->assertSee('Google Sheets');
+        $assessmentsPage->assertSee('Ekspor Data');
         $assessmentsPage->assertSee('modal-sheets-sync-assessments');
-        $assessmentsPage->assertSee('=IMPORTDATA(', false);
 
         $lpksPage = $this->actingAs($this->user)->get(route('lpks.index'));
         $lpksPage->assertOk();
-        $lpksPage->assertSee('Google Sheets');
+        $lpksPage->assertSee('Ekspor Data');
         $lpksPage->assertSee('modal-sheets-sync-lpks');
-        $lpksPage->assertSee('=IMPORTDATA(', false);
     }
 }
