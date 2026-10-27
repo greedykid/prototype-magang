@@ -177,6 +177,8 @@ const createCustomSelect = (select) => {
         optionElements.length = 0;
 
         Array.from(select.options).forEach((opt, idx) => {
+            if (opt.disabled || opt.hidden || opt.style.display === 'none') return;
+
             const optionEl = document.createElement('div');
             optionEl.className = 'custom-select-option';
             optionEl.setAttribute('role', 'option');
@@ -286,7 +288,9 @@ const createCustomSelect = (select) => {
 
         if (modalBox) {
             const modalRect = modalBox.getBoundingClientRect();
-            spaceBelow = modalRect.bottom - rect.bottom;
+            const footer = modalBox.querySelector('.modal-form-actions');
+            const footerHeight = (footer && footer.offsetHeight > 0) ? footer.offsetHeight : 54;
+            spaceBelow = (modalRect.bottom - footerHeight) - rect.bottom;
             spaceAbove = rect.top - modalRect.top;
         }
 
@@ -317,8 +321,7 @@ const createCustomSelect = (select) => {
                 el.classList.contains('gcal-board') ||
                 el.classList.contains('gcal-toolbar') ||
                 el.classList.contains('gcal-main') ||
-                el.tagName === 'SECTION' ||
-                el.tagName === 'FORM') {
+                (!modalBox && (el.tagName === 'SECTION' || el.tagName === 'FORM'))) {
                 el.classList.add('has-open-select');
             }
             el = el.parentElement;
@@ -448,6 +451,10 @@ const createCustomSelect = (select) => {
     });
 
     select.addEventListener('change', () => syncFromNative());
+    select.addEventListener('custom-select:rebuild', () => {
+        buildOptions();
+        syncFromNative();
+    });
     select.addEventListener('invalid', () => {
         wrapper.classList.add('is-invalid');
         trigger.focus();

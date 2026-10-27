@@ -94,13 +94,20 @@ export function handleFlashNotifications() {
 
 // ==========================================================================
 // Persistent Surveillance Banner Controller
-// Notification banner is strictly persistent and cannot be dismissed
+// Notification banner is persistent with collapsible height preference
 // ==========================================================================
 export function initPersistentSurveillanceBanner() {
     try {
         sessionStorage.removeItem('simasadi_surveillance_dismissed');
+        sessionStorage.removeItem('surveillance_banner_dismissed');
+        localStorage.removeItem('simasadi_surveillance_collapsed');
     } catch {
         // Ignore storage exceptions
+    }
+
+    const banner = document.getElementById('persistent-surveillance-banner');
+    if (banner) {
+        banner.classList.remove('is-collapsed');
     }
 
     if (!window._surveillanceJumpHandlerAttached) {
@@ -131,10 +138,5 @@ export function initPersistentSurveillanceBanner() {
             }
         });
     }
-
-    // Ensure surveillance banner is not suppressed by any past session state
-    try {
-        sessionStorage.removeItem('surveillance_banner_dismissed');
-    } catch (_) {}
 }
 

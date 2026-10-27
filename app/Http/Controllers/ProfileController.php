@@ -65,7 +65,7 @@ class ProfileController extends Controller
         $validated = $request->validated();
 
         $request->user()->update([
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
         ]);
 
         return back()->with('success', 'Kata sandi Anda berhasil diperbarui.');

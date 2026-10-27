@@ -1,5 +1,5 @@
-/* Laptop & Compact Desktop Optimization (1141px - 1400px) */
-@media (min-width: 1141px) and (max-width: 1400px) {
+/* Laptop & Compact Desktop Optimization (1025px - 1400px) */
+@media (min-width: 1025px) and (max-width: 1400px) {
     .lpk-milestones-grid {
         gap: 12px;
     }
@@ -14,7 +14,7 @@
 }
 
 /* Tablet & Medium Screen Reflow for Milestone Grid & Timeline */
-@media (max-width: 1140px) {
+@media (max-width: 1024px) {
     .lpk-milestones-grid {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -185,9 +185,12 @@
 @media (max-width: 640px) {
     .lpk-form-header,
     .lpk-show-header {
-        border-radius: 10px;
-        gap: 12px;
-        padding: 16px 14px;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        gap: 8px;
+        padding: 0;
     }
 
     .lpk-header-row {

@@ -21,7 +21,7 @@
             </thead>
             <tbody>
                 @foreach($lpks as $lpk)
-                    <tr class="clickable-row" data-href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" data-id="{{ $lpk->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
+                    <tr class="clickable-row" data-href="{{ route('account-links.lpks.show', [$owner, $lpk]) }}" data-id="{{ $lpk->id }}" tabindex="0" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
                         @php
                             $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
                         @endphp
@@ -42,14 +42,17 @@
                             <div class="lpk-status-wrap">
                                 <x-status :value="$lpk->dynamic_status" />
                                 <span class="badge badge-viewer" title="Akses Viewer: Hanya Lihat">
-                                    Viewer
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 2px;" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Viewer
                                 </span>
                                 @if(!empty($lpkAlerts))
-                                    @foreach($lpkAlerts as $alt)
-                                        <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
-                                            {{ $alt['name'] }}
-                                        </span>
-                                    @endforeach
+                                    @php
+                                        $firstUrgent = collect($lpkAlerts)->firstWhere('is_urgent', true) ?? $lpkAlerts[0];
+                                        $extraAlertsCount = count($lpkAlerts) - 1;
+                                        $allAlertsTooltip = collect($lpkAlerts)->map(fn($a) => $a['name'] . ': ' . $a['description'])->implode(' | ');
+                                    @endphp
+                                    <span class="badge lpk-alert-badge {{ $firstUrgent['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $allAlertsTooltip }}">
+                                        {{ $firstUrgent['name'] }}@if($extraAlertsCount > 0) <span class="badge-more">+{{ $extraAlertsCount }}</span>@endif
+                                    </span>
                                 @endif
                             </div>
                         </td>

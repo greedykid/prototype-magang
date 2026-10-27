@@ -26,28 +26,25 @@
 .page-heading .back-link,
 .back-link {
     align-items: center;
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-full, 9999px);
-    box-shadow: var(--shadow-xs);
-    color: var(--ink) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--radius-md, 6px);
+    box-shadow: none !important;
+    color: var(--muted, #64748b) !important;
     cursor: pointer;
     display: inline-flex;
     font-family: inherit;
     font-size: var(--text-sm, 13px);
-    font-weight: 600;
-    gap: 7px;
-    letter-spacing: -0.01em;
-    line-height: 1;
-    margin-bottom: 12px;
-    min-height: 34px;
-    padding: 6px 14px 6px 10px;
+    font-weight: 500;
+    gap: 5px;
+    letter-spacing: normal;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    min-height: auto;
+    padding: 3px 6px;
+    margin-left: -6px;
     text-decoration: none !important;
-    transition: background-color var(--motion-duration-normal, 150ms) ease,
-                border-color var(--motion-duration-normal, 150ms) ease,
-                box-shadow var(--motion-duration-normal, 150ms) ease,
-                color var(--motion-duration-normal, 150ms) ease,
-                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+    transition: color 140ms ease, background-color 140ms ease;
     user-select: none;
     width: fit-content;
 }
@@ -55,7 +52,7 @@
 .page-heading .back-link::before,
 .back-link::before {
     background-color: transparent;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23615d59' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
     background-position: center;
     background-repeat: no-repeat;
     content: '';
@@ -63,17 +60,17 @@
     flex-shrink: 0;
     height: 16px;
     width: 16px;
-    transition: background-image 150ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-image 140ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-heading .back-link:hover,
 .back-link:hover {
-    background: var(--surface-hover);
-    border-color: var(--line-strong);
-    box-shadow: var(--shadow-sm);
-    color: var(--ink) !important;
+    background: var(--surface-hover, rgba(0, 0, 0, 0.04)) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--primary, #0075de) !important;
     text-decoration: none !important;
-    transform: translateY(-1px);
+    transform: none !important;
 }
 
 .page-heading .back-link:hover::before,
@@ -84,14 +81,14 @@
 
 .page-heading .back-link:active,
 .back-link:active {
-    background: var(--surface-subtle);
-    box-shadow: none;
-    transform: translateY(0) scale(0.98);
+    background: var(--surface-subtle, rgba(0, 0, 0, 0.06)) !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 .page-heading .back-link:focus-visible,
 .back-link:focus-visible {
-    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus-ring);
+    box-shadow: 0 0 0 2px var(--focus-ring) !important;
     outline: none;
 }
 
@@ -245,10 +242,10 @@
 /* Dark mode overrides for app shell components */
 html[data-theme="dark"] .page-heading .back-link,
 html[data-theme="dark"] .back-link {
-    background: var(--surface, #1e1e1e);
-    border-color: var(--line, rgba(255, 255, 255, 0.12));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    color: var(--ink, #f6f5f4) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--muted, #94a3b8) !important;
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
@@ -316,23 +313,24 @@ html[data-theme="dark"] .back-link::before {
 
 html[data-theme="dark"] .page-heading .back-link:hover,
 html[data-theme="dark"] .back-link:hover {
-    background: var(--surface-hover, rgba(255, 255, 255, 0.08));
-    border-color: var(--line-strong, rgba(255, 255, 255, 0.22));
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
-    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--primary, #58a6ff) !important;
+    transform: none !important;
 }
 
 html[data-theme="dark"] .page-heading .back-link:hover::before,
 html[data-theme="dark"] .back-link:hover::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234a9df8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2358a6ff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
     transform: translateX(-3px);
 }
 
 html[data-theme="dark"] .page-heading .back-link:active,
 html[data-theme="dark"] .back-link:active {
-    background: var(--surface-subtle, rgba(255, 255, 255, 0.05));
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-    transform: translateY(0) scale(0.98);
+    background: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 html[data-theme="dark"] .persistent-surveillance-banner {

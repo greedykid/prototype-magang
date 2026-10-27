@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Assessment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 
 class StoreAssessmentRequest extends FormRequest
 {
@@ -33,6 +34,11 @@ class StoreAssessmentRequest extends FormRequest
 
         return [
             'lpk_id' => ['required', 'exists:lpks,id'],
+            'lpk_location_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('lpk_locations', 'id')->where(fn ($q) => $q->where('lpk_id', (int) $this->input('lpk_id'))),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'assessment_type' => ['required', 'string', 'max:60'],
             'start_date' => $usesSplitDateFields ? ['required', 'date'] : ['nullable'],

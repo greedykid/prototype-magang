@@ -10,6 +10,7 @@ use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleSheetsReportController;
 use App\Http\Controllers\LpkController;
 use App\Http\Controllers\LpkImportController;
+use App\Http\Controllers\LpkLocationController;
 use App\Http\Controllers\LpkMemberController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -56,6 +57,9 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/lpks/{lpk}/notes', [LpkController::class, 'updateNotes'])->name('lpks.notes.update')->whereNumber('lpk');
     Route::post('/lpks/{lpk}/members', [LpkMemberController::class, 'store'])->name('lpks.members.store')->whereNumber('lpk');
     Route::delete('/lpks/{lpk}/members/{user}', [LpkMemberController::class, 'destroy'])->name('lpks.members.destroy')->whereNumber('lpk')->whereNumber('user');
+    Route::post('/lpks/{lpk}/locations', [LpkLocationController::class, 'store'])->name('lpks.locations.store')->whereNumber('lpk');
+    Route::put('/lpks/{lpk}/locations/{location}', [LpkLocationController::class, 'update'])->name('lpks.locations.update')->whereNumber('lpk')->whereNumber('location');
+    Route::delete('/lpks/{lpk}/locations/{location}', [LpkLocationController::class, 'destroy'])->name('lpks.locations.destroy')->whereNumber('lpk')->whereNumber('location');
 
     // Pengelolaan & Penjadwalan Asesmen (Dapat diakses Admin & PIC)
     Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');

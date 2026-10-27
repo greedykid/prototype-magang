@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -306,7 +305,8 @@ class LpkImportController extends Controller
         $lpksByAccreditation = $allLpks->whereNotNull('accreditation_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->accreditation_number)));
         $lpksByRegNo = $allLpks->whereNotNull('registration_number')->keyBy(fn ($l) => strtoupper(trim((string) $l->registration_number)));
 
-        DB::transaction(function () use (
+        try {
+            DB::transaction(function () use (
             $rows,
             $headers,
             $sheetHyperlinks,
@@ -471,35 +471,36 @@ class LpkImportController extends Controller
 
                     $existing->update([
                         'pic_id' => $existing->pic_id ?: $picId,
-                        'no_reg' => $noReg ?: $existing->no_reg,
-                        'accreditation_number' => $accreditationNumber ?: ($existing->accreditation_number ?: $existing->registration_number),
+                        'no_reg' => $noReg ? mb_substr($noReg, 0, 30) : $existing->no_reg,
+                        'accreditation_number' => $accreditationNumber ? mb_substr($accreditationNumber, 0, 50) : ($existing->accreditation_number ?: $existing->registration_number),
                         'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
-                        'registration_number' => $accreditationNumber ?: ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
-                        'name' => $name,
+                        'registration_number' => $accreditationNumber ? mb_substr($accreditationNumber, 0, 50) : ($existing->registration_number ?: ($noReg ?: $existing->no_reg)),
+                        'name' => mb_substr($name, 0, 255),
                         'scope' => $scope ?: $existing->scope,
                         'certificate_date' => $certificateDate ?: $existing->certificate_date,
                         'address' => $address ?: $existing->address,
                         'email' => ! empty($data['email']) ? $data['email'] : $existing->email,
-                        'phone' => $phone ?: $existing->phone,
+                        'phone' => $phone ? mb_substr($phone, 0, 30) : $existing->phone,
                         'status' => $status,
                         'expired_at' => $expiredAt ?: $existing->expired_at,
                         'drive_url' => $driveUrl ?: ($existing->drive_url && str_starts_with($existing->drive_url, 'http') ? $existing->drive_url : null),
                         'notes' => $compiledNotes ?: $existing->notes,
                     ]);
+                    $existing->ensureMainLocation();
                     $updatedCount++;
                 } else {
                     $createdLpk = Lpk::create([
                         'pic_id' => $picId,
-                        'no_reg' => $noReg,
-                        'accreditation_number' => $accreditationNumber ?: $regNo,
+                        'no_reg' => $noReg ? mb_substr($noReg, 0, 30) : null,
+                        'accreditation_number' => mb_substr($accreditationNumber ?: ($regNo ?: ''), 0, 50),
                         'accreditation_type' => $accreditationType ?: 'Laboratorium Penguji',
-                        'registration_number' => $accreditationNumber ?: ($regNo ?: $noReg),
-                        'name' => $name,
+                        'registration_number' => mb_substr($accreditationNumber ?: ($regNo ?: ($noReg ?: '')), 0, 50),
+                        'name' => mb_substr($name, 0, 255),
                         'scope' => $scope,
                         'certificate_date' => $certificateDate,
                         'address' => $address,
                         'email' => $data['email'] ?? null,
-                        'phone' => $phone,
+                        'phone' => $phone ? mb_substr($phone, 0, 30) : null,
                         'status' => $status,
                         'expired_at' => $expiredAt,
                         'drive_url' => $driveUrl,
@@ -521,6 +522,13 @@ class LpkImportController extends Controller
                 }
             }
         });
+        } catch (\Throwable $e) {
+            Log::error('LPK import error: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Gagal memproses impor LPK: '.$e->getMessage());
+        }
+
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache();
 
         // Audit log terstruktur
         Log::info('LPK import batch completed', [
@@ -532,105 +540,38 @@ class LpkImportController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $msg = "Impor data LPK selesai: {$createdCount} LPK baru ditambahkan, {$updatedCount} diperbarui";
-        if ($skippedCount > 0) {
-            $msg .= ", dan {$skippedCount} baris dilewati";
+        if ($createdCount === 0 && $updatedCount === 0 && $skippedCount > 0) {
+            $msg = "Impor selesai. {$skippedCount} baris dilewati";
             if (! empty($unauthorizedLpks)) {
                 $uniqueUnauthorized = array_values(array_unique($unauthorizedLpks));
                 $sample = implode(', ', array_slice($uniqueUnauthorized, 0, 3));
                 if (count($uniqueUnauthorized) > 3) {
                     $sample .= ' dst.';
                 }
-                $msg .= " (milik PIC/Admin lain: {$sample})";
+                $msg .= " karena terdaftar atas nama PIC lain ({$sample})";
             }
             $msg .= '.';
         } else {
-            $msg .= '.';
+            $msg = "Impor data LPK selesai: {$createdCount} LPK baru ditambahkan, {$updatedCount} diperbarui";
+            if ($skippedCount > 0) {
+                $msg .= ", dan {$skippedCount} baris dilewati";
+                if (! empty($unauthorizedLpks)) {
+                    $uniqueUnauthorized = array_values(array_unique($unauthorizedLpks));
+                    $sample = implode(', ', array_slice($uniqueUnauthorized, 0, 3));
+                    if (count($uniqueUnauthorized) > 3) {
+                        $sample .= ' dst.';
+                    }
+                    $msg .= " (milik PIC lain: {$sample})";
+                }
+                $msg .= '.';
+            } else {
+                $msg .= '.';
+            }
         }
 
         return redirect()->route('lpks.index')->with('success', $msg);
     }
 
-
-    /**
-     * Mem-parsing berkas Excel (.xlsx) menjadi headers, rows, dan hyperlinks.
-     */
-    protected function parseXlsxFile(string $filePath): array
-    {
-        $reader = IOFactory::createReaderForFile($filePath);
-        $reader->setReadDataOnly(false);
-        $spreadsheet = $reader->load($filePath);
-        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance($spreadsheet)->disableCalculationCache();
-        $worksheet = $spreadsheet->getActiveSheet();
-
-        $headers = [];
-        $rows = [];
-        $hyperlinks = [];
-
-        foreach ($worksheet->getRowIterator() as $row) {
-            $rowNum = $row->getRowIndex();
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(false);
-
-            $rowValues = [];
-            $colIndex = 0;
-
-            foreach ($cellIterator as $cell) {
-                $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
-                $val = '';
-
-                if ($cell->hasHyperlink() && ! empty($cell->getHyperlink()->getUrl())) {
-                    $hyperlinks[$rowNum][$colLetter] = $cell->getHyperlink()->getUrl();
-                }
-
-                if ($cell->isFormula()) {
-                    $formula = (string) $cell->getValue();
-                    if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
-                        $hyperlinks[$rowNum][$colLetter] = trim($urlMatches[1]);
-                    }
-                }
-
-                if (ExcelDate::isDateTime($cell)) {
-                    try {
-                        $rawDateVal = $cell->isFormula() ? $cell->getCalculatedValue() : $cell->getValue();
-                        if (is_numeric($rawDateVal)) {
-                            $dateObj = ExcelDate::excelToDateTimeObject((float) $rawDateVal);
-                            $val = $dateObj->format('Y-m-d');
-                        } else {
-                            $val = (string) ($rawDateVal ?? '');
-                        }
-                    } catch (\Throwable) {
-                        $val = (string) ($cell->getCalculatedValue() ?? '');
-                    }
-                } else {
-                    $val = (string) ($cell->getCalculatedValue() ?? '');
-                }
-
-                $rowValues[] = $val;
-                $colIndex++;
-            }
-
-            // Lewati baris kosong
-            if (empty(array_filter($rowValues, fn ($v) => trim((string) $v) !== ''))) {
-                continue;
-            }
-
-            if (empty($headers)) {
-                $headers = $this->normalizeHeaders($rowValues);
-            } else {
-                $rows[] = [
-                    'row_number' => $rowNum,
-                    'values' => $rowValues,
-                ];
-            }
-        }
-
-        return [
-            'headers' => $headers,
-            'rows' => $rows,
-            'hyperlinks' => $hyperlinks,
-        ];
-    }
 
     /**
      * Normalisasi nama kolom header ke format atribut model LPK.

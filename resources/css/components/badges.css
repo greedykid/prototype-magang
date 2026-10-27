@@ -35,14 +35,14 @@
 
 /* Status Colors (Crisp Design System Status Badges) */
 .status-planned, .status-closed { background: var(--neutral-chip-bg, #f8f8fc); border-color: var(--neutral-chip-border, #eaecf5); color: var(--neutral-chip-text, #5d6b98); }
-.status-scheduled, .status-submitted { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(25, 114, 245, 0.25)); color: var(--info-text, #1972f5); }
+.status-scheduled, .status-submitted { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(0, 102, 192, 0.25)); color: var(--info-text, #0066c0); font-weight: 600; }
 .status-in_progress, .status-open { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); }
 .status-completed, .status-pelaksanaan, .status-resolved, .status-active, .status-terverifikasi, .status-verified, .status-paid, .status-signed, .status-output_released, .status-approved { background: var(--success-bg, #eefbf0); border-color: var(--success-border, rgba(21, 111, 8, 0.25)); color: var(--success-text, #156f08); font-weight: 600; }
 .status-not_started, .status-inactive, .status-belum_dilaporkan, .status-unreported, .status-unpaid, .status-unsigned { background: var(--neutral-chip-bg, #f8f8fc); border-color: var(--neutral-chip-border, #eaecf5); color: var(--neutral-chip-text, #5d6b98); }
 .status-menunggu_verifikasi, .status-pending_verification, .status-waiting_output, .status-under_review, .status-surveillance_due, .status-due, .status-grace_period, .status-reminder, .status-warn { background: var(--warning-bg, #fff6ea); border-color: var(--warning-border, rgba(161, 67, 0, 0.25)); color: var(--warning-text, #a14300); font-weight: 600; }
 .status-batas-tp { background: var(--purple-bg, #f5edff); border-color: var(--purple-border, rgba(90, 40, 176, 0.25)); color: var(--purple-text, #5a28b0); font-weight: 600; }
 .status-perlu_revisi, .status-rejected, .status-expired, .status-cancelled, .status-surveillance_overdue, .status-overdue, .status-revoked, .status-dicabut, .status-jt, .status-danger { background: var(--danger-bg, #fff0f2); border-color: var(--danger-border, rgba(188, 8, 31, 0.25)); color: var(--danger-text, #bc081f); font-weight: 600; }
-.status-suspended, .status-dibekukan { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(25, 114, 245, 0.25)); color: var(--info-text, #1972f5); font-weight: 600; }
+.status-suspended, .status-dibekukan { background: var(--info-bg, #edf5ff); border-color: var(--info-border, rgba(0, 102, 192, 0.25)); color: var(--info-text, #0066c0); font-weight: 600; }
 
 /* Dark Mode Status Badges */
 html[data-theme="dark"] .status-planned,
@@ -148,6 +148,81 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
     background-color: var(--warning-bg, #fff6ea);
     border-color: var(--warning-border, rgba(161, 67, 0, 0.25));
     color: var(--warning-text, #a14300);
+}
+.lpk-alert-badge .badge-more {
+    border-radius: var(--radius-xs, 3px);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-left: 2px;
+    padding: 0 4px;
+}
+.lpk-alert-badge.is-urgent .badge-more {
+    background: var(--danger-text, #c5220f);
+    color: #ffffff;
+}
+.lpk-alert-badge.is-warning .badge-more {
+    background: var(--warning-text, #9a5b00);
+    color: #ffffff;
+}
+
+/* Quieter Mono Pill for SK KAN in Assessment Tables */
+.assessment-sk-pill {
+    align-items: center;
+    background: var(--surface-subtle, #f6f5f4);
+    border: 1px solid var(--line, #dcd8d3);
+    border-radius: var(--radius-sm, 4px);
+    box-sizing: border-box;
+    color: var(--muted, #4a4744);
+    display: inline-flex;
+    font-size: 11px;
+    gap: 5px;
+    line-height: 1.25;
+    margin-top: 4px;
+    padding: 2px 6px;
+    width: fit-content;
+}
+.assessment-sk-pill .sk-code {
+    color: var(--ink);
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 600;
+}
+.assessment-sk-pill .sk-lead-time {
+    color: var(--muted-subtle, #736f6a);
+    font-size: 10.5px;
+}
+html[data-theme="dark"] .assessment-sk-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Quieter Status Subtag for Assessment Tables */
+.assessment-status-subtag {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+.assessment-status-subtag.is-danger {
+    color: var(--danger-text, #bc081f);
+}
+.assessment-status-subtag.is-warning {
+    color: var(--warning-text, #a14300);
+}
+.assessment-status-subtag.is-info {
+    color: var(--primary, #0075de);
+}
+html[data-theme="dark"] .assessment-status-subtag.is-danger {
+    color: #fca5a5;
+}
+html[data-theme="dark"] .assessment-status-subtag.is-warning {
+    color: #f6c177;
+}
+html[data-theme="dark"] .assessment-status-subtag.is-info {
+    color: #79c0ff;
 }
 
 .lpk-pic-badge {

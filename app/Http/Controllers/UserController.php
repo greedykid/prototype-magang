@@ -133,7 +133,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
         ]);
 
         Log::info('User account created', [
@@ -180,7 +180,7 @@ class UserController extends Controller
         ];
 
         if (! empty($validated['password'])) {
-            $payload['password'] = Hash::make($validated['password']);
+            $payload['password'] = $validated['password'];
         }
 
         $user->update($payload);

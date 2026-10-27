@@ -2,6 +2,10 @@
 
 namespace App\Traits;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+
 trait ImportsSpreadsheetData
 {
     /**
@@ -62,6 +66,88 @@ trait ImportsSpreadsheetData
         return [
             'headers' => $headers,
             'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Parsing berkas Excel (.xlsx) menjadi headers, rows, dan hyperlinks terstruktur.
+     *
+     * @return array{headers: array<string>, rows: array<int, array{row_number: int, values: array<int, string|null>}>, hyperlinks?: array<int, array<string, string>>}
+     */
+    protected function parseXlsxFile(string $filePath): array
+    {
+        $reader = IOFactory::createReaderForFile($filePath);
+        $reader->setReadDataOnly(false);
+        $spreadsheet = $reader->load($filePath);
+        \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance($spreadsheet)->disableCalculationCache();
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        $headers = [];
+        $rows = [];
+        $hyperlinks = [];
+
+        foreach ($worksheet->getRowIterator() as $row) {
+            $rowNum = $row->getRowIndex();
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false);
+
+            $rowValues = [];
+            $colIndex = 0;
+
+            foreach ($cellIterator as $cell) {
+                $colLetter = Coordinate::stringFromColumnIndex($colIndex + 1);
+                $val = '';
+
+                if ($cell->hasHyperlink() && ! empty($cell->getHyperlink()->getUrl())) {
+                    $hyperlinks[$rowNum][$colLetter] = $cell->getHyperlink()->getUrl();
+                }
+
+                if ($cell->isFormula()) {
+                    $formula = (string) $cell->getValue();
+                    if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
+                        $hyperlinks[$rowNum][$colLetter] = trim($urlMatches[1]);
+                    }
+                }
+
+                if (ExcelDate::isDateTime($cell)) {
+                    try {
+                        $rawDateVal = $cell->isFormula() ? $cell->getCalculatedValue() : $cell->getValue();
+                        if (is_numeric($rawDateVal)) {
+                            $dateObj = ExcelDate::excelToDateTimeObject((float) $rawDateVal);
+                            $val = $dateObj->format('Y-m-d');
+                        } else {
+                            $val = (string) ($rawDateVal ?? '');
+                        }
+                    } catch (\Throwable) {
+                        $val = (string) ($cell->getCalculatedValue() ?? '');
+                    }
+                } else {
+                    $val = (string) ($cell->getCalculatedValue() ?? '');
+                }
+
+                $rowValues[] = $val;
+                $colIndex++;
+            }
+
+            // Lewati baris kosong
+            if (empty(array_filter($rowValues, fn ($v) => trim((string) $v) !== ''))) {
+                continue;
+            }
+
+            if (empty($headers)) {
+                $headers = $this->normalizeHeaders($rowValues);
+            } else {
+                $rows[] = [
+                    'row_number' => $rowNum,
+                    'values' => $rowValues,
+                ];
+            }
+        }
+
+        return [
+            'headers' => $headers,
+            'rows' => $rows,
+            'hyperlinks' => $hyperlinks,
         ];
     }
 

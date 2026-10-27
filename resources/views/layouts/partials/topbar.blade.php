@@ -150,9 +150,18 @@
                             <div class="notif-card-list">
                                 @foreach(array_slice($globalSurveillanceAlerts, 0, 4) as $alert)
                                     @php
-                                        $tDate = !empty($alert['target_date'])
-                                            ? ($alert['target_date'] instanceof \Carbon\CarbonInterface ? $alert['target_date'] : \Illuminate\Support\Carbon::parse($alert['target_date']))
-                                            : null;
+                                        $tDate = null;
+                                        if (!empty($alert['target_date'])) {
+                                            if ($alert['target_date'] instanceof \Carbon\CarbonInterface) {
+                                                $tDate = $alert['target_date'];
+                                            } elseif (is_string($alert['target_date'])) {
+                                                try {
+                                                    $tDate = \Illuminate\Support\Carbon::parse($alert['target_date']);
+                                                } catch (\Throwable) {
+                                                    $tDate = null;
+                                                }
+                                            }
+                                        }
                                     @endphp
                                     <div class="notif-item-card {{ $alert['is_urgent'] ? 'is-urgent' : '' }}">
                                         <div class="notif-item-top">

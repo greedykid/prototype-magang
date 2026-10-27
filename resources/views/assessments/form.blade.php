@@ -193,7 +193,7 @@
                         </p>
                     </div>
                     <span class="badge-tp badge-tp-success" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill, 9999px);">
-                        Auto Pre-filled
+                        Otomatis Terisi
                     </span>
                 </div>
             @endif
@@ -207,11 +207,67 @@
             @method('PUT')
         @endif
 
-        <div class="lpk-form-layout">
-            {{-- KOLOM KIRI: Informasi Utama Asesmen & Tim Pelaksana --}}
-            <div class="lpk-form-column">
-                {{-- KARTU 1: Informasi Lembaga & Judul Agenda --}}
-                <div class="lpk-form-card">
+        <div class="assessment-split-layout">
+            {{-- Master Pane: Menu Kategori di Sisi Kiri --}}
+            <aside class="split-master-pane" aria-label="Kategori Formulir Asesmen">
+                <div class="split-master-card">
+                    <div class="split-master-header">
+                        <span class="split-master-title">Kategori Asesmen</span>
+                        <span class="split-master-subtitle">Pilih bagian untuk diubah</span>
+                    </div>
+                    <div class="split-master-nav" role="tablist" aria-orientation="vertical">
+                        <button type="button" class="split-nav-item is-active" role="tab" id="tab-info" aria-selected="true" aria-controls="panel-info" data-pane="info">
+                            <span class="split-nav-badge">1</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Info Lembaga &amp; Agenda</span>
+                                <span class="split-nav-sub">Pilih LPK &amp; Judul Agenda</span>
+                            </div>
+                        </button>
+                        <button type="button" class="split-nav-item" role="tab" id="tab-schedule" aria-selected="false" aria-controls="panel-schedule" data-pane="schedule">
+                            <span class="split-nav-badge">2</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Jadwal &amp; Lokasi</span>
+                                <span class="split-nav-sub">Tanggal Kunjungan &amp; Dokumen</span>
+                            </div>
+                        </button>
+                        <button type="button" class="split-nav-item" role="tab" id="tab-team" aria-selected="false" aria-controls="panel-team" data-pane="team">
+                            <span class="split-nav-badge">3</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Tim Asesor KAN</span>
+                                <span class="split-nav-sub">Lead Assessor &amp; Anggota</span>
+                            </div>
+                        </button>
+                        <button type="button" class="split-nav-item" role="tab" id="tab-tp" aria-selected="false" aria-controls="panel-tp" data-pane="tp">
+                            <span class="split-nav-badge">4</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Tindakan Perbaikan (TP)</span>
+                                <span class="split-nav-sub">Batas Waktu TP &amp; Surat Resmi</span>
+                            </div>
+                        </button>
+                        <button type="button" class="split-nav-item" role="tab" id="tab-eha" aria-selected="false" aria-controls="panel-eha" data-pane="eha">
+                            <span class="split-nav-badge">5</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Rapat Panitia Teknis</span>
+                                <span class="split-nav-sub">Laporan Akhir &amp; Hasil Sidang</span>
+                            </div>
+                        </button>
+                        <button type="button" class="split-nav-item" role="tab" id="tab-sk" aria-selected="false" aria-controls="panel-sk" data-pane="sk">
+                            <span class="split-nav-badge">6</span>
+                            <div class="split-nav-text">
+                                <span class="split-nav-label">Pengesahan SK KAN</span>
+                                <span class="split-nav-sub">Nomor SK &amp; Masa Berlaku</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            {{-- Detail Pane: Panel Konten Kategori Terpilih di Sisi Kanan --}}
+            <div class="split-detail-pane">
+                {{-- PANEL 1: Info Lembaga & Agenda --}}
+                <div class="split-panel is-active" id="panel-info" role="tabpanel" aria-labelledby="tab-info" data-pane="info">
+                    {{-- KARTU 1: Informasi Lembaga & Judul Agenda --}}
+                    <div class="lpk-form-card" id="section-info">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-blue">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -226,6 +282,12 @@
                         <div class="lpk-card-header-text">
                             <h2>Informasi Lembaga &amp; Judul Agenda</h2>
                             <p>Pilih laboratorium uji / kalibrasi sasaran dan tentukan judul penugasan asesmen.</p>
+                        </div>
+                        <div class="split-header-nav">
+                            <button type="button" class="split-header-btn split-header-next" data-next="schedule" aria-label="Lanjut ke langkah 2: Jadwal &amp; Lokasi" title="Lanjut ke Jadwal &amp; Lokasi">
+                                <span>Lanjut</span>
+                                <x-icon name="arrow-right" size="13" />
+                            </button>
                         </div>
                     </div>
 
@@ -273,21 +335,21 @@
                             $selStatus = $selectedLpk ? strtolower($selectedLpk->dynamic_status) : 'active';
                             $selStatusLabel = $selectedLpk ? $selectedLpk->dynamic_status_label : 'Aktif';
                         @endphp
-                        <div id="selected-lpk-info" class="lpk-selected-info-card" style="{{ $selectedLpk ? '' : 'display: none;' }}">
-                            <div class="lpk-selected-info-main">
-                                <div class="lpk-selected-info-identity">
-                                    <span class="lpk-selected-reg" id="lpk-info-reg" title="Nomor Akreditasi">{{ $selAccreditationNo }}</span>
-                                    <span class="lpk-selected-sep" aria-hidden="true">&bull;</span>
-                                    <strong class="lpk-selected-name" id="lpk-info-name">{{ $selectedLpk?->name ?? '-' }}</strong>
-                                </div>
-                                <div class="lpk-selected-info-meta">
-                                    <div class="lpk-selected-cert">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        <span>Masa Berlaku: <strong id="lpk-info-cert-dates">{{ $selCertStart }} - {{ $selCertEnd }}</strong></span>
-                                    </div>
-                                    <span id="lpk-info-status" class="status status-{{ $selStatus }}">{{ $selStatusLabel }}</span>
+                        <div id="selected-lpk-info" class="lpk-selected-info-strip {{ $selectedLpk ? 'is-visible' : '' }}" role="region" aria-label="Informasi LPK Sasaran Terpilih" aria-live="polite" aria-atomic="true" style="{{ $selectedLpk ? '' : 'display: none;' }}">
+                            <div class="lpk-info-strip-left">
+                                <span class="lpk-selected-reg" id="lpk-info-reg" title="Nomor Akreditasi LPK">{{ $selAccreditationNo }}</span>
+                                <span class="lpk-selected-sep" aria-hidden="true">&bull;</span>
+                                <div class="lpk-selected-cert">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    <span>Masa Berlaku: <strong id="lpk-info-cert-dates">{{ ($selCertStart === '-' && $selCertEnd === '-') ? 'Tidak ada data masa berlaku' : ($selCertStart . ' - ' . $selCertEnd) }}</strong></span>
                                 </div>
                             </div>
+                            <div class="lpk-info-strip-right">
+                                <span class="lpk-info-strip-caption" id="lpk-status-caption">Status LPK:</span>
+                                <span id="lpk-info-status" class="status status-{{ $selStatus }}" aria-labelledby="lpk-status-caption">{{ $selStatusLabel }}</span>
+                            </div>
+                            {{-- Elemen tersembunyi untuk kompatibilitas script JS --}}
+                            <span id="lpk-info-name" style="display: none;">{{ $selectedLpk?->name ?? '-' }}</span>
                         </div>
                     </div>
 
@@ -324,26 +386,29 @@
                             @enderror
                         </div>
 
-                        <div class="lpk-field">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; flex-wrap: wrap; gap: 4px;">
-                                <label class="lpk-label" style="margin-bottom: 0;">
-                                    <span>Status Asesmen</span>
-                                </label>
-                                <span class="status-auto-tag">Otomatis</span>
+                        <div class="lpk-field lpk-field-status">
+                            <div class="lpk-field-header">
+                                <span class="lpk-label" id="status-field-label">Status Asesmen</span>
+                                <span class="status-auto-tag">Dihitung Otomatis</span>
                             </div>
-                            <div class="lpk-status-preview-box">
-                                <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
-                                    {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
-                                </span>
-                                <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
+                            <div class="assessment-status-card" role="status" aria-live="polite" aria-atomic="true" aria-labelledby="status-field-label" aria-describedby="status-desc-preview">
+                                <div class="assessment-status-card-head">
+                                    <span id="status-badge-preview" class="status status-{{ strtolower($initialComputedStatus) }}" style="font-weight: 600; font-size: 12px;">
+                                        {{ $statusLabels[$initialComputedStatus] ?? $initialComputedStatus }}
+                                    </span>
+                                    <input type="hidden" name="status" id="input-auto-status" value="{{ $initialComputedStatus }}" data-initial-status="{{ old('status', $assessment->status ?? 'PLANNED') }}" data-exists="{{ $assessment->exists ? '1' : '0' }}">
+                                </div>
+                                <p id="status-desc-preview" class="assessment-status-card-desc">{{ $initialComputedDesc }}</p>
                             </div>
-                            <span id="status-desc-preview" class="lpk-field-hint">{{ $initialComputedDesc }}</span>
                         </div>
                     </div>
-                </div>
+                </div> {{-- /#section-info --}}
+            </div> {{-- /#panel-info --}}
 
-                {{-- KARTU 2: Jadwal Pelaksanaan & Personil Asesor --}}
-                <div class="lpk-form-card">
+            {{-- PANEL 2: Jadwal & Lokasi --}}
+            <div class="split-panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule" data-pane="schedule">
+                {{-- KARTU 2: Jadwal Pelaksanaan & Lokasi --}}
+                <div class="lpk-form-card" id="section-schedule">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-green">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -354,8 +419,18 @@
                             </svg>
                         </div>
                         <div class="lpk-card-header-text">
-                            <h2>Tanggal Pelaksanaan &amp; Tim Asesor</h2>
-                            <p>Rentang tanggal kunjungan lapangan, lokasi, dan personil tim penilai KAN.</p>
+                            <h2>Tanggal Pelaksanaan &amp; Lokasi</h2>
+                            <p>Rentang tanggal kunjungan lapangan, toleransi dokumen, dan lokasi audit KAN.</p>
+                        </div>
+                        <div class="split-header-nav">
+                            <button type="button" class="split-header-btn split-header-prev" data-prev="info" title="Sebelumnya: Info Lembaga &amp; Agenda">
+                                <x-icon name="arrow-left" size="13" />
+                                <span>Sebelumnya</span>
+                            </button>
+                            <button type="button" class="split-header-btn split-header-next" data-next="team" title="Lanjut ke Tim Asesor KAN">
+                                <span>Lanjut</span>
+                                <x-icon name="arrow-right" size="13" />
+                            </button>
                         </div>
                     </div>
 
@@ -404,10 +479,9 @@
                         <div id="assessment-duration-badge" class="assessment-duration-badge" style="display: none;"></div>
                     </div>
 
-
                     <div class="lpk-field" style="margin-bottom: 18px;">
                         <label class="lpk-label" for="assessment-submission-due-date">
-                            <span>Tanggal Toleransi Pengisian</span>
+                            <span>Tanggal Toleransi Pengisian Dokumen</span>
                         </label>
                         <input id="assessment-submission-due-date" type="date" name="submission_due_date" value="{{ $submissionDueDateVal }}" data-default-date="{{ $defaultSubmissionDueDateVal }}">
                         <span id="assessment-submission-due-date-hint" class="lpk-field-hint">
@@ -415,42 +489,93 @@
                         </span>
                     </div>
 
-                    <div class="lpk-field-row">
-                        <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-location">
-                                <span>Lokasi Kunjungan / Audit</span>
-                            </label>
-                            <input id="assessment-location" name="location" value="{{ old('location', $assessment->location ?: request('location')) }}" maxlength="255" placeholder="Contoh: Gedung Laboratorium Kimia & Fisika, Bandung">
-                        </div>
-
-                        <div class="lpk-field">
-                            <label class="lpk-label" for="assessment-lead-assessor">
-                                <span>Lead Assessor (Asesor Kepala)</span>
-                            </label>
-                            <input id="assessment-lead-assessor" name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: ($assessment->assessment_team ?: request('lead_assessor'))) }}" maxlength="100" placeholder="Nama asesor kepala">
-                        </div>
+                    <div class="lpk-field">
+                        <label class="lpk-label" for="assessment-lpk-location-id">
+                            <span>Target Lokasi / Cabang Fasilitas</span>
+                        </label>
+                        <select id="assessment-lpk-location-id" name="lpk_location_id" class="@error('lpk_location_id') is-invalid @enderror">
+                            <option value="">Pilih Target Cabang / Lokasi</option>
+                            @foreach($lpks as $lpkItem)
+                                @foreach($lpkItem->locations as $locItem)
+                                    <option value="{{ $locItem->id }}"
+                                        data-lpk-id="{{ $locItem->lpk_id }}"
+                                        data-address="{{ $locItem->address }}"
+                                        @selected(old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id')) == $locItem->id)>
+                                        {{ $locItem->name }} ({{ $locItem->location_type_label }})
+                                    </option>
+                                @endforeach
+                            @endforeach
+                        </select>
+                        <span class="lpk-field-hint">
+                            Pilih cabang atau fasilitas pengujian yang diaudit pada agenda ini (Sistem Multilokasi KAN U-05).
+                        </span>
                     </div>
 
                     <div class="lpk-field">
-                        <label class="lpk-label" for="assessment-team">
-                            <span>Susunan Tim Asesmen (Asesor &amp; Tenaga Ahli)</span>
+                        <label class="lpk-label" for="assessment-location">
+                            <span>Detail Alamat / Ruangan Spesifik (Opsional)</span>
                         </label>
-                        <input id="assessment-team" name="assessment_team" value="{{ old('assessment_team', $assessment->assessment_team ?: $assessment->lead_assessor) }}" maxlength="1000" placeholder="Contoh: Dr. Ir. Budi (Ketua), Siti Rahma (Asesor), Hendra (Tenaga Ahli)">
+                        <input id="assessment-location" name="location" value="{{ old('location', $assessment->location ?: request('location')) }}" maxlength="255" placeholder="Contoh: Gedung Laboratorium Kimia & Fisika, Bandung">
                     </div>
+                </div> {{-- /#section-schedule --}}
+            </div> {{-- /#panel-schedule --}}
 
-                    <div class="lpk-field">
-                        <label class="lpk-label" for="assessment-notes">
-                            <span>Catatan Pelaksanaan / Lingkup Khusus</span>
-                        </label>
-                        <textarea id="assessment-notes" name="notes" rows="3" maxlength="5000" placeholder="Catatan internal pengawasan, agenda khusus, atau arahan logistik tim asesmen...">{{ old('notes', $assessment->notes) }}</textarea>
-                    </div>
+            {{-- PANEL 3: Tim Asesor KAN --}}
+            <div class="split-panel" id="panel-team" role="tabpanel" aria-labelledby="tab-team" data-pane="team">
+                {{-- KARTU 3: Tim Asesor KAN & Penugasan --}}
+                <div class="lpk-form-card" id="section-team">
+            <div class="lpk-form-card-header">
+                <div class="lpk-card-icon-wrap icon-wrap-green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="lpk-card-header-text">
+                    <h2>Tim Asesor &amp; Penugasan KAN</h2>
+                    <p>Penetapan susunan asesor kepala (Lead Assessor), asesor anggota, dan tenaga ahli pendamping audit.</p>
+                </div>
+                <div class="split-header-nav">
+                    <button type="button" class="split-header-btn split-header-prev" data-prev="schedule" title="Sebelumnya: Jadwal &amp; Lokasi">
+                        <x-icon name="arrow-left" size="13" />
+                        <span>Sebelumnya</span>
+                    </button>
+                    <button type="button" class="split-header-btn split-header-next" data-next="tp" title="Lanjut ke Tindakan Perbaikan (TP &amp; VTP)">
+                        <span>Lanjut</span>
+                        <x-icon name="arrow-right" size="13" />
+                    </button>
                 </div>
             </div>
 
-            {{-- KOLOM KANAN: Standar KAN (TP/VTP, Rapat Panitia Teknis, dan Keputusan SK) --}}
-            <div class="lpk-form-column">
-                {{-- KARTU 3: Tindakan Perbaikan & Verifikasi (TP & VTP) - Standar KAN --}}
-                <div class="lpk-form-card">
+            <div class="lpk-field">
+                <label class="lpk-label" for="assessment-lead-assessor">
+                    <span>Lead Assessor (Asesor Kepala)</span>
+                </label>
+                <input id="assessment-lead-assessor" name="lead_assessor" value="{{ old('lead_assessor', $assessment->lead_assessor ?: ($assessment->assessment_team ?: request('lead_assessor'))) }}" maxlength="100" placeholder="Nama asesor kepala">
+            </div>
+
+            <div class="lpk-field">
+                <label class="lpk-label" for="assessment-team">
+                    <span>Susunan Tim Asesmen (Asesor &amp; Tenaga Ahli)</span>
+                </label>
+                <input id="assessment-team" name="assessment_team" value="{{ old('assessment_team', $assessment->assessment_team ?: $assessment->lead_assessor) }}" maxlength="1000" placeholder="Contoh: Dr. Ir. Budi (Ketua), Siti Rahma (Asesor), Hendra (Tenaga Ahli)">
+            </div>
+
+            <div class="lpk-field">
+                <label class="lpk-label" for="assessment-notes">
+                    <span>Catatan Pelaksanaan / Lingkup Khusus</span>
+                </label>
+                <textarea id="assessment-notes" name="notes" rows="4" maxlength="5000" placeholder="Catatan internal pengawasan, agenda khusus, arahan teknis, atau kebutuhan logistik tim penilai...">{{ old('notes', $assessment->notes) }}</textarea>
+            </div>
+        </div> {{-- /#section-team --}}
+    </div> {{-- /#panel-team --}}
+
+    {{-- PANEL 4: Tindakan Perbaikan (TP & VTP) --}}
+    <div class="split-panel" id="panel-tp" role="tabpanel" aria-labelledby="tab-tp" data-pane="tp">
+        {{-- KARTU 4: Tindakan Perbaikan & Verifikasi (TP & VTP) - Standar KAN --}}
+        <div class="lpk-form-card" id="section-tp">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-amber">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -461,6 +586,16 @@
                         <div class="lpk-card-header-text">
                             <h2>Tindakan Perbaikan &amp; Verifikasi (TP &amp; VTP)</h2>
                             <p>Batas waktu perbaikan ketidaksesuaian sesuai Brosur KAN (Akreditasi Awal 3 bulan, Surveilen/Re-asesmen 2 bulan).</p>
+                        </div>
+                        <div class="split-header-nav">
+                            <button type="button" class="split-header-btn split-header-prev" data-prev="team" title="Sebelumnya: Tim Asesor KAN">
+                                <x-icon name="arrow-left" size="13" />
+                                <span>Sebelumnya</span>
+                            </button>
+                            <button type="button" class="split-header-btn split-header-next" data-next="eha" title="Lanjut ke Rapat Panitia Teknis">
+                                <span>Lanjut</span>
+                                <x-icon name="arrow-right" size="13" />
+                            </button>
                         </div>
                     </div>
 
@@ -548,10 +683,13 @@
                         </label>
                         <textarea id="assessment-tp-notes" name="tp_notes" rows="3" maxlength="5000" placeholder="Rangkuman temuan ketidaksesuaian atau tindakan koreksi yang dilakukan LPK...">{{ old('tp_notes', $assessment->tp_notes) }}</textarea>
                     </div>
-                </div>
+                </div> {{-- /#section-tp --}}
+            </div> {{-- /#panel-tp --}}
 
-                {{-- KARTU 4: Laporan Asesmen & Rapat Panitia Teknis --}}
-                <div class="lpk-form-card">
+            {{-- PANEL 5: Rapat Panitia Teknis --}}
+            <div class="split-panel" id="panel-eha" role="tabpanel" aria-labelledby="tab-eha" data-pane="eha">
+                {{-- KARTU 5: Laporan Asesmen & Rapat Panitia Teknis --}}
+                <div class="lpk-form-card" id="section-eha">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-rose">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -565,6 +703,16 @@
                         <div class="lpk-card-header-text">
                             <h2>Laporan Asesmen &amp; Rapat Panitia Teknis</h2>
                             <p>Pencatatan laporan akhir dan evaluasi hasil asesmen oleh Panitia Teknis sebelum penerbitan SK.</p>
+                        </div>
+                        <div class="split-header-nav">
+                            <button type="button" class="split-header-btn split-header-prev" data-prev="tp" title="Sebelumnya: Tindakan Perbaikan (TP &amp; VTP)">
+                                <x-icon name="arrow-left" size="13" />
+                                <span>Sebelumnya</span>
+                            </button>
+                            <button type="button" class="split-header-btn split-header-next" data-next="sk" title="Lanjut ke Pengesahan SK KAN">
+                                <span>Lanjut</span>
+                                <x-icon name="arrow-right" size="13" />
+                            </button>
                         </div>
                     </div>
 
@@ -603,10 +751,13 @@
                         </label>
                         <textarea id="assessment-eha-notes" name="eha_notes" rows="2" maxlength="2000" placeholder="Catatan panitia teknis, rekomendasi kelanjutan, atau tindak lanjut hasil evaluasi...">{{ old('eha_notes', $assessment->eha_notes) }}</textarea>
                     </div>
-                </div>
+                </div> {{-- /#section-eha --}}
+            </div> {{-- /#panel-eha --}}
 
-                {{-- KARTU 5: Keputusan Akreditasi / SK KAN --}}
-                <div id="form-sk-block" class="lpk-form-card" style="scroll-margin-top: 85px;">
+            {{-- PANEL 6: Pengesahan SK KAN --}}
+            <div class="split-panel" id="panel-sk" role="tabpanel" aria-labelledby="tab-sk" data-pane="sk">
+                {{-- KARTU 6: Keputusan Akreditasi / SK KAN --}}
+                <div class="lpk-form-card" id="section-sk">
                     <div class="lpk-form-card-header">
                         <div class="lpk-card-icon-wrap icon-wrap-emerald">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -614,14 +765,16 @@
                                 <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
                             </svg>
                         </div>
-                        <div class="lpk-card-header-text" style="flex: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                <div>
-                                    <h2>Surat Keputusan (SK) Hasil Asesmen / Akreditasi KAN</h2>
-                                    <p>Diisi jika tindakan perbaikan telah selesai / memenuhi atau SK kelanjutan/re-akreditasi telah diterbitkan.</p>
-                                </div>
-                                <span class="badge-tp badge-tp-success" style="font-size: 11px;">Penyelesaian &amp; SK KAN</span>
-                            </div>
+                        <div class="lpk-card-header-text">
+                            <h2>Surat Keputusan (SK) Hasil Asesmen / Akreditasi KAN</h2>
+                            <p>Diisi jika tindakan perbaikan telah selesai / memenuhi atau SK kelanjutan/re-akreditasi telah diterbitkan.</p>
+                        </div>
+                        <div class="split-header-nav">
+                            <span class="badge-tp badge-tp-success" style="font-size: 11px;">Penyelesaian &amp; SK KAN</span>
+                            <button type="button" class="split-header-btn split-header-prev" data-prev="eha" title="Sebelumnya: Panitia Teknis">
+                                <x-icon name="arrow-left" size="13" />
+                                <span>Sebelumnya</span>
+                            </button>
                         </div>
                     </div>
 
@@ -647,21 +800,22 @@
                             (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->format('d M Y') }} s/d SK {{ $assessment->sk_date->format('d M Y') }})
                         </div>
                     @endif
-                </div>
-            </div>
-        </div>
+                </div> {{-- /#section-sk --}}
+            </div> {{-- /#panel-sk --}}
+        </div> {{-- /.split-detail-pane --}}
+    </div> {{-- /.assessment-split-layout --}}
 
         {{-- Bilah Aksi Melayang (Sticky Form Footer) --}}
         <div class="form-sticky-footer">
-            <div class="form-sticky-hint">
+            <div class="form-sticky-hint" id="form-sticky-hint">
                 <x-icon name="info" size="15" />
-                <span>{{ $assessment->exists ? 'Pastikan data asesmen dan jadwal telah sesuai sebelum menyimpan perubahan.' : 'Lengkapi data asesmen lalu simpan jadwal kunjungan.' }}</span>
+                <span id="active-pane-label">Kategori 1 dari 6: Info Lembaga &amp; Agenda</span>
             </div>
             <div class="form-sticky-actions">
-                <a class="button ghost" href="{{ route('assessments.index') }}">
+                <a class="button ghost" href="{{ $assessment->exists ? route('assessments.show', $assessment) : route('assessments.index') }}">
                     Batal
                 </a>
-                <button class="button primary" type="submit">
+                <button class="button primary" type="submit" id="btn-save-assessment">
                     <x-icon :name="$assessment->exists ? 'check' : 'plus'" size="16" />
                     <span>{{ $assessment->exists ? 'Simpan perubahan' : 'Simpan asesmen' }}</span>
                 </button>
@@ -672,7 +826,119 @@
 
 <script>
 (function() {
+    function initAssessmentSplitPane() {
+        const layout = document.querySelector('.assessment-split-layout');
+        if (!layout || layout.dataset.splitInit === 'true') {
+            return;
+        }
+        layout.dataset.splitInit = 'true';
+
+        const navItems = layout.querySelectorAll('.split-nav-item');
+        const panels = layout.querySelectorAll('.split-panel');
+        const paneLabel = document.getElementById('active-pane-label');
+        const mainForm = document.getElementById('assessment-main-form');
+
+        const paneTitles = {
+            'info': 'Kategori 1 dari 6: Info Lembaga & Agenda',
+            'schedule': 'Kategori 2 dari 6: Jadwal & Lokasi Kunjungan',
+            'team': 'Kategori 3 dari 6: Susunan Tim Asesor KAN',
+            'tp': 'Kategori 4 dari 6: Tindakan Perbaikan (TP & VTP)',
+            'eha': 'Kategori 5 dari 6: Laporan & Rapat Panitia Teknis',
+            'sk': 'Kategori 6 dari 6: Pengesahan Surat Keputusan (SK) KAN'
+        };
+
+        function switchPane(targetPaneKey, scrollUp = false) {
+            navItems.forEach(item => {
+                const isActive = item.dataset.pane === targetPaneKey;
+                item.classList.toggle('is-active', isActive);
+                item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            let activePanelEl = null;
+            panels.forEach(panel => {
+                const isActive = panel.dataset.pane === targetPaneKey;
+                panel.classList.toggle('is-active', isActive);
+                if (isActive) {
+                    activePanelEl = panel;
+                }
+            });
+
+            if (paneLabel && paneTitles[targetPaneKey]) {
+                paneLabel.textContent = paneTitles[targetPaneKey];
+            }
+
+            if (scrollUp) {
+                const topAnchor = layout.getBoundingClientRect();
+                if (topAnchor.top < 0 || topAnchor.top > 200) {
+                    layout.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // Set focus ke kontrol pertama panel aktif untuk mencegah focus loss pada navigasi keyboard
+            if (activePanelEl && document.activeElement && document.activeElement.closest('.split-header-btn, .split-footer-btn, .split-nav-item')) {
+                const firstFocusable = activePanelEl.querySelector('input:not([type="hidden"]), select, textarea, button');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                } else {
+                    activePanelEl.setAttribute('tabindex', '-1');
+                    activePanelEl.focus();
+                }
+            }
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPane(item.dataset.pane, false);
+            });
+        });
+
+        layout.querySelectorAll('.split-header-next, .split-footer-next').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.dataset.next) {
+                    switchPane(btn.dataset.next, true);
+                }
+            });
+        });
+
+        layout.querySelectorAll('.split-header-prev, .split-footer-prev').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.dataset.prev) {
+                    switchPane(btn.dataset.prev, true);
+                }
+            });
+        });
+
+        if (mainForm) {
+            mainForm.addEventListener('invalid', (e) => {
+                const invalidEl = e.target;
+                const parentPanel = invalidEl.closest('.split-panel');
+                if (parentPanel && parentPanel.dataset.pane) {
+                    switchPane(parentPanel.dataset.pane, true);
+                }
+            }, true);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const hash = window.location.hash ? window.location.hash.substring(1) : '';
+        const requestedPane = (urlParams.get('highlight') === 'sk' || hash === 'sk' || hash === 'section-sk')
+            ? 'sk'
+            : (hash.replace('panel-', '').replace('section-', '') || 'info');
+
+        if (requestedPane && paneTitles[requestedPane]) {
+            switchPane(requestedPane, false);
+            if (requestedPane === 'sk') {
+                const skCard = document.getElementById('section-sk');
+                if (skCard) {
+                    skCard.classList.add('lpk-pulse-highlight');
+                    setTimeout(() => skCard.classList.remove('lpk-pulse-highlight'), 2200);
+                }
+            }
+        }
+    }
+
     function initAutoAssessmentStatus() {
+        initAssessmentSplitPane();
         const form = document.getElementById('assessment-main-form');
         if (!form || form.dataset.autoStatusInit === 'true') {
             return;
@@ -944,12 +1210,14 @@
             if (!card || !lpkSelect) return;
 
             if (!lpkSelect.value || lpkSelect.selectedIndex <= 0) {
+                card.classList.remove('is-visible');
                 card.style.display = 'none';
                 return;
             }
 
             const opt = lpkSelect.options[lpkSelect.selectedIndex];
             if (!opt) {
+                card.classList.remove('is-visible');
                 card.style.display = 'none';
                 return;
             }
@@ -974,7 +1242,8 @@
                 statusEl.textContent = statusLabel;
             }
 
-            card.style.display = 'block';
+            card.classList.add('is-visible');
+            card.style.display = 'flex';
         }
 
         const knownTypeNames = [
@@ -1339,11 +1608,79 @@
             });
         }
 
+        const lpkLocationSelect = document.getElementById('assessment-lpk-location-id');
+        const assessmentLocationInput = document.getElementById('assessment-location');
+
+        function syncLocationOptions(preferredLocationId = null) {
+            if (!lpkSelect || !lpkLocationSelect) return;
+            const selectedLpkId = lpkSelect.value;
+            const options = Array.from(lpkLocationSelect.options);
+            let hasSelected = false;
+
+            const targetLocId = preferredLocationId || lpkLocationSelect.value || "{{ old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id', '')) }}";
+
+            options.forEach(function(opt) {
+                if (!opt.value) return;
+                const optLpkId = opt.getAttribute('data-lpk-id');
+                const matches = (String(optLpkId) === String(selectedLpkId));
+                opt.style.display = matches ? '' : 'none';
+                opt.disabled = !matches;
+                opt.hidden = !matches;
+                if (matches && targetLocId && String(opt.value) === String(targetLocId)) {
+                    opt.selected = true;
+                    hasSelected = true;
+                } else if (!matches) {
+                    opt.selected = false;
+                }
+            });
+
+            if (!hasSelected && selectedLpkId) {
+                let targetOpt = null;
+                if (targetLocId) {
+                    targetOpt = options.find(function(opt) {
+                        return String(opt.value) === String(targetLocId) && String(opt.getAttribute('data-lpk-id')) === String(selectedLpkId);
+                    });
+                }
+                if (!targetOpt) {
+                    targetOpt = options.find(function(opt) {
+                        return String(opt.getAttribute('data-lpk-id')) === String(selectedLpkId) && opt.value;
+                    });
+                }
+                if (targetOpt) {
+                    targetOpt.selected = true;
+                    if (assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.value.trim() === '')) {
+                        assessmentLocationInput.value = targetOpt.getAttribute('data-address') || '';
+                    }
+                } else {
+                    lpkLocationSelect.value = '';
+                }
+            } else if (!selectedLpkId) {
+                lpkLocationSelect.value = '';
+            }
+
+            const activeSel = lpkLocationSelect.selectedOptions[0];
+            if (activeSel && activeSel.getAttribute('data-address') && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.value.trim() === '')) {
+                assessmentLocationInput.value = activeSel.getAttribute('data-address');
+            }
+
+            lpkLocationSelect.dispatchEvent(new CustomEvent('custom-select:rebuild'));
+        }
+
+        if (lpkLocationSelect) {
+            lpkLocationSelect.addEventListener('change', function() {
+                const sel = lpkLocationSelect.selectedOptions[0];
+                if (sel && sel.getAttribute('data-address') && assessmentLocationInput) {
+                    assessmentLocationInput.value = sel.getAttribute('data-address');
+                }
+            });
+        }
+
         if (lpkSelect) {
             lpkSelect.addEventListener('change', function() {
                 updateSelectedLpkInfo();
                 syncTitle();
                 syncSubmissionDueDate(true);
+                syncLocationOptions();
                 updateStatus();
             });
         }
@@ -1404,6 +1741,7 @@
         }
         updateDurationDisplay();
         updateSelectedLpkInfo();
+        syncLocationOptions("{{ old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id', '')) }}");
         handleExtensionSync(false);
         updateStatus();
 

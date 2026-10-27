@@ -431,7 +431,7 @@ class AssessmentStatusService
             return false;
         }
 
-        return (bool) ($assessment->end_at && $assessment->end_at->lt(now()->subYears(1)) && $rawStatus === 'COMPLETED');
+        return (bool) ($assessment->end_at && $assessment->end_at->lt(now()->subYears(1)));
     }
 
     /**
@@ -440,7 +440,7 @@ class AssessmentStatusService
     public function isSuspensionExpired(Assessment $assessment): bool
     {
         $rawStatus = $assessment->getAttributes()['status'] ?? null;
-        if (in_array($rawStatus, ['COMPLETED', 'CANCELLED'], true)) {
+        if (in_array($rawStatus, ['COMPLETED', 'CANCELLED', 'PLANNED'], true)) {
             return false;
         }
 

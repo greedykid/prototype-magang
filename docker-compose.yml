@@ -12,10 +12,10 @@ x-simasadi-environment: &simasadi-env
   DB_CONNECTION: sqlite
   DB_DATABASE: /var/www/data/database.sqlite
 
-  SESSION_DRIVER: database
+  SESSION_DRIVER: "${SESSION_DRIVER:-file}"
   SESSION_LIFETIME: 120
-  CACHE_STORE: database
-  QUEUE_CONNECTION: database
+  CACHE_STORE: "${CACHE_STORE:-file}"
+  QUEUE_CONNECTION: "${QUEUE_CONNECTION:-database}"
 
   LOG_CHANNEL: stderr
   LOG_LEVEL: "${LOG_LEVEL:-warning}"
@@ -50,7 +50,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 384M
+          memory: 512M
     logging:
       driver: json-file
       options:

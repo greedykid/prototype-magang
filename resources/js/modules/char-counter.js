@@ -20,6 +20,8 @@ function isEligibleField(el) {
     }
 
     if (el.readOnly || el.disabled) return false;
+    if (el.hasAttribute('data-no-counter') || el.dataset.counter === 'false') return false;
+    if (typeof el.closest === 'function' && el.closest('[data-no-counter]')) return false;
 
     const max = parseInt(el.getAttribute('maxlength'), 10);
     return !isNaN(max) && max > 0;
@@ -50,6 +52,20 @@ function attachCounter(field) {
     targetElement.insertAdjacentElement('afterend', counter);
     field._charCounter = counter;
     return counter;
+}
+
+export function showCounter(field) {
+    if (!isEligibleField(field)) return;
+    const counter = attachCounter(field);
+    if (!counter) return;
+    updateCounter(field);
+    counter.classList.add('is-visible');
+}
+
+export function hideCounter(field) {
+    if (field && field._charCounter) {
+        field._charCounter.classList.remove('is-visible');
+    }
 }
 
 export function updateCounter(field) {
@@ -95,6 +111,11 @@ export function initCharCounters(container = document) {
     fields.forEach((field) => {
         if (isEligibleField(field)) {
             updateCounter(field);
+            if (document.activeElement === field) {
+                showCounter(field);
+            } else {
+                hideCounter(field);
+            }
         }
     });
 }
@@ -105,16 +126,33 @@ export function bindCharCounterEvents() {
     if (isBound) return;
     isBound = true;
 
-    // Realtime input updates & hard clamp
+    // Realtime input updates & show counter
     document.addEventListener('input', (event) => {
         if (!event.target || typeof event.target.closest !== 'function') return;
         if (isEligibleField(event.target)) {
             updateCounter(event.target);
+            showCounter(event.target);
         }
     }, { passive: true });
 
-    // Focusin ensures dynamically created or opened fields get initialized
+    // Focusin: smoothly show counter when typing starts or field is focused
     document.addEventListener('focusin', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
+        if (isEligibleField(event.target)) {
+            showCounter(event.target);
+        }
+    }, { passive: true });
+
+    // Focusout: smoothly hide counter when user leaves the field
+    document.addEventListener('focusout', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
+        if (isEligibleField(event.target)) {
+            hideCounter(event.target);
+        }
+    }, { passive: true });
+
+    // Change event (e.g. autofill) updates count
+    document.addEventListener('change', (event) => {
         if (!event.target || typeof event.target.closest !== 'function') return;
         if (isEligibleField(event.target)) {
             updateCounter(event.target);

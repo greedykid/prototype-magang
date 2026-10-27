@@ -104,8 +104,16 @@ class AppServiceProvider extends ServiceProvider
                     // Rehydrate primitive ISO strings back to real Carbon instances
                     $alerts = array_map(function ($item) {
                         foreach (['target_date', 'notice_date', 'last_notified_at'] as $dateKey) {
-                            if (!empty($item[$dateKey]) && is_string($item[$dateKey])) {
-                                $item[$dateKey] = \Illuminate\Support\Carbon::parse($item[$dateKey]);
+                            if (!empty($item[$dateKey])) {
+                                if (is_string($item[$dateKey])) {
+                                    try {
+                                        $item[$dateKey] = \Illuminate\Support\Carbon::parse($item[$dateKey]);
+                                    } catch (\Throwable) {
+                                        $item[$dateKey] = null;
+                                    }
+                                } elseif (! ($item[$dateKey] instanceof \Carbon\CarbonInterface)) {
+                                    $item[$dateKey] = null;
+                                }
                             }
                         }
                         return $item;

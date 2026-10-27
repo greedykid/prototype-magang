@@ -176,36 +176,36 @@ html[data-theme="dark"] .dashboard-status-panel.surveillance-jump-pulse {
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts {
-    background: rgba(225, 29, 72, 0.08) !important;
-    border-color: rgba(244, 63, 94, 0.3) !important;
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .panel-head h2 {
-    color: #fda4af;
+    color: var(--ink);
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-panel-subtext {
-    color: #fda4af;
-    opacity: 0.85;
+    color: var(--muted);
+    opacity: 1;
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-lpk-item {
     background: var(--surface);
-    border-color: rgba(244, 63, 94, 0.2);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-lpk-item:hover {
     background: var(--surface-hover);
-    border-color: rgba(244, 63, 94, 0.45);
+    border-color: var(--line-strong);
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-more-link {
-    color: #fb7185;
+    color: var(--primary);
 }
 
 html[data-theme="dark"] .dashboard-status-panel.has-alerts .dashboard-more-link:hover {
-    color: #fda4af;
-    background: rgba(244, 63, 94, 0.12);
+    color: var(--primary-hover);
+    background: var(--surface-hover);
 }
 
 html[data-theme="dark"] .dashboard-panel-footer-btn {
@@ -470,6 +470,156 @@ html[data-theme="dark"] .compliance-legend-item {
 }
 
 html[data-theme="dark"] .compliance-legend-item:hover {
-    background: var(--surface-hover);
-    border-color: var(--line-strong);
+    background: rgba(98, 174, 240, 0.15) !important;
+    border-color: var(--primary, #62aef0) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
+
+html[data-theme="dark"] .dashboard-empty-icon-wrap {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: var(--muted);
+}
+
+/* ==========================================================================
+   Dashboard Flight Deck 3-Tier Layout Dark Theme Overrides
+   ========================================================================== */
+html[data-theme="dark"] .dashboard-radar-card {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .dashboard-radar-card:hover {
+    border-color: var(--line-subtle);
+    box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="dark"] .dashboard-radar-label {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .dashboard-radar-more-link {
+    color: var(--primary);
+}
+
+html[data-theme="dark"] .dashboard-radar-pill {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .dashboard-directory-search input.dashboard-search-input,
+html[data-theme="dark"] input.dashboard-search-input {
+    background: var(--surface-subtle) !important;
+    border-color: var(--line) !important;
+    color: var(--ink) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] .dashboard-directory-search input.dashboard-search-input::placeholder {
+    color: #64748b !important;
+}
+
+html[data-theme="dark"] .dashboard-directory-search input.dashboard-search-input:hover {
+    background: var(--surface-hover) !important;
+    border-color: var(--line-subtle) !important;
+}
+
+html[data-theme="dark"] .dashboard-directory-search input.dashboard-search-input:focus {
+    background: var(--surface) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(98, 174, 240, 0.2), 0 3px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .dashboard-directory-search:focus-within .search-icon-wrap {
+    color: #62aef0;
+}
+
+html[data-theme="dark"] .dashboard-search-clear {
+    background: var(--surface-hover);
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .dashboard-search-clear:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .dashboard-directory-empty {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .dashboard-directory-empty .empty-icon-wrap {
+    background: var(--surface-subtle);
+    border-color: var(--line);
+    color: #62aef0;
+}
+
+html[data-theme="dark"] .dashboard-directory-empty .empty-title {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .dashboard-directory-empty .empty-desc {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .dashboard-filter-tabs {
+    border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .filter-tab-btn {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .filter-tab-btn:hover {
+    color: var(--ink);
+    background: var(--surface-hover);
+}
+
+html[data-theme="dark"] .filter-tab-btn.is-active {
+    color: #62aef0;
+    background: rgba(98, 174, 240, 0.14);
+    border-color: rgba(98, 174, 240, 0.35);
+}
+
+html[data-theme="dark"] .dashboard-directory-table-wrap {
+    background: var(--surface);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .dashboard-directory-table th {
+    background: var(--surface-subtle);
+    border-bottom-color: var(--line);
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .dashboard-directory-table td {
+    border-bottom-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .dashboard-directory-table tbody tr:hover {
+    background-color: var(--surface-hover);
+}
+
+html[data-theme="dark"] .directory-name-link {
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .directory-name-link:hover {
+    color: var(--primary);
+}
+
+html[data-theme="dark"] .directory-address-snippet {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .directory-cell-type {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .directory-cell-date {
+    color: var(--ink);
+}
+
+

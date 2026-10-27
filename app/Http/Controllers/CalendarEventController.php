@@ -401,7 +401,7 @@ class CalendarEventController extends Controller
         $isPic = $user && $user->isPic();
         $isAdmin = $user && $user->isAdmin();
 
-        $assessments = Assessment::with('lpk')
+        $assessments = Assessment::with(['lpk.members', 'lpkLocation'])
             ->when($isPic, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->when($picFilter, fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->where('lpks.pic_id', $picFilter)->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter))))
             ->where('start_at', '<=', $queryEnd)
@@ -431,7 +431,7 @@ class CalendarEventController extends Controller
                 'lpk_reg' => $lpkReg,
                 'start_at' => $item->start_at,
                 'end_at' => $item->end_at,
-                'location' => $item->location ?: 'Lokasi Lapangan LPK',
+                'location' => $item->display_location,
                 'status' => $item->status,
                 'notes' => $item->notes,
                 'description' => 'Program asesmen akreditasi ' . $shortType . '. Lead Asesor: ' . ($item->lead_assessor ?: 'Asesor KAN'),
@@ -453,7 +453,7 @@ class CalendarEventController extends Controller
         $isPic = $user && $user->isPic();
         $isAdmin = $user && $user->isAdmin();
 
-        $tpAssessments = Assessment::with('lpk')
+        $tpAssessments = Assessment::with(['lpk.members'])
             ->whereNotNull('tp_status')
             ->where('tp_status', '!=', Assessment::TP_STATUS_NONE)
             ->where(function ($q) use ($queryStart, $queryEnd) {
@@ -542,7 +542,7 @@ class CalendarEventController extends Controller
                             'end_at' => $remEnd,
                             'location' => $item->location ?: 'Daring / Online',
                             'status' => $item->tp_status,
-                            'notes' => 'Pengingat 1,5 bulan (45 hari) dari tanggal selesai kunjungan untuk penyelesaian tindakan perbaikan (TP & VTP).',
+                            'notes' => 'Pengingat 1 bulan (30 hari) dari tanggal selesai kunjungan untuk penyelesaian tindakan perbaikan (TP & VTP).',
                             'description' => 'Pengingat progres penyelesaian temuan asesmen ' . ($item->assessment_type ?: '') . ' agar tidak melebihi batas waktu 2 bulan.',
                             'lead' => $item->lead_assessor ?: 'Asesor KAN',
                             'can_manage' => $canManage,
@@ -612,7 +612,7 @@ class CalendarEventController extends Controller
 
         $lpksWithMilestones = Lpk::accessibleBy($user)
             ->select(['id', 'name', 'registration_number', 'pic_id', 'status', 'certificate_date', 'expired_at', 'address'])
-            ->with(['assessments' => fn ($q) => $q->select(['id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at', 'status', 'tp_status', 'tp_satisfied_at', 'sk_number'])])
+            ->with(['members', 'assessments'])
             ->when($picFilter, fn ($q) => $q->where(function ($sub) use ($picFilter) {
                 $sub->where('lpks.pic_id', $picFilter)
                     ->orWhereHas('members', fn ($mq) => $mq->where('lpk_members.user_id', $picFilter));

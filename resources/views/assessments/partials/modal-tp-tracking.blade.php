@@ -2,12 +2,18 @@
 <div class="simasadi-modal" id="modal-tp-tracking" role="dialog" aria-modal="true" aria-labelledby="modal-tp-tracking-heading">
     <div class="simasadi-modal-box" style="max-width: min(580px, 100%); width: 100%; box-sizing: border-box;">
         <div class="simasadi-modal-head">
-            <h4 id="modal-tp-tracking-heading">Pembaruan Tindak Lanjut Asesmen (TP, Rapat Panitia Teknis &amp; SK)</h4>
+            <div class="modal-title-group">
+                <div class="modal-title-icon-badge badge-purple" aria-hidden="true">
+                    <x-icon name="assessments" size="17" />
+                </div>
+                <h4 id="modal-tp-tracking-heading">Pembaruan Tindak Lanjut Asesmen (TP, Rapat Panitia Teknis &amp; SK)</h4>
+            </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-tp-tracking')" aria-label="Tutup modal">&times;</button>
         </div>
         <form method="POST" action="{{ route('assessments.tp.update', $assessment) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;">
             @csrf
-            <div style="display: grid; gap: 14px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;">
+            <div class="simasadi-modal-body">
+                <div style="display: grid; gap: 14px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;">
 
                 @php
                     $selectedTpStatus = old('tp_status', $assessment->tp_status ?: (!empty($assessment->tp_satisfied_at) ? \App\Models\Assessment::TP_STATUS_SATISFIED : \App\Models\Assessment::TP_STATUS_IN_PROGRESS));
@@ -37,22 +43,16 @@
                     }
                 @endphp
 
-                {{-- Navigasi Tab Seksi Regulasi KAN U-01 (Berurutan / Sequential Gating) --}}
+                {{-- Navigasi Tab Seksi Regulasi KAN U-01 --}}
                 <div class="modal-tp-nav-tabs" role="tablist" aria-label="Navigasi Seksi Tindak Lanjut Asesmen">
                     <button type="button" class="tp-modal-tab-btn is-active" id="tp-modal-tab-btn-tp" role="tab" aria-selected="true" aria-controls="modal-tp-panel-tp" onclick="window.switchModalTpTab('tp')">
                         <span>1. Tindakan Perbaikan</span>
                     </button>
-                    <button type="button" class="tp-modal-tab-btn {{ !$modalIsTpSatisfied ? 'is-disabled' : '' }}" id="tp-modal-tab-btn-eha" role="tab" aria-selected="false" aria-controls="modal-tp-panel-eha" onclick="window.switchModalTpTab('eha')" {{ !$modalIsTpSatisfied ? 'disabled' : '' }} title="{{ !$modalIsTpSatisfied ? 'Selesaikan Tindakan Perbaikan (Tahap 1) terlebih dahulu' : '2. Rapat Panitia Teknis' }}">
+                    <button type="button" class="tp-modal-tab-btn" id="tp-modal-tab-btn-eha" role="tab" aria-selected="false" aria-controls="modal-tp-panel-eha" onclick="window.switchModalTpTab('eha')" title="2. Rapat Panitia Teknis">
                         <span>2. Rapat Panitia Teknis</span>
-                        <span class="tp-modal-tab-lock" id="tp-modal-lock-eha" style="display: {{ !$modalIsTpSatisfied ? 'inline-flex' : 'none' }}; margin-left: 5px;">
-                            <x-icon name="lock" size="11" />
-                        </span>
                     </button>
-                    <button type="button" class="tp-modal-tab-btn {{ (!$modalIsTpSatisfied || !$modalIsEhaDone) ? 'is-disabled' : '' }}" id="tp-modal-tab-btn-sk" role="tab" aria-selected="false" aria-controls="modal-tp-panel-sk" onclick="window.switchModalTpTab('sk')" {{ (!$modalIsTpSatisfied || !$modalIsEhaDone) ? 'disabled' : '' }} title="{{ !$modalIsTpSatisfied ? 'Selesaikan Tindakan Perbaikan terlebih dahulu' : (!$modalIsEhaDone ? 'Selesaikan Rapat Panitia Teknis terlebih dahulu' : '3. SK KAN') }}">
+                    <button type="button" class="tp-modal-tab-btn" id="tp-modal-tab-btn-sk" role="tab" aria-selected="false" aria-controls="modal-tp-panel-sk" onclick="window.switchModalTpTab('sk')" title="3. SK KAN">
                         <span>3. SK KAN</span>
-                        <span class="tp-modal-tab-lock" id="tp-modal-lock-sk" style="display: {{ (!$modalIsTpSatisfied || !$modalIsEhaDone) ? 'inline-flex' : 'none' }}; margin-left: 5px;">
-                            <x-icon name="lock" size="11" />
-                        </span>
                     </button>
                 </div>
 
@@ -70,7 +70,7 @@
                     <div id="modal-section-tp-{{ $assessment->id }}" style="scroll-margin-top: 14px; width: 100%; max-width: 100%; min-width: 0; position: relative;">
                         <label style="display: block; width: 100%; max-width: 100%; min-width: 0;">
                             <span style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--ink);">Status Tindakan Perbaikan (TP)</span>
-                            <select name="tp_status" id="modal_tp_status_select" required onchange="const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}'); if(this.value === 'SATISFIED' && satInput && !satInput.value){ satInput.value = new Date().toISOString().split('T')[0]; } else if(this.value !== 'SATISFIED' && satInput){ satInput.value = ''; } if(typeof window.syncModalTpTabGates === 'function'){ window.syncModalTpTabGates(); }" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; text-overflow: ellipsis; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink); font-size: 13px;">
+                            <select name="tp_status" id="modal_tp_status_select" required onchange="const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}'); if(this.value === 'SATISFIED' && satInput && !satInput.value){ satInput.value = new Date().toISOString().split('T')[0]; } else if(this.value !== 'SATISFIED' && satInput){ satInput.value = ''; }" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; text-overflow: ellipsis; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink); font-size: 13px;">
                                 <option value="SATISFIED" @selected($selectedTpStatus === 'SATISFIED')>Dinyatakan Memenuhi (Selesai)</option>
                                 <option value="UNDER_VERIFICATION" @selected($selectedTpStatus === 'UNDER_VERIFICATION')>Dalam Verifikasi Tim Asesor</option>
                                 <option value="IN_PROGRESS" @selected($selectedTpStatus === 'IN_PROGRESS')>Penyusunan Perbaikan oleh LPK</option>
@@ -80,7 +80,7 @@
                     </div>
 
                     <div class="modal-form-grid-2col">
-                        <label style="width: 100%; max-width: 100%; min-width: 0;">
+                        <div style="width: 100%; max-width: 100%; min-width: 0;">
                             <span style="font-size: 13px; font-weight: 600; display: flex; align-items: center; min-height: 20px; margin-bottom: 4px; color: var(--ink);">
                                 <span>Tenggat Waktu TP (KAN)</span>
                             </span>
@@ -97,15 +97,15 @@
                                     @endif
                                 </small>
                             </div>
-                        </label>
+                        </div>
 
-                        <label style="width: 100%; max-width: 100%; min-width: 0;">
+                        <div style="width: 100%; max-width: 100%; min-width: 0;">
                             <span style="font-size: 13px; font-weight: 600; display: flex; align-items: center; min-height: 20px; margin-bottom: 4px; color: var(--ink);">
                                 <span>Tanggal Memenuhi (Selesai TP)</span>
                             </span>
-                            <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at_{{ $assessment->id }}" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; } if(typeof window.syncModalTpTabGates === 'function'){ window.syncModalTpTabGates(); }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
+                            <input type="date" name="tp_satisfied_at" id="modal_tp_satisfied_at_{{ $assessment->id }}" onchange="if(this.value){ const s = document.getElementById('modal_tp_status_select'); if(s) s.value = 'SATISFIED'; }" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}" style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); background: var(--input-bg, #ffffff); color: var(--ink);">
                             <small style="color: var(--muted); font-size: 11px; display: block; margin-top: 3px; line-height: 1.4;">Tanggal verifikasi saat seluruh temuan perbaikan tuntas.</small>
-                        </label>
+                        </div>
                     </div>
 
                     {{-- Bagian Permohonan Perpanjangan --}}
@@ -129,12 +129,12 @@
                                         </span>
                                         <input type="text" name="tp_extension_letter_no" id="modal_tp_ext_letter_no_{{ $assessment->id }}" oninput="window.syncModalTpExtension({{ $assessment->id }}, true)" onchange="window.syncModalTpExtension({{ $assessment->id }}, true)" maxlength="80" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($modalTpHasExt) required @endif style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
                                     </label>
-                                    <label style="width: 100%; max-width: 100%; min-width: 0;">
+                                    <div style="width: 100%; max-width: 100%; min-width: 0;">
                                         <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink);">
                                             Tanggal Surat <span class="lpk-required-dot modal-ext-req-{{ $assessment->id }}" style="display: {{ $modalTpHasExt ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                         </span>
                                         <input type="date" name="tp_extension_date" id="modal_tp_ext_date_{{ $assessment->id }}" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" @if($modalTpHasExt) required @endif style="width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 10px; border: 1px solid var(--input-border, var(--line)); border-radius: var(--radius-lg, 12px); font-size: 12.5px; background: var(--input-bg, #ffffff); color: var(--ink);">
-                                    </label>
+                                    </div>
                                 </div>
                                 <label style="width: 100%; max-width: 100%; min-width: 0;">
                                     <span style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 2px; color: var(--ink);">Catatan Alasan Perpanjangan</span>
@@ -172,19 +172,19 @@
                             <small style="color: var(--muted); font-size: 11px;">Pencatatan tanggal laporan asesmen tim asesor dan evaluasi oleh panitia teknis KAN.</small>
                         </div>
                         <div class="modal-form-grid-2col">
-                            <label class="modal-field-label">
+                            <div class="modal-field-label">
                                 <span>Tgl Laporan Asesmen</span>
                                 <input type="date" name="report_date" value="{{ old('report_date', $assessment->report_date?->format('Y-m-d')) }}" class="modal-form-input">
-                            </label>
-                            <label class="modal-field-label">
+                            </div>
+                            <div class="modal-field-label">
                                 <span>Tgl Rapat Panitia Teknis</span>
                                 <input type="date" name="eha_date" value="{{ old('eha_date', $assessment->eha_date?->format('Y-m-d')) }}" class="modal-form-input">
-                            </label>
+                            </div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;">
                             <label class="modal-field-label">
                                 <span>Status Hasil Rapat Panitia Teknis</span>
-                                <select name="eha_status" id="modal_eha_status_select" onchange="if(typeof window.syncModalTpTabGates === 'function'){ window.syncModalTpTabGates(); }" class="modal-form-input">
+                                <select name="eha_status" id="modal_eha_status_select" class="modal-form-input">
                                     @foreach(\App\Models\Assessment::EHA_STATUSES as $ehaVal => $ehaText)
                                         <option value="{{ $ehaVal }}" @selected(old('eha_status', $assessment->eha_status ?: \App\Models\Assessment::EHA_STATUS_BELUM) === $ehaVal)>
                                             {{ $ehaText }}
@@ -212,7 +212,7 @@
                     @if(!$modalIsTpSatisfied || !$modalIsEhaDone)
                         <div style="padding: 9px 12px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-lg, 12px); font-size: 11.5px; color: var(--primary, #2563eb); display: flex; align-items: flex-start; gap: 8px;">
                             <x-icon name="info" size="14" style="flex-shrink: 0; margin-top: 1px;" />
-                            <span><strong>Penyimpanan Draf Fleksibel:</strong> Nomor dan tanggal SK dapat Anda simpan sekarang sebagai draf. Status asesmen akan resmi disahkan menjadi <strong>Selesai</strong> setelah tahapan perbaikan (TP) dan panitia teknis (EHA) telah tuntas memenuhi.</span>
+                            <span><strong>Penyimpanan Draf Fleksibel:</strong> Nomor dan tanggal SK dapat Anda simpan sekarang sebagai draf. Status asesmen akan resmi disahkan menjadi <strong>Selesai</strong> setelah tahapan perbaikan (TP) dan Rapat Panitia Teknis telah tuntas memenuhi.</span>
                         </div>
                     @endif
 
@@ -226,10 +226,10 @@
                                 <span>Nomor SK KAN</span>
                                 <input type="text" name="sk_number" maxlength="80" placeholder="Contoh: SK.KAN.042/BSN/IX/2026" value="{{ old('sk_number', $assessment->sk_number) }}" class="modal-form-input">
                             </label>
-                            <label class="modal-field-label">
+                            <div class="modal-field-label">
                                 <span>Tanggal SK</span>
                                 <input type="date" name="sk_date" value="{{ old('sk_date', $assessment->sk_date?->format('Y-m-d')) }}" class="modal-form-input">
-                            </label>
+                            </div>
                         </div>
                         @if($assessment->sk_lead_time_label)
                             <div style="font-size: 11.5px; color: var(--green, #10b981); background: rgba(16, 185, 129, 0.16); padding: 5px 10px; border-radius: var(--radius-pill, 9999px); word-break: break-word;">
@@ -240,6 +240,7 @@
                     </div>
                 </div>
 
+                </div>
             </div>
             <div class="modal-form-actions">
                 <button type="button" class="button ghost" data-modal-close onclick="window.closeModal('modal-tp-tracking')">Batal</button>
@@ -250,59 +251,8 @@
 </div>
 
 <script>
-window.getModalTpAllowedTabs = function() {
-    const statusSelect = document.getElementById('modal_tp_status_select');
-    const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}');
-    const ehaSelect = document.getElementById('modal_eha_status_select');
-
-    const tpVal = statusSelect ? statusSelect.value : '';
-    const isTpSat = (tpVal === 'SATISFIED') || Boolean(satInput && satInput.value);
-
-    const ehaVal = ehaSelect ? ehaSelect.value : '';
-    const isEhaDone = (ehaVal === 'DIREKOMENDASIKAN' || ehaVal === 'SUDAH_EHA');
-
-    return {
-        tp: true,
-        eha: Boolean(isTpSat),
-        sk: Boolean(isTpSat && isEhaDone)
-    };
-};
-
 window.syncModalTpTabGates = function() {
-    if (typeof window.getModalTpAllowedTabs !== 'function') return;
-    const allowed = window.getModalTpAllowedTabs();
-
-    const btnEha = document.getElementById('tp-modal-tab-btn-eha');
-    const lockEha = document.getElementById('tp-modal-lock-eha');
-    if (btnEha) {
-        btnEha.disabled = !allowed.eha;
-        btnEha.classList.toggle('is-disabled', !allowed.eha);
-        btnEha.title = !allowed.eha ? 'Selesaikan Tindakan Perbaikan (Tahap 1) terlebih dahulu' : '2. Rapat Panitia Teknis';
-        if (lockEha) lockEha.style.display = !allowed.eha ? 'inline-flex' : 'none';
-    }
-
-    const btnSk = document.getElementById('tp-modal-tab-btn-sk');
-    const lockSk = document.getElementById('tp-modal-lock-sk');
-    if (btnSk) {
-        btnSk.disabled = !allowed.sk;
-        btnSk.classList.toggle('is-disabled', !allowed.sk);
-        const satInput = document.getElementById('modal_tp_satisfied_at_{{ $assessment->id }}');
-        const tpVal = document.getElementById('modal_tp_status_select')?.value;
-        const tpDone = (tpVal === 'SATISFIED') || Boolean(satInput && satInput.value);
-        btnSk.title = !tpDone 
-            ? 'Selesaikan Tindakan Perbaikan terlebih dahulu' 
-            : (!allowed.sk ? 'Selesaikan Rapat Panitia Teknis terlebih dahulu' : '3. SK KAN');
-        if (lockSk) lockSk.style.display = !allowed.sk ? 'inline-flex' : 'none';
-    }
-
-    const currentActiveBtn = document.querySelector('.modal-tp-nav-tabs .tp-modal-tab-btn.is-active');
-    if (currentActiveBtn) {
-        if (currentActiveBtn.id === 'tp-modal-tab-btn-sk' && !allowed.sk) {
-            window.switchModalTpTab(allowed.eha ? 'eha' : 'tp');
-        } else if (currentActiveBtn.id === 'tp-modal-tab-btn-eha' && !allowed.eha) {
-            window.switchModalTpTab('tp');
-        }
-    }
+    // No-op: tab dibuka bebas tanpa sistem kunci
 };
 
 window.switchModalTpTab = function(tabName) {
@@ -312,19 +262,9 @@ window.switchModalTpTab = function(tabName) {
     if (typeof window.closeAllCustomSelects === 'function') {
         window.closeAllCustomSelects();
     }
-    const allowed = (typeof window.getModalTpAllowedTabs === 'function') 
-        ? window.getModalTpAllowedTabs() 
-        : { tp: true, eha: true, sk: true };
-
-    let target = tabName;
-    if (target === 'sk' && !allowed.sk) {
-        target = allowed.eha ? 'eha' : 'tp';
-    } else if (target === 'eha' && !allowed.eha) {
-        target = 'tp';
-    }
 
     const tabs = ['tp', 'eha', 'sk'];
-    const activeTab = tabs.includes(target) ? target : 'tp';
+    const activeTab = tabs.includes(tabName) ? tabName : 'tp';
 
     tabs.forEach(function(t) {
         const btn = document.getElementById('tp-modal-tab-btn-' + t);
@@ -360,14 +300,6 @@ window.switchModalTpTab = function(tabName) {
         }
     }
 };
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof window.syncModalTpTabGates === 'function') window.syncModalTpTabGates();
-    });
-} else {
-    if (typeof window.syncModalTpTabGates === 'function') window.syncModalTpTabGates();
-}
 
 window.syncModalTpExtension = function(id, fromLetter) {
     const dueInput = document.getElementById('modal_tp_due_date_' + id);

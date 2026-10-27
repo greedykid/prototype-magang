@@ -18,37 +18,35 @@
     <div class="lpk-show-header assessment-header-hero">
         <div class="lpk-header-row">
             <div class="lpk-header-title-group">
-                <div class="assessment-header-title-row">
-                    <h1 class="assessment-title">{{ $assessment->display_title }}</h1>
-                    <div class="assessment-status-badge">
-                        @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                            <span class="status status-revoked" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
-                                Dicabut (Lewat 1 Tahun)
-                            </span>
-                        @elseif($assessment->is_submission_overdue)
-                            <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
-                                Dibekukan (Toleransi Terlampaui)
-                            </span>
-                        @elseif($assessment->is_eha_needs_verification)
-                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan hasil memerlukan verifikasi lanjutan">
-                                Sedang Berlangsung (Perlu Verifikasi Panitia Teknis)
-                            </span>
-                        @elseif($assessment->is_eha_special_notes)
-                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus panitia teknis">
-                                Sedang Berlangsung (Catatan Khusus Panitia Teknis)
-                            </span>
-                        @elseif($assessment->is_waiting_eha)
-                            <span class="status status-in_progress" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan Rapat Panitia Teknis">
-                                Sedang Berlangsung (Menunggu Rapat Panitia Teknis)
-                            </span>
-                        @elseif($assessment->is_waiting_sk)
-                            <span class="status status-in_progress" title="Rapat Panitia Teknis telah selesai / merekomendasikan, menunggu penerbitan SK resmi dari KAN">
-                                Sedang Berlangsung (Menunggu SK KAN)
-                            </span>
-                        @else
-                            <x-status :value="$assessment->status" />
-                        @endif
-                    </div>
+                <h1 class="assessment-title">{{ $assessment->display_title }}</h1>
+                <div class="assessment-status-badge">
+                    @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
+                        <span class="status status-revoked" title="Telah melewati batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen">
+                            Dicabut (Lewat 1 Tahun)
+                        </span>
+                    @elseif($assessment->is_submission_overdue)
+                        <span class="status status-suspended" title="Toleransi pengisian asesmen telah terlampaui, sisa kesempatan penyelesaian 1 tahun">
+                            Dibekukan (Toleransi Terlampaui)
+                        </span>
+                    @elseif($assessment->is_eha_needs_verification)
+                        <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan hasil memerlukan verifikasi lanjutan">
+                            Sedang Berlangsung (Perlu Verifikasi Panitia Teknis)
+                        </span>
+                    @elseif($assessment->is_eha_special_notes)
+                        <span class="status status-in_progress" title="Rapat Panitia Teknis telah dilaksanakan dengan catatan khusus panitia teknis">
+                            Sedang Berlangsung (Catatan Khusus Panitia Teknis)
+                        </span>
+                    @elseif($assessment->is_waiting_eha)
+                        <span class="status status-in_progress" title="Tindakan perbaikan telah memenuhi, menunggu pelaksanaan Rapat Panitia Teknis">
+                            Sedang Berlangsung (Menunggu Rapat Panitia Teknis)
+                        </span>
+                    @elseif($assessment->is_waiting_sk)
+                        <span class="status status-in_progress" title="Rapat Panitia Teknis telah selesai / merekomendasikan, menunggu penerbitan SK resmi dari KAN">
+                            Sedang Berlangsung (Menunggu SK KAN)
+                        </span>
+                    @else
+                        <x-status :value="$assessment->status" />
+                    @endif
                 </div>
 
                 <div class="assessment-header-meta">
@@ -63,7 +61,16 @@
                         </span>
                     </span>
 
-                    @if($assessment->location)
+                    @if($assessment->lpkLocation)
+                        <span class="meta-dot">&bull;</span>
+                        <span class="assessment-meta-item">
+                            <x-icon name="map-pin" size="14" />
+                            <strong style="color: var(--primary);">{{ $assessment->lpkLocation->name }}</strong>
+                            @if($assessment->location && $assessment->location !== $assessment->lpkLocation->name && $assessment->location !== $assessment->lpkLocation->address)
+                                <span style="color: var(--muted); margin-left: 4px;">({{ $assessment->location }})</span>
+                            @endif
+                        </span>
+                    @elseif($assessment->location)
                         <span class="meta-dot">&bull;</span>
                         <span class="assessment-meta-item">
                             <x-icon name="map-pin" size="14" />
@@ -166,7 +173,10 @@
         $visitEnd = $assessment->end_at ? $assessment->end_at->copy()->endOfDay() : ($visitStart ? $visitStart->copy()->endOfDay() : null);
 
         // Tahap 1: Kunjungan Lapangan
-        $isFieldDone = ($visitEnd && now()->gt($visitEnd)) || !empty($assessment->report_date) || $assessment->isPastSurveillanceForActiveLpk();
+        $isFieldDone = ($visitEnd && now()->gt($visitEnd))
+            || !empty($assessment->report_date)
+            || in_array($assessment->tp_status, [\App\Models\Assessment::TP_STATUS_IN_PROGRESS, \App\Models\Assessment::TP_STATUS_UNDER_VERIFICATION, \App\Models\Assessment::TP_STATUS_SATISFIED], true)
+            || $assessment->isPastSurveillanceForActiveLpk();
         $isFieldInProgress = !$isFieldDone && $visitStart && $visitEnd && now()->between($visitStart, $visitEnd);
         $isFieldCurrent = !$isFieldDone && ($isFieldInProgress || in_array($assessment->status, ['SCHEDULED', 'IN_PROGRESS', 'PLANNED']));
 
@@ -175,7 +185,7 @@
         $isTpSatisfied = $isFieldDone && $isTpSatisfiedRaw;
         $isTpCurrent = $isFieldDone && !$isTpSatisfied;
 
-        // Tahap 3: Rapat Panitia Teknis (EHA)
+        // Tahap 3: Rapat Panitia Teknis
         $isEhaSpecialNotes = $isTpSatisfied && ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS);
         $isEhaNeedsVerification = $isTpSatisfied && ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI);
         $isEhaDoneRaw = (in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
@@ -203,7 +213,6 @@
                 @endif
             </div>
             <div class="lpk-step-label-group">
-                <span class="lpk-step-num">Tahap 1</span>
                 <strong class="lpk-step-name">Asesmen Lapangan</strong>
                 <span class="lpk-step-timing">
                     @if($isFieldDone)
@@ -231,7 +240,6 @@
                 @endif
             </div>
             <div class="lpk-step-label-group">
-                <span class="lpk-step-num">Tahap 2</span>
                 <strong class="lpk-step-name">Perbaikan TP</strong>
                 <span class="lpk-step-timing">{{ $isTpSatisfied ? 'Memenuhi' : ($assessment->effective_tp_due_date ? 'Batas: ' . $assessment->effective_tp_due_date->format('d/m/Y') : 'SLA KAN') }}</span>
             </div>
@@ -249,7 +257,6 @@
                 @endif
             </div>
             <div class="lpk-step-label-group">
-                <span class="lpk-step-num">Tahap 3</span>
                 <strong class="lpk-step-name">Rapat Panitia Teknis</strong>
                 <span class="lpk-step-timing">{{ $isEhaDone ? 'Rekomendasi' : ($isEhaSpecialNotes ? 'Catatan Khusus' : ($isEhaNeedsVerification ? 'Perlu Verifikasi' : ($assessment->eha_date ? $assessment->eha_date->format('d/m/Y') : 'Panitia Teknis'))) }}</span>
             </div>
@@ -269,7 +276,6 @@
                 @endif
             </div>
             <div class="lpk-step-label-group">
-                <span class="lpk-step-num">Tahap 4</span>
                 <strong class="lpk-step-name">SK Akreditasi</strong>
                 <span class="lpk-step-timing">
                     @if($isSkDone)
@@ -361,9 +367,14 @@
                     @endif
                 </div>
             </div>
-            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())) && $isFieldDone)
+            @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
                 <div class="assessment-stepper-cta-actions">
-                    @if(!$isTpSatisfied)
+                    @if(!$isFieldDone)
+                        <button type="button" class="button primary button-sm" onclick="window.openModal('modal-complete-field-assessment')" title="Selesaikan pelaksanaan kunjungan asesmen lapangan">
+                            <x-icon name="check-circle" size="14" />
+                            <span>Selesaikan Pelaksanaan Lapangan</span>
+                        </button>
+                    @elseif(!$isTpSatisfied)
                         <button type="button" class="button primary button-sm" onclick="window.openModal('modal-tp-tracking', 'tp')">
                             <x-icon name="check-circle" size="14" />
                             <span>Verifikasi Tindak Lanjut TP</span>
@@ -415,78 +426,171 @@
     @endif
     </div>
 
-    {{-- 2-Column Responsive Layout --}}
+    {{-- 2-Column Responsive Layout (Cockpit Architecture) --}}
     <div class="lpk-show-grid assessment-show-grid">
-        {{-- KOLOM KIRI: Informasi Pelaksanaan, Tim Asesor, Rapat Panitia Teknis & SK KAN --}}
+        {{-- KOLOM KIRI: Identitas LPK & Agenda Pelaksanaan Asesmen --}}
         <div class="lpk-show-col">
-            {{-- KARTU 1: Detail Pelaksanaan Asesmen --}}
+            {{-- KARTU 1: Entitas LPK & Lokasi Fasilitas --}}
             <div class="lpk-form-card">
                 <div class="lpk-form-card-header">
                     <div class="lpk-card-icon-wrap icon-wrap-blue">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
+                        <x-icon name="building" size="20" />
                     </div>
                     <div class="lpk-card-header-text">
-                        <h2>Informasi Agenda &amp; Pelaksanaan</h2>
-                        <p>LPK terakreditasi, tanggal pelaksanaan, lokasi, dan tim asesor asesmen.</p>
+                        <h2>Entitas LPK &amp; Lokasi Fasilitas</h2>
+                        <p>Informasi lembaga terakreditasi dan detail lokasi pelaksanaan asesmen.</p>
                     </div>
                 </div>
 
                 <div class="lpk-meta-grid">
-                    {{-- LPK Terakreditasi Highlight Card --}}
-                    <div class="lpk-meta-item full-width" style="margin-bottom: 6px;">
-                        <span class="lpk-meta-label">LPK Terakreditasi</span>
-                        <div class="lpk-meta-value assessment-lpk-meta-value" style="width: 100%;">
+                    {{-- Entitas LPK Highlight Box --}}
+                    <div class="lpk-meta-item full-width">
+                        <span class="lpk-meta-label">Lembaga Penilaian Kesesuaian (LPK)</span>
+                        <div class="assessment-lpk-entity-card">
                             @if(isset($owner))
-                                <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK milik {{ $owner->name }}" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box;">
-                                    <div class="assessment-lpk-content" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 1 auto; min-width: 0;">
+                                <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK milik {{ $owner->name }}">
+                                    <div class="assessment-lpk-content">
                                         <div class="assessment-lpk-badge">
                                             <x-icon name="building" size="14" />
                                             <span>{{ $assessment->lpk->registration_number }}</span>
                                         </div>
                                         <span class="assessment-lpk-name">{{ $assessment->lpk->name }}</span>
                                     </div>
-                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" style="flex: 0 0 auto; flex-shrink: 0; align-self: center; margin-left: 12px;" />
+                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" />
                                 </a>
                             @else
-                                <a href="{{ route('lpks.show', $assessment->lpk) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box;">
-                                    <div class="assessment-lpk-content" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 1 auto; min-width: 0;">
+                                <a href="{{ route('lpks.show', $assessment->lpk) }}" class="assessment-lpk-highlight-link" title="Buka detail LPK">
+                                    <div class="assessment-lpk-content">
                                         <div class="assessment-lpk-badge">
                                             <x-icon name="building" size="14" />
                                             <span>{{ $assessment->lpk->registration_number }}</span>
                                         </div>
                                         <span class="assessment-lpk-name">{{ $assessment->lpk->name }}</span>
                                     </div>
-                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" style="flex: 0 0 auto; flex-shrink: 0; align-self: center; margin-left: 12px;" />
+                                    <x-icon name="chevron-right" size="18" class="assessment-lpk-arrow" />
                                 </a>
                             @endif
                         </div>
                     </div>
 
+                    {{-- Lokasi Pelaksanaan Asesmen Box --}}
+                    <div class="lpk-meta-item full-width">
+                        <span class="lpk-meta-label">Lokasi Pelaksanaan Asesmen</span>
+                        @php
+                            $loc = $assessment->lpkLocation;
+                            $locName = $loc ? $loc->name : ($assessment->location ?: 'Kantor Pusat / Fasilitas Utama');
+                            $isMainLoc = $loc ? $loc->is_main : true;
+                            $locAddress = $loc ? $loc->address : ($assessment->lpk->address ?: null);
+                            $locPic = $loc ? $loc->contact_person : ($assessment->lpk->contact_person ?: null);
+                            $locPhone = $loc ? $loc->contact_phone : ($assessment->lpk->contact_phone ?: null);
+                            $locEmail = $loc ? $loc->contact_email : ($assessment->lpk->contact_email ?: null);
+                            $locScopeNotes = $loc ? $loc->scope_notes : null;
+                        @endphp
+                        <div class="assessment-location-detail-box">
+                            <div class="location-detail-head">
+                                <div class="location-detail-name">
+                                    <x-icon name="map-pin" size="16" class="location-pin-icon" />
+                                    <strong>{{ $locName }}</strong>
+                                </div>
+                                <span class="badge-tp {{ $isMainLoc ? 'badge-tp-info' : 'badge-tp-neutral' }}" style="font-size: 11px;">
+                                    {{ $isMainLoc ? 'Lokasi Utama' : 'Lokasi Cabang' }}
+                                </span>
+                            </div>
+
+                            @if($locAddress)
+                                <p class="location-detail-address">
+                                    {{ $locAddress }}
+                                </p>
+                            @endif
+
+                            @if($locPic || $locPhone || $locEmail)
+                                <div class="location-contact-chips">
+                                    @if($locPic)
+                                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="user" size="12" />
+                                            <span>{{ $locPic }}</span>
+                                        </span>
+                                    @endif
+                                    @if($locPhone)
+                                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="phone" size="12" />
+                                            <span>{{ $locPhone }}</span>
+                                        </span>
+                                    @endif
+                                    @if($locEmail)
+                                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <x-icon name="mail" size="12" />
+                                            <span>{{ $locEmail }}</span>
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if($locScopeNotes)
+                                <div style="font-size: 11.5px; color: var(--muted); margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--line);">
+                                    <strong style="color: var(--ink);">Ruang Lingkup Khusus:</strong> {{ $locScopeNotes }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- KARTU 2: Agenda & Ketentuan Waktu --}}
+            <div class="lpk-form-card">
+                <div class="lpk-form-card-header">
+                    <div class="lpk-card-icon-wrap icon-wrap-blue">
+                        <x-icon name="calendar" size="20" />
+                    </div>
+                    <div class="lpk-card-header-text">
+                        <h2>Agenda &amp; Ketentuan Waktu</h2>
+                        <p>Jadwal kunjungan lapangan, tim asesor, dan toleransi siklus akreditasi.</p>
+                    </div>
+                </div>
+
+                <div class="lpk-meta-grid">
+                    <div class="lpk-meta-item full-width">
+                        <span class="lpk-meta-label">Tanggal Kunjungan Lapangan</span>
+                        <div class="lpk-meta-value" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-weight: 600; font-size: 13.5px; color: var(--ink); display: flex; align-items: center; gap: 6px;">
+                                <x-icon name="clock" size="15" style="color: var(--primary);" />
+                                <span>
+                                    @if($assessment->start_at && $assessment->end_at)
+                                        {{ $assessment->start_at->translatedFormat('d M Y') }} - {{ $assessment->end_at->translatedFormat('d M Y') }}
+                                    @elseif($assessment->start_at)
+                                        {{ $assessment->start_at->translatedFormat('d M Y') }}
+                                    @else
+                                        Tanggal belum ditentukan
+                                    @endif
+                                </span>
+                            </div>
+                            <span class="badge-tp badge-tp-{{ $assessment->status === 'COMPLETED' ? 'satisfied' : ($assessment->status === 'IN_PROGRESS' ? 'warning' : 'neutral') }}">
+                                {{ $assessment->status_label }}
+                            </span>
+                        </div>
+                    </div>
+
                     <div class="lpk-meta-item full-width">
                         <span class="lpk-meta-label">Tim Asesmen</span>
-                        <div class="lpk-meta-value">
-                            {{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}
+                        <div class="lpk-meta-value" style="display: flex; align-items: center; gap: 6px;">
+                            <x-icon name="users" size="15" style="color: var(--muted); flex-shrink: 0;" />
+                            <span>{{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}</span>
                         </div>
                     </div>
 
                     @if($assessment->submission_due_date && $assessment->status !== 'COMPLETED')
                         <div class="lpk-meta-item full-width">
-                            <span class="lpk-meta-label">Toleransi Pengisian</span>
+                            <span class="lpk-meta-label">Toleransi Pengisian Siklus</span>
                             <div class="lpk-meta-value">
-                                <strong>Maksimal {{ $assessment->submission_due_date->format('d M Y') }}</strong>
+                                <strong>Maksimal {{ $assessment->submission_due_date->translatedFormat('d M Y') }}</strong>
                                 <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">({{ $assessment->submission_cycle_hint }})</span>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                     <div style="margin-top: 4px; font-size: 12px; color: var(--danger-text, #ef4444); font-weight: 600;">
-                                        &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->format('d M Y') }}) telah berakhir: Akreditasi dicabut.
+                                        &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }}) telah berakhir: Akreditasi dicabut.
                                     </div>
                                 @elseif($assessment->is_submission_overdue || $assessment->status === 'SUSPENDED')
                                     <div style="margin-top: 4px; font-size: 12px; color: var(--terracotta, #c084fc); font-weight: 600;">
-                                        &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->format('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
+                                        &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
                                     </div>
                                 @endif
                             </div>
@@ -503,96 +607,9 @@
                     @endif
                 </div>
             </div>
-
-            {{-- KARTU 2: Laporan Asesmen, Rapat Panitia Teknis & SK KAN --}}
-            <div class="lpk-form-card">
-                <div class="lpk-form-card-header">
-                    <div class="lpk-card-icon-wrap icon-wrap-rose">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                    </div>
-                    <div class="lpk-card-header-text">
-                        <h2>Laporan Asesmen, Rapat Panitia Teknis &amp; SK KAN</h2>
-                        <p>Dokumen pelaporan asesmen, evaluasi panitia teknis, dan keputusan akreditasi.</p>
-                    </div>
-                </div>
-
-                <div class="lpk-meta-grid">
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Laporan Asesmen</span>
-                        <div class="lpk-meta-value">
-                            @if($assessment->report_date)
-                                Diterbitkan pada <strong>{{ $assessment->report_date->format('d M Y') }}</strong>
-                            @else
-                                <span style="color: var(--muted);">Belum diterbitkan</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item">
-                        <span class="lpk-meta-label">Rapat Panitia Teknis</span>
-                        <div class="lpk-meta-value">
-                            @if($assessment->eha_date || ($assessment->eha_status && $assessment->eha_status !== 'BELUM_EHA') || $assessment->eha_notes)
-                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                                    <span class="badge-tp {{ in_array($assessment->eha_status, [\App\Models\Assessment::EHA_STATUS_PERLU_VERIFIKASI, \App\Models\Assessment::EHA_STATUS_CATATAN_KHUSUS], true) ? 'badge-tp-warning' : ($assessment->eha_status === \App\Models\Assessment::EHA_STATUS_DIREKOMENDASIKAN ? 'badge-tp-satisfied' : 'badge-tp-neutral') }}">{{ $assessment->eha_status_label }}</span>
-                                    @if($assessment->eha_date)
-                                        <span style="color: var(--muted); font-size: 12px;">(Tanggal: {{ $assessment->eha_date->format('d M Y') }})</span>
-                                    @endif
-                                </div>
-                                @if($assessment->eha_notes)
-                                    <div style="font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.45;">{{ $assessment->eha_notes }}</div>
-                                @endif
-                            @elseif($assessment->is_waiting_eha)
-                                <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <span class="badge-tp badge-tp-warning" style="font-size: 11px; padding: 2.5px 8px;">
-                                        Menunggu Rapat Panitia Teknis
-                                    </span>
-                                    <span style="color: var(--muted); font-size: 12px;">(Tindakan perbaikan telah memenuhi)</span>
-                                </div>
-                            @else
-                                <span style="color: var(--muted);">Belum Rapat Panitia Teknis</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="lpk-meta-item full-width">
-                        <span class="lpk-meta-label">Surat Keputusan (SK)</span>
-                        <div class="lpk-meta-value">
-                            @if($assessment->sk_number || $assessment->sk_date)
-                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                    @if($assessment->sk_number)
-                                        <strong style="color: var(--green); font-size: 14px;">{{ $assessment->sk_number }}</strong>
-                                    @endif
-                                    @if($assessment->sk_date)
-                                        <span style="color: var(--muted); font-size: 12.5px;">(Terbit: {{ $assessment->sk_date->format('d M Y') }})</span>
-                                    @endif
-                                    @if($assessment->sk_lead_time_label)
-                                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
-                                             Rentang Proses: {{ $assessment->sk_lead_time_label }}
-                                        </span>
-                                    @endif
-                                </div>
-                            @elseif($assessment->is_waiting_sk)
-                                <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <span class="badge-tp badge-tp-warning" style="font-size: 11.5px; padding: 2.5px 8px;">
-                                        Menunggu Penerbitan SK KAN
-                                    </span>
-                                    <span style="color: var(--muted); font-size: 12px;">(Rapat Panitia Teknis telah selesai / direkomendasikan)</span>
-                                </div>
-                            @else
-                                <span style="color: var(--muted);">Belum terbit</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        {{-- KOLOM KANAN: Tindakan Perbaikan & Verifikasi (TP & VTP) Standar KAN --}}
+        {{-- KOLOM KANAN: Progres Kepatuhan & Regulasi KAN U-01 (Unified 4-Phase Compliance Engine) --}}
         <div class="lpk-show-col">
             @include('assessments.partials.tp-tracking')
         </div>
@@ -601,4 +618,5 @@
 
 @if(!isset($owner))
     @include('assessments.partials.modal-tp-tracking')
+    @include('assessments.partials.modal-complete-field')
 @endif

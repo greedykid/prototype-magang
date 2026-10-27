@@ -77,7 +77,7 @@ class GlobalSearchController extends Controller
 
         // 2. Search Assessments & Schedules in a single query
         $rawAssessments = Assessment::query()
-            ->with(['lpk:id,name'])
+            ->with(['lpk:id,name,status,certificate_date,expired_at'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->where(function ($query) use ($assessmentTerms, $q) {
                 $query->where(function ($sub) use ($assessmentTerms) {

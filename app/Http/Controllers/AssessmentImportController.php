@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -264,18 +262,27 @@ class AssessmentImportController extends Controller
         $lpksByNoReg = $accessibleLpks->whereNotNull('no_reg')->keyBy(fn ($l) => strtoupper(trim((string) $l->no_reg)));
         $lpksByName = $accessibleLpks->keyBy(fn ($l) => strtolower(trim((string) $l->name)));
 
-        // Pre-load existing assessments hanya untuk LPK yang relevan
-        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))
-            ->get();
+        // Pre-load existing assessments hanya untuk LPK yang relevan dengan lookup hash O(1)
+        $existingAssessments = Assessment::whereIn('lpk_id', $accessibleLpks->pluck('id'))->get();
+        $existingByTitle = [];
+        $existingByDate = [];
+        foreach ($existingAssessments as $a) {
+            $existingByTitle[$a->lpk_id . '||' . mb_strtoupper(trim((string) $a->title))] = $a;
+            if ($a->start_at) {
+                $existingByDate[$a->lpk_id . '||' . $a->start_at->toDateString()] = $a;
+            }
+        }
 
-        DB::transaction(function () use (
+        try {
+            DB::transaction(function () use (
             $rows,
             $headers,
             $lpksByReg,
             $lpksByAccred,
             $lpksByNoReg,
             $lpksByName,
-            $existingAssessments,
+            &$existingByTitle,
+            &$existingByDate,
             $userId,
             &$createdCount,
             &$updatedCount,
@@ -354,25 +361,24 @@ class AssessmentImportController extends Controller
                 $skDate = ! empty($data['sk_date']) ? $this->parseDate($data['sk_date']) : null;
                 $skNumber = ! empty($data['sk_number']) ? trim((string) $data['sk_number']) : null;
 
-                // Cari existing assessment dari in-memory collection
-                $existing = $existingAssessments->first(function ($a) use ($matchedLpk, $titleInput, $startAt) {
-                    return (int) $a->lpk_id === (int) $matchedLpk->id
-                        && ($a->title === $titleInput || ($a->start_at && $a->start_at->toDateString() === $startAt->toDateString()));
-                });
+                // Cari existing assessment menggunakan lookup hash O(1)
+                $titleLookupKey = $matchedLpk->id . '||' . mb_strtoupper($titleInput);
+                $dateLookupKey = $matchedLpk->id . '||' . $startAt->toDateString();
+                $existing = $existingByTitle[$titleLookupKey] ?? ($existingByDate[$dateLookupKey] ?? null);
 
                 $payload = [
                     'lpk_id' => $matchedLpk->id,
-                    'title' => $titleInput,
-                    'assessment_type' => $typeInput,
+                    'title' => mb_substr($titleInput, 0, 255),
+                    'assessment_type' => mb_substr($typeInput, 0, 60),
                     'start_at' => $startAt,
                     'end_at' => $endAt,
-                    'location' => ! empty($data['location']) ? $data['location'] : ($existing->location ?? $matchedLpk->address),
+                    'location' => ! empty($data['location']) ? mb_substr($data['location'], 0, 255) : ($existing->location ?? $matchedLpk->address),
                     'status' => $status,
-                    'lead_assessor' => ! empty($data['lead_assessor']) ? $data['lead_assessor'] : ($existing->lead_assessor ?? null),
+                    'lead_assessor' => ! empty($data['lead_assessor']) ? mb_substr($data['lead_assessor'], 0, 100) : ($existing->lead_assessor ?? null),
                     'notes' => ! empty($data['notes']) ? $data['notes'] : ($existing->notes ?? null),
                     'tp_status' => $tpStatus,
                     'tp_due_date' => $tpDueDate ?: ($existing->tp_due_date ?? null),
-                    'sk_number' => $skNumber ?: ($existing->sk_number ?? null),
+                    'sk_number' => $skNumber ? mb_substr($skNumber, 0, 80) : ($existing->sk_number ?? null),
                     'sk_date' => $skDate ?: ($existing->sk_date ?? null),
                 ];
 
@@ -382,11 +388,19 @@ class AssessmentImportController extends Controller
                 } else {
                     $payload['created_by'] = $userId;
                     $createdAssessment = Assessment::create($payload);
-                    $existingAssessments->push($createdAssessment);
+                    $existingByTitle[$titleLookupKey] = $createdAssessment;
+                    $existingByDate[$dateLookupKey] = $createdAssessment;
                     $createdCount++;
                 }
             }
         });
+        } catch (\Throwable $e) {
+            Log::error('Assessment import failed: '.$e->getMessage(), ['exception' => $e]);
+
+            return back()->with('error', 'Gagal memproses data impor: '.$e->getMessage());
+        }
+
+        \App\Services\LpkSurveillanceService::invalidateAlertsCache();
 
         // Audit log terstruktur
         Log::info('Assessment import batch completed', [
@@ -398,74 +412,26 @@ class AssessmentImportController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        $msg = "Impor data Asesmen selesai: {$createdCount} agenda baru ditambahkan, {$updatedCount} diperbarui";
-        if ($skippedCount > 0) {
-            $msg .= ", dan {$skippedCount} baris dilewati";
+        if ($createdCount === 0 && $updatedCount === 0 && $skippedCount > 0) {
+            $msg = "Impor selesai. {$skippedCount} baris dilewati";
             if (! empty($unmatchedLpks)) {
-                $msg .= ' (LPK tidak terdaftar: ' . implode(', ', array_slice($unmatchedLpks, 0, 3)) . (count($unmatchedLpks) > 3 ? ' dst.' : '') . ')';
+                $msg .= ' karena LPK tidak terdaftar (' . implode(', ', array_slice($unmatchedLpks, 0, 3)) . (count($unmatchedLpks) > 3 ? ' dst.' : '') . ')';
             }
             $msg .= '.';
         } else {
-            $msg .= '.';
+            $msg = "Impor data Asesmen selesai: {$createdCount} agenda baru ditambahkan, {$updatedCount} diperbarui";
+            if ($skippedCount > 0) {
+                $msg .= ", dan {$skippedCount} baris dilewati";
+                if (! empty($unmatchedLpks)) {
+                    $msg .= ' (LPK tidak terdaftar: ' . implode(', ', array_slice($unmatchedLpks, 0, 3)) . (count($unmatchedLpks) > 3 ? ' dst.' : '') . ')';
+                }
+                $msg .= '.';
+            } else {
+                $msg .= '.';
+            }
         }
 
         return redirect()->route('assessments.index')->with('success', $msg);
-    }
-
-
-    /**
-     * Parsing berkas Excel (.xlsx) menjadi headers dan rows.
-     */
-    protected function parseXlsxFile(string $filePath): array
-    {
-        $reader = IOFactory::createReaderForFile($filePath);
-        $reader->setReadDataOnly(true);
-        $spreadsheet = $reader->load($filePath);
-        $worksheet = $spreadsheet->getActiveSheet();
-
-        $headers = [];
-        $rows = [];
-
-        foreach ($worksheet->getRowIterator() as $row) {
-            $rowNum = $row->getRowIndex();
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(false);
-
-            $rowValues = [];
-
-            foreach ($cellIterator as $cell) {
-                if (ExcelDate::isDateTime($cell)) {
-                    try {
-                        $dateObj = ExcelDate::excelToDateTimeObject($cell->getValue());
-                        $val = $dateObj->format('Y-m-d H:i:s');
-                    } catch (\Throwable) {
-                        $val = (string) $cell->getCalculatedValue();
-                    }
-                } else {
-                    $val = (string) ($cell->getCalculatedValue() ?? '');
-                }
-
-                $rowValues[] = $val;
-            }
-
-            if (empty(array_filter($rowValues, fn ($v) => trim((string) $v) !== ''))) {
-                continue;
-            }
-
-            if (empty($headers)) {
-                $headers = $this->normalizeHeaders($rowValues);
-            } else {
-                $rows[] = [
-                    'row_number' => $rowNum,
-                    'values' => $rowValues,
-                ];
-            }
-        }
-
-        return [
-            'headers' => $headers,
-            'rows' => $rows,
-        ];
     }
 
     /**

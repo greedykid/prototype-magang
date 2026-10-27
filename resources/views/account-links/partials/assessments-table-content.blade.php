@@ -17,7 +17,7 @@
             </thead>
             <tbody>
                 @foreach($assessments as $assessment)
-                    <tr class="clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" data-id="{{ $assessment->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail asesmen {{ $assessment->display_title }}">
+                    <tr class="clickable-row" data-href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" data-id="{{ $assessment->id }}" tabindex="0" title="Klik baris untuk melihat detail asesmen {{ $assessment->display_title }}">
                         <td>
                             <a href="{{ route('account-links.assessments.show', [$owner, $assessment]) }}" style="font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block;">
                                 {{ $assessment->display_title }}
@@ -36,13 +36,12 @@
                                 <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 2px;">{{ $typeLabel }}</span>
                             @endif
                             @if($assessment->sk_number)
-                                <div style="margin-top: 4px;">
-                                    <span class="badge-tp badge-tp-success" style="font-size: 10px; display: inline-block;" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date . ')' : '' }} {{ $assessment->sk_lead_time_label ? '| Rentang: ' . $assessment->sk_lead_time_label : '' }}">
-                                        SK: {{ $assessment->sk_number }}
-                                        @if($assessment->sk_lead_time_days !== null)
-                                            ({{ $assessment->sk_lead_time_days }} hr)
-                                        @endif
-                                    </span>
+                                <div class="assessment-sk-pill" title="SK: {{ $assessment->sk_number }} {{ $assessment->sk_date ? '(' . $assessment->sk_date . ')' : '' }} {{ $assessment->sk_lead_time_label ? '| Rentang: ' . $assessment->sk_lead_time_label : '' }}">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: 0.7;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    <code class="sk-code">SK: {{ $assessment->sk_number }}</code>
+                                    @if($assessment->sk_lead_time_days !== null)
+                                        <span class="sk-lead-time">({{ $assessment->sk_lead_time_days }} hr)</span>
+                                    @endif
                                 </div>
                             @endif
                         </td>
@@ -50,7 +49,15 @@
                             <a href="{{ route('account-links.lpks.show', [$owner, $assessment->lpk]) }}" style="color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; display: block;" title="Buka rincian LPK">
                                 {{ $assessment->lpk->name }}
                             </a>
-                            <span style="display: block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 2px;">{{ $assessment->lpk->registration_number }}</span>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                <span style="font-size: 11.5px; color: var(--muted); font-weight: 500;">{{ $assessment->lpk->registration_number }}</span>
+                                @if($assessment->lpkLocation)
+                                    <span class="badge-tp" style="display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 0 5px; background: rgba(2, 132, 199, 0.08); border-color: rgba(2, 132, 199, 0.25); color: var(--primary); font-weight: 600;">
+                                        <x-icon name="map-pin" size="10" />
+                                        <span>{{ $assessment->lpkLocation->name }}</span>
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td style="font-size: 12.5px; color: var(--ink);">
                             {{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}
@@ -68,18 +75,20 @@
                         </td>
                         <td>
                             <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
-                                <x-status :value="$assessment->status" />
-                                <span class="badge badge-viewer" title="Akses Viewer: Hanya Lihat">
-                                    Viewer
-                                </span>
+                                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <x-status :value="$assessment->status" />
+                                    <span class="badge badge-viewer" title="Akses Viewer: Hanya Lihat">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 2px;" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Viewer
+                                    </span>
+                                </div>
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-                                    <span class="badge-tp badge-tp-danger" style="font-size: 10px; display: inline-block;" title="Telah melewati batas toleransi pembekuan 1 tahun tanpa penyelesaian">
+                                    <div class="assessment-status-subtag is-danger" title="Telah melewati batas toleransi pembekuan 1 tahun tanpa penyelesaian">
                                         Akreditasi Dicabut
-                                    </span>
+                                    </div>
                                 @elseif($assessment->is_submission_overdue)
-                                    <span class="badge-tp badge-tp-suspended" style="font-size: 10px; display: inline-block;" title="Toleransi pengisian dokumen surveilen telah terlampaui (akhir bulan kunjungan), sisa kesempatan pembekuan 1 tahun">
-                                        Toleransi Terlampaui (Dibekukan)
-                                    </span>
+                                    <div class="assessment-status-subtag is-danger" title="Toleransi pengisian dokumen surveilen telah terlampaui (akhir bulan kunjungan), sisa kesempatan pembekuan 1 tahun">
+                                        Toleransi Terlampaui
+                                    </div>
                                 @endif
                             </div>
                         </td>

@@ -36,7 +36,7 @@ class AssessmentController extends Controller
         $isPic = $user && $user->isPic();
 
         $query = Assessment::query()
-            ->with(['lpk'])
+            ->with(['lpk', 'lpkLocation'])
             ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
             ->filterByCriteria([
                 'search' => $search,
@@ -84,19 +84,29 @@ class AssessmentController extends Controller
     public function create(Request $request): View
     {
         $user = $request->user();
-        $lpks = Lpk::manageableBy($user)->orderBy('name')->get();
+        $lpks = Lpk::manageableBy($user)->with('locations')->orderBy('name')->get();
 
         $assessment = new Assessment;
 
         if ($request->filled('lpk_id')) {
-            $lpk = Lpk::find($request->input('lpk_id'));
+            $lpk = Lpk::with('locations')->find($request->input('lpk_id'));
             if ($lpk) {
                 if ($user && ! $lpk->canManage($user)) {
                     abort(403, 'Anda tidak memiliki hak untuk menambah asesmen pada LPK ini.');
                 }
 
                 $assessment->lpk_id = $lpk->id;
-                $assessment->location = $lpk->address ?: '';
+
+                $targetLoc = null;
+                if ($request->filled('lpk_location_id')) {
+                    $targetLoc = $lpk->locations->firstWhere('id', (int) $request->input('lpk_location_id'));
+                }
+                if (! $targetLoc) {
+                    $targetLoc = $lpk->mainLocation() ?: $lpk->locations->first();
+                }
+
+                $assessment->lpk_location_id = $targetLoc?->id;
+                $assessment->location = $targetLoc?->address ?: ($lpk->address ?: '');
 
                 $alertCode = strtoupper((string) $request->input('alert_code', ''));
                 $targetDateStr = $request->input('target_date');
@@ -206,7 +216,7 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk menambah asesmen pada LPK ini.');
         }
 
-        $assessment = Assessment::create($data + ['created_by' => $user->id]);
+        $assessment = DB::transaction(fn () => Assessment::create($data + ['created_by' => $user->id]));
 
         return redirect()->route('assessments.index')->with('success', 'Asesmen berhasil dicatat.');
     }
@@ -228,7 +238,10 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk mengubah asesmen ini.');
         }
 
-        return view('assessments.form', ['assessment' => $assessment, 'lpks' => Lpk::manageableBy($user)->orderBy('name')->get()]);
+        return view('assessments.form', [
+            'assessment' => $assessment->load('lpkLocation'),
+            'lpks' => Lpk::manageableBy($user)->with('locations')->orderBy('name')->get(),
+        ]);
     }
 
     public function update(UpdateAssessmentRequest $request, Assessment $assessment): RedirectResponse
@@ -263,7 +276,7 @@ class AssessmentController extends Controller
             $data['tp_extension_notes'] = null;
         }
 
-        $assessment->update($data);
+        DB::transaction(fn () => $assessment->update($data));
 
         return redirect()->route('assessments.show', $assessment)->with('success', 'Asesmen berhasil diperbarui.');
     }
@@ -276,7 +289,7 @@ class AssessmentController extends Controller
         }
 
         $validated = $request->normalizedData($assessment);
-        $assessment->update($validated);
+        DB::transaction(fn () => $assessment->update($validated));
 
         return back()->with('success', 'Pembaruan tindak lanjut asesmen berhasil disimpan.');
     }

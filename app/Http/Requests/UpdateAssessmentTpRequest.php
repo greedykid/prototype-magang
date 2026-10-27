@@ -19,6 +19,7 @@ class UpdateAssessmentTpRequest extends FormRequest
             'unified_status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,IN_PROGRESS_TP,UNDER_VERIFICATION,SUSPENDED,COMPLETED,CANCELLED'],
             'status' => ['nullable', 'string', 'in:PLANNED,SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED,SUSPENDED'],
             'tp_status' => ['required_without:unified_status', 'nullable', 'string', 'in:NONE,IN_PROGRESS,UNDER_VERIFICATION,SATISFIED'],
+            'end_at' => ['nullable', 'date'],
             'tp_due_date' => ['nullable', 'date'],
             'tp_has_extension' => ['nullable', 'boolean'],
             'tp_extension_months' => ['nullable', 'integer', 'min:0', 'max:1'],
@@ -78,6 +79,11 @@ class UpdateAssessmentTpRequest extends FormRequest
     public function normalizedData(Assessment $assessment): array
     {
         $validated = $this->validated();
+
+        if (! empty($validated['end_at'])) {
+            $validated['end_at'] = Carbon::parse($validated['end_at'])->endOfDay();
+        }
+
         $hasExt = $this->boolean('tp_has_extension');
         $validated['tp_has_extension'] = $hasExt;
         if ($hasExt) {
@@ -141,19 +147,23 @@ class UpdateAssessmentTpRequest extends FormRequest
             }
             unset($validated['unified_status']);
         } elseif (empty($validated['status'])) {
-            if (($validated['tp_status'] ?? null) === Assessment::TP_STATUS_SATISFIED) {
-                if (empty($validated['tp_satisfied_at']) && empty($assessment->tp_satisfied_at)) {
-                    $validated['tp_satisfied_at'] = now()->toDateString();
+            if (array_key_exists('tp_status', $validated)) {
+                if ($validated['tp_status'] === Assessment::TP_STATUS_SATISFIED) {
+                    if (empty($validated['tp_satisfied_at']) && empty($assessment->tp_satisfied_at)) {
+                        $validated['tp_satisfied_at'] = now()->toDateString();
+                    }
+                } else {
+                    $validated['tp_satisfied_at'] = null;
                 }
-            } else {
-                $validated['tp_satisfied_at'] = null;
             }
 
             $tpDueDate = ! empty($validated['tp_due_date']) ? Carbon::parse($validated['tp_due_date']) : $assessment->tp_due_date;
             $tpHasExtension = (bool) ($validated['tp_has_extension'] ?? $assessment->tp_has_extension);
             $tpExtensionMonths = (int) ($validated['tp_extension_months'] ?? $assessment->tp_extension_months);
             $tpExtensionDate = ! empty($validated['tp_extension_date']) ? Carbon::parse($validated['tp_extension_date']) : $assessment->tp_extension_date;
-            $tpSatisfiedAt = ! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : null;
+            $tpSatisfiedAt = array_key_exists('tp_satisfied_at', $validated)
+                ? (! empty($validated['tp_satisfied_at']) ? Carbon::parse($validated['tp_satisfied_at']) : null)
+                : $assessment->tp_satisfied_at;
 
             $validated['status'] = Assessment::determineStatusFromDates(
                 $assessment->start_at,

@@ -279,8 +279,9 @@ class AccountLinkController extends Controller
         $owner = $user;
         $lpk->load([
             'pic',
-            'assessments' => fn ($q) => $q->orderBy('start_at', 'desc'),
+            'assessments' => fn ($q) => $q->with('lpkLocation')->orderBy('start_at', 'desc'),
             'members',
+            'locations.assessments',
         ]);
 
         return view('account-links.lpks.show', compact('owner', 'lpk', 'currentUser'));

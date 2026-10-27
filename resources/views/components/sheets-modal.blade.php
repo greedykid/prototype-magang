@@ -12,14 +12,17 @@
 <div class="simasadi-modal" id="{{ $modalId }}" role="dialog" aria-modal="true" aria-labelledby="{{ $modalId }}-title">
     <div class="simasadi-modal-box" style="max-width: 620px;">
         <div class="simasadi-modal-head">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <x-icon :name="$showFeed ? 'sheets' : 'download'" size="20" style="{{ $showFeed ? 'color: #0f9d58;' : 'color: var(--primary);' }}" />
+            <div class="modal-title-group">
+                <div class="modal-title-icon-badge {{ $showFeed ? 'badge-green' : 'badge-blue' }}" aria-hidden="true">
+                    <x-icon :name="$showFeed ? 'sheets' : 'download'" size="17" />
+                </div>
                 <h4 id="{{ $modalId }}-title" style="margin: 0; font-size: 17px; font-weight: 700;">{{ $title }}</h4>
             </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('{{ $modalId }}')" aria-label="Tutup modal">&times;</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="simasadi-modal-body">
+            <div style="display: flex; flex-direction: column; gap: 18px;">
             <p style="margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5;">
                 {{ $subtitle }}
             </p>
@@ -120,6 +123,7 @@
                     </div>
                 </div>
             @endif
+            </div>
         </div>
 
         <div class="modal-form-actions">

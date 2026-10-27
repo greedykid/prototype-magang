@@ -28,7 +28,7 @@
             </thead>
             <tbody>
                 @foreach($lpks as $lpk)
-                    <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" data-id="{{ $lpk->id }}" tabindex="0" role="link" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
+                    <tr class="clickable-row" data-href="{{ route('lpks.show', $lpk) }}" data-id="{{ $lpk->id }}" tabindex="0" title="Klik baris untuk melihat detail LPK {{ $lpk->name }}">
                         @php
                             $lpkAlerts = $lpk->getActiveSurveillanceAlerts();
                         @endphp
@@ -53,15 +53,18 @@
                                 <x-status :value="$lpk->dynamic_status" />
                                 @if(auth()->check() && $lpk->isViewerPic(auth()->user()))
                                     <span class="badge badge-viewer" title="Anda terhubung sebagai Viewer (Hanya Lihat)">
-                                        Viewer
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 2px;" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Viewer
                                     </span>
                                 @endif
                                 @if(!empty($lpkAlerts))
-                                    @foreach($lpkAlerts as $alt)
-                                        <span class="badge lpk-alert-badge {{ $alt['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $alt['description'] }}">
-                                            {{ $alt['name'] }}
-                                        </span>
-                                    @endforeach
+                                    @php
+                                        $firstUrgent = collect($lpkAlerts)->firstWhere('is_urgent', true) ?? $lpkAlerts[0];
+                                        $extraAlertsCount = count($lpkAlerts) - 1;
+                                        $allAlertsTooltip = collect($lpkAlerts)->map(fn($a) => $a['name'] . ': ' . $a['description'])->implode(' | ');
+                                    @endphp
+                                    <span class="badge lpk-alert-badge {{ $firstUrgent['is_urgent'] ? 'is-urgent' : 'is-warning' }}" title="{{ $allAlertsTooltip }}">
+                                        {{ $firstUrgent['name'] }}@if($extraAlertsCount > 0) <span class="badge-more">+{{ $extraAlertsCount }}</span>@endif
+                                    </span>
                                 @endif
                             </div>
                         </td>
@@ -107,14 +110,26 @@
                             {{-- Status Siklus / Proses Berjalan Otomatis --}}
                             @if($dynamicKet)
                                 @php
+                                    $hasColon = str_contains($dynamicKet, ':');
+                                    if ($hasColon) {
+                                        [$processName, $statusDetail] = explode(':', $dynamicKet, 2);
+                                        $cleanProcessName = str_replace([' (Akreditasi Ulang)', ' (RA)'], '', trim($processName));
+                                        $statusDetail = trim($statusDetail);
+                                    } else {
+                                        $cleanProcessName = null;
+                                        $statusDetail = trim($dynamicKet);
+                                    }
+
                                     $ketLower = strtolower($dynamicKet);
-                                    if ($lpk->isRevocationOverdue() || str_contains($ketLower, 'akreditasi dicabut') || str_contains($ketLower, 'status dicabut')) {
+                                    $statusDetailLower = strtolower($statusDetail);
+
+                                    if ($lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED' || $lpk->dynamic_status === 'EXPIRED' || str_contains($ketLower, 'akreditasi dicabut') || str_contains($ketLower, 'status dicabut')) {
                                         $theme = 'rose';
                                         $catLabel = 'Dicabut';
-                                    } elseif ($lpk->isInGracePeriod() || str_contains($ketLower, 'masa tenggang') || str_contains($ketLower, 'toleransi')) {
+                                    } elseif ($lpk->isInGracePeriod() || $lpk->dynamic_status === 'GRACE_PERIOD' || str_contains($ketLower, 'masa tenggang') || str_contains($ketLower, 'toleransi 6 bulan')) {
                                         $theme = 'amber';
                                         $catLabel = 'Toleransi 6 Bln';
-                                    } elseif (str_contains($ketLower, 'dibekukan')) {
+                                    } elseif ($lpk->dynamic_status === 'SUSPENDED' || str_starts_with($statusDetailLower, 'dibekukan') || str_contains($ketLower, 'status akreditasi dibekukan')) {
                                         $theme = 'blue';
                                         $catLabel = 'Dibekukan';
                                     } elseif (str_contains($ketLower, 'jatuh tempo') || str_contains($ketLower, 'terlampaui') || str_contains($ketLower, 'lewat jadwal') || str_contains($ketLower, 'kedaluwarsa') || str_contains($ketLower, 'dicabut')) {
@@ -132,11 +147,7 @@
                                     }
                                 @endphp
                                 <div class="lpk-auto-status theme-{{ $theme }}">
-                                    @if(str_contains($dynamicKet, ':'))
-                                        @php
-                                            [$processName, $statusDetail] = explode(':', $dynamicKet, 2);
-                                            $cleanProcessName = str_replace([' (Akreditasi Ulang)', ' (RA)'], '', trim($processName));
-                                        @endphp
+                                    @if($hasColon)
                                         <div class="lpk-note-header">
                                             <span class="lpk-note-badge">
                                                 {{ $cleanProcessName }}

@@ -121,7 +121,7 @@ class Assessment extends Model
             return 'COMPLETED';
         }
 
-        $isFieldDone = ($this->end_at && now()->gt($this->end_at)) || ! empty($this->report_date);
+        $isFieldDone = ($this->end_at && now()->gte($this->end_at)) || ! empty($this->report_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true);
         $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
             || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
@@ -187,6 +187,7 @@ class Assessment extends Model
 
     protected $fillable = [
         'lpk_id',
+        'lpk_location_id',
         'created_by',
         'title',
         'assessment_type',
@@ -372,7 +373,7 @@ class Assessment extends Model
             return false;
         }
 
-        $isFieldDone = ($this->end_at && now()->gt($this->end_at)) || ! empty($this->report_date) || $this->isPastSurveillanceForActiveLpk();
+        $isFieldDone = ($this->end_at && now()->gte($this->end_at)) || ! empty($this->report_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true) || $this->isPastSurveillanceForActiveLpk();
         $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at) || $this->isPastSurveillanceForActiveLpk();
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
             || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true))
@@ -495,7 +496,7 @@ class Assessment extends Model
             }
 
             // Hitung kualifikasi tahapan hulu
-            $isFieldDone = ($assessment->end_at && now()->gt($assessment->end_at)) || ! empty($assessment->report_date) || $assessment->isPastSurveillanceForActiveLpk();
+            $isFieldDone = ($assessment->end_at && now()->gte($assessment->end_at)) || ! empty($assessment->report_date) || in_array($assessment->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true) || $assessment->isPastSurveillanceForActiveLpk();
             $isTpSatisfied = $assessment->tp_status === self::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at) || $assessment->isPastSurveillanceForActiveLpk();
             $hasEhaCompleted = (in_array($assessment->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
                 || (! empty($assessment->eha_date) && ! in_array($assessment->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true)))
@@ -577,13 +578,8 @@ class Assessment extends Model
                                         $subExt->where(function ($ext0) {
                                             $ext0->where('tp_has_extension', false)
                                                 ->whereDate('tp_due_date', '<', now());
-                                        })->orWhere(function ($extDate) {
-                                            $extDate->where('tp_has_extension', true)
-                                                ->whereNotNull('tp_extension_date')
-                                                ->whereDate('tp_extension_date', '<', now());
                                         })->orWhere(function ($ext1) {
                                             $ext1->where('tp_has_extension', true)
-                                                ->whereNull('tp_extension_date')
                                                 ->whereDate('tp_due_date', '<', now()->subMonth());
                                         });
                                     });
@@ -598,13 +594,8 @@ class Assessment extends Model
                                                     $extQ->where(function ($ext0) {
                                                         $ext0->where('tp_has_extension', false)
                                                             ->whereDate('end_at', '<', now()->subMonths(3));
-                                                    })->orWhere(function ($extDate) {
-                                                        $extDate->where('tp_has_extension', true)
-                                                            ->whereNotNull('tp_extension_date')
-                                                            ->whereDate('tp_extension_date', '<', now());
                                                     })->orWhere(function ($ext1) {
                                                         $ext1->where('tp_has_extension', true)
-                                                            ->whereNull('tp_extension_date')
                                                             ->whereDate('end_at', '<', now()->subMonths(4));
                                                     });
                                                 });
@@ -614,13 +605,8 @@ class Assessment extends Model
                                                     $extQ->where(function ($ext0) {
                                                         $ext0->where('tp_has_extension', false)
                                                             ->whereDate('end_at', '<', now()->subMonths(2));
-                                                    })->orWhere(function ($extDate) {
-                                                        $extDate->where('tp_has_extension', true)
-                                                            ->whereNotNull('tp_extension_date')
-                                                            ->whereDate('tp_extension_date', '<', now());
                                                     })->orWhere(function ($ext1) {
                                                         $ext1->where('tp_has_extension', true)
-                                                            ->whereNull('tp_extension_date')
                                                             ->whereDate('end_at', '<', now()->subMonths(3));
                                                     });
                                                 });
@@ -637,7 +623,9 @@ class Assessment extends Model
         $now = now();
         $target = now()->addDays($days);
 
-        return $query->whereNotIn('tp_status', [self::TP_STATUS_NONE, self::TP_STATUS_SATISFIED])
+        return $query->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'SUSPENDED'])
+            ->whereNull('sk_number')
+            ->whereNotIn('tp_status', [self::TP_STATUS_NONE, self::TP_STATUS_SATISFIED])
             ->where(function ($q) use ($now, $target): void {
                 $q->where(function ($hasDueDate) use ($now, $target): void {
                     $hasDueDate->whereNotNull('tp_due_date')
@@ -646,14 +634,8 @@ class Assessment extends Model
                                 $ext0->where('tp_has_extension', false)
                                     ->whereDate('tp_due_date', '>=', $now)
                                     ->whereDate('tp_due_date', '<=', $target);
-                            })->orWhere(function ($extDate) use ($now, $target): void {
-                                $extDate->where('tp_has_extension', true)
-                                    ->whereNotNull('tp_extension_date')
-                                    ->whereDate('tp_extension_date', '>=', $now)
-                                    ->whereDate('tp_extension_date', '<=', $target);
                             })->orWhere(function ($ext1) use ($now, $target): void {
                                 $ext1->where('tp_has_extension', true)
-                                    ->whereNull('tp_extension_date')
                                     ->whereDate('tp_due_date', '>=', $now->copy()->subMonth())
                                     ->whereDate('tp_due_date', '<=', $target->copy()->subMonth());
                             });
@@ -669,14 +651,8 @@ class Assessment extends Model
                                             $ext0->where('tp_has_extension', false)
                                                 ->whereDate('end_at', '>=', $now->copy()->subMonths(3))
                                                 ->whereDate('end_at', '<=', $target->copy()->subMonths(3));
-                                        })->orWhere(function ($extDate) use ($now, $target): void {
-                                            $extDate->where('tp_has_extension', true)
-                                                ->whereNotNull('tp_extension_date')
-                                                ->whereDate('tp_extension_date', '>=', $now)
-                                                ->whereDate('tp_extension_date', '<=', $target);
                                         })->orWhere(function ($ext1) use ($now, $target): void {
                                             $ext1->where('tp_has_extension', true)
-                                                ->whereNull('tp_extension_date')
                                                 ->whereDate('end_at', '>=', $now->copy()->subMonths(4))
                                                 ->whereDate('end_at', '<=', $target->copy()->subMonths(4));
                                         });
@@ -688,14 +664,8 @@ class Assessment extends Model
                                             $ext0->where('tp_has_extension', false)
                                                 ->whereDate('end_at', '>=', $now->copy()->subMonths(2))
                                                 ->whereDate('end_at', '<=', $target->copy()->subMonths(2));
-                                        })->orWhere(function ($extDate) use ($now, $target): void {
-                                            $extDate->where('tp_has_extension', true)
-                                                ->whereNotNull('tp_extension_date')
-                                                ->whereDate('tp_extension_date', '>=', $now)
-                                                ->whereDate('tp_extension_date', '<=', $target);
                                         })->orWhere(function ($ext1) use ($now, $target): void {
                                             $ext1->where('tp_has_extension', true)
-                                                ->whereNull('tp_extension_date')
                                                 ->whereDate('end_at', '>=', $now->copy()->subMonths(3))
                                                 ->whereDate('end_at', '<=', $target->copy()->subMonths(3));
                                         });
@@ -782,34 +752,14 @@ class Assessment extends Model
             return $query;
         }
 
+        if ($status === 'OVERDUE') {
+            return $query->tpOverdue();
+        }
+
         if ($status === 'SUSPENDED') {
             return $query->where(function ($q) {
                 $q->where('status', 'SUSPENDED')
                     ->orWhere(fn ($sub) => $sub->tpOverdue());
-            });
-        }
-
-        if ($status === 'IN_PROGRESS') {
-            return $query->where('status', 'IN_PROGRESS')
-                ->where('tp_status', '!=', self::TP_STATUS_SATISFIED)
-                ->whereNull('sk_number')
-                ->where(function ($q) {
-                    $q->whereNull('tp_due_date')
-                        ->orWhereDate('tp_due_date', '>=', now());
-                });
-        }
-
-        if ($status === 'PLANNED') {
-            return $query->where('status', 'PLANNED')
-                ->where('tp_status', '!=', self::TP_STATUS_SATISFIED)
-                ->whereNull('sk_number');
-        }
-
-        if ($status === 'COMPLETED') {
-            return $query->where(function ($q) {
-                $q->where('status', 'COMPLETED')
-                    ->orWhere('tp_status', self::TP_STATUS_SATISFIED)
-                    ->orWhereNotNull('sk_number');
             });
         }
 
@@ -819,6 +769,25 @@ class Assessment extends Model
     public function lpk(): BelongsTo
     {
         return $this->belongsTo(Lpk::class);
+    }
+
+    public function lpkLocation(): BelongsTo
+    {
+        return $this->belongsTo(LpkLocation::class, 'lpk_location_id');
+    }
+
+    public function getDisplayLocationAttribute(): string
+    {
+        if ($this->lpkLocation) {
+            $base = $this->lpkLocation->name;
+            if ($this->location && $this->location !== $this->lpkLocation->name && $this->location !== $this->lpkLocation->address) {
+                $base .= " - {$this->location}";
+            }
+
+            return $base;
+        }
+
+        return $this->location ?: 'Lokasi Lapangan LPK';
     }
 
     public function creator(): BelongsTo

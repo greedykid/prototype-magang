@@ -47,11 +47,8 @@
                                     <span>PERINGATAN KAN</span>
                                 </div>
                                 <strong class="persistent-surveillance-banner-title">
-                                    Peringatan Siklus Pengawasan: {{ count($globalSurveillanceAlerts) }} Kunjungan Memerlukan Tindak Lanjut!
+                                    {{ count($globalSurveillanceAlerts) }} laboratorium memasuki batas waktu pengawasan KAN.
                                 </strong>
-                                <span class="persistent-surveillance-banner-desc">
-                                    (Bulan ke-13 S1, Bulan ke-34 S2, atau Bulan ke-48 RA standar KAN U-01)
-                                </span>
                             </div>
                         </div>
                         <div class="persistent-surveillance-banner-action">

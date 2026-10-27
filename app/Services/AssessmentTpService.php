@@ -21,7 +21,7 @@ class AssessmentTpService
         $normalizedType = Assessment::normalizeType($type ?? '');
         $isInitial = in_array($normalizedType, [Assessment::TYPE_AKREDITASI_AWAL, 'Asesmen Awal', 'INITIAL', 'AA'], true);
 
-        return $baseDate->copy()->addMonths($isInitial ? 3 : 2)->startOfDay();
+        return $baseDate->copy()->addMonthsNoOverflow($isInitial ? 3 : 2)->startOfDay();
     }
 
     /**
@@ -96,11 +96,11 @@ class AssessmentTpService
             // Jika baseDate sama dengan defaultBase + extensionMonths (misal karena form sebelumnya sudah menambahkan +1 bulan),
             // dan tidak ada tp_extension_date spesifik, maka baseDate tersebut adalah tanggal perpanjangannya.
             $defaultBase = $this->calculateDefaultTpDueDate($assessment);
-            if ($defaultBase && $assessment->tp_due_date && ! $assessment->tp_extension_date && $assessment->tp_due_date->toDateString() === $defaultBase->copy()->addMonths($extensionMonths)->toDateString()) {
+            if ($defaultBase && $assessment->tp_due_date && ! $assessment->tp_extension_date && $assessment->tp_due_date->toDateString() === $defaultBase->copy()->addMonthsNoOverflow($extensionMonths)->toDateString()) {
                 return $assessment->tp_due_date->copy()->startOfDay();
             }
 
-            return $baseDate->copy()->addMonths($extensionMonths)->startOfDay();
+            return $baseDate->copy()->addMonthsNoOverflow($extensionMonths)->startOfDay();
         }
 
         return $baseDate->copy()->startOfDay();
@@ -125,7 +125,7 @@ class AssessmentTpService
      */
     public function isTpOverdue(Assessment $assessment): bool
     {
-        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
+        if ($assessment->tp_status === Assessment::TP_STATUS_NONE || $assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
             return false;
         }
 
@@ -142,8 +142,8 @@ class AssessmentTpService
 
         // Jika dalam proses perbaikan aktif atau asesmen telah terlaksana (ada laporan/EHA)
         $hasActiveTp = in_array($assessment->tp_status, [Assessment::TP_STATUS_IN_PROGRESS, Assessment::TP_STATUS_UNDER_VERIFICATION], true)
-            || ! empty($assessment->report_date)
-            || ! empty($assessment->eha_date);
+            || (! empty($assessment->report_date) && $assessment->tp_status !== Assessment::TP_STATUS_NONE)
+            || (! empty($assessment->eha_date) && $assessment->tp_status !== Assessment::TP_STATUS_NONE);
 
         if ($hasActiveTp) {
             $effectiveDueDate = $this->calculateEffectiveTpDueDate($assessment);

@@ -116,7 +116,7 @@
                             @php
                                 $isLead = ($lpkItem->pic_id !== null && (int)$lpkItem->pic_id === (int)$user->id) || ($lpkItem->pivot && $lpkItem->pivot->role === 'lead');
                             @endphp
-                            <tr class="clickable-row" data-href="{{ route('lpks.show', $lpkItem) }}" tabindex="0" role="link" title="Buka rincian {{ $lpkItem->name }}">
+                            <tr class="clickable-row" data-href="{{ route('lpks.show', $lpkItem) }}" tabindex="0" title="Buka rincian {{ $lpkItem->name }}">
                                 <td data-sort-value="{{ $lpkItem->accreditation_number ?: $lpkItem->registration_number }}">
                                     <a href="{{ route('lpks.show', $lpkItem) }}" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); text-decoration: none;">
                                         {{ $lpkItem->accreditation_number ?: ($lpkItem->registration_number ?: '-') }}

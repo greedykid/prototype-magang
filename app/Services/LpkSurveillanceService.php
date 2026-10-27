@@ -374,6 +374,7 @@ class LpkSurveillanceService
         // Rentang pencarian asesmen yang relevan dengan siklus ini
         $queryStart = $cycleStart->copy()->subMonths(3);
         $queryEnd = $cycleEnd->copy()->addMonths(6);
+        $mainLocationId = $lpk->mainLocation()?->id;
 
         // 1. Asesmen Surveilen 1 (S1): Bulan 15 (Target Kunjungan Bulan 15-18)
         $s1Target = $cycleStart->copy()->addMonths(15)->startOfDay()->setHour(9);
@@ -394,6 +395,7 @@ class LpkSurveillanceService
 
         if (! $s1Assessment) {
             $lpk->assessments()->create([
+                'lpk_location_id' => $mainLocationId,
                 'created_by' => $creatorId,
                 'title' => 'Asesmen Surveilen 1 (S1)',
                 'assessment_type' => Assessment::TYPE_SURVEILEN_1,
@@ -443,6 +445,7 @@ class LpkSurveillanceService
 
         if (! $s2Assessment) {
             $lpk->assessments()->create([
+                'lpk_location_id' => $mainLocationId,
                 'created_by' => $creatorId,
                 'title' => 'Asesmen Surveilen 2 (S2)',
                 'assessment_type' => Assessment::TYPE_SURVEILEN_2,
@@ -492,6 +495,7 @@ class LpkSurveillanceService
 
         if (! $raAssessment) {
             $lpk->assessments()->create([
+                'lpk_location_id' => $mainLocationId,
                 'created_by' => $creatorId,
                 'title' => 'Asesmen Re-Akreditasi (RA)',
                 'assessment_type' => Assessment::TYPE_RE_AKREDITASI,
@@ -927,20 +931,7 @@ class LpkSurveillanceService
     {
         $epoch = (int) \Illuminate\Support\Facades\Cache::get('simasadi_alerts_epoch', 1);
         \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_admin_e{$epoch}");
-
-        if ($lpk && $lpk->pic_id) {
-            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$lpk->pic_id}_e{$epoch}");
-            if ($lpk->relationLoaded('members')) {
-                foreach ($lpk->members as $member) {
-                    \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$member->id}_e{$epoch}");
-                }
-            }
-        } elseif ($user) {
-            \Illuminate\Support\Facades\Cache::forget("simasadi_alerts_user_{$user->id}_e{$epoch}");
-        } else {
-            // Jika LPK tidak spesifik (misal bulk import atau artisan sync), naikkan epoch
-            \Illuminate\Support\Facades\Cache::put('simasadi_alerts_epoch', $epoch + 1);
-        }
+        \Illuminate\Support\Facades\Cache::put('simasadi_alerts_epoch', $epoch + 1);
     }
 }
 

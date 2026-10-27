@@ -17,17 +17,17 @@
 /* Header & Back Navigation */
 .lpk-form-header,
 .lpk-show-header {
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-2xl, 12px);
-    box-shadow: var(--shadow-card);
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     max-width: 100%;
     min-width: 0;
-    padding: 22px 26px;
+    padding: 0 !important;
 }
 
 .lpk-header-back-wrap {
@@ -36,76 +36,77 @@
     margin-bottom: 0;
 }
 
-/* Tactile Navigation Pill (Back Button) */
+.lpk-header-back-wrap + .lpk-form-header,
+.lpk-header-back-wrap + .lpk-show-header {
+    margin-top: -10px;
+}
+
+/* Breadcrumb-Style Back Navigation (Option B: Minimalist Clean Link) */
 .lpk-back-btn {
     align-items: center;
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--line, #eaecf5);
-    border-radius: var(--radius-md, 10px);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 0 0 1px rgba(16, 24, 40, 0.02);
-    color: var(--ink, #030d26) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--radius-md, 6px);
+    box-shadow: none !important;
+    color: var(--muted, #64748b) !important;
     cursor: pointer;
     display: inline-flex;
     font-family: inherit;
     font-size: var(--text-sm, 13px);
-    font-weight: 600;
-    gap: 7px;
-    letter-spacing: -0.01em;
-    line-height: 1;
-    min-height: 34px;
-    padding: 6px 14px 6px 10px;
+    font-weight: 500;
+    gap: 5px;
+    letter-spacing: normal;
+    line-height: 1.4;
+    min-height: auto;
+    padding: 3px 6px;
+    margin-left: -6px;
     text-decoration: none !important;
-    transition: background-color var(--motion-duration-normal, 150ms) ease,
-                border-color var(--motion-duration-normal, 150ms) ease,
-                box-shadow var(--motion-duration-normal, 150ms) ease,
-                color var(--motion-duration-normal, 150ms) ease,
-                transform var(--motion-duration-normal, 150ms) var(--ease-out-expo);
+    transition: color 140ms ease, background-color 140ms ease;
     user-select: none;
     width: fit-content;
 }
 
 .lpk-back-btn svg {
-    color: var(--muted, #5d6b98);
+    color: var(--muted, #64748b);
     display: block;
     flex-shrink: 0;
-    transition: color var(--motion-duration-normal, 150ms) ease,
-                transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: color 140ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lpk-back-btn:hover {
-    background: var(--surface-hover, #f0f2f8);
-    border-color: var(--line-strong, #dcdfea);
-    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.08);
-    color: var(--ink, #030d26) !important;
+    background: var(--surface-hover, rgba(0, 0, 0, 0.04)) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--primary, #0075de) !important;
     text-decoration: none !important;
-    transform: translateY(-1px);
+    transform: none !important;
 }
 
 .lpk-back-btn:hover svg {
-    color: var(--primary, #1972f5);
+    color: var(--primary, #0075de);
     transform: translateX(-3px);
 }
 
 .lpk-back-btn:active {
-    background: var(--surface-subtle, #f8f8fc);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-    transform: translateY(0) scale(0.98);
+    background: var(--surface-subtle, rgba(0, 0, 0, 0.06)) !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 .lpk-back-btn:focus-visible {
-    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus-ring);
+    box-shadow: 0 0 0 2px var(--focus-ring) !important;
     outline: none;
 }
 
 @media (max-width: 640px) {
     .lpk-header-back-wrap {
-        margin-bottom: 12px;
+        margin-bottom: 0;
     }
 
     .lpk-back-btn {
         font-size: 13px;
-        min-height: 38px;
-        padding: 7px 14px 7px 10px;
+        min-height: auto;
+        padding: 4px 6px;
     }
 }
 

@@ -1,8 +1,10 @@
 <div class="simasadi-modal" id="modal-import-lpk" role="dialog" aria-modal="true" aria-labelledby="modal-import-lpk-title">
     <div class="simasadi-modal-box modal-lg">
         <div class="simasadi-modal-head">
-            <div class="modal-head-title">
-                <x-icon name="import" size="20" />
+            <div class="modal-title-group">
+                <div class="modal-title-icon-badge badge-blue" aria-hidden="true">
+                    <x-icon name="import" size="17" />
+                </div>
                 <h4 id="modal-import-lpk-title">Impor Massal Data Master LPK</h4>
             </div>
             <button type="button" class="simasadi-modal-close" data-modal-close onclick="window.closeModal('modal-import-lpk')" aria-label="Tutup modal">&times;</button>

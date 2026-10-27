@@ -1,6 +1,7 @@
 import { initCustomSelects } from './custom-select.js';
 import { initCustomPickers, syncCustomPickers, closeAllCustomPickers } from './custom-picker.js';
 import { initFileDropzones } from './file-dropzone.js';
+import { initCharCounters } from './char-counter.js';
 
 // ==========================================================================
 // SIMASADI Viewport-Centric Modal Dialog System
@@ -80,6 +81,7 @@ export function openModal(modalId, targetSectionId = null) {
     initCustomPickers(modal);
     syncCustomPickers(modal);
     initFileDropzones(modal);
+    initCharCounters(modal);
 
     modal.classList.add('is-active');
     document.documentElement.classList.add('modal-open');
@@ -114,8 +116,11 @@ export function openModal(modalId, targetSectionId = null) {
     } else {
         if (modalBox) {
             modalBox.scrollTop = 0;
+            const scrollBody = modalBox.querySelector('.simasadi-modal-body, .modal-body, .modal-import-body');
+            if (scrollBody) scrollBody.scrollTop = 0;
             requestAnimationFrame(() => {
                 if (modalBox) modalBox.scrollTop = 0;
+                if (scrollBody) scrollBody.scrollTop = 0;
             });
         }
         if (!isTouch) {

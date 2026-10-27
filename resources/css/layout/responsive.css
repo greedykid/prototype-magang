@@ -837,12 +837,12 @@
         max-height: calc(100dvh - 24px) !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        padding: 14px 14px !important;
+        overflow: hidden !important;
+        padding: 0 !important;
         position: relative !important;
         width: 100% !important;
-        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .simasadi-modal-box form {
@@ -850,6 +850,12 @@
         max-width: 100% !important;
         min-width: 0 !important;
         width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
     }
 
     .simasadi-modal-box select,
@@ -862,17 +868,15 @@
     }
 
     .simasadi-modal-head {
-        align-items: flex-start !important;
+        align-items: center !important;
         box-sizing: border-box !important;
         gap: 10px !important;
-        margin-bottom: 14px !important;
-        margin-left: -14px !important;
-        margin-right: -14px !important;
-        margin-top: -14px !important;
-        max-width: calc(100% + 28px) !important;
-        padding: 12px 14px !important;
-        top: -14px !important;
-        width: calc(100% + 28px) !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        padding: 12px 16px !important;
+        top: 0 !important;
+        width: 100% !important;
+        flex-shrink: 0 !important;
     }
 
     .simasadi-modal-head h4 {
@@ -886,17 +890,29 @@
         flex-shrink: 0 !important;
     }
 
+    .simasadi-modal-body,
+    .modal-body,
+    .modal-import-body {
+        padding: 14px 16px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
     .modal-form-actions {
-        bottom: -14px !important;
+        bottom: 0 !important;
         box-sizing: border-box !important;
         flex-direction: column-reverse !important;
         gap: 8px !important;
-        margin-bottom: -14px !important;
-        margin-left: -14px !important;
-        margin-right: -14px !important;
-        max-width: calc(100% + 28px) !important;
+        margin: 0 !important;
+        max-width: 100% !important;
         padding: 10px 14px 14px 14px !important;
-        width: calc(100% + 28px) !important;
+        width: 100% !important;
+        flex-shrink: 0 !important;
+        z-index: 10 !important;
     }
 
     .modal-form-actions .button {

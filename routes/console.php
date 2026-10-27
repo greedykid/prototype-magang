@@ -15,8 +15,8 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
     $includeUsers = (bool) $this->option('include-users');
     $force = (bool) $this->option('force');
 
-    if (app()->isProduction() && ! $force) {
-        $this->error('Perintah data:clear dilarang dijalankan pada environment production tanpa opsi --force!');
+    if (app()->isProduction()) {
+        $this->error('Perintah data:clear DILARANG KERAS dijalankan pada environment production!');
         return 1;
     }
 
@@ -41,6 +41,7 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
         'user_account_links',
         'assessments',
         'calendar_events',
+        'lpk_locations',
         'lpks',
     ];
 
@@ -162,22 +163,24 @@ Schedule::command('lpk:check-surveillance')
 Artisan::command('assessments:sync-overdue-status', function () {
     $count = 0;
 
-    \App\Models\Assessment::query()
-        ->with('lpk')
-        ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
-        ->tpOverdue()
-        ->chunkById(100, function ($assessments) use (&$count) {
-            foreach ($assessments as $assessment) {
-                // Cegah pembekuan otomatis untuk riwayat surveilen siklus lampau pada LPK aktif
-                if ($assessment->isPastSurveillanceForActiveLpk()) {
-                    continue;
-                }
+    \App\Models\Assessment::withoutEvents(function () use (&$count) {
+        \App\Models\Assessment::query()
+            ->with('lpk')
+            ->whereNotIn('status', ['SUSPENDED', 'CANCELLED', 'COMPLETED'])
+            ->tpOverdue()
+            ->chunkById(100, function ($assessments) use (&$count) {
+                foreach ($assessments as $assessment) {
+                    // Cegah pembekuan otomatis untuk riwayat surveilen siklus lampau pada LPK aktif
+                    if ($assessment->isPastSurveillanceForActiveLpk()) {
+                        continue;
+                    }
 
-                $assessment->status = 'SUSPENDED';
-                $assessment->save();
-                $count++;
-            }
-        });
+                    $assessment->status = 'SUSPENDED';
+                    $assessment->save();
+                    $count++;
+                }
+            });
+    });
 
     \App\Services\LpkSurveillanceService::invalidateAlertsCache();
 

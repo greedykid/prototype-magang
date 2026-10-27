@@ -69,6 +69,15 @@
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-decel: cubic-bezier(0, 0, 0.2, 1);
+
+    /* Centralized Z-Index Hierarchy */
+    --z-base: 1;
+    --z-sticky: 100;
+    --z-dropdown: 500;
+    --z-popover: 600;
+    --z-modal-backdrop: 1000;
+    --z-modal: 1050;
+    --z-toast: 1200;
 }
 
 :root,
@@ -102,26 +111,31 @@ html[data-theme="light"] {
     --accent-muted: #e6f3fe;
 
     /* Semantic Notion Status Tokens - Bold, High-Contrast & Crisp */
+    --info: #0066c0;
     --info-bg: #e8f3fc;
     --info-text: #0066c0;
     --info-border: #aed5f7;
     --info-gradient: none;
 
+    --success: #0d6824;
     --success-bg: #e6f7ec;
     --success-text: #0d6824;
     --success-border: #9ee0b1;
     --success-gradient: none;
 
+    --warning: #9a5b00;
     --warning-bg: #fef3d6;
     --warning-text: #9a5b00;
     --warning-border: #fcd77f;
     --warning-gradient: none;
 
+    --danger: #c5220f;
     --danger-bg: #feebe8;
     --danger-text: #c5220f;
     --danger-border: #fca89d;
     --danger-gradient: none;
 
+    --purple: #662d9e;
     --purple-bg: #f3ecfb;
     --purple-text: #662d9e;
     --purple-border: #dac5f5;
@@ -193,26 +207,31 @@ html[data-theme="dark"] {
     --accent-muted: rgba(98, 174, 240, 0.15);
 
     /* Semantic Notion Dark Status Tokens */
+    --info: #93cdfe;
     --info-bg: rgba(98, 174, 240, 0.15);
     --info-text: #93cdfe;
     --info-border: rgba(98, 174, 240, 0.3);
     --info-gradient: none;
 
+    --success: #68ce7e;
     --success-bg: rgba(104, 206, 126, 0.15);
     --success-text: #68ce7e;
     --success-border: rgba(104, 206, 126, 0.3);
     --success-gradient: none;
 
+    --warning: #ffc95e;
     --warning-bg: rgba(255, 177, 16, 0.15);
     --warning-text: #ffc95e;
     --warning-border: rgba(255, 177, 16, 0.3);
     --warning-gradient: none;
 
+    --danger: #ff8b7c;
     --danger-bg: rgba(246, 73, 50, 0.15);
     --danger-text: #ff8b7c;
     --danger-border: rgba(246, 73, 50, 0.3);
     --danger-gradient: none;
 
+    --purple: #d6b6f6;
     --purple-bg: rgba(173, 109, 237, 0.15);
     --purple-text: #d6b6f6;
     --purple-border: rgba(173, 109, 237, 0.3);

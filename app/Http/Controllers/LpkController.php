@@ -110,7 +110,7 @@ class LpkController extends Controller
             $data['pic_id'] = $user->id;
         }
 
-        $lpk = Lpk::create($data);
+        DB::transaction(fn () => Lpk::create($data));
 
         return redirect()->route('lpks.index')->with('success', 'LPK berhasil ditambahkan.');
     }
@@ -122,7 +122,7 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        $lpk->load(['assessments', 'pic.linkedViewers']);
+        $lpk->load(['assessments.lpkLocation', 'pic.linkedViewers', 'locations.assessments']);
         foreach ($lpk->assessments as $assessment) {
             $assessment->setRelation('lpk', $lpk);
         }
@@ -154,7 +154,7 @@ class LpkController extends Controller
             $data['pic_id'] = $lpk->pic_id;
         }
 
-        $lpk->update($data);
+        DB::transaction(fn () => $lpk->update($data));
 
         return redirect()->route('lpks.show', $lpk)->with('success', 'Data LPK berhasil diperbarui.');
     }
@@ -238,11 +238,10 @@ class LpkController extends Controller
 
         $idsToDelete = $records->pluck('id')->all();
 
-        DB::transaction(function () use ($idsToDelete) {
-            \App\Models\Assessment::whereIn('lpk_id', $idsToDelete)->delete();
-            DB::table('lpk_members')->whereIn('lpk_id', $idsToDelete)->delete();
-            DB::table('calendar_events')->whereIn('lpk_id', $idsToDelete)->delete();
-            Lpk::whereIn('id', $idsToDelete)->delete();
+        DB::transaction(function () use ($records) {
+            foreach ($records as $lpk) {
+                $lpk->delete();
+            }
             \App\Services\LpkSurveillanceService::invalidateAlertsCache();
         });
 

@@ -57,13 +57,12 @@ section.has-open-select,
 .modal-form-grid-2col label.has-open-select,
 .simasadi-modal-box label:has(.custom-select-wrapper.is-open),
 .simasadi-modal-box label.has-open-select,
-.simasadi-modal-box div:has(.custom-select-wrapper.is-open),
-.simasadi-modal-box div.has-open-select,
+.simasadi-modal-box .custom-select-wrapper.is-open,
 [id^="modal-section-"]:has(.custom-select-wrapper.is-open),
 [id^="modal-section-"].has-open-select {
     overflow: visible !important;
     position: relative !important;
-    z-index: 300 !important;
+    z-index: 250 !important;
 }
 
 .custom-select-wrapper {

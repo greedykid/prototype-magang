@@ -411,6 +411,42 @@ html[data-theme="dark"] .lpk-milestone-card.is-current-focus {
     text-transform: uppercase;
 }
 
+.lpk-milestone-title-group {
+    align-items: center;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lpk-milestone-step-pill {
+    align-items: center;
+    background: var(--surface-subtle, #f1f5f9);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: var(--radius-xs, 4px);
+    color: var(--muted, #64748b);
+    display: inline-flex;
+    font-size: 10px;
+    font-weight: 700;
+    justify-content: center;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    padding: 2px 7px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.lpk-milestone-step-pill.is-current-focus {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.lpk-milestone-step-pill.is-completed {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
 .lpk-milestone-title {
     color: var(--ink, #0f172a);
     font-size: 15px;

@@ -393,6 +393,14 @@ button.is-loading > svg:not(.btn-spinner svg),
     pointer-events: none;
 }
 
+@media (max-width: 768px), (pointer: coarse) {
+    .table-action-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px;
+    }
+}
+
 /* Dark Mode Overrides for All Button Tiers */
 html[data-theme="dark"] .button.primary {
     background: var(--primary, #62aef0);

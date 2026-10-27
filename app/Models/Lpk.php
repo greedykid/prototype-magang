@@ -110,9 +110,27 @@ class Lpk extends Model
             \App\Services\LpkSurveillanceService::invalidateAlertsCache($lpk);
         });
 
+        static::created(function (Lpk $lpk): void {
+            $lpk->ensureMainLocation();
+        });
+
+        static::updated(function (Lpk $lpk): void {
+            if ($lpk->wasChanged(['address', 'phone', 'email'])) {
+                $main = $lpk->mainLocation();
+                if ($main && $main->is_main) {
+                    $main->update([
+                        'address' => $lpk->address ?: $main->address,
+                        'contact_phone' => $lpk->phone ?: $main->contact_phone,
+                        'contact_email' => $lpk->email ?: $main->contact_email,
+                    ]);
+                }
+            }
+        });
+
         static::deleting(function (Lpk $lpk): void {
             $lpk->calendarEvents()->delete();
             $lpk->assessments()->delete();
+            $lpk->locations()->delete();
             $lpk->members()->detach();
         });
 
@@ -141,11 +159,6 @@ class Lpk extends Model
 
             return (string) $candidate;
         });
-    }
-
-    public function save(array $options = [])
-    {
-        return parent::save($options);
     }
 
     /**
@@ -356,9 +369,20 @@ class Lpk extends Model
 
     public function getLatestCompletedReaccreditation(): ?Assessment
     {
-        $assessments = $this->relationLoaded('assessments') ? $this->assessments : $this->assessments()->get();
+        if (! $this->relationLoaded('assessments')) {
+            return $this->assessments()
+                ->where('status', 'COMPLETED')
+                ->whereNotNull('sk_number')
+                ->where(function ($q) {
+                    $q->whereIn('assessment_type', [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT'])
+                        ->orWhere('title', 'like', '%re-akreditasi%')
+                        ->orWhere('title', 'like', '%reakreditasi%');
+                })
+                ->orderByRaw('COALESCE(sk_date, end_at, start_at) DESC')
+                ->first();
+        }
 
-        return $assessments
+        return $this->assessments
             ->filter(function (Assessment $a) {
                 $isRa = in_array($a->assessment_type, [Assessment::TYPE_RE_AKREDITASI, 'Re-Akreditasi', 'Re-asesmen', 'REASSESSMENT'], true)
                     || str_contains(strtolower($a->title ?: ''), 're-akreditasi')
@@ -544,11 +568,11 @@ class Lpk extends Model
             return false;
         }
 
-        if ($this->pic_id !== null) {
-            return (int) $this->pic_id === (int) $user->id;
+        if ($user->isAdmin()) {
+            return true;
         }
 
-        return $user->isAdmin();
+        return $this->pic_id !== null && (int) $this->pic_id === (int) $user->id;
     }
 
     public function isManagedBy(?User $user): bool
@@ -667,10 +691,7 @@ class Lpk extends Model
         }
 
         if ($user->isAdmin()) {
-            return $query->where(function ($q) use ($user) {
-                $q->whereNull('lpks.pic_id')
-                  ->orWhere('lpks.pic_id', $user->id);
-            });
+            return $query;
         }
 
         return $query->where('lpks.pic_id', $user->id);
@@ -789,6 +810,91 @@ class Lpk extends Model
     public function assessments(): HasMany
     {
         return $this->hasMany(Assessment::class);
+    }
+
+    public function locations(): HasMany
+    {
+        return $this->hasMany(LpkLocation::class);
+    }
+
+    public function mainLocation(): ?LpkLocation
+    {
+        if ($this->relationLoaded('locations')) {
+            return $this->locations->firstWhere('is_main', true) ?? $this->locations->first();
+        }
+
+        return $this->locations()->where('is_main', true)->first() ?? $this->locations()->first();
+    }
+
+    public function ensureMainLocation(): LpkLocation
+    {
+        $main = $this->mainLocation();
+
+        if (! $main) {
+            $main = $this->locations()->create([
+                'name' => 'Kantor Pusat',
+                'location_type' => LpkLocation::TYPE_HEAD_OFFICE,
+                'is_main' => true,
+                'address' => $this->address ?: '-',
+                'contact_person' => $this->pic?->name,
+                'contact_email' => $this->email ?: $this->pic?->email,
+                'contact_phone' => $this->phone,
+                'scope_notes' => null,
+            ]);
+
+            if ($this->relationLoaded('locations')) {
+                $this->load('locations.assessments');
+            }
+        } elseif ($this->address && ($main->address === '-' || empty($main->address))) {
+            $main->update([
+                'address' => $this->address,
+                'contact_phone' => $this->phone ?: $main->contact_phone,
+                'contact_email' => $this->email ?: $main->contact_email,
+            ]);
+        }
+
+        return $main;
+    }
+
+    public function isMultilocation(): bool
+    {
+        if ($this->relationLoaded('locations')) {
+            return $this->locations->count() > 1;
+        }
+
+        return $this->locations()->count() > 1;
+    }
+
+    /**
+     * Ringkasan status kepatuhan audit multilokasi dalam siklus 5 tahun (KAN U-01 Klausul 3.1.8).
+     *
+     * @return array{total: int, assessed: int, unassessed: int, unassessed_locations: \Illuminate\Support\Collection<int, LpkLocation>, is_fully_assessed: bool}
+     */
+    public function multilocationAuditSummary(): array
+    {
+        $locations = $this->relationLoaded('locations') ? $this->locations : $this->locations()->get();
+        $cycleStart = $this->cycle_base_date;
+        $cycleEnd = $this->cycle_expired_at;
+
+        $total = $locations->count();
+        $assessedCount = 0;
+        $unassessed = collect();
+
+        foreach ($locations as $loc) {
+            if ($loc->isAssessedInCycle($cycleStart, $cycleEnd)) {
+                $assessedCount++;
+            } else {
+                $unassessed->push($loc);
+            }
+        }
+
+        return [
+            'total' => $total,
+            'assessed' => $assessedCount,
+            'unassessed' => $total - $assessedCount,
+            'unassessed_locations' => $unassessed,
+            'is_fully_assessed' => ($total > 0 && $assessedCount === $total),
+        ];
     }
 
     /**

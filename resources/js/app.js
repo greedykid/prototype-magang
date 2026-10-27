@@ -294,6 +294,138 @@ export const initPageComponents = () => {
 
     // 12. Dashboard Compliance Meter Interactive Hover
     initComplianceMeterInteractions();
+
+    // 13. Dashboard Directory Table Filtering & Search
+    initDashboardDirectoryFilter();
+};
+
+export const initDashboardDirectoryFilter = () => {
+    const directoryPanel = document.querySelector('.dashboard-directory-panel');
+    if (!directoryPanel || directoryPanel.dataset.filterInit === 'true') return;
+    directoryPanel.dataset.filterInit = 'true';
+
+    const tabButtons = directoryPanel.querySelectorAll('.filter-tab-btn');
+    const tableWrap = directoryPanel.querySelector('#directoryTableWrap');
+    const tableRows = directoryPanel.querySelectorAll('.dashboard-directory-table tbody tr[data-status]');
+    const searchInput = directoryPanel.querySelector('#directorySearchInput');
+    const clearBtn = directoryPanel.querySelector('#directorySearchClear');
+    const emptyState = directoryPanel.querySelector('#directoryEmptyState');
+    const resetBtn = directoryPanel.querySelector('#resetDirectoryFilterBtn');
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    const applyFilter = () => {
+        let visibleCount = 0;
+        tableRows.forEach((row) => {
+            const rowStatuses = (row.dataset.status || '').split(' ');
+            const rowText = (row.textContent || '').toLowerCase();
+            const matchesFilter = (currentFilter === 'all' || rowStatuses.includes(currentFilter));
+            const matchesSearch = !searchQuery || rowText.includes(searchQuery);
+
+            if (matchesFilter && matchesSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (tableWrap) {
+            tableWrap.style.display = visibleCount === 0 ? 'none' : '';
+        }
+        if (emptyState) {
+            emptyState.style.display = visibleCount === 0 ? 'flex' : 'none';
+        }
+    };
+
+    // Sinkronisasi angka badge status di dalam kurung tab berdasarkan baris data tabel
+    const syncTabCounts = () => {
+        let countAll = tableRows.length;
+        let countActive = 0;
+        let countDue = 0;
+        let countSuspended = 0;
+        let countRevoked = 0;
+
+        tableRows.forEach((row) => {
+            const statuses = (row.dataset.status || '').split(' ');
+            if (statuses.includes('active')) countActive++;
+            if (statuses.includes('due')) countDue++;
+            if (statuses.includes('suspended')) countSuspended++;
+            if (statuses.includes('revoked')) countRevoked++;
+        });
+
+        const updateTabBadge = (filterName, count) => {
+            const badge = directoryPanel.querySelector(`.filter-tab-btn[data-filter="${filterName}"] .tab-count`);
+            if (badge) {
+                badge.textContent = `(${count})`;
+            }
+        };
+
+        updateTabBadge('all', countAll);
+        updateTabBadge('active', countActive);
+        updateTabBadge('due', countDue);
+        updateTabBadge('suspended', countSuspended);
+        updateTabBadge('revoked', countRevoked);
+    };
+
+    syncTabCounts();
+
+    tabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach((b) => {
+                b.classList.remove('is-active');
+                b.setAttribute('aria-selected', 'false');
+            });
+            btn.classList.add('is-active');
+            btn.setAttribute('aria-selected', 'true');
+            currentFilter = btn.dataset.filter || 'all';
+            applyFilter();
+        });
+    });
+
+    if (searchInput) {
+        const syncClearBtn = () => {
+            if (clearBtn) {
+                clearBtn.style.display = searchInput.value.length > 0 ? 'inline-flex' : 'none';
+            }
+        };
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = (e.target.value || '').trim().toLowerCase();
+            syncClearBtn();
+            applyFilter();
+        });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchQuery = '';
+                syncClearBtn();
+                searchInput.focus();
+                applyFilter();
+            });
+        }
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            currentFilter = 'all';
+            searchQuery = '';
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+            }
+            tabButtons.forEach((b) => {
+                const isAll = (b.dataset.filter === 'all');
+                b.classList.toggle('is-active', isAll);
+                b.setAttribute('aria-selected', isAll ? 'true' : 'false');
+            });
+            applyFilter();
+        });
+    }
 };
 
 export const initComplianceMeterInteractions = () => {
