@@ -83,15 +83,12 @@ class IndonesianValidationMessagesTest extends TestCase
             'end_at' => '2026-06-15 09:00',
         ]);
 
-        $response->assertSessionHasErrors(['lpk_id', 'title', 'end_at', 'status']);
-
-        $lpkErrors = session('errors')->get('lpk_id');
-        $this->assertStringContainsString('LPK wajib dipilih', $lpkErrors[0]);
+        $response->assertSessionHasErrors(['title', 'end_at', 'status']);
 
         $titleErrors = session('errors')->get('title');
-        $this->assertStringContainsString('Judul kegiatan agenda wajib diisi', $titleErrors[0]);
+        $this->assertStringContainsString('Judul kegiatan wajib diisi', $titleErrors[0]);
 
         $endErrors = session('errors')->get('end_at');
-        $this->assertStringContainsString('Waktu selesai kegiatan harus setelah waktu mulai kegiatan', $endErrors[0]);
+        $this->assertStringContainsString('Waktu selesai harus setelah waktu mulai kegiatan', $endErrors[0]);
     }
 }

@@ -25,16 +25,12 @@ Route::middleware('guest')->group(function (): void {
 });
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
-// Public live CSV feeds for Google Sheets =IMPORTDATA formula (protected by ?key= query and throttled)
-Route::middleware('throttle:60,1')->group(function (): void {
-    Route::get('/feeds/lpks.csv', [GoogleSheetsReportController::class, 'feedLpks'])->name('feeds.lpks');
-    Route::get('/feeds/assessments.csv', [GoogleSheetsReportController::class, 'feedAssessments'])->name('feeds.assessments');
-});
-
 Route::middleware('auth')->group(function (): void {
     // 1. Fitur bersama & operasional unit internal (Admin & PIC)
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::get('/search/live', [GlobalSearchController::class, 'search'])->name('search.live');
+    Route::get('/search/live', [GlobalSearchController::class, 'search'])
+        ->middleware('throttle:60,1')
+        ->name('search.live');
     Route::get('/calendar', [CalendarEventController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events/create', [CalendarEventController::class, 'create'])->name('calendar.events.create');
     Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar.events.store');
@@ -95,6 +91,9 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('role:admin')->group(function (): void {
         // Manajemen Anggota (Pengguna & Hak Akses PIC / Admin)
         Route::resource('users', UserController::class);
-        Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])->name('lpks.surveillance.remind')->whereNumber('lpk');
+        Route::post('/lpks/{lpk}/send-surveillance-reminder', [LpkController::class, 'sendSurveillanceReminder'])
+            ->middleware('throttle:5,1')
+            ->name('lpks.surveillance.remind')
+            ->whereNumber('lpk');
     });
 });

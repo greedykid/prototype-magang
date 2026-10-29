@@ -34,11 +34,14 @@ class UpdateUserRequest extends FormRequest
                 Rule::in([User::ROLE_ADMIN, User::ROLE_PIC]),
                 function ($attribute, $value, $fail) use ($userId) {
                     if ($value === User::ROLE_ADMIN) {
-                        $adminExists = User::where('role', User::ROLE_ADMIN)
-                            ->where('id', '!=', $userId)
-                            ->exists();
-                        if ($adminExists) {
-                            $fail('Hanya diperbolehkan memiliki satu akun Ketua Tim dalam sistem.');
+                        $isTransfer = $this->boolean('transfer_admin') && $this->user()?->isAdmin() && $this->user()->id !== (int) $userId;
+                        if (! $isTransfer) {
+                            $adminExists = User::where('role', User::ROLE_ADMIN)
+                                ->where('id', '!=', $userId)
+                                ->exists();
+                            if ($adminExists) {
+                                $fail('Hanya diperbolehkan memiliki satu akun Ketua Tim dalam sistem.');
+                            }
                         }
                     }
                 },

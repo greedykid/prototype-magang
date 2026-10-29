@@ -96,7 +96,7 @@ class RoleAccessControlTest extends TestCase
         $picDashboard = $this->actingAs($pic)->get(route('dashboard'));
         $picDashboard->assertOk()
             ->assertSee('Laboratorium Terakreditasi')
-            ->assertSee('Data Laboratorium')
+            ->assertSee('Laboratorium Terkelola')
             ->assertDontSee('<span class="nav-label">Administrasi Laboratorium</span>', false)
             ->assertDontSee('<span class="nav-label">Layanan KANMIS</span>', false)
             ->assertDontSee('Finansial &amp; Administrasi', false);

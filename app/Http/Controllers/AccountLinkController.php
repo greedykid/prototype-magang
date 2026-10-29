@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AccountLinkController extends Controller
@@ -326,10 +327,14 @@ class AccountLinkController extends Controller
         }
 
         $validated = $request->validate([
-            'viewer_id' => ['required', 'integer', 'exists:users,id'],
+            'viewer_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', User::ROLE_PIC)),
+            ],
         ], [
             'viewer_id.required' => 'Pilih akun yang ingin ditautkan sebagai viewer.',
-            'viewer_id.exists' => 'Akun yang dipilih tidak ditemukan dalam sistem.',
+            'viewer_id.exists' => 'Akun yang dipilih harus berstatus PIC dan terdaftar dalam sistem.',
         ]);
 
         $viewerId = (int) $validated['viewer_id'];

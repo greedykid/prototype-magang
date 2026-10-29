@@ -363,11 +363,173 @@ html[data-theme="dark"] .assessment-list-sk {
     width: 100%;
 }
 
+@media (min-width: 1025px) {
+    .assessment-show-grid {
+        align-items: stretch;
+    }
+
+    .assessment-show-grid > .lpk-show-col {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .assessment-show-grid > .lpk-show-col > .lpk-form-card:not(:last-child) {
+        flex-shrink: 0;
+    }
+
+    /* Kartu terakhir di kolom kiri & kanan menyerap sisa tinggi agar bawahnya sejajar presisi */
+    .assessment-show-grid > .lpk-show-col:first-child > .lpk-form-card:last-child,
+    .assessment-show-grid > .lpk-show-col:last-child > .lpk-form-card:last-child {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin-bottom: 0;
+    }
+}
+
 @media (max-width: 1024px) {
     .assessment-show-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
+}
+
+/* Milestone Sequence List (High Readability) */
+.assessment-milestones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.assessment-milestone-item {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 10px);
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.assessment-milestone-item:hover {
+    background: var(--surface-hover, #f1f5f9);
+    border-color: var(--line-subtle);
+}
+
+.milestone-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.milestone-item-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.milestone-item-value {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.milestone-sk-number {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green, #16a34a);
+    font-family: var(--font-mono, monospace);
+    letter-spacing: 0.02em;
+}
+
+.milestone-sk-date {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.milestone-notes-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.4;
+}
+
+.milestone-notes-callout .notes-callout-icon {
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Symmetrical 50:50 Milestone Actions */
+.compliance-action-row.milestone-actions-equal {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: auto !important;
+    padding-top: 14px !important;
+    border-top: 1px solid var(--line) !important;
+}
+
+.compliance-action-row.milestone-actions-equal.single-action {
+    grid-template-columns: 1fr !important;
+}
+
+.compliance-action-row.milestone-actions-equal .button {
+    width: 100% !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    padding: 0 10px !important;
+    text-decoration: none !important;
+}
+
+@media (max-width: 640px) {
+    .compliance-action-row.milestone-actions-equal {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.assessment-card-footer-action {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    width: 100%;
+}
+
+/* Dark mode for milestones */
+html[data-theme="dark"] .assessment-milestone-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .assessment-milestone-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .milestone-notes-callout {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .milestone-sk-number {
+    color: #4ade80;
 }
 
 /* Left Column: Entity & Location Detail Styling */
@@ -638,6 +800,186 @@ html[data-theme="dark"] .assessment-finding-card:hover {
 html[data-theme="dark"] .assessment-finding-card:has(.assessment-finding-radio:checked) {
     background: rgba(25, 114, 245, 0.12);
     border-color: var(--primary, #1972f5);
+}
+
+/* Assessment Target Location Radio Button Group (KAN U-05 Multilokasi) */
+.lpk-location-radio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.lpk-location-card {
+    align-items: flex-start;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 12px);
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    padding: 13px 15px;
+    position: relative;
+    transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.lpk-location-card:hover {
+    background: rgba(25, 114, 245, 0.02);
+    border-color: var(--primary, #1972f5);
+}
+
+.lpk-location-card:has(.lpk-location-radio:checked),
+.lpk-location-card.is-selected {
+    background: rgba(25, 114, 245, 0.05);
+    border-color: var(--primary, #1972f5);
+    box-shadow: 0 0 0 1px var(--primary, #1972f5);
+}
+
+.lpk-location-radio {
+    accent-color: var(--primary, #1972f5);
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 18px;
+    margin-top: 2px;
+    width: 18px;
+}
+
+.lpk-location-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.lpk-location-title-row {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.lpk-location-icon-wrap {
+    align-items: center;
+    background: rgba(25, 114, 245, 0.08);
+    border-radius: 8px;
+    color: var(--primary, #1972f5);
+    display: flex;
+    flex-shrink: 0;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+}
+
+.lpk-location-icon-wrap.icon-branch {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0284c7;
+}
+
+.lpk-location-text {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lpk-location-title {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.lpk-location-badge {
+    background: rgba(25, 114, 245, 0.1);
+    border: 1px solid rgba(25, 114, 245, 0.2);
+    border-radius: 9999px;
+    color: var(--primary, #1972f5);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1.5px 8px;
+}
+
+.lpk-location-badge.badge-branch {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: rgba(14, 165, 233, 0.25);
+    color: #0284c7;
+}
+
+.lpk-location-desc {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.branch-select-wrapper {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-md, 10px);
+    margin-top: 10px;
+    padding: 12px 14px;
+}
+
+.branch-picker-select {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 8px);
+    background: var(--surface, #ffffff);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.branch-picker-select:focus {
+    border-color: var(--primary, #1972f5);
+    box-shadow: 0 0 0 2px rgba(25, 114, 245, 0.2);
+}
+
+.lpk-empty-branch-notice {
+    align-items: center;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: var(--radius-sm, 8px);
+    color: #b45309;
+    display: flex;
+    font-size: 12px;
+    gap: 8px;
+    padding: 8px 12px;
+}
+
+html[data-theme="dark"] .lpk-location-card {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .lpk-location-card:hover {
+    background: rgba(25, 114, 245, 0.06);
+}
+
+html[data-theme="dark"] .lpk-location-card:has(.lpk-location-radio:checked),
+html[data-theme="dark"] .lpk-location-card.is-selected {
+    background: rgba(25, 114, 245, 0.12);
+    border-color: var(--primary, #1972f5);
+}
+
+html[data-theme="dark"] .branch-select-wrapper {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--line);
+}
+
+html[data-theme="dark"] .branch-picker-select {
+    background: var(--input-bg, #1a202c);
+    border-color: var(--input-border, #2d3748);
+    color: var(--ink);
+}
+
+html[data-theme="dark"] .lpk-empty-branch-notice {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
 }
 
 /* TP Tracking Card Header & Full-Width Description Layout */

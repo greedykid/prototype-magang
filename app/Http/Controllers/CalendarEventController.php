@@ -87,7 +87,7 @@ class CalendarEventController extends Controller
             ->concat($tpResults)
             ->concat($milestoneResults);
 
-        $eventsByDate = $this->groupEventsByDate($unifiedEvents);
+        $eventsByDate = $this->groupEventsByDate($unifiedEvents, $queryStart, $queryEnd);
 
         // Kompatibilitas pengujian otomatis yang mengakses $events dan $weeks
         $events = $calendarEventResults['raw_models']->groupBy(fn (CalendarEvent $event): string => $event->start_at->toDateString());
@@ -774,7 +774,7 @@ class CalendarEventController extends Controller
      * @param  Collection<int, array<string, mixed>>  $unifiedEvents
      * @return Collection<string, Collection<int, array<string, mixed>>>
      */
-    protected function groupEventsByDate(Collection $unifiedEvents): Collection
+    protected function groupEventsByDate(Collection $unifiedEvents, ?CarbonImmutable $queryStart = null, ?CarbonImmutable $queryEnd = null): Collection
     {
         $eventsByDate = collect();
         foreach ($unifiedEvents->sortBy('start_at') as $ev) {
@@ -790,9 +790,11 @@ class CalendarEventController extends Controller
                 $startCarbon = CarbonImmutable::parse($startDate);
                 $endCarbon = CarbonImmutable::parse($endDate);
                 $totalDays = (int) $startCarbon->diffInDays($endCarbon) + 1;
-                $curr = $startCarbon;
+                $loopStart = $queryStart ? $startCarbon->max($queryStart) : $startCarbon;
+                $loopEnd = $queryEnd ? $endCarbon->min($queryEnd) : $endCarbon;
+                $curr = $loopStart;
 
-                while ($curr->lte($endCarbon)) {
+                while ($curr->lte($loopEnd)) {
                     $currKey = $curr->toDateString();
                     $dayIndex = (int) $startCarbon->diffInDays($curr) + 1;
 

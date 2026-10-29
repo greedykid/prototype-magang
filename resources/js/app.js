@@ -27,6 +27,8 @@ import {
     updateQuickAddType,
     initGcalLiveTimeLine,
     initGcalFilters,
+    initCalendarHoverTooltip,
+    hideCalendarHoverTooltip,
     initGcalComponents
 } from './modules/calendar.js';
 import {
@@ -77,6 +79,8 @@ window.openCreateDropdown = openCreateDropdown;
 window.closeCreateDropdown = closeCreateDropdown;
 window.openQuickAddWithType = openQuickAddWithType;
 window.updateQuickAddType = updateQuickAddType;
+window.initCalendarHoverTooltip = initCalendarHoverTooltip;
+window.hideCalendarHoverTooltip = hideCalendarHoverTooltip;
 window.navigateTo = navigateTo;
 window.clearPageCache = clearPageCache;
 window.prefetchUrl = prefetchUrl;

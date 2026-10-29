@@ -30,25 +30,7 @@ class GoogleSheetsReportController extends Controller
             return $this->generateLpksXlsx($ids, $request->user());
         }
 
-        return $this->generateLpksCsv(false, $ids, $request->user());
-    }
-
-    /**
-     * Live Feed CSV Master Data LPK untuk Google Sheets.
-     */
-    public function feedLpks(Request $request): Response|StreamedResponse
-    {
-        $validationResult = $this->checkFeedAccess($request);
-        if ($validationResult !== null) {
-            return $validationResult;
-        }
-
-        Log::info('Google Sheets live feed accessed: LPKs', [
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
-
-        return $this->generateLpksCsv(true);
+        return $this->generateLpksCsv($ids, $request->user());
     }
 
     /**
@@ -63,59 +45,7 @@ class GoogleSheetsReportController extends Controller
             return $this->generateAssessmentsXlsx($ids, $request->user());
         }
 
-        return $this->generateAssessmentsCsv(false, $ids, $request->user());
-    }
-
-    /**
-     * Live Feed CSV Program Asesmen untuk Google Sheets.
-     */
-    public function feedAssessments(Request $request): Response|StreamedResponse
-    {
-        $validationResult = $this->checkFeedAccess($request);
-        if ($validationResult !== null) {
-            return $validationResult;
-        }
-
-        Log::info('Google Sheets live feed accessed: Assessments', [
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
-
-        return $this->generateAssessmentsCsv(true);
-    }
-
-    /**
-     * Validasi otorisasi live feed Google Sheets.
-     */
-    protected function checkFeedAccess(Request $request): ?Response
-    {
-        $configured = trim((string) config('services.sheets.feed_key', ''));
-
-        // Tolak jika belum dikonfigurasi atau masih menggunakan token default/dummy yang tidak aman
-        if ($configured === '' || in_array($configured, ['simasadi-live', 'ganti-dengan-token-rahasia-acak'], true)) {
-            return response("Unauthorized: Live feed Google Sheets dinonaktifkan atau belum dikonfigurasi di file .env server.\n", 401, [
-                'Content-Type' => 'text/plain; charset=UTF-8',
-            ]);
-        }
-
-        // Dukung otorisasi via URL bertanda tangan (HMAC), header aman, atau parameter ?key=
-        if ($request->hasValidSignature()) {
-            return null;
-        }
-
-        $provided = (string) (
-            $request->header('X-Feed-Key')
-            ?: $request->bearerToken()
-            ?: $request->query('key', '')
-        );
-
-        if ($provided === '' || ! hash_equals($configured, $provided)) {
-            return response("Unauthorized: Parameter '?key=' atau header otorisasi tidak valid untuk live feed Google Sheets SIMASADI.\n", 401, [
-                'Content-Type' => 'text/plain; charset=UTF-8',
-            ]);
-        }
-
-        return null;
+        return $this->generateAssessmentsCsv($ids, $request->user());
     }
 
     /**
@@ -188,6 +118,9 @@ class GoogleSheetsReportController extends Controller
     {
         $str = (string) ($value ?? '');
         if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            if ($str === '-') {
+                return '-';
+            }
             if ($str[0] === '-' && is_numeric($str)) {
                 return $str;
             }
@@ -216,7 +149,6 @@ class GoogleSheetsReportController extends Controller
             $isCsv
                 ? $this->formatDateForCsv($lpk->expired_at)
                 : ($lpk->expired_at ? $lpk->expired_at->translatedFormat('d F Y') : '-'),
-            $lpk->drive_url ?: '-',
         ];
     }
 
@@ -265,13 +197,13 @@ class GoogleSheetsReportController extends Controller
     /**
      * Generate CSV Data Master LPK.
      */
-    protected function generateLpksCsv(bool $isFeed, ?array $ids = null, ?User $user = null): StreamedResponse
+    protected function generateLpksCsv(?array $ids = null, ?User $user = null): StreamedResponse
     {
         $filename = 'data-master-lpk-simasadi-' . date('Y-m-d') . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => ($isFeed ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
         ];
 
@@ -285,7 +217,6 @@ class GoogleSheetsReportController extends Controller
             'Status Operasional',
             'Tanggal Terbit Sertifikat',
             'Masa Berlaku Akreditasi',
-            'Tautan Drive Dokumen (Sertifikat & Amandemen)',
         ];
 
         return response()->stream(function () use ($columns, $ids, $user) {
@@ -301,14 +232,14 @@ class GoogleSheetsReportController extends Controller
                     'report_date', 'eha_date', 'sk_number',
                 ]);
             }])
-                ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
+                ->when(! $user?->isAdmin(), fn ($q) => $q->accessibleBy($user))
                 ->orderBy('name');
 
             if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             }
 
-            $lpks = $query->cursor();
+            $lpks = $query->lazy(250);
 
             foreach ($lpks as $lpk) {
                 foreach ($lpk->assessments as $asm) {
@@ -325,13 +256,13 @@ class GoogleSheetsReportController extends Controller
     /**
      * Generate CSV Program Asesmen.
      */
-    protected function generateAssessmentsCsv(bool $isFeed, ?array $ids = null, ?User $user = null): StreamedResponse
+    protected function generateAssessmentsCsv(?array $ids = null, ?User $user = null): StreamedResponse
     {
         $filename = 'jadwal-asesmen-simasadi-' . date('Y-m-d') . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => ($isFeed ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
         ];
 
@@ -353,16 +284,14 @@ class GoogleSheetsReportController extends Controller
             fputcsv($handle, $columns);
 
             $query = Assessment::with(['lpk'])
-                ->when($user && $user->isPic(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+                ->when(! $user?->isAdmin(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
                 ->orderByDesc('start_at');
 
             if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             }
 
-            $assessments = $query->cursor();
-
-            foreach ($assessments as $asm) {
+            foreach ($query->lazy(250) as $asm) {
                 $row = $this->buildAssessmentRow($asm, true);
                 fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row));
             }
@@ -390,7 +319,6 @@ class GoogleSheetsReportController extends Controller
             'Status Operasional',
             'Tanggal Terbit Sertifikat',
             'Masa Berlaku Akreditasi',
-            'Tautan Drive Dokumen (Sertifikat & Amandemen)',
         ];
 
         $spreadsheet = new Spreadsheet();
@@ -408,7 +336,7 @@ class GoogleSheetsReportController extends Controller
                 'report_date', 'eha_date', 'sk_number',
             ]);
         }])
-            ->when($user && $user->isPic(), fn ($q) => $q->accessibleBy($user))
+            ->when(! $user?->isAdmin(), fn ($q) => $q->accessibleBy($user))
             ->orderBy('name');
 
         if (! empty($ids)) {
@@ -419,7 +347,7 @@ class GoogleSheetsReportController extends Controller
         $batchStartRow = 2;
         $rowIdx = 2;
 
-        foreach ($query->cursor() as $lpk) {
+        foreach ($query->lazy(250) as $lpk) {
             foreach ($lpk->assessments as $asm) {
                 $asm->setRelation('lpk', $lpk);
             }
@@ -516,7 +444,7 @@ class GoogleSheetsReportController extends Controller
         $sheet->fromArray([$columns], null, 'A1');
 
         $query = Assessment::with(['lpk'])
-            ->when($user && $user->isPic(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
+            ->when(! $user?->isAdmin(), fn ($q) => $q->whereHas('lpk', fn ($lq) => $lq->accessibleBy($user)))
             ->orderByDesc('start_at');
 
         if (! empty($ids)) {
@@ -527,7 +455,7 @@ class GoogleSheetsReportController extends Controller
         $batchStartRow = 2;
         $rowIdx = 2;
 
-        foreach ($query->cursor() as $asm) {
+        foreach ($query->lazy(250) as $asm) {
             $row = $this->buildAssessmentRow($asm, false);
 
             $batch[] = array_map([$this, 'sanitizeCsvCell'], $row);

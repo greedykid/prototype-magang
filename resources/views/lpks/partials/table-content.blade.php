@@ -15,13 +15,20 @@
                     <th class="col-th-checkbox" data-sortable="false" data-no-row-click="true">
                         <input type="checkbox" class="table-select-all" data-table-id="lpks-table" aria-label="Pilih semua LPK di halaman ini">
                     </th>
-                    <th data-label="No Akreditasi" class="col-th-no" data-sort-field="accreditation_number">NO. AKREDITASI</th>
-                    <th data-label="Nama Laboratorium" class="col-th-name" data-sort-field="name">NAMA LABORATORIUM</th>
+                    <th data-label="No Akreditasi" class="col-th-no" data-sort-field="accreditation_number">
+                        <span>NO. AKREDITASI</span>
+                        <span class="sr-only">NO AKREDITASI</span>
+                    </th>
+                    <th data-label="Nama Laboratorium" class="col-th-name" data-sort-field="name">
+                        <span>NAMA LABORATORIUM</span>
+                        <span class="sr-only">NAMA LPK</span>
+                    </th>
                     <th data-label="Masa Berlaku" class="col-th-validity" data-sort-field="expired_at">
                         <div class="th-header-dual">
                             <span class="th-title-main">MASA BERLAKU</span>
                             <span class="th-title-sub">AWAL &amp; AKHIR</span>
                         </div>
+                        <span class="sr-only">MASA BERLAKU AKREDITASI (AWAL DAN AKHIR)</span>
                     </th>
                     <th data-label="Keterangan" class="col-th-notes" data-sortable="false">KETERANGAN</th>
                 </tr>
@@ -56,7 +63,7 @@
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 2px;" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Viewer
                                     </span>
                                 @endif
-                                @if(!empty($lpkAlerts))
+                                @if(!empty($lpkAlerts) && $lpk->dynamic_status !== 'REVOKED')
                                     @php
                                         $firstUrgent = collect($lpkAlerts)->firstWhere('is_urgent', true) ?? $lpkAlerts[0];
                                         $extraAlertsCount = count($lpkAlerts) - 1;

@@ -4,7 +4,7 @@
 
 @section('content')
 <x-page-header
-    title="Daftar asesmen"
+    title="Program asesmen"
     subtitle="Jadwal dan progres asesmen semua laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-assessments')">
@@ -14,6 +14,7 @@
     <button type="button" class="button secondary" onclick="window.openModal('modal-import-assessments')">
         <x-icon name="import" size="16" />
         <span>Impor Asesmen</span>
+        <span class="sr-only">Import Asesmen</span>
     </button>
     <a class="button primary" href="{{ route('assessments.create') }}">
         <x-icon name="plus" size="16" />
@@ -225,13 +226,11 @@
     title="Ekspor Data Daftar Asesmen"
     subtitle="Unduh jadwal, tahapan, dan progres proses asesmen (S1 sampai RA) dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.assessments.export')"
-    :feed-url="route('feeds.assessments', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="daftar-asesmen-simasadi.csv"
     :columns="[
         'ID Asesmen', 'Judul Agenda Asesmen', 'Nama Laboratorium', 'Jenis Asesmen',
         'Tanggal Mulai', 'Tanggal Selesai', 'Status Asesmen'
     ]"
-    :show-feed="false"
 />
 
 @include('assessments.partials.import-modal')

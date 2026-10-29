@@ -192,91 +192,112 @@
         </div>
     </div>
 
-    <div class="lpk-meta-grid">
-        <div class="lpk-meta-item">
-            <span class="lpk-meta-label">Laporan Asesmen Lapangan</span>
-            <div class="lpk-meta-value">
+    <div class="assessment-milestones-list">
+        {{-- Milestone 1: Laporan Asesmen Lapangan --}}
+        <div class="assessment-milestone-item">
+            <div class="milestone-item-header">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                    <x-icon name="file-text" size="14" style="color: {{ $assessment->report_date ? 'var(--green)' : 'var(--muted)' }};" />
+                    <span class="milestone-item-label">Laporan Asesmen Lapangan</span>
+                </div>
                 @if($assessment->report_date)
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <x-icon name="file-text" size="14" style="color: var(--green);" />
-                        <strong style="color: var(--ink);">{{ $assessment->report_date->translatedFormat('d M Y') }}</strong>
-                    </div>
+                    <span class="badge-tp badge-tp-satisfied" style="font-size: 11px;">Diterbitkan</span>
                 @else
-                    <span style="color: var(--muted);">Belum diterbitkan</span>
+                    <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">Belum Diterbitkan</span>
+                @endif
+            </div>
+            <div class="milestone-item-value">
+                @if($assessment->report_date)
+                    <strong style="color: var(--ink); font-size: 13px;">{{ $assessment->report_date->translatedFormat('d M Y') }}</strong>
+                @else
+                    <span style="color: var(--muted); font-size: 12px;">Menunggu penyusunan laporan oleh tim asesor</span>
                 @endif
             </div>
         </div>
 
-        <div class="lpk-meta-item">
-            <span class="lpk-meta-label">Rapat Panitia Teknis</span>
-            <div class="lpk-meta-value">
+        {{-- Milestone 2: Rapat Panitia Teknis --}}
+        <div class="assessment-milestone-item">
+            <div class="milestone-item-header">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                    <x-icon name="check-circle" size="14" style="color: {{ $isEhaDone ? 'var(--green)' : ($isEhaNeedsVerif || $isEhaWaiting ? 'var(--amber, #f59e0b)' : 'var(--muted)') }};" />
+                    <span class="milestone-item-label">Rapat Panitia Teknis</span>
+                </div>
                 @if($isEhaDone)
-                    <div style="display: flex; flex-direction: column; gap: 3px;">
-                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            <span class="badge-tp badge-tp-satisfied">{{ $assessment->eha_status_label ?: 'Direkomendasikan' }}</span>
-                            @if($assessment->eha_date)
-                                <span style="color: var(--muted); font-size: 11.5px;">({{ $assessment->eha_date->translatedFormat('d M Y') }})</span>
-                            @endif
-                        </div>
-                        @if($assessment->eha_notes)
-                            <div style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">{{ $assessment->eha_notes }}</div>
-                        @endif
-                    </div>
+                    <span class="badge-tp badge-tp-satisfied" style="font-size: 11px;">{{ $assessment->eha_status_label ?: 'Direkomendasikan' }}</span>
                 @elseif($isEhaNeedsVerif)
-                    <div style="display: flex; flex-direction: column; gap: 3px;">
-                        <span class="badge-tp badge-tp-warning">{{ $assessment->eha_status_label }}</span>
-                        @if($assessment->eha_notes)
-                            <div style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">{{ $assessment->eha_notes }}</div>
-                        @endif
-                    </div>
+                    <span class="badge-tp badge-tp-warning" style="font-size: 11px;">{{ $assessment->eha_status_label }}</span>
                 @elseif($isEhaWaiting)
-                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                        <span class="badge-tp badge-tp-warning" style="font-size: 11px;">Menunggu Rapat Panitia Teknis</span>
-                        <span style="font-size: 11.5px; color: var(--muted);">(TP telah tuntas diverifikasi)</span>
-                    </div>
+                    <span class="badge-tp badge-tp-warning" style="font-size: 11px;">Menunggu RPT</span>
                 @else
-                    <span style="color: var(--muted);">Belum dilaksanakan</span>
+                    <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">Belum Dilaksanakan</span>
+                @endif
+            </div>
+            <div class="milestone-item-value">
+                @if($assessment->eha_date || $isEhaDone || $isEhaNeedsVerif)
+                    @if($assessment->eha_date)
+                        <div style="font-size: 12.5px; color: var(--muted);">
+                            Tanggal Sidang: <strong style="color: var(--ink);">{{ $assessment->eha_date->translatedFormat('d M Y') }}</strong>
+                        </div>
+                    @endif
+                    @if($assessment->eha_notes)
+                        <div class="milestone-notes-callout">
+                            <x-icon name="info" size="13" class="notes-callout-icon" />
+                            <span>{{ $assessment->eha_notes }}</span>
+                        </div>
+                    @endif
+                @elseif($isEhaWaiting)
+                    <span style="font-size: 12px; color: var(--muted);">(TP telah tuntas diverifikasi, siap diajukan ke Rapat Panitia Teknis)</span>
+                @else
+                    <span style="color: var(--muted); font-size: 12px;">Belum diagendakan sidang panitia teknis</span>
                 @endif
             </div>
         </div>
 
-        <div class="lpk-meta-item full-width">
-            <span class="lpk-meta-label">Surat Keputusan (SK) Akreditasi</span>
-            <div class="lpk-meta-value">
+        {{-- Milestone 3: Penetapan Surat Keputusan (SK) KAN --}}
+        <div class="assessment-milestone-item">
+            <div class="milestone-item-header">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                    <x-icon name="accreditations" size="14" style="color: {{ $isSkDone ? 'var(--green)' : ($isSkWaiting ? 'var(--amber, #f59e0b)' : 'var(--muted)') }};" />
+                    <span class="milestone-item-label">Surat Keputusan (SK) Akreditasi</span>
+                </div>
+                @if($isSkDone)
+                    <span class="badge-tp badge-tp-satisfied" style="font-size: 11px;">SK Terbit</span>
+                @elseif($isSkWaiting)
+                    <span class="badge-tp badge-tp-warning" style="font-size: 11px;">Menunggu SK</span>
+                @else
+                    <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">Belum Diterbitkan</span>
+                @endif
+            </div>
+            <div class="milestone-item-value">
                 @if($assessment->sk_number || $assessment->sk_date)
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                            @if($assessment->sk_number)
-                                <strong style="color: var(--green); font-size: 14px;">{{ $assessment->sk_number }}</strong>
-                            @endif
-                            @if($assessment->sk_date)
-                                <span style="color: var(--muted); font-size: 12.5px;">(Terbit: {{ $assessment->sk_date->translatedFormat('d M Y') }})</span>
-                            @endif
-                        </div>
-                        @if($assessment->sk_lead_time_label)
-                            <span class="badge-tp badge-tp-neutral" style="font-size: 11px; align-self: flex-start;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
-                                Rentang Proses: {{ $assessment->sk_lead_time_label }}
-                            </span>
+                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+                        @if($assessment->sk_number)
+                            <span class="milestone-sk-number">{{ $assessment->sk_number }}</span>
+                        @endif
+                        @if($assessment->sk_date)
+                            <span class="milestone-sk-date">(Terbit: {{ $assessment->sk_date->translatedFormat('d M Y') }})</span>
                         @endif
                     </div>
+                    @if($assessment->sk_lead_time_label)
+                        <span class="badge-tp badge-tp-neutral" style="font-size: 11px; align-self: flex-start; margin-top: 2px;" title="Rentang waktu pelaksanaan asesmen lapangan hingga terbit SK KAN">
+                            Rentang Proses: {{ $assessment->sk_lead_time_label }}
+                        </span>
+                    @endif
                 @elseif($isSkWaiting)
-                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span class="badge-tp badge-tp-warning" style="font-size: 11px;">Menunggu Penetapan SK KAN</span>
-                        <span style="font-size: 11.5px; color: var(--muted);">(Rekomendasi sidang panitia teknis telah selesai)</span>
-                    </div>
+                    <span style="font-size: 12px; color: var(--muted);">(Rekomendasi sidang panitia teknis selesai, menunggu penerbitan SK resmi)</span>
                 @else
-                    <span style="color: var(--muted);">Belum diterbitkan</span>
+                    <span style="color: var(--muted); font-size: 12px;">Surat keputusan akreditasi resmi belum diterbitkan</span>
                 @endif
             </div>
         </div>
     </div>
 
     @if($canShowEha || $canShowSk)
-        <div class="compliance-action-row" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);">
+        <div class="compliance-action-row milestone-actions-equal {{ ($canShowEha && $canShowSk) ? '' : 'single-action' }}">
             @if($canShowEha)
                 <button type="button" class="button {{ $isEhaDone ? 'secondary' : 'primary' }} button-sm" onclick="window.openModal('modal-tp-tracking', 'eha')" title="Catat atau perbarui hasil keputusan rapat panitia teknis">
                     <x-icon name="file-text" size="13" />
-                    <span>{{ $isEhaDone ? 'Perbarui Rapat Panitia Teknis' : 'Catat Rekomendasi Panitia Teknis' }}</span>
+                    <span>{{ $isEhaDone ? 'Perbarui Rapat Panitia Teknis' : 'Catat Panitia Teknis' }}</span>
                 </button>
             @endif
             @if($canShowSk)

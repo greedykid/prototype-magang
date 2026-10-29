@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class SimasadiFeaturesTest extends TestCase
@@ -14,36 +15,41 @@ class SimasadiFeaturesTest extends TestCase
 
     public function test_can_prefill_assessment_schedule_from_surveillance_alert(): void
     {
-        $user = User::factory()->create();
-        $lpk = Lpk::factory()->create([
-            'name' => 'Laboratorium Uji Mutu Unggul',
-            'registration_number' => 'LP-999-IDN',
-            'address' => 'Jl. Sangkuriang No. 1, Kota Bandung',
-        ]);
+        Carbon::setTestNow(Carbon::parse('2026-10-15 08:00:00'));
+        try {
+            $user = User::factory()->create();
+            $lpk = Lpk::factory()->create([
+                'name' => 'Laboratorium Uji Mutu Unggul',
+                'registration_number' => 'LP-999-IDN',
+                'address' => 'Jl. Sangkuriang No. 1, Kota Bandung',
+            ]);
 
-        // 1. Test prefill with S1 alert
-        $response = $this->actingAs($user)->get(route('assessments.create', [
-            'lpk_id' => $lpk->id,
-            'alert_code' => 'S1',
-            'target_date' => '2026-10-15',
-        ]));
+            // 1. Test prefill with S1 alert
+            $response = $this->actingAs($user)->get(route('assessments.create', [
+                'lpk_id' => $lpk->id,
+                'alert_code' => 'S1',
+                'target_date' => '2026-10-15',
+            ]));
 
-        $response->assertOk();
-        $response->assertSee('Jadwal Kunjungan Otomatis Disiapkan');
-        $response->assertSee('Laboratorium Uji Mutu Unggul');
-        $response->assertSee('Surveilen 1 Siklus KAN - Laboratorium Uji Mutu Unggul');
-        $response->assertSee('Kota Bandung');
-        $response->assertSee('2026-10-15T09:00');
+            $response->assertOk();
+            $response->assertSee('Jadwal Kunjungan Otomatis Disiapkan');
+            $response->assertSee('Laboratorium Uji Mutu Unggul');
+            $response->assertSee('Surveilen 1 - Laboratorium Uji Mutu Unggul');
+            $response->assertSee('Kota Bandung');
+            $response->assertSee('2026-10-15T09:00');
 
-        // 2. Test prefill with RA (Re-Akreditasi) alert
-        $responseRA = $this->actingAs($user)->get(route('assessments.create', [
-            'lpk_id' => $lpk->id,
-            'alert_code' => 'RA',
-            'target_date' => '2026-12-01',
-        ]));
+            // 2. Test prefill with RA (Re-Akreditasi) alert
+            $responseRA = $this->actingAs($user)->get(route('assessments.create', [
+                'lpk_id' => $lpk->id,
+                'alert_code' => 'RA',
+                'target_date' => '2026-12-01',
+            ]));
 
-        $responseRA->assertOk();
-        $responseRA->assertSee('Re-asesmen Siklus KAN - Laboratorium Uji Mutu Unggul');
+            $responseRA->assertOk();
+            $responseRA->assertSee('Re-Akreditasi - Laboratorium Uji Mutu Unggul');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_can_create_and_update_assessment_with_longer_kan_type_names(): void

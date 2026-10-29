@@ -33,10 +33,10 @@
         'RUNNING' => 'Sedang Berjalan',
         // Siklus Pengawasan Akreditasi KAN
         'GRACE_PERIOD' => 'Masa Tenggang',
-        'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal',
-        'SURVEILLANCE_DUE' => 'Jatuh Tempo',
+        'SURVEILLANCE_OVERDUE' => 'Lewat Jatuh Tempo Surveilen',
+        'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
         'DUE' => 'Jatuh Tempo',
-        'OVERDUE' => 'Lewat Jadwal',
+        'OVERDUE' => 'Lewat Jatuh Tempo',
         'EXPIRED' => 'Kedaluwarsa',
     ];
     $label = $labels[$value] ?? str_replace('_', ' ', $value);

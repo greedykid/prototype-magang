@@ -72,7 +72,7 @@
                                     @php
                                         $diffTpDays = (int) now()->startOfDay()->diffInDays($assessment->effective_tp_due_date->startOfDay(), false);
                                     @endphp
-                                    <span class="badge badge-countdown {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }}" style="margin-top: 3px; display: inline-flex;">
+                                    <span class="badge badge-countdown {{ $diffTpDays < 0 ? 'status-danger' : ($diffTpDays <= 14 ? 'status-warn' : 'status-scheduled') }} badge-tp badge-tp-{{ $badge['type'] }}" style="margin-top: 3px; display: inline-flex;">
                                         {{ $diffTpDays < 0 ? 'Terlewat ' . abs($diffTpDays) . ' Hari' : ($diffTpDays === 0 ? 'Hari Ini' : 'H-' . $diffTpDays) }}
                                     </span>
                                 @endif
@@ -121,10 +121,10 @@
             <x-icon name="search" size="22" />
         </div>
         <strong class="empty-title">
-            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak Ada Asesmen yang Cocok' : 'Belum Ada Daftar Asesmen' }}
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak Ada Program Asesmen yang Cocok' : 'Belum Ada Program Asesmen' }}
         </strong>
         <p class="empty-desc">
-            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada asesmen yang cocok dengan filter.' : 'Belum ada daftar asesmen.' }}
+            {{ ($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? '') ? 'Tidak ada program asesmen yang cocok dengan filter.' : 'Belum ada program asesmen.' }}
         </p>
         @if(($search ?? '') || ($lpkId ?? '') || ($assessmentType ?? '') || ($status ?? '') || ($tpFilter ?? '') || ($startFrom ?? '') || ($startTo ?? ''))
             <button type="button" class="button secondary empty-action" id="empty-reset-filter-btn" data-role="reset-filter">

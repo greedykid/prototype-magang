@@ -23,6 +23,11 @@ class StoreUserRequest extends FormRequest
                 'string',
                 'max:20',
                 Rule::in([User::ROLE_ADMIN, User::ROLE_PIC]),
+                function ($attribute, $value, $fail) {
+                    if ($value === User::ROLE_ADMIN && User::where('role', User::ROLE_ADMIN)->exists()) {
+                        $fail('Hanya diperbolehkan memiliki satu akun Ketua Tim dalam sistem.');
+                    }
+                },
             ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];

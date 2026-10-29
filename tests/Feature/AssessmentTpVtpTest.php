@@ -424,4 +424,296 @@ class AssessmentTpVtpTest extends TestCase
         $this->assertEquals(Assessment::TP_STATUS_SATISFIED, $assessment->tp_status);
         $this->assertNotNull($assessment->tp_satisfied_at);
     }
+
+    public function test_scopes_respect_tp_has_extension(): void
+    {
+        // 1. tp_due_date is 15 days ago, but has +1 month extension -> Not overdue yet!
+        $extendedAssessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen TP dengan Perpanjangan',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(3),
+            'end_at' => now()->subMonths(3)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => now()->subDays(15),
+            'tp_has_extension' => true,
+            'tp_extension_months' => 1,
+            'tp_extension_letter_no' => 'EXT-123',
+        ]);
+
+        $this->assertFalse(Assessment::tpOverdue()->where('id', $extendedAssessment->id)->exists());
+
+        // 2. tp_due_date is 45 days ago, with +1 month (30 days) extension -> Overdue!
+        $extendedOverdue = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen TP Perpanjangan Terlewat',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(4),
+            'end_at' => now()->subMonths(4)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => now()->subDays(45),
+            'tp_has_extension' => true,
+            'tp_extension_months' => 1,
+            'tp_extension_letter_no' => 'EXT-456',
+        ]);
+
+        $this->assertTrue(Assessment::tpOverdue()->where('id', $extendedOverdue->id)->exists());
+    }
+
+    public function test_filling_tp_satisfied_at_automatically_updates_tp_status_to_satisfied(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen TP Verifikasi Sukses',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(2),
+            'end_at' => now()->subMonths(2)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => now()->addDays(10),
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_satisfied_at' => now()->toDateString(),
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals(Assessment::TP_STATUS_SATISFIED, $fresh->tp_status);
+        $this->assertNotNull($fresh->tp_satisfied_at);
+    }
+
+    public function test_tp_satisfied_at_cannot_exceed_effective_due_date(): void
+    {
+        $dueDate = now()->subDays(2)->startOfDay();
+
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Lewat Tenggat TP',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(3),
+            'end_at' => now()->subMonths(3)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => $dueDate,
+            'tp_has_extension' => false,
+        ]);
+
+        // Mencoba input tanggal memenuhi setelah tenggat waktu TP
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_satisfied_at' => now()->toDateString(),
+            'tp_due_date' => $dueDate->toDateString(),
+        ]);
+
+        $response->assertSessionHasErrors(['tp_satisfied_at']);
+        $errors = session('errors')->get('tp_satisfied_at');
+        $this->assertStringContainsString('2.11.12', $errors[0]);
+
+        $fresh = $assessment->fresh();
+        $this->assertNotEquals(Assessment::TP_STATUS_SATISFIED, $fresh->tp_status);
+        $this->assertNull($fresh->tp_satisfied_at);
+    }
+
+    public function test_tp_satisfied_at_within_extension_due_date_succeeds(): void
+    {
+        $baseDueDate = now()->subDays(5)->startOfDay();
+
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen TP dengan Perpanjangan',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(3),
+            'end_at' => now()->subMonths(3)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => $baseDueDate,
+            'tp_has_extension' => true,
+            'tp_extension_months' => 1,
+            'tp_extension_letter_no' => '104/LPK-LAB/EXT/2026',
+            'tp_extension_date' => now()->subDays(10)->toDateString(),
+        ]);
+
+        // Input tanggal memenuhi setelah baseDueDate tetapi masih di dalam batas perpanjangan (+1 bulan)
+        $extendedDueDate = $baseDueDate->copy()->addMonth();
+        $satisfiedAt = now()->toDateString(); // masih sebelum extendedDueDate
+
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_satisfied_at' => $satisfiedAt,
+            'tp_has_extension' => '1',
+            'tp_extension_letter_no' => '104/LPK-LAB/EXT/2026',
+            'tp_extension_date' => now()->subDays(10)->toDateString(),
+            'tp_due_date' => $extendedDueDate->toDateString(),
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect();
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals(Assessment::TP_STATUS_SATISFIED, $fresh->tp_status);
+        $this->assertEquals($satisfiedAt, $fresh->tp_satisfied_at->toDateString());
+    }
+
+    public function test_setting_tp_status_satisfied_when_overdue_fails_validation(): void
+    {
+        $pastDueDate = now()->subDays(5)->startOfDay();
+
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Mencoba Status Selesai Saat Lewat Waktu',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(3),
+            'end_at' => now()->subMonths(3)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_IN_PROGRESS,
+            'tp_due_date' => $pastDueDate,
+            'tp_has_extension' => false,
+        ]);
+
+        // Memilih status SATISFIED tanpa mengisi tanggal memenuhi (default now()) padahal sudah lewat tenggat
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_SATISFIED,
+            'tp_due_date' => $pastDueDate->toDateString(),
+        ]);
+
+        $response->assertSessionHasErrors(['tp_satisfied_at']);
+        $errors = session('errors')->get('tp_satisfied_at');
+        $this->assertStringContainsString('2.11.12', $errors[0]);
+    }
+
+    public function test_reverting_satisfied_tp_to_none_with_disabled_extension_succeeds(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Sebelumnya Memenuhi dengan Ekstensi',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(3),
+            'end_at' => now()->subMonths(3)->addDays(2),
+            'status' => 'COMPLETED',
+            'tp_status' => Assessment::TP_STATUS_SATISFIED,
+            'tp_satisfied_at' => now()->subDays(10),
+            'tp_due_date' => now()->addDays(20),
+            'tp_has_extension' => true,
+            'tp_extension_months' => 1,
+            'tp_extension_letter_no' => '104/LPK-LAB/EXT/IX/2026',
+            'tp_extension_date' => now()->subDays(15)->toDateString(),
+        ]);
+
+        // Pengguna mengembalikan status ke NONE dan mematikan checkbox ekstensi (tp_has_extension = 0)
+        // bahkan jika nilai nomor surat lama masih terkirim dari form sebelumnya
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_NONE,
+            'tp_has_extension' => '0',
+            'tp_extension_letter_no' => '104/LPK-LAB/EXT/IX/2026',
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect();
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals(Assessment::TP_STATUS_NONE, $fresh->tp_status);
+        $this->assertFalse((bool) $fresh->tp_has_extension);
+        $this->assertNull($fresh->tp_extension_letter_no);
+        $this->assertNull($fresh->tp_satisfied_at);
+    }
+
+    public function test_smart_assist_fast_track_sk_completes_assessment_and_satisfies_tp(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Langsung Isi SK Resmi',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(2),
+            'end_at' => now()->subMonths(2)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_NONE,
+            'tp_due_date' => now()->addMonth(),
+        ]);
+
+        // Fast track SK tanpa menyertakan pilihan TP spesifik -> otomatis tuntaskan TP
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'sk_number' => 'SK.KAN.999/BSN/X/2026',
+            'sk_date' => now()->subDays(2)->toDateString(),
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect();
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals('COMPLETED', $fresh->status);
+        $this->assertEquals(Assessment::TP_STATUS_SATISFIED, $fresh->tp_status);
+        $this->assertEquals(now()->subDays(2)->toDateString(), $fresh->tp_satisfied_at->toDateString());
+    }
+
+    public function test_assessment_with_sk_can_save_tp_status_none_for_nihil_temuan(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Nihil Temuan Tetap Simpan Status None',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(2),
+            'end_at' => now()->subMonths(2)->addDays(2),
+            'status' => 'COMPLETED',
+            'tp_status' => Assessment::TP_STATUS_SATISFIED,
+            'tp_satisfied_at' => now()->subDays(1),
+            'sk_number' => 'SK.KAN.999/BSN/X/2026',
+            'sk_date' => now()->subDays(2)->toDateString(),
+        ]);
+
+        // Pengguna memilih Belum Ada Temuan / Nihil Temuan (NONE) secara eksplisit
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_NONE,
+            'sk_number' => 'SK.KAN.999/BSN/X/2026',
+            'sk_date' => now()->subDays(2)->toDateString(),
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect();
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals('COMPLETED', $fresh->status);
+        $this->assertEquals(Assessment::TP_STATUS_NONE, $fresh->tp_status);
+        $this->assertNull($fresh->tp_satisfied_at);
+    }
+
+    public function test_filling_eha_date_defaults_eha_status_to_direkomendasikan(): void
+    {
+        $assessment = Assessment::create([
+            'lpk_id' => $this->lpk->id,
+            'created_by' => $this->admin->id,
+            'title' => 'Asesmen Uji Otomasi EHA Status',
+            'assessment_type' => 'Surveilen',
+            'start_at' => now()->subMonths(1),
+            'end_at' => now()->subMonths(1)->addDays(2),
+            'status' => 'IN_PROGRESS',
+            'tp_status' => Assessment::TP_STATUS_SATISFIED,
+            'tp_satisfied_at' => now()->subDays(5),
+            'eha_status' => Assessment::EHA_STATUS_BELUM,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('assessments.tp.update', $assessment), [
+            'tp_status' => Assessment::TP_STATUS_SATISFIED,
+            'eha_date' => now()->subDays(2)->toDateString(),
+            'eha_status' => Assessment::EHA_STATUS_BELUM,
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $response->assertRedirect();
+
+        $fresh = $assessment->fresh();
+        $this->assertEquals(Assessment::EHA_STATUS_DIREKOMENDASIKAN, $fresh->eha_status);
+        $this->assertEquals(now()->subDays(2)->toDateString(), $fresh->eha_date->toDateString());
+    }
 }

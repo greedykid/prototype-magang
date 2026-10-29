@@ -106,6 +106,7 @@ class AssessmentNotificationActionsTest extends TestCase
         $response = $this->actingAs($admin)->get(route('assessments.show', $assessment));
 
         $response->assertOk();
+        $response->assertSee('lpk-alert-callout is-revoked');
         $response->assertSee('Perhatian: Status Akreditasi Dicabut');
         $response->assertSee('lpk-alert-callout-actions');
         $response->assertSee('Ajukan Akreditasi Awal');

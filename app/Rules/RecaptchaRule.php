@@ -28,7 +28,8 @@ class RecaptchaRule implements ValidationRule
 
         $secretKey = config('services.recaptcha.secret_key');
         if (empty($secretKey)) {
-            Log::warning('reCAPTCHA enabled but RECAPTCHA_SECRET_KEY is empty in configuration.');
+            Log::error('reCAPTCHA aktif namun RECAPTCHA_SECRET_KEY belum dikonfigurasi.');
+            $fail('Konfigurasi keamanan reCAPTCHA sistem belum lengkap. Silakan hubungi administrator.');
             return;
         }
 

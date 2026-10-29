@@ -20,6 +20,14 @@
     padding: 10px 0;
 }
 
+.gcal-month-headings span.is-weekend,
+.gcal-month-headings span:nth-child(6),
+.gcal-month-headings span:nth-child(7) {
+    color: var(--muted);
+    background: var(--surface-subtle);
+    font-weight: 500;
+}
+
 .gcal-month-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -41,13 +49,24 @@
     border-right: none;
 }
 
+.gcal-month-cell.is-weekend,
+.gcal-month-cell:nth-child(7n-1),
+.gcal-month-cell:nth-child(7n) {
+    background: var(--surface-subtle);
+}
+
 .gcal-month-cell:hover {
     background: var(--surface-hover);
 }
 
 .gcal-month-cell.outside {
     background: var(--surface-subtle);
-    opacity: 0.65;
+    opacity: 0.55;
+}
+
+.gcal-month-cell.outside .gcal-day-badge {
+    color: var(--muted);
+    opacity: 0.7;
 }
 
 .gcal-cell-top {
@@ -282,21 +301,82 @@ html[data-theme="dark"] .gcal-range-floating-pill {
 
 
 
-/* Multi-Day Event Chip Enhancements */
+/* Multi-Day Continuous Ribbon */
 .gcal-event-chip.gcal-chip-multiday {
     border-left-width: 3px;
     font-weight: 600;
 }
 
+.gcal-event-chip.gcal-chip-multiday.gcal-chip-start {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+    margin-right: -9px;
+    width: calc(100% + 9px);
+    z-index: 2;
+}
+
+.gcal-event-chip.gcal-chip-multiday.gcal-chip-mid {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin-left: -9px;
+    margin-right: -9px;
+    width: calc(100% + 18px);
+    z-index: 1;
+}
+
+.gcal-event-chip.gcal-chip-multiday.gcal-chip-end {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: none;
+    margin-left: -9px;
+    width: calc(100% + 9px);
+    z-index: 2;
+}
+
+/* Row-boundary safety: keep ribbon inside row edges on Sunday and Monday */
+.gcal-month-cell:nth-child(7n) .gcal-event-chip.gcal-chip-multiday.gcal-chip-start {
+    margin-right: 0 !important;
+    width: 100% !important;
+    border-top-right-radius: var(--radius-sm, 6px) !important;
+    border-bottom-right-radius: var(--radius-sm, 6px) !important;
+    border-right: 1px solid currentColor !important;
+}
+
+.gcal-month-cell:nth-child(7n) .gcal-event-chip.gcal-chip-multiday.gcal-chip-mid {
+    margin-right: 0 !important;
+    width: calc(100% + 9px) !important;
+    border-top-right-radius: var(--radius-sm, 6px) !important;
+    border-bottom-right-radius: var(--radius-sm, 6px) !important;
+    border-right: 1px solid currentColor !important;
+}
+
+.gcal-month-cell:nth-child(7n+1) .gcal-event-chip.gcal-chip-multiday.gcal-chip-mid {
+    margin-left: 0 !important;
+    width: calc(100% + 9px) !important;
+    border-top-left-radius: var(--radius-sm, 6px) !important;
+    border-bottom-left-radius: var(--radius-sm, 6px) !important;
+    border-left: 3.5px solid currentColor !important;
+}
+
+.gcal-month-cell:nth-child(7n+1) .gcal-event-chip.gcal-chip-multiday.gcal-chip-end {
+    margin-left: 0 !important;
+    width: 100% !important;
+    border-top-left-radius: var(--radius-sm, 6px) !important;
+    border-bottom-left-radius: var(--radius-sm, 6px) !important;
+    border-left: 3.5px solid currentColor !important;
+}
+
 .gcal-event-chip.gcal-chip-multiday .gcal-chip-arrow {
     font-size: 11px;
-    margin-right: 3px;
-    opacity: 0.75;
+    margin-right: 2px;
+    opacity: 0.7;
 }
 
 .gcal-event-chip.gcal-chip-multiday .gcal-chip-day-count {
     font-size: 10px;
-    opacity: 0.8;
+    opacity: 0.75;
     margin-left: 3px;
     font-weight: 500;
 }
@@ -354,7 +434,7 @@ html[data-theme="dark"] .gcal-range-floating-pill {
 .gcal-event-chip {
     align-items: center;
     border: 0;
-    border-radius: var(--radius-sm, 8px);
+    border-radius: var(--radius-sm, 6px);
     box-sizing: border-box;
     cursor: pointer;
     display: flex;
@@ -363,18 +443,21 @@ html[data-theme="dark"] .gcal-range-floating-pill {
     font-weight: 500;
     gap: 5px;
     height: 22px;
+    min-height: 22px;
     overflow: hidden;
     padding: 2px 6px;
+    position: relative;
     text-align: left;
     text-overflow: ellipsis;
-    transition: transform 120ms ease, box-shadow 120ms ease;
+    transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
     white-space: nowrap;
     width: 100%;
 }
 
 .gcal-event-chip:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    z-index: 8;
 }
 
 .gcal-event-chip.theme-emerald {
@@ -444,4 +527,133 @@ html[data-theme="dark"] .gcal-range-floating-pill {
     color: var(--ink);
     text-decoration: none;
 }
+
+/* ==========================================================================
+   Micro-Card Hover Tooltip
+   ========================================================================== */
+.gcal-hover-tooltip {
+    position: fixed;
+    z-index: 1040;
+    pointer-events: none;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 10px);
+    box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+    padding: 10px 12px;
+    width: 270px;
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
+    display: none;
+    flex-direction: column;
+    gap: 7px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.gcal-hover-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.gcal-tt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.gcal-tt-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 2px 7px;
+    border-radius: var(--radius-pill, 9999px);
+    line-height: 1.2;
+}
+
+.gcal-tt-badge.theme-emerald { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.gcal-tt-badge.theme-cyan { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+.gcal-tt-badge.theme-amber { background: #fefce8; color: #713f12; border: 1px solid #fde047; }
+.gcal-tt-badge.theme-rose { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+.gcal-tt-badge.theme-indigo { background: #eef0ff; color: #3730a3; border: 1px solid #c7d2fe; }
+
+.gcal-tt-duration {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface-subtle);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.gcal-tt-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gcal-tt-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5px;
+    margin-bottom: 2px;
+}
+
+.gcal-tt-lpk {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+    margin: 0;
+    word-break: break-word;
+}
+
+.gcal-tt-acc {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    font-family: var(--font-mono, monospace);
+}
+
+.gcal-tt-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.3;
+}
+
+.gcal-tt-row svg {
+    flex-shrink: 0;
+    color: var(--muted);
+    opacity: 0.85;
+}
+
+.gcal-tt-footer {
+    border-top: 1px solid var(--line-subtle);
+    padding-top: 6px;
+    margin-top: 2px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--primary, #0284c7);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Dark mode for tooltip */
+html[data-theme="dark"] .gcal-hover-tooltip {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+html[data-theme="dark"] .gcal-tt-badge.theme-emerald { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border-color: rgba(16, 185, 129, 0.4); }
+html[data-theme="dark"] .gcal-tt-badge.theme-cyan { background: rgba(6, 182, 212, 0.2); color: #a5f3fc; border-color: rgba(6, 182, 212, 0.4); }
+html[data-theme="dark"] .gcal-tt-badge.theme-amber { background: rgba(245, 158, 11, 0.2); color: #fde68a; border-color: rgba(245, 158, 11, 0.4); }
+html[data-theme="dark"] .gcal-tt-badge.theme-rose { background: rgba(244, 63, 94, 0.2); color: #fda4af; border-color: rgba(244, 63, 94, 0.4); }
+html[data-theme="dark"] .gcal-tt-badge.theme-indigo { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.4); }
 

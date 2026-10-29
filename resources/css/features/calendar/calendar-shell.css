@@ -413,12 +413,20 @@
 
 .gcal-checkbox-row {
     align-items: center;
+    border-radius: var(--radius-sm, 8px);
     cursor: pointer;
     display: flex;
     font-size: 12.5px;
     font-weight: 500;
-    gap: 8px;
+    gap: 9px;
+    padding: 5px 8px;
+    margin: 0 -8px;
+    transition: background-color 140ms ease;
     user-select: none;
+}
+
+.gcal-checkbox-row:hover {
+    background: var(--surface-subtle);
 }
 
 .gcal-checkbox-row input[type="checkbox"] {
@@ -426,12 +434,21 @@
     height: 15px;
     width: 15px;
     accent-color: var(--primary);
+    border-radius: 4px;
+    margin: 0;
 }
 
 .gcal-cat-indicator {
     border-radius: var(--radius-pill, 9999px);
-    height: 10px;
-    width: 10px;
+    height: 9px;
+    width: 9px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 2.5px var(--line);
+    transition: transform 120ms ease;
+}
+
+.gcal-checkbox-row:hover .gcal-cat-indicator {
+    transform: scale(1.1);
 }
 
 .gcal-cat-indicator.purple {
@@ -444,8 +461,7 @@
 
 .gcal-cat-indicator.amber,
 .gcal-cat-indicator.yellow {
-    background: #ffff00;
-    border: 1px solid #ca8a04;
+    background: #f59e0b;
 }
 
 .gcal-cat-indicator.rose {
@@ -453,12 +469,17 @@
 }
 
 .gcal-cat-indicator.emerald {
-    background: #059669;
+    background: #10b981;
 }
 
 .gcal-cat-indicator.cyan {
-    background: #00ffff;
-    border: 1px solid #00b4d8;
+    background: #06b6d4;
+}
+
+.gcal-cat-text {
+    color: var(--ink);
+    flex: 1;
+    line-height: 1.25;
 }
 
 .gcal-lpk-select {

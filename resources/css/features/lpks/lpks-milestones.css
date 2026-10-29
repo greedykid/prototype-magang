@@ -374,9 +374,53 @@
     box-shadow: 0 0 0 3px rgba(25, 114, 245, 0.16), 0 8px 24px -4px rgba(25, 114, 245, 0.12) !important;
 }
 
+.lpk-milestone-card.is-current-focus.is-reminder,
+.lpk-milestone-card.is-current-focus.is-due {
+    border-color: #facc15 !important;
+    border-top: 3px solid #ca8a04 !important;
+    box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.22), 0 8px 24px -4px rgba(202, 138, 4, 0.16) !important;
+}
+
+.lpk-milestone-card.is-current-focus.is-jt,
+.lpk-milestone-card.is-current-focus.is-overdue,
+.lpk-milestone-card.is-current-focus.is-revoked,
+.lpk-milestone-card.is-current-focus.is-expired {
+    border-color: #f87171 !important;
+    border-top: 3px solid #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.22), 0 8px 24px -4px rgba(220, 38, 38, 0.16) !important;
+}
+
+.lpk-milestone-card.is-current-focus.is-completed {
+    border-color: #86efac !important;
+    border-top: 3px solid #16a34a !important;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22), 0 8px 24px -4px rgba(22, 163, 74, 0.16) !important;
+}
+
 html[data-theme="dark"] .lpk-milestone-card.is-current-focus {
     border-color: var(--primary, #4a9df8) !important;
     box-shadow: 0 0 0 3px rgba(74, 157, 248, 0.22), 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-reminder,
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-due {
+    border-color: rgba(251, 191, 36, 0.4) !important;
+    border-top: 3px solid #f59e0b !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25), 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-jt,
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-overdue,
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-revoked,
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-expired {
+    border-color: rgba(248, 113, 113, 0.4) !important;
+    border-top: 3px solid #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25), 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme="dark"] .lpk-milestone-card.is-current-focus.is-completed {
+    border-color: rgba(74, 222, 128, 0.4) !important;
+    border-top: 3px solid #22c55e !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25), 0 8px 28px rgba(0, 0, 0, 0.45) !important;
 }
 
 .lpk-milestone-card-top {

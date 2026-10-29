@@ -116,32 +116,45 @@ class Assessment extends Model
             return 'CANCELLED';
         }
 
-        // Asesmen surveilen periode lampau dari LPK aktif otomatis terealisasikan
-        if ($this->isPastSurveillanceForActiveLpk()) {
-            return 'COMPLETED';
-        }
-
-        $isFieldDone = ($this->end_at && now()->gte($this->end_at)) || ! empty($this->report_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true);
-        $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
-        $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
-            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
-
-        // Soft Gating: Hanya beralih ke COMPLETED jika SK KAN sudah terbit DAN seluruh tahapan hulu (TP & EHA) telah tuntas
-        if (! empty($this->sk_number) && $isFieldDone && $isTpSatisfied && $hasEhaCompleted) {
-            return 'COMPLETED';
-        }
-
         // Lewat batas waktu 1 tahun kesempatan penyelesaian pembekuan surveilen
         if ($this->is_suspension_expired || $value === 'REVOKED') {
             return 'REVOKED';
         }
 
-        if ($this->is_tp_overdue || $value === 'SUSPENDED') {
+        if ($this->is_tp_overdue) {
             return 'SUSPENDED';
         }
 
-        // Jika ada progres tahapan berjalan (TP memenuhi, ada draft SK, laporan, EHA, atau TP aktif), status asesmen adalah IN_PROGRESS
-        if ($isTpSatisfied || ! empty($this->sk_number) || ! empty($this->report_date) || ! empty($this->eha_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true)) {
+        if ($value === 'SUSPENDED' && ! ($this->tp_has_extension && ! empty($this->effective_tp_due_date) && now()->lte($this->effective_tp_due_date))) {
+            return 'SUSPENDED';
+        }
+
+        // Asesmen surveilen periode lampau dari LPK aktif otomatis terealisasikan
+        if ($this->isPastSurveillanceForActiveLpk()) {
+            return 'COMPLETED';
+        }
+
+        // Jika panitia teknis membutuhkan verifikasi ulang
+        if (in_array($this->eha_status, [self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true)) {
+            return 'IN_PROGRESS';
+        }
+
+        // Jika memiliki draf SK tetapi proses hulu belum selesai
+        if ($this->has_draft_sk_pending_upstream) {
+            return 'IN_PROGRESS';
+        }
+
+        // Jika SK KAN sudah terbit atau berstatus selesai eksplisit
+        if (! empty($this->sk_number) || $value === 'COMPLETED') {
+            return 'COMPLETED';
+        }
+
+        if ($this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at)) {
+            return 'COMPLETED';
+        }
+
+        // Jika ada progres tahapan berjalan (laporan, EHA, atau TP aktif), status asesmen adalah IN_PROGRESS
+        if (! empty($this->report_date) || ! empty($this->eha_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true)) {
             return 'IN_PROGRESS';
         }
 
@@ -150,6 +163,10 @@ class Assessment extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->status === 'COMPLETED') {
+            return self::STATUS_LABELS['COMPLETED'] ?? 'Selesai';
+        }
+
         if ($this->has_draft_sk_pending_upstream) {
             if ($this->is_tp_overdue || $this->status === 'SUSPENDED') {
                 return 'Dibekukan (Draft SK - Batas Waktu TP Terlampaui)';
@@ -347,6 +364,10 @@ class Assessment extends Model
 
     public function getIsWaitingEhaAttribute(): bool
     {
+        if (in_array($this->status, ['COMPLETED', 'CANCELLED'], true)) {
+            return false;
+        }
+
         if (in_array($this->eha_status, [self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true)) {
             return false;
         }
@@ -355,31 +376,40 @@ class Assessment extends Model
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
             || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        return $isTpSatisfied && ! $hasEhaCompleted && empty($this->sk_number) && $this->status !== 'CANCELLED';
+        return $isTpSatisfied && ! $hasEhaCompleted && empty($this->sk_number);
     }
 
     public function getIsWaitingSkAttribute(): bool
     {
+        if (in_array($this->status, ['COMPLETED', 'CANCELLED'], true)) {
+            return false;
+        }
+
         $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at);
         $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
             || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        return $isTpSatisfied && $hasEhaCompleted && empty($this->sk_number) && $this->status !== 'CANCELLED';
+        return $isTpSatisfied && $hasEhaCompleted && empty($this->sk_number);
     }
 
     public function getHasDraftSkPendingUpstreamAttribute(): bool
     {
-        if (empty($this->sk_number) || $this->status === 'CANCELLED' || $this->isPastSurveillanceForActiveLpk()) {
+        $rawStatus = $this->attributes['status'] ?? $this->getRawOriginal('status');
+        if (empty($this->sk_number) || $rawStatus === 'CANCELLED' || $this->isPastSurveillanceForActiveLpk()) {
             return false;
         }
 
-        $isFieldDone = ($this->end_at && now()->gte($this->end_at)) || ! empty($this->report_date) || in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true) || $this->isPastSurveillanceForActiveLpk();
-        $isTpSatisfied = $this->tp_status === self::TP_STATUS_SATISFIED || ! empty($this->tp_satisfied_at) || $this->isPastSurveillanceForActiveLpk();
-        $hasEhaCompleted = in_array($this->eha_status, [self::EHA_STATUS_DIREKOMENDASIKAN, 'SUDAH_EHA'], true)
-            || (! empty($this->eha_date) && ! in_array($this->eha_status, [self::EHA_STATUS_BELUM, self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true))
-            || $this->isPastSurveillanceForActiveLpk();
+        // Jika TP sedang berjalan atau perlu verifikasi atau overdue
+        if (in_array($this->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true) || $this->is_tp_overdue) {
+            return true;
+        }
 
-        return ! ($isFieldDone && $isTpSatisfied && $hasEhaCompleted);
+        // Jika Panitia Teknis membutuhkan verifikasi ulang
+        if (in_array($this->eha_status, [self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getSuspensionResolutionDeadlineAttribute(): ?Carbon
@@ -435,7 +465,7 @@ class Assessment extends Model
     public function setAssessmentTeamAttribute(?string $value): void
     {
         $this->attributes['assessment_team'] = $value;
-        $this->attributes['lead_assessor'] = $value;
+        $this->attributes['lead_assessor'] = $value !== null ? mb_substr($value, 0, 100) : null;
     }
 
     public function getEhaStatusLabelAttribute(): string
@@ -506,33 +536,35 @@ class Assessment extends Model
 
             // Sinkronisasi otomatis siklus hidup asesmen:
             // 0. Asesmen lampau untuk LPK aktif otomatis terealisasikan
-            if ($assessment->isPastSurveillanceForActiveLpk() && $assessment->status !== 'CANCELLED') {
+            if ($assessment->isPastSurveillanceForActiveLpk() && ! in_array($assessment->status, ['CANCELLED', 'SUSPENDED', 'REVOKED'], true)) {
                 $assessment->status = 'COMPLETED';
                 $assessment->tp_status = self::TP_STATUS_SATISFIED;
             }
-            // 1. Jika SK sudah terbit DAN seluruh tahapan hulu telah tuntas, status menjadi COMPLETED (Selesai).
-            elseif (! empty($assessment->sk_number) && $isUpstreamCompleted && $assessment->status !== 'CANCELLED') {
+            // 1. Jika SK sudah terbit
+            elseif (! empty($assessment->sk_number) && $assessment->status !== 'CANCELLED') {
                 $assessment->status = 'COMPLETED';
             }
-            // 2. Jika melewati batas 1 tahun kesempatan penyelesaian pembekuan surveilen,
+            // 2. Jika tahapan TP telah tuntas memenuhi dan tidak ada catatan khusus EHA
+            elseif ($isTpSatisfied && ! in_array($assessment->eha_status, [self::EHA_STATUS_PERLU_VERIFIKASI, self::EHA_STATUS_CATATAN_KHUSUS], true) && $assessment->status !== 'CANCELLED') {
+                $assessment->status = 'COMPLETED';
+            }
+            // 3. Jika melewati batas 1 tahun kesempatan penyelesaian pembekuan surveilen,
             // status otomatis menjadi REVOKED (Dicabut).
             elseif ($assessment->is_suspension_expired && $assessment->status !== 'CANCELLED' && empty($assessment->sk_number)) {
                 $assessment->status = 'REVOKED';
             }
-            // 3. Jika asesmen melewati tenggat waktu TP tanpa dinyatakan memenuhi,
+            // 4. Jika asesmen melewati tenggat waktu TP tanpa dinyatakan memenuhi,
             // status otomatis menjadi SUSPENDED (Dibekukan).
             elseif ($assessment->is_tp_overdue && $assessment->status !== 'CANCELLED') {
                 $assessment->status = 'SUSPENDED';
             }
-            // 4. Jika asesmen sudah mulai berjalan (ada laporan, tanggal EHA, nomor SK draft, atau TP aktif/memenuhi),
-            // atau jika statusnya COMPLETED namun tahapan hulu belum lengkap, status adalah IN_PROGRESS (Sedang Berlangsung).
-            elseif ($assessment->status !== 'CANCELLED' && (
-                in_array($assessment->status, ['PLANNED', 'SCHEDULED', 'COMPLETED'], true) && (
-                    in_array($assessment->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION, self::TP_STATUS_SATISFIED], true) ||
+            // 4. Jika asesmen sudah mulai berjalan (ada laporan, tanggal EHA, atau TP aktif),
+            // dan belum berstatus COMPLETED, status adalah IN_PROGRESS (Sedang Berlangsung).
+            elseif ($assessment->status !== 'CANCELLED' && $assessment->status !== 'COMPLETED' && (
+                in_array($assessment->status, ['PLANNED', 'SCHEDULED', 'SUSPENDED'], true) && (
+                    in_array($assessment->tp_status, [self::TP_STATUS_IN_PROGRESS, self::TP_STATUS_UNDER_VERIFICATION], true) ||
                     ! empty($assessment->report_date) ||
-                    ! empty($assessment->eha_date) ||
-                    ! empty($assessment->sk_number) ||
-                    ! empty($assessment->tp_satisfied_at)
+                    ! empty($assessment->eha_date)
                 )
             )) {
                 $assessment->status = 'IN_PROGRESS';
@@ -574,13 +606,13 @@ class Assessment extends Model
                         ->where(function ($dateQ) {
                             $dateQ->where(function ($q2) {
                                 $q2->whereNotNull('tp_due_date')
-                                    ->where(function ($subExt) {
-                                        $subExt->where(function ($ext0) {
+                                    ->where(function ($subQ) {
+                                        $subQ->where(function ($ext0) {
                                             $ext0->where('tp_has_extension', false)
                                                 ->whereDate('tp_due_date', '<', now());
                                         })->orWhere(function ($ext1) {
                                             $ext1->where('tp_has_extension', true)
-                                                ->whereDate('tp_due_date', '<', now()->subMonth());
+                                                ->whereDate('tp_due_date', '<', now()->subMonths(1));
                                         });
                                     });
                             })->orWhere(function ($q3) {
@@ -629,15 +661,15 @@ class Assessment extends Model
             ->where(function ($q) use ($now, $target): void {
                 $q->where(function ($hasDueDate) use ($now, $target): void {
                     $hasDueDate->whereNotNull('tp_due_date')
-                        ->where(function ($sub) use ($now, $target): void {
-                            $sub->where(function ($ext0) use ($now, $target): void {
+                        ->where(function ($subQ) use ($now, $target): void {
+                            $subQ->where(function ($ext0) use ($now, $target): void {
                                 $ext0->where('tp_has_extension', false)
                                     ->whereDate('tp_due_date', '>=', $now)
                                     ->whereDate('tp_due_date', '<=', $target);
                             })->orWhere(function ($ext1) use ($now, $target): void {
                                 $ext1->where('tp_has_extension', true)
-                                    ->whereDate('tp_due_date', '>=', $now->copy()->subMonth())
-                                    ->whereDate('tp_due_date', '<=', $target->copy()->subMonth());
+                                    ->whereDate('tp_due_date', '>=', $now->copy()->subMonths(1))
+                                    ->whereDate('tp_due_date', '<=', $target->copy()->subMonths(1));
                             });
                         });
                 })->orWhere(function ($noDueDate) use ($now, $target): void {

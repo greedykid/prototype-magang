@@ -13,6 +13,10 @@ import { initCustomPickers } from '../custom-picker.js';
  * In-Calendar Seamless Zero-Delay Month & View Transition Handler
  */
 export const handleCalendarTransition = async ({ url, targetUrlObj, pageWrap, pushState = true }) => {
+    if (typeof window.hideCalendarHoverTooltip === 'function') {
+        window.hideCalendarHoverTooltip();
+    }
+
     // Strictly preserve the user's current scroll position so switching months never jumps
     const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
 

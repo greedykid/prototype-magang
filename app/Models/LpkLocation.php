@@ -58,27 +58,36 @@ class LpkLocation extends Model
 
     public function lastAssessedAt(): ?\Carbon\Carbon
     {
-        return $this->assessments()->max('start_at') ? \Carbon\Carbon::parse($this->assessments()->max('start_at')) : null;
+        $max = $this->assessments()->max('start_at');
+
+        return $max ? \Carbon\Carbon::parse($max) : null;
     }
 
     public function isAssessedInCycle(?CarbonInterface $cycleStart, ?CarbonInterface $cycleEnd): bool
     {
         if ($this->relationLoaded('assessments')) {
+            $filtered = $this->assessments->reject(function ($a) {
+                return in_array($a->status, ['CANCELLED', 'PLANNED'], true);
+            });
+
             if (! $cycleStart || ! $cycleEnd) {
-                return $this->assessments->isNotEmpty();
+                return $filtered->isNotEmpty();
             }
 
-            return $this->assessments
+            return $filtered
                 ->where('start_at', '>=', $cycleStart)
                 ->where('start_at', '<=', $cycleEnd)
                 ->isNotEmpty();
         }
 
+        $query = $this->assessments()
+            ->whereNotIn('status', ['CANCELLED', 'PLANNED']);
+
         if (! $cycleStart || ! $cycleEnd) {
-            return $this->assessments()->exists();
+            return $query->exists();
         }
 
-        return $this->assessments()
+        return $query
             ->whereBetween('start_at', [$cycleStart, $cycleEnd])
             ->exists();
     }

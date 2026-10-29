@@ -5,7 +5,7 @@
       "source": "miqdadbadjuber/anti-slop",
       "sourceType": "github",
       "skillPath": "skills/antislop/SKILL.md",
-      "computedHash": "a8a07efd7c55e0e4895ddda2d182f42691b196ea095cb731b651229254ec8f8d"
+      "computedHash": "a7e132f7957d0f2cc2959c6cca8a7664033fb54f824e1843f2d2d67c46a86383"
     },
     "antislop-code": {
       "source": "miqdadbadjuber/anti-slop",
@@ -23,7 +23,7 @@
       "source": "miqdadbadjuber/anti-slop",
       "sourceType": "github",
       "skillPath": "skills/antislop-human/SKILL.md",
-      "computedHash": "a20b4c2fb05981c8d5d81934411bd429a544f946f26026f80dd8f68e95bfed89"
+      "computedHash": "8f0c76a9521c78011cd82109f2dbafd507e699d63ac29480a92a040cb656d032"
     },
     "antislop-layoutmobile": {
       "source": "miqdadbadjuber/anti-slop",
@@ -53,7 +53,7 @@
       "source": "dietrichgebert/ponytail",
       "sourceType": "github",
       "skillPath": "skills/ponytail/SKILL.md",
-      "computedHash": "99f0589e5646b46da07b9419a5daa178004b3dd8930fec528918a51ab07f5efc"
+      "computedHash": "061f887d9e3e735f85db3be3655a8936a00f24d5fb65ac4ab74a968a770fe342"
     },
     "ponytail-audit": {
       "source": "dietrichgebert/ponytail",
@@ -77,7 +77,7 @@
       "source": "dietrichgebert/ponytail",
       "sourceType": "github",
       "skillPath": "skills/ponytail-help/SKILL.md",
-      "computedHash": "a2cd9a9040fd39626875b77838ae6525893ff6d28e6368b2a188ca899c86956f"
+      "computedHash": "4582025c3923072fb6c35b8cbd75adf4f7ce47df0eff43cc9a2a39808537fd61"
     },
     "ponytail-review": {
       "source": "dietrichgebert/ponytail",

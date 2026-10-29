@@ -6,6 +6,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -67,6 +68,8 @@ class ProfileController extends Controller
         $request->user()->update([
             'password' => $validated['password'],
         ]);
+
+        Auth::logoutOtherDevices($validated['password']);
 
         return back()->with('success', 'Kata sandi Anda berhasil diperbarui.');
     }

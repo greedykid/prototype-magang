@@ -4,7 +4,7 @@
 
 @section('content')
 <x-page-header
-    title="Daftar Laboratorium"
+    title="Daftar LPK"
     subtitle="Kelola data profil, siklus pengawasan surveilan, dan masa berlaku akreditasi laboratorium."
 >
     <button type="button" class="button secondary" onclick="window.openModal('modal-sheets-sync-lpks')">
@@ -58,7 +58,7 @@
                     <option value="GRACE_PERIOD" @selected($status === 'GRACE_PERIOD')>Masa Tenggang (6 Bln)</option>
                     <option value="SUSPENDED" @selected($status === 'SUSPENDED')>Dibekukan</option>
                     <option value="REVOKED" @selected($status === 'REVOKED')>Dicabut</option>
-                    <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jadwal Surveilen</option>
+                    <option value="SURVEILLANCE_OVERDUE" @selected($status === 'SURVEILLANCE_OVERDUE')>Lewat Jatuh Tempo Surveilen</option>
                     <option value="SURVEILLANCE_DUE" @selected($status === 'SURVEILLANCE_DUE')>Jatuh Tempo Surveilen</option>
                     <option value="EXPIRED" @selected($status === 'EXPIRED')>Kedaluwarsa</option>
                     <option value="INACTIVE" @selected($status === 'INACTIVE')>Tidak aktif</option>
@@ -72,7 +72,7 @@
                     <option value="DUE_S1" @selected($surveillance === 'DUE_S1')>Jatuh Tempo S1 (Bulan 14)</option>
                     <option value="DUE_S2" @selected($surveillance === 'DUE_S2')>Jatuh Tempo S2 (Bulan 35)</option>
                     <option value="DUE_RA" @selected($surveillance === 'DUE_RA')>Jatuh Tempo Re-Akreditasi (Bulan 1 Sebelum Habis)</option>
-                    <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Melewati Jadwal</option>
+                    <option value="OVERDUE" @selected($surveillance === 'OVERDUE')>Lewat Jatuh Tempo</option>
                 </select>
             </label>
             <label for="filter-lpk-expiry">
@@ -109,7 +109,7 @@
                 'GRACE_PERIOD' => 'Masa Tenggang (6 Bln)',
                 'SUSPENDED' => 'Dibekukan',
                 'REVOKED' => 'Dicabut',
-                'SURVEILLANCE_OVERDUE' => 'Lewat Jadwal Surveilen',
+                'SURVEILLANCE_OVERDUE' => 'Lewat Jatuh Tempo Surveilen',
                 'SURVEILLANCE_DUE' => 'Jatuh Tempo Surveilen',
                 'EXPIRED' => 'Kedaluwarsa',
                 'INACTIVE' => 'Tidak aktif',
@@ -119,7 +119,7 @@
                 'DUE_S1' => 'Jatuh Tempo S1 (Bulan 14)',
                 'DUE_S2' => 'Jatuh Tempo S2 (Bulan 35)',
                 'DUE_RA' => 'Jatuh Tempo Re-Akreditasi',
-                'OVERDUE' => 'Melewati Jadwal',
+                'OVERDUE' => 'Lewat Jatuh Tempo',
             ];
             $expLabels = [
                 'VALID' => 'Masih berlaku',
@@ -177,10 +177,8 @@
     title="Ekspor Data Master LPK"
     subtitle="Unduh data seluruh Lembaga Penilaian Kesesuaian (LPK) terdaftar dalam format berkas Excel (.xlsx) atau CSV."
     :export-url="route('reports.lpks.export')"
-    :feed-url="route('feeds.lpks', ['key' => config('services.sheets.feed_key', 'simasadi-live')])"
     file-name="data-master-lpk-simasadi.csv"
-    :columns="['ID LPK', 'No. Akreditasi', 'Nama Laboratorium', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi', 'Link Drive Dokumen']"
-    :show-feed="false"
+    :columns="['ID LPK', 'No. Akreditasi', 'Nama Laboratorium', 'Alamat', 'Telepon / Fax', 'Email', 'Lingkup', 'Masa Berlaku Akreditasi']"
 />
 
 @include('lpks.partials.import-modal')

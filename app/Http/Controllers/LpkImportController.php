@@ -37,7 +37,6 @@ class LpkImportController extends Controller
             'status',
             'tanggal_terbit_sertifikat',
             'masa_berlaku',
-            'link_drive_dokumen',
         ];
 
         $samples = [
@@ -53,7 +52,6 @@ class LpkImportController extends Controller
                 'ACTIVE',
                 date('Y-m-d', strtotime('-2 years')),
                 date('Y-m-d', strtotime('+3 years')),
-                'https://drive.google.com/drive/folders/1demo-berkas-lp101',
             ],
             [
                 '3341',
@@ -67,7 +65,6 @@ class LpkImportController extends Controller
                 'ACTIVE',
                 date('Y-m-d', strtotime('-1 year')),
                 date('Y-m-d', strtotime('+4 years')),
-                'https://drive.google.com/drive/folders/1demo-berkas-lk202',
             ],
             [
                 '3342',
@@ -81,7 +78,6 @@ class LpkImportController extends Controller
                 'ACTIVE',
                 date('Y-m-d', strtotime('-3 years')),
                 date('Y-m-d', strtotime('+2 years')),
-                'https://drive.google.com/drive/folders/1demo-berkas-li303',
             ],
         ];
 
@@ -202,26 +198,6 @@ class LpkImportController extends Controller
                 }
                 $csvContent = $response->body();
 
-                // Coba ambil XLSX untuk mengekstrak hyperlink formula asli
-                if (preg_match('/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $inputUrl, $sheetMatches)) {
-                    $sheetId = $sheetMatches[1];
-                    $xlsxUrl = "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=xlsx";
-                    try {
-                        $xlsxResponse = Http::withHeaders([
-                            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        ])->withOptions([
-                            'cookies' => $cookieJar,
-                            'allow_redirects' => ['max' => 10, 'strict' => false, 'referer' => true, 'protocols' => ['https']],
-                        ])->timeout(15)->get($xlsxUrl);
-
-                        if ($xlsxResponse->successful() && strlen($xlsxResponse->body()) > 500) {
-                            $sheetHyperlinks = $this->extractHyperlinksFromXlsx($xlsxResponse->body());
-                        }
-                    } catch (\Throwable) {
-                        // Abaikan jika XLSX tidak dapat diambil
-                    }
-                }
-
                 $parsed = $this->parseCsvContent($csvContent);
                 if (isset($parsed['error'])) {
                     return back()->with('error', $parsed['error']);
@@ -263,13 +239,27 @@ class LpkImportController extends Controller
                 $rowData[$key] = isset($rowValues[$index]) ? trim((string) $rowValues[$index]) : null;
             }
             if (! empty($rowData['no_reg'])) {
-                $incomingNoRegs[] = strtoupper($rowData['no_reg']);
+                $val = strtoupper($rowData['no_reg']);
+                $incomingNoRegs[] = $val;
+                if (preg_match('/^\d+$/', $val)) {
+                    $incomingNoRegs[] = 'LP-' . str_pad($val, 3, '0', STR_PAD_LEFT) . '-IDN';
+                    $incomingRegNos[] = 'LP-' . str_pad($val, 3, '0', STR_PAD_LEFT) . '-IDN';
+                }
             }
             if (! empty($rowData['accreditation_number'])) {
-                $incomingAccreds[] = strtoupper($rowData['accreditation_number']);
+                $val = strtoupper($rowData['accreditation_number']);
+                $incomingAccreds[] = $val;
+                if (preg_match('/^\d+$/', $val)) {
+                    $incomingAccreds[] = 'LP-' . str_pad($val, 3, '0', STR_PAD_LEFT) . '-IDN';
+                    $incomingRegNos[] = 'LP-' . str_pad($val, 3, '0', STR_PAD_LEFT) . '-IDN';
+                }
             }
             if (! empty($rowData['registration_number'])) {
-                $incomingRegNos[] = strtoupper($rowData['registration_number']);
+                $val = strtoupper($rowData['registration_number']);
+                $incomingRegNos[] = $val;
+                if (preg_match('/^\d+$/', $val)) {
+                    $incomingRegNos[] = 'LP-' . str_pad($val, 3, '0', STR_PAD_LEFT) . '-IDN';
+                }
             }
         }
 
@@ -457,10 +447,9 @@ class LpkImportController extends Controller
                 }
 
                 if ($existing) {
-                    // Otorisasi keamanan: perbolehkan jika Admin, pengelola terdaftar, atau LPK belum memiliki PIC (pool terbuka)
+                    // Otorisasi keamanan: perbolehkan jika Admin atau pengguna yang memang memiliki izin mengelola LPK ini
                     $canClaimOrManage = ! $currentUser
                         || $currentUser->isAdmin()
-                        || empty($existing->pic_id)
                         || $existing->canManage($currentUser);
 
                     if (! $canClaimOrManage) {
@@ -470,7 +459,7 @@ class LpkImportController extends Controller
                     }
 
                     $existing->update([
-                        'pic_id' => $existing->pic_id ?: $picId,
+                        'pic_id' => $currentUser && $currentUser->isAdmin() ? ($existing->pic_id ?: $picId) : $existing->pic_id,
                         'no_reg' => $noReg ? mb_substr($noReg, 0, 30) : $existing->no_reg,
                         'accreditation_number' => $accreditationNumber ? mb_substr($accreditationNumber, 0, 50) : ($existing->accreditation_number ?: $existing->registration_number),
                         'accreditation_type' => $accreditationType ?: $existing->accreditation_type,
@@ -608,100 +597,6 @@ class LpkImportController extends Controller
      */
     protected function parseDateString(?string $date): ?string
     {
-        if (empty($date)) {
-            return null;
-        }
-
-        $date = trim($date);
-
-        // Jika berupa angka serial tanggal Excel (misal: 46253 atau 48031)
-        if (is_numeric($date) && (float) $date >= 20000 && (float) $date <= 90000) {
-            try {
-                return ExcelDate::excelToDateTimeObject((float) $date)->format('Y-m-d');
-            } catch (\Throwable) {
-                // Lanjut ke parser berikutnya
-            }
-        }
-
-        // Jika berupa 4 digit angka tahun (misal: 2027)
-        if (preg_match('/^\d{4}$/', $date)) {
-            return "{$date}-12-31";
-        }
-
-        // Terjemahkan nama bulan Indonesia ke Inggris
-        $idMonths = [
-            'januari' => 'january', 'februari' => 'february', 'maret' => 'march',
-            'april' => 'april', 'mei' => 'may', 'juni' => 'june',
-            'juli' => 'july', 'agustus' => 'august', 'september' => 'september',
-            'oktober' => 'october', 'november' => 'november', 'desember' => 'december',
-            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
-        ];
-        $dateLower = strtolower($date);
-        foreach ($idMonths as $id => $en) {
-            $dateLower = str_replace($id, $en, $dateLower);
-        }
-
-        // Ganti '/' dengan '-' agar strtotime mengenali pola hari-bulan-tahun
-        $dateNormalized = str_replace('/', '-', $dateLower);
-
-        $timestamp = strtotime($dateNormalized);
-        if ($timestamp !== false && $timestamp > 0) {
-            return date('Y-m-d', $timestamp);
-        }
-
-        return null;
-    }
-
-
-    /**
-     * Mengekstrak URL hyperlink dari file XLSX Google Sheets (misal formula =HYPERLINK("url", "Link")).
-     */
-    protected function extractHyperlinksFromXlsx(string $xlsxBinary): array
-    {
-        $hyperlinks = [];
-        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_') . '.zip';
-
-        try {
-            file_put_contents($tempFile, $xlsxBinary);
-            $phar = new \PharData($tempFile);
-
-            if (isset($phar['xl/worksheets/sheet1.xml'])) {
-                $xml = $phar['xl/worksheets/sheet1.xml']->getContent();
-
-                if (preg_match_all('/<c r="([A-Z]+)(\d+)"[^>]*><f>(.*?)<\/f>/s', $xml, $matches, PREG_SET_ORDER)) {
-                    foreach ($matches as $m) {
-                        $col = $m[1];
-                        $row = (int) $m[2];
-                        $formula = html_entity_decode($m[3], ENT_QUOTES | ENT_XML1, 'UTF-8');
-
-                        if (preg_match('/HYPERLINK\(\s*["\']([^"\']+)["\']/i', $formula, $urlMatches)) {
-                            $targetUrl = trim($urlMatches[1]);
-
-                            if (str_contains($targetUrl, 'google.com/url?') && str_contains($targetUrl, 'q=')) {
-                                $parsed = parse_url($targetUrl);
-                                if (! empty($parsed['query'])) {
-                                    parse_str($parsed['query'], $queryArgs);
-                                    if (! empty($queryArgs['q'])) {
-                                        $targetUrl = $queryArgs['q'];
-                                    }
-                                }
-                            }
-
-                            if (filter_var($targetUrl, FILTER_VALIDATE_URL) && str_starts_with($targetUrl, 'http')) {
-                                $hyperlinks[$row][$col] = $targetUrl;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable) {
-            // Abaikan kesalahan pembongkaran phar
-        } finally {
-            if (file_exists($tempFile)) {
-                @unlink($tempFile);
-            }
-        }
-
-        return $hyperlinks;
+        return $this->parseSpreadsheetDate($date);
     }
 }

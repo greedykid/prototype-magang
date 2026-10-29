@@ -47,7 +47,7 @@
                                     <span>PERINGATAN KAN</span>
                                 </div>
                                 <strong class="persistent-surveillance-banner-title">
-                                    {{ count($globalSurveillanceAlerts) }} laboratorium memasuki batas waktu pengawasan KAN.
+                                    Peringatan Siklus Pengawasan Akreditasi: {{ count($globalSurveillanceAlerts) }} laboratorium memasuki batas waktu pengawasan KAN.
                                 </strong>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                 </a>
                             @endif
                             <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="button danger persistent-surveillance-banner-btn">
-                                <span>Tinjau LPK ({{ count($globalSurveillanceAlerts) }})</span>
+                                <span>Tinjau LPK Jatuh Tempo</span>
                                 <x-icon name="chevron-right" size="14" />
                             </a>
                         </div>

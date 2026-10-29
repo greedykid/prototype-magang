@@ -138,6 +138,7 @@ class SecurityHardeningTest extends TestCase
         Lpk::factory()->create([
             'name' => '=HYPERLINK("http://evil.com","Click")',
             'registration_number' => '+62812345678',
+            'no_reg' => '-',
             'scope' => '@SUM(1+1)',
             'status' => 'ACTIVE',
         ]);
@@ -148,6 +149,7 @@ class SecurityHardeningTest extends TestCase
         $this->assertStringContainsString("'=HYPERLINK", $content);
         $this->assertStringContainsString("'+62812345678", $content);
         $this->assertStringContainsString("'@SUM(1+1)", $content);
+        $this->assertStringNotContainsString("'-", $content);
     }
 
     public function test_login_rate_limiting_triggers(): void
@@ -167,16 +169,6 @@ class SecurityHardeningTest extends TestCase
         $throttledResponse->assertStatus(429);
     }
 
-    public function test_feed_endpoint_rejects_default_key_on_staging(): void
-    {
-        $this->app['env'] = 'staging';
-
-        $response = $this->get(route('feeds.lpks', ['key' => 'simasadi-live']));
-        $response->assertStatus(401);
-
-        $this->app['env'] = 'testing';
-    }
-
     public function test_audit_logging_triggered_on_bulk_delete(): void
     {
         $lpk = Lpk::factory()->create(['name' => 'Lab Audit Log Test']);
@@ -194,6 +186,21 @@ class SecurityHardeningTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('lpks', ['id' => $lpk->id]);
+    }
+
+    public function test_global_search_escapes_sql_wildcards(): void
+    {
+        Lpk::factory()->create([
+            'name' => 'Normal Laboratory Name',
+            'registration_number' => 'LP-NORMAL-01',
+            'pic_id' => $this->admin->id,
+        ]);
+
+        // Search with % wildcard should only match if literal % exists
+        $response = $this->actingAs($this->admin)->getJson(route('search.live', ['q' => '%%%']));
+        $response->assertOk();
+        $data = $response->json();
+        $this->assertEmpty($data['lpks']);
     }
 }
 

@@ -246,6 +246,28 @@ class UserManagementTest extends TestCase
         $this->assertSame(User::ROLE_PIC, $pic->role);
     }
 
+    public function test_admin_can_transfer_leadership_role_atomically(): void
+    {
+        $admin = User::factory()->create(['name' => 'Admin Lama', 'role' => User::ROLE_ADMIN]);
+        $pic = User::factory()->create(['name' => 'Calon Admin', 'role' => User::ROLE_PIC]);
+
+        $response = $this->actingAs($admin)->put('/users/' . $pic->id, [
+            'name' => $pic->name,
+            'email' => $pic->email,
+            'role' => User::ROLE_ADMIN,
+            'transfer_admin' => '1',
+        ]);
+
+        $response->assertRedirect('/users');
+        $response->assertSessionHas('success');
+
+        $admin->refresh();
+        $pic->refresh();
+
+        $this->assertSame(User::ROLE_PIC, $admin->role);
+        $this->assertSame(User::ROLE_ADMIN, $pic->role);
+    }
+
     public function test_partial_ajax_request_returns_users_table_content_partial(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);

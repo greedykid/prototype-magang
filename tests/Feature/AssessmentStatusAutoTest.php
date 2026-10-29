@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\Lpk;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class AssessmentStatusAutoTest extends TestCase
@@ -559,25 +560,30 @@ class AssessmentStatusAutoTest extends TestCase
 
     public function test_store_with_split_date_and_time_fields_creates_assessment(): void
     {
-        $response = $this->actingAs($this->admin)->post(route('assessments.store'), [
-            'lpk_id' => $this->lpk->id,
-            'title' => 'Asesmen dengan Picker Custom',
-            'assessment_type' => 'Surveilen 1',
-            'start_date' => '2026-10-15',
-            'start_time' => '08:30',
-            'end_date' => '2026-10-17',
-            'end_time' => '16:45',
-            'location' => 'Laboratorium Terpadu',
-        ]);
+        Carbon::setTestNow(Carbon::parse('2026-10-01 08:00:00'));
+        try {
+            $response = $this->actingAs($this->admin)->post(route('assessments.store'), [
+                'lpk_id' => $this->lpk->id,
+                'title' => 'Asesmen dengan Picker Custom',
+                'assessment_type' => 'Surveilen 1',
+                'start_date' => '2026-10-15',
+                'start_time' => '08:30',
+                'end_date' => '2026-10-17',
+                'end_time' => '16:45',
+                'location' => 'Laboratorium Terpadu',
+            ]);
 
-        $response->assertRedirect();
-        $response->assertSessionHas('success');
+            $response->assertRedirect();
+            $response->assertSessionHas('success');
 
-        $assessment = Assessment::where('title', 'Asesmen dengan Picker Custom')->first();
-        $this->assertNotNull($assessment);
-        $this->assertEquals('2026-10-15 08:30:00', $assessment->start_at->format('Y-m-d H:i:s'));
-        $this->assertEquals('2026-10-17 16:45:00', $assessment->end_at->format('Y-m-d H:i:s'));
-        $this->assertEquals('SCHEDULED', $assessment->status);
+            $assessment = Assessment::where('title', 'Asesmen dengan Picker Custom')->first();
+            $this->assertNotNull($assessment);
+            $this->assertEquals('2026-10-15 08:30:00', $assessment->start_at->format('Y-m-d H:i:s'));
+            $this->assertEquals('2026-10-17 16:45:00', $assessment->end_at->format('Y-m-d H:i:s'));
+            $this->assertEquals('SCHEDULED', $assessment->status);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_update_with_split_date_and_time_fields(): void

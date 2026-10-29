@@ -47,7 +47,7 @@
                     <x-icon name="check-circle" size="18" />
                 </span>
                 <div class="dashboard-safe-banner-text">
-                    <strong>Semua Operasional Aman &amp; Terkendali.</strong>
+                    <strong>Tidak Ada Tindakan Mendesak:</strong> Semua Operasional Aman &amp; Terkendali.
                     <span>Seluruh agenda surveilen dan perbaikan berjalan lancar tanpa ada yang memerlukan tindak lanjut segera.</span>
                 </div>
             </div>
@@ -189,6 +189,7 @@
     <div class="dashboard-workspace-grid">
         {{-- PANEL A (Kiri, 50%): Perlu Tindak Lanjut / Triage --}}
         <section class="panel dashboard-status-panel {{ $hasSurveillanceAlerts ? 'has-alerts' : '' }}" id="surveillance-section" aria-labelledby="surveillance-heading">
+            <div class="sr-only">Peringatan Jatuh Tempo Siklus Pengawasan KAN</div>
             <div class="panel-head">
                 <div class="dashboard-panel-title-wrap">
                     <div class="dashboard-panel-title-row">
@@ -252,6 +253,7 @@
 
                     {{-- Peringatan Batas Waktu TP KAN --}}
                     @if($tpItems->isNotEmpty())
+                        <div class="sr-only">Peringatan Batas Waktu Tindakan Perbaikan (TP &amp; VTP) KAN</div>
                         @foreach($tpItems as $assessment)
                             @php $tpBadge = $assessment->tp_sla_badge; @endphp
                             <a href="{{ route('assessments.show', $assessment) }}" class="dashboard-lpk-item" title="Buka detail asesmen {{ $assessment->display_title }}">
@@ -273,6 +275,9 @@
                                         <span>{{ $assessment->display_title }}</span>
                                         <span>&bull;</span>
                                         <span>Batas TP: <strong>{{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d/m/Y') : '-' }}</strong></span>
+                                        @if($assessment->is_tp_overdue || str_contains($tpBadge['label'], 'Dibekukan') || str_contains($tpBadge['label'], 'Terlambat'))
+                                            <span class="sr-only">TP melewati batas waktu KAN</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="dashboard-lpk-arrow" aria-hidden="true">
@@ -280,6 +285,14 @@
                                 </div>
                             </a>
                         @endforeach
+                    @endif
+                    @if(count($globalSurveillanceAlerts ?? []) > 5)
+                        <div style="text-align: center; margin-top: 10px;">
+                            <a href="{{ route('lpks.index', ['surveillance' => 'NEEDS_ACTION']) }}" class="dashboard-more-link" style="justify-content: center; font-size: 12.5px; font-weight: 600;">
+                                <span>Lihat seluruh {{ count($globalSurveillanceAlerts) }} LPK yang jatuh tempo</span>
+                                <x-icon name="chevron-right" size="14" />
+                            </a>
+                        </div>
                     @endif
                 </div>
             @else

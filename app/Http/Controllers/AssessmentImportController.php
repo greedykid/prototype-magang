@@ -227,10 +227,18 @@ class AssessmentImportController extends Controller
                 }
             }
             if (! empty($rowData['registration_number'])) {
-                $incomingRegs[] = strtoupper($rowData['registration_number']);
+                $rawReg = strtoupper($rowData['registration_number']);
+                $incomingRegs[] = $rawReg;
+                if (preg_match('/(LP|LK|LI|LM)-\d+-IDN/i', $rawReg, $m)) {
+                    $incomingRegs[] = strtoupper($m[0]);
+                }
+                if (preg_match('/^\d+$/', $rawReg)) {
+                    $incomingRegs[] = 'LP-' . str_pad($rawReg, 3, '0', STR_PAD_LEFT) . '-IDN';
+                    $incomingRegs[] = 'LK-' . str_pad($rawReg, 3, '0', STR_PAD_LEFT) . '-IDN';
+                }
             }
             if (! empty($rowData['lpk_name'])) {
-                $incomingNames[] = strtolower($rowData['lpk_name']);
+                $incomingNames[] = trim($rowData['lpk_name']);
             }
         }
         $incomingRegs = array_values(array_unique(array_filter($incomingRegs)));
@@ -249,7 +257,11 @@ class AssessmentImportController extends Controller
                       ->orWhereIn('no_reg', $incomingRegs);
                 }
                 if (! empty($incomingNames)) {
-                    $q->orWhereIn('name', $incomingNames);
+                    $q->orWhere(function ($nameQ) use ($incomingNames) {
+                        foreach ($incomingNames as $n) {
+                            $nameQ->orWhereRaw('LOWER(name) = ?', [strtolower($n)]);
+                        }
+                    });
                 }
             });
         } else {
@@ -269,7 +281,8 @@ class AssessmentImportController extends Controller
         foreach ($existingAssessments as $a) {
             $existingByTitle[$a->lpk_id . '||' . mb_strtoupper(trim((string) $a->title))] = $a;
             if ($a->start_at) {
-                $existingByDate[$a->lpk_id . '||' . $a->start_at->toDateString()] = $a;
+                $typeKey = mb_strtoupper(trim((string) ($a->assessment_type ?: '')));
+                $existingByDate[$a->lpk_id . '||' . $a->start_at->toDateString() . '||' . $typeKey] = $a;
             }
         }
 
@@ -350,7 +363,9 @@ class AssessmentImportController extends Controller
                 }
 
                 // Judul agenda default bila kosong
-                $typeInput = Assessment::normalizeType($data['assessment_type'] ?? 'Surveilen 1', $titleInput ?? '');
+                $typeInput = ! empty($data['assessment_type'])
+                    ? trim((string) $data['assessment_type'])
+                    : Assessment::normalizeType('Surveilen 1', $titleInput ?? '');
                 if (empty($titleInput)) {
                     $titleInput = "Asesmen {$typeInput} - {$matchedLpk->name}";
                 }
@@ -363,7 +378,7 @@ class AssessmentImportController extends Controller
 
                 // Cari existing assessment menggunakan lookup hash O(1)
                 $titleLookupKey = $matchedLpk->id . '||' . mb_strtoupper($titleInput);
-                $dateLookupKey = $matchedLpk->id . '||' . $startAt->toDateString();
+                $dateLookupKey = $matchedLpk->id . '||' . $startAt->toDateString() . '||' . mb_strtoupper($typeInput);
                 $existing = $existingByTitle[$titleLookupKey] ?? ($existingByDate[$dateLookupKey] ?? null);
 
                 $payload = [
@@ -473,6 +488,8 @@ class AssessmentImportController extends Controller
             'BERJALAN', 'SEDANG BERJALAN', 'IN_PROGRESS', 'RUNNING' => 'IN_PROGRESS',
             'SELESAI', 'DONE', 'COMPLETED' => 'COMPLETED',
             'BATAL', 'DIBATALKAN', 'CANCELLED', 'CANCELED' => 'CANCELLED',
+            'DIBEKUKAN', 'BEKU', 'SUSPENDED' => 'SUSPENDED',
+            'DICABUT', 'CABUT', 'REVOKED' => 'REVOKED',
             default => 'SCHEDULED',
         };
     }
@@ -492,11 +509,10 @@ class AssessmentImportController extends Controller
 
     protected function parseDateTime(?string $value): ?Carbon
     {
-        if (empty($value)) {
+        $normalized = $this->parseSpreadsheetDate($value);
+        if (! $normalized) {
             return null;
         }
-
-        $normalized = $this->normalizeDateString($value);
 
         try {
             return Carbon::parse($normalized);
@@ -507,45 +523,7 @@ class AssessmentImportController extends Controller
 
     protected function parseDate(?string $value): ?string
     {
-        if (empty($value)) {
-            return null;
-        }
-
-        $normalized = $this->normalizeDateString($value);
-
-        try {
-            return Carbon::parse($normalized)->toDateString();
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    protected function normalizeDateString(?string $value): ?string
-    {
-        if (empty($value)) {
-            return null;
-        }
-
-        $val = trim($value);
-
-        if (preg_match('/^\d{4}$/', $val)) {
-            return "{$val}-12-31";
-        }
-
-        $idMonths = [
-            'januari' => 'january', 'februari' => 'february', 'maret' => 'march',
-            'april' => 'april', 'mei' => 'may', 'juni' => 'june',
-            'juli' => 'july', 'agustus' => 'august', 'september' => 'september',
-            'oktober' => 'october', 'november' => 'november', 'desember' => 'december',
-            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
-        ];
-
-        $lower = strtolower($val);
-        foreach ($idMonths as $id => $en) {
-            $lower = str_replace($id, $en, $lower);
-        }
-
-        return str_replace('/', '-', $lower);
+        return $this->parseSpreadsheetDate($value);
     }
 
 

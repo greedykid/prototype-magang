@@ -33,6 +33,20 @@ class UpdateAssessmentRequest extends FormRequest
                 'end_at' => trim($endDate.' '.$endTime),
             ]);
         }
+
+        $hasExt = $this->has('tp_has_extension')
+            ? $this->boolean('tp_has_extension')
+            : ! empty($this->input('tp_extension_letter_no'));
+
+        if (! $hasExt) {
+            $this->merge([
+                'tp_has_extension' => false,
+                'tp_extension_letter_no' => null,
+                'tp_extension_date' => null,
+                'tp_extension_notes' => null,
+                'tp_extension_months' => 0,
+            ]);
+        }
     }
 
     public function rules(): array
@@ -85,7 +99,42 @@ class UpdateAssessmentRequest extends FormRequest
                 'date',
             ],
             'tp_extension_notes' => ['nullable', 'string'],
-            'tp_satisfied_at' => ['nullable', 'date'],
+            'tp_satisfied_at' => [
+                'nullable',
+                'date',
+                function ($attribute, $value, $fail) {
+                    if (! $value) {
+                        return;
+                    }
+                    $assessment = $this->route('assessment');
+                    $satisfiedAt = rescue(fn () => Carbon::parse($value)->startOfDay(), null, false);
+                    if (! $satisfiedAt) {
+                        return;
+                    }
+
+                    $hasExt = $this->boolean('tp_has_extension') || ! empty($this->input('tp_extension_letter_no'));
+                    $extMonths = $hasExt ? max(1, (int) ($this->input('tp_extension_months', 1) ?: 1)) : 0;
+                    $rawDueDate = $this->input('tp_due_date')
+                        ? rescue(fn () => Carbon::parse($this->input('tp_due_date'))->startOfDay(), null, false)
+                        : $assessment?->tp_due_date?->startOfDay();
+
+                    $defaultBase = null;
+                    $endAtVal = $this->input('end_at') ?: $this->input('end_date') ?: $assessment?->end_at;
+                    if ($endAtVal) {
+                        $endAt = rescue(fn () => Carbon::parse($endAtVal)->startOfDay(), null, false);
+                        if ($endAt) {
+                            $type = $this->input('assessment_type') ?: $assessment?->assessment_type;
+                            $defaultBase = app(\App\Services\AssessmentTpService::class)->calculateDefaultDueDate($type, $endAt);
+                        }
+                    }
+
+                    $effectiveDue = app(\App\Services\AssessmentTpService::class)->resolveEffectiveTpDueDate($rawDueDate, $hasExt, $extMonths, $defaultBase);
+
+                    if ($effectiveDue && $satisfiedAt->gt($effectiveDue)) {
+                        $fail("Tanggal memenuhi ({$satisfiedAt->format('d/m/Y')}) tidak boleh melewati tenggat waktu tindakan perbaikan ({$effectiveDue->format('d/m/Y')}) sesuai Klausul 2.11.12 KAN U-01 Rev.3. Melewati batas waktu perbaikan berakibat pembekuan akreditasi.");
+                    }
+                },
+            ],
             'tp_notes' => ['nullable', 'string'],
             'sk_number' => ['nullable', 'string', 'max:80'],
             'sk_date' => ['nullable', 'date'],
@@ -119,7 +168,7 @@ class UpdateAssessmentRequest extends FormRequest
         unset($data['start_date'], $data['start_time'], $data['end_date'], $data['end_time']);
 
         if (! empty($data['assessment_team'])) {
-            $data['lead_assessor'] = $data['assessment_team'];
+            $data['lead_assessor'] = mb_substr((string) $data['assessment_team'], 0, 100);
         } elseif (! empty($data['lead_assessor'])) {
             $data['assessment_team'] = $data['lead_assessor'];
         }
@@ -175,6 +224,13 @@ class UpdateAssessmentRequest extends FormRequest
                 }
             } elseif (in_array(strtolower($submittedTitle), array_map('strtolower', $knownTypePatterns), true)) {
                 $data['title'] = $lpkName ? "{$newTypeLabel} - {$lpkName}" : $newTypeLabel;
+            }
+        }
+
+        if (! empty($data['eha_date']) && (empty($data['eha_status']) || $data['eha_status'] === Assessment::EHA_STATUS_BELUM)) {
+            $parsedEha = rescue(fn () => Carbon::parse($data['eha_date'])->endOfDay(), null, false);
+            if ($parsedEha && $parsedEha->lte(now())) {
+                $data['eha_status'] = Assessment::EHA_STATUS_DIREKOMENDASIKAN;
             }
         }
 

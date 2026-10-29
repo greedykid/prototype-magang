@@ -38,6 +38,7 @@ const toGoogleCalendarUtc = (date) => {
 
 function showEventPopover(triggerEl, eventData) {
     if (!eventData) return;
+    hideCalendarHoverTooltip();
 
     // Deduplicate: If any duplicate popovers exist from prior transitions, keep only the latest one
     const allPopovers = document.querySelectorAll('#gcal-event-popover');
@@ -1246,6 +1247,138 @@ function initCalendarRangeSelection() {
     }
 }
 
+let hoverTooltipTimeout = null;
+let isHoverTooltipListenerAttached = false;
+
+function hideCalendarHoverTooltip() {
+    clearTimeout(hoverTooltipTimeout);
+    const tooltip = document.getElementById('gcal-hover-tooltip');
+    if (tooltip) {
+        tooltip.classList.remove('is-visible');
+        tooltip.style.display = 'none';
+    }
+}
+
+function initCalendarHoverTooltip() {
+    if (isHoverTooltipListenerAttached) return;
+    isHoverTooltipListenerAttached = true;
+
+    document.addEventListener('mouseover', (e) => {
+        const chip = e.target.closest('.gcal-event-chip');
+        if (!chip) return;
+
+        const popover = document.getElementById('gcal-event-popover');
+        if (popover && popover.style.display !== 'none') return;
+
+        clearTimeout(hoverTooltipTimeout);
+        hoverTooltipTimeout = setTimeout(() => {
+            const tooltip = document.getElementById('gcal-hover-tooltip');
+            if (!tooltip) return;
+
+            const currentPopover = document.getElementById('gcal-event-popover');
+            if (currentPopover && currentPopover.style.display !== 'none') return;
+
+            const cat = chip.dataset.catLabel || 'Agenda';
+            const theme = chip.dataset.colorTheme || 'indigo';
+            const lpkName = chip.dataset.lpkName || chip.dataset.title || 'Agenda Kegiatan';
+            const accNo = chip.dataset.accNo || '';
+            const dateStr = chip.dataset.dateLabel || '';
+            const loc = chip.dataset.location || '';
+            const multiday = chip.dataset.multidayLabel || '';
+
+            const badgeEl = tooltip.querySelector('#gcal-tt-cat');
+            if (badgeEl) {
+                badgeEl.textContent = cat;
+                badgeEl.className = `gcal-tt-badge theme-${theme}`;
+            }
+
+            const durEl = tooltip.querySelector('#gcal-tt-duration');
+            if (durEl) {
+                if (multiday) {
+                    durEl.textContent = multiday;
+                    durEl.style.display = 'inline-block';
+                } else {
+                    durEl.style.display = 'none';
+                }
+            }
+
+            const lpkEl = tooltip.querySelector('#gcal-tt-lpk');
+            if (lpkEl) lpkEl.textContent = lpkName;
+
+            const accEl = tooltip.querySelector('#gcal-tt-acc');
+            if (accEl) {
+                if (accNo) {
+                    accEl.textContent = accNo;
+                    accEl.style.display = 'block';
+                } else {
+                    accEl.style.display = 'none';
+                }
+            }
+
+            const dateEl = tooltip.querySelector('#gcal-tt-date');
+            const dateWrap = tooltip.querySelector('#gcal-tt-date-wrap');
+            if (dateEl && dateWrap) {
+                if (dateStr) {
+                    dateEl.textContent = dateStr;
+                    dateWrap.style.display = 'flex';
+                } else {
+                    dateWrap.style.display = 'none';
+                }
+            }
+
+            const locWrap = tooltip.querySelector('#gcal-tt-loc-wrap');
+            const locEl = tooltip.querySelector('#gcal-tt-loc');
+            if (locWrap && locEl) {
+                if (loc) {
+                    locEl.textContent = loc;
+                    locWrap.style.display = 'flex';
+                } else {
+                    locWrap.style.display = 'none';
+                }
+            }
+
+            const rect = chip.getBoundingClientRect();
+            tooltip.style.display = 'flex';
+            tooltip.style.visibility = 'hidden';
+            tooltip.classList.remove('is-visible');
+
+            const ttWidth = tooltip.offsetWidth || 270;
+            const ttHeight = tooltip.offsetHeight || 130;
+
+            let top = rect.top - ttHeight - 8;
+            let left = rect.left + (rect.width / 2) - (ttWidth / 2);
+
+            if (top < 10) {
+                top = rect.bottom + 8;
+            }
+
+            if (left < 10) left = 10;
+            if (left + ttWidth > window.innerWidth - 10) {
+                left = window.innerWidth - ttWidth - 10;
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.visibility = 'visible';
+            tooltip.classList.add('is-visible');
+        }, 50);
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        const chip = e.target.closest('.gcal-event-chip');
+        if (!chip) return;
+        if (e.relatedTarget && chip.contains(e.relatedTarget)) return;
+
+        hideCalendarHoverTooltip();
+    });
+
+    window.addEventListener('scroll', hideCalendarHoverTooltip, { passive: true });
+    document.addEventListener('click', hideCalendarHoverTooltip);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideCalendarHoverTooltip();
+    });
+}
+
 function initGcalComponents() {
     initGcalLiveTimeLine();
     initGcalFilters();
@@ -1253,6 +1386,7 @@ function initGcalComponents() {
     initCalendarHighlight();
     initCalendarRangeSelection();
     initQuickAddDateSync();
+    initCalendarHoverTooltip();
     if (typeof window.scheduleAdjacentCalendarPrefetch === 'function') {
         window.scheduleAdjacentCalendarPrefetch();
     }
@@ -1280,5 +1414,7 @@ export {
     initGcalMonthYearPicker,
     initCalendarHighlight,
     initCalendarRangeSelection,
+    initCalendarHoverTooltip,
+    hideCalendarHoverTooltip,
     initGcalComponents
 };

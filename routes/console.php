@@ -64,7 +64,7 @@ Artisan::command('data:clear {--include-users : Hapus juga seluruh akun pengguna
         Schema::enableForeignKeyConstraints();
     }
 
-    if (! $includeUsers) {
+    if ($includeUsers) {
         $this->call(UserSeeder::class);
         $this->info('Akun pengguna resmi (admin, staf, asesor, demo) dipastikan aktif.');
     }
@@ -79,17 +79,19 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
     $notifiedCount = 0;
     $activeNoticeCount = 0;
 
-    // Fallback penerima jika LPK belum memiliki PIC yang ditugaskan
+    // Fallback penerima jika LPK belum memiliki PIC yang ditugaskan (khusus Admin atau email sistem)
     $fallbackEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
     if (empty($fallbackEmails)) {
         $fallbackEmails = [config('mail.from.address', 'simasadi@kan.or.id')];
     }
 
-    \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED', 'REVOKED'])
+    \App\Models\Lpk::whereIn('status', ['ACTIVE', 'SUSPENDED'])
         ->with(['assessments', 'pic', 'members'])
         ->chunk(100, function ($lpks) use (&$notifiedCount, &$activeNoticeCount, $force, $fallbackEmails) {
             foreach ($lpks as $lpk) {
-                $alerts = $lpk->getActiveSurveillanceAlerts();
+                $alerts = array_filter($lpk->getActiveSurveillanceAlerts(), function ($alert) {
+                    return ($alert['status'] ?? '') !== 'REVOKED' && ($alert['code'] ?? '') !== 'ACCREDITATION_REVOKED';
+                });
                 if (empty($alerts)) {
                     continue;
                 }
@@ -117,12 +119,11 @@ Artisan::command('lpk:check-surveillance {--force : Kirim email meskipun baru sa
                     $this->warn("  [{$alert['code']}] {$lpk->registration_number} - {$lpk->name}: {$alert['status_label']}");
 
                     try {
-                        $delay = now()->addSeconds($notifiedCount * 2);
-                        $mailable = (new \App\Mail\SurveillanceReminderMail($lpk, $alert))->delay($delay);
-                        \Illuminate\Support\Facades\Mail::to($targetEmails)->queue($mailable);
+                        $mailable = new \App\Mail\SurveillanceReminderMail($lpk, $alert);
+                        \Illuminate\Support\Facades\Mail::to($targetEmails)->send($mailable);
                         $notifiedCount++;
                         $hasSentForLpk = true;
-                        $this->info("    ✓ Email pengingat internal berhasil dimasukkan ke antrean kirim ({$targetSummary}).");
+                        $this->info("    ✓ Email pengingat internal berhasil dikirim ke PIC ({$targetSummary}).");
                     } catch (\Throwable $e) {
                         $this->error("    ✗ Gagal mengirim email pengingat: " . $e->getMessage());
                     }

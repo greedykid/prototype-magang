@@ -76,6 +76,15 @@ class AccountLinkTest extends TestCase
                 'viewer_id' => $viewer->id,
             ]);
         $responseDuplicate->assertSessionHasErrors('viewer_id');
+
+        // 4. Cannot link admin user as viewer
+        $admin = User::factory()->admin()->create();
+        $responseAdmin = $this->actingAs($owner)
+            ->from(route('account-links.index'))
+            ->post(route('account-links.store'), [
+                'viewer_id' => $admin->id,
+            ]);
+        $responseAdmin->assertSessionHasErrors('viewer_id');
     }
 
     public function test_linked_viewer_sees_all_lpks_assessments_and_calendar_events_of_owner(): void

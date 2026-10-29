@@ -36,15 +36,18 @@ class AssessmentStatusService
         $hasEhaCompleted = in_array($ehaStatus, [Assessment::EHA_STATUS_DIREKOMENDASIKAN, 'DIREKOMENDASIKAN', 'SUDAH_EHA'], true)
             || (! empty($ehaDate) && ! in_array($ehaStatus, [Assessment::EHA_STATUS_BELUM, Assessment::EHA_STATUS_PERLU_VERIFIKASI, Assessment::EHA_STATUS_CATATAN_KHUSUS], true));
 
-        // 1. Keputusan akhir: SK KAN sudah terbit DAN seluruh tahapan hulu telah tuntas
-        if (! empty($skNumber) && $isTpSatisfied && $hasEhaCompleted) {
+        // 1. Keputusan akhir: SK KAN sudah terbit
+        if (! empty($skNumber)) {
             return 'COMPLETED';
         }
 
-        // Jika tindakan perbaikan telah memenuhi atau EHA telah selesai namun SK belum terbit (atau SK ada tapi belum selesai upstream),
-        // status asesmen tetap berada dalam tahap berjalan (IN_PROGRESS).
-        if ($isTpSatisfied) {
+        // Jika TP memenuhi tetapi rapat panitia teknis membutuhkan verifikasi ulang atau catatan khusus
+        if ($isTpSatisfied && in_array($ehaStatus, [Assessment::EHA_STATUS_PERLU_VERIFIKASI, Assessment::EHA_STATUS_CATATAN_KHUSUS], true)) {
             return 'IN_PROGRESS';
+        }
+
+        if ($isTpSatisfied) {
+            return 'COMPLETED';
         }
 
         $now = now();
@@ -59,14 +62,10 @@ class AssessmentStatusService
             if ($baseDueDate) {
                 $effectiveDueDate = $baseDueDate->copy()->startOfDay();
                 if ($tpHasExtension && (int) $tpExtensionMonths > 0) {
-                    if ($tpExtensionDate && $tpExtensionDate->gt($baseDueDate)) {
-                        $effectiveDueDate = $tpExtensionDate->copy()->startOfDay();
-                    } else {
-                        $defaultBase = Assessment::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
-                        $extMonths = min(1, max(1, (int) $tpExtensionMonths));
-                        if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonths($extMonths)->toDateString())) {
-                            $effectiveDueDate->addMonths($extMonths);
-                        }
+                    $defaultBase = Assessment::calculateDefaultDueDateForType($assessmentType, $endAt ?: $startAt);
+                    $extMonths = min(1, max(1, (int) $tpExtensionMonths));
+                    if (! ($defaultBase && $tpDueDate && $tpDueDate->toDateString() === $defaultBase->copy()->addMonthsNoOverflow($extMonths)->toDateString())) {
+                        $effectiveDueDate = $effectiveDueDate->addMonthsNoOverflow($extMonths);
                     }
                 }
 
@@ -91,12 +90,16 @@ class AssessmentStatusService
             $hasExecutionProof = ! empty($reportDate) || ! empty($ehaDate);
 
             if ($hasExecutionProof) {
+                if ($hasActiveTp || (! empty($tpDueDate) && ! $isTpSatisfied)) {
+                    return 'IN_PROGRESS';
+                }
+
                 $defaultSla = Assessment::calculateDefaultDueDateForType($assessmentType, $endAt);
                 if ($defaultSla && $now->startOfDay()->gt($defaultSla->startOfDay())) {
                     return 'SUSPENDED';
                 }
 
-                return 'IN_PROGRESS';
+                return 'COMPLETED';
             }
 
             // Jika tanggal telah lewat namun belum ada tindakan apapun, statusnya tetap PLANNED.
@@ -152,7 +155,7 @@ class AssessmentStatusService
 
         // 4. Surveilen 1
         if (
-            in_array($raw, ['S1', 'Surveilen 1', 'Surveilen 1 (S1)', 'SURVEILLANCE 1'], true)
+            in_array($raw, ['S1', 'Surveilen 1', 'Surveilen 1 (S1)', 'SURVEILLANCE 1', 'Asesmen Surveilen 1 (S1)', 'Asesmen Surveilen 1'], true)
             || preg_match('/\b(Surveilen\s*1|S1)\b/i', $title)
         ) {
             return Assessment::TYPE_SURVEILEN_1;
@@ -160,7 +163,7 @@ class AssessmentStatusService
 
         // 5. Surveilen 2
         if (
-            in_array($raw, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2'], true)
+            in_array($raw, ['S2', 'Surveilen 2', 'Surveilen 2 (S2)', 'SURVEILLANCE 2', 'Asesmen Surveilen 2 (S2)', 'Asesmen Surveilen 2'], true)
             || preg_match('/\b(Surveilen\s*2|S2)\b/i', $title)
         ) {
             return Assessment::TYPE_SURVEILEN_2;
@@ -168,7 +171,7 @@ class AssessmentStatusService
 
         // 6. STT
         if (
-            in_array($raw, ['STT', 'Surveilen Tidak Terjadwal', 'Surveilen Tidak Terjadwal (STT)'], true)
+            in_array($raw, ['STT', 'Surveilen Tidak Terjadwal', 'Surveilen Tidak Terjadwal (STT)', 'Asesmen Surveilen Tidak Terjadwal (STT)'], true)
             || preg_match('/\b(STT|Tidak Terjadwal)\b/i', $title)
         ) {
             return Assessment::TYPE_STT;
@@ -176,7 +179,7 @@ class AssessmentStatusService
 
         // 7. PRL (stand-alone)
         if (
-            in_array($raw, ['PRL', 'Perluasan Ruang Lingkup', 'Perluasan Ruang Lingkup (PRL)', 'Perluasan Lingkup', 'SCOPE_EXTENSION'], true)
+            in_array($raw, ['PRL', 'Perluasan Ruang Lingkup', 'Perluasan Ruang Lingkup (PRL)', 'Perluasan Lingkup', 'SCOPE_EXTENSION', 'Asesmen Perluasan Ruang Lingkup (PRL)'], true)
             || preg_match('/\b(PRL|Perluasan Lingkup|Perluasan Ruang Lingkup)\b/i', $title)
         ) {
             return Assessment::TYPE_PRL;
@@ -184,7 +187,7 @@ class AssessmentStatusService
 
         // 8. Re-Akreditasi (Akreditasi Ulang)
         if (
-            in_array($raw, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Re-asesmen (Reassessment)', 'Akreditasi Ulang', 'Re-Akreditasi (Akreditasi Ulang)'], true)
+            in_array($raw, ['RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Re-asesmen (Reassessment)', 'Akreditasi Ulang', 'Re-Akreditasi (Akreditasi Ulang)', 'Asesmen Re-Akreditasi (RA)', 'Asesmen Re-Akreditasi'], true)
             || preg_match('/\b(Re-Akreditasi|Re-asesmen|REAKREDITASI|RA)\b/i', $title)
         ) {
             return Assessment::TYPE_RE_AKREDITASI;
@@ -192,7 +195,7 @@ class AssessmentStatusService
 
         // 9. Akreditasi Awal
         if (
-            in_array($raw, ['INITIAL', 'Asesmen Awal', 'AA', 'Asesmen Awal (AA)', 'Akreditasi Awal'], true)
+            in_array($raw, ['INITIAL', 'Asesmen Awal', 'AA', 'Asesmen Awal (AA)', 'Akreditasi Awal', 'Asesmen Akreditasi Awal'], true)
             || preg_match('/\b(Asesmen Awal|Akreditasi Awal|AA)\b/i', $title)
         ) {
             return Assessment::TYPE_AKREDITASI_AWAL;
@@ -427,7 +430,7 @@ class AssessmentStatusService
         }
 
         $rawStatus = $assessment->getAttributes()['status'] ?? null;
-        if ($rawStatus === 'CANCELLED') {
+        if (in_array($rawStatus, ['CANCELLED', 'SUSPENDED', 'REVOKED'], true)) {
             return false;
         }
 

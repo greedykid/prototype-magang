@@ -84,6 +84,8 @@ class AssessmentImportTest extends TestCase
             'assessment_type' => 'Surveilen',
             'status' => 'SCHEDULED',
             'lead_assessor' => 'Dr. Suryadi',
+            'start_at' => '2026-10-15 09:00:00',
+            'end_at' => '2026-10-17 17:00:00',
         ]);
     }
 
@@ -117,6 +119,8 @@ class AssessmentImportTest extends TestCase
             'lpk_id' => $this->lpk->id,
             'title' => 'Re-akreditasi 5 Tahunan',
             'assessment_type' => 'Re-asesmen',
+            'start_at' => '2026-11-01 08:30:00',
+            'end_at' => '2026-11-03 16:30:00',
         ]);
     }
 

@@ -30,32 +30,35 @@ class GlobalSearchController extends Controller
         }
 
         $user = $request->user();
-        $isPic = $user?->isPic();
+        $isNonAdmin = $user && ! $user->isAdmin();
         $isAdmin = $user?->isAdmin();
+        $isPic = $user && $user->isPic();
 
         $assessmentTerms = Assessment::expandSearchTerms($q);
+        $escapedQ = addcslashes($q, '%_\\');
+        $escapedTerms = array_map(fn ($term) => addcslashes((string) $term, '%_\\'), $assessmentTerms);
 
         // 1. Search LPK (Direct attributes + related assessments)
         $lpks = Lpk::query()
             ->with(['assessments'])
             ->primaryFor($user)
-            ->where(function ($query) use ($q, $assessmentTerms) {
-                $query->where('name', 'like', "%{$q}%")
-                    ->orWhere('registration_number', 'like', "%{$q}%")
-                    ->orWhere('no_reg', 'like', "%{$q}%")
-                    ->orWhere('accreditation_number', 'like', "%{$q}%")
-                    ->orWhere('accreditation_type', 'like', "%{$q}%")
-                    ->orWhere('scope', 'like', "%{$q}%")
-                    ->orWhere('address', 'like', "%{$q}%")
-                    ->orWhereHas('assessments', function ($aq) use ($assessmentTerms, $q) {
-                        $aq->where(function ($sub) use ($assessmentTerms) {
-                            foreach ($assessmentTerms as $term) {
+            ->where(function ($query) use ($escapedQ, $escapedTerms) {
+                $query->where('name', 'like', "%{$escapedQ}%")
+                    ->orWhere('registration_number', 'like', "%{$escapedQ}%")
+                    ->orWhere('no_reg', 'like', "%{$escapedQ}%")
+                    ->orWhere('accreditation_number', 'like', "%{$escapedQ}%")
+                    ->orWhere('accreditation_type', 'like', "%{$escapedQ}%")
+                    ->orWhere('scope', 'like', "%{$escapedQ}%")
+                    ->orWhere('address', 'like', "%{$escapedQ}%")
+                    ->orWhereHas('assessments', function ($aq) use ($escapedTerms, $escapedQ) {
+                        $aq->where(function ($sub) use ($escapedTerms) {
+                            foreach ($escapedTerms as $term) {
                                 $sub->orWhere('title', 'like', "%{$term}%")
                                     ->orWhere('assessment_type', 'like', "%{$term}%");
                             }
                         })
-                        ->orWhere('sk_number', 'like', "%{$q}%")
-                        ->orWhere('lead_assessor', 'like', "%{$q}%");
+                        ->orWhere('sk_number', 'like', "%{$escapedQ}%")
+                        ->orWhere('lead_assessor', 'like', "%{$escapedQ}%");
                     });
             })
             ->limit(5)
@@ -78,21 +81,21 @@ class GlobalSearchController extends Controller
         // 2. Search Assessments & Schedules in a single query
         $rawAssessments = Assessment::query()
             ->with(['lpk:id,name,status,certificate_date,expired_at'])
-            ->when($isPic, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
-            ->where(function ($query) use ($assessmentTerms, $q) {
-                $query->where(function ($sub) use ($assessmentTerms) {
-                    foreach ($assessmentTerms as $term) {
+            ->when($isNonAdmin, fn ($query) => $query->whereHas('lpk', fn ($lq) => $lq->primaryFor($user)))
+            ->where(function ($query) use ($escapedTerms, $escapedQ) {
+                $query->where(function ($sub) use ($escapedTerms) {
+                    foreach ($escapedTerms as $term) {
                         $sub->orWhere('title', 'like', "%{$term}%")
                             ->orWhere('assessment_type', 'like', "%{$term}%");
                     }
                 })
-                ->orWhere('sk_number', 'like', "%{$q}%")
-                ->orWhere('lead_assessor', 'like', "%{$q}%")
-                ->orWhere('location', 'like', "%{$q}%")
-                ->orWhereHas('lpk', fn ($lq) => $lq->where('name', 'like', "%{$q}%")
-                    ->orWhere('registration_number', 'like', "%{$q}%")
-                    ->orWhere('no_reg', 'like', "%{$q}%")
-                    ->orWhere('accreditation_number', 'like', "%{$q}%")
+                ->orWhere('sk_number', 'like', "%{$escapedQ}%")
+                ->orWhere('lead_assessor', 'like', "%{$escapedQ}%")
+                ->orWhere('location', 'like', "%{$escapedQ}%")
+                ->orWhereHas('lpk', fn ($lq) => $lq->where('name', 'like', "%{$escapedQ}%")
+                    ->orWhere('registration_number', 'like', "%{$escapedQ}%")
+                    ->orWhere('no_reg', 'like', "%{$escapedQ}%")
+                    ->orWhere('accreditation_number', 'like', "%{$escapedQ}%")
                 );
             })
             ->orderBy('start_at', 'desc')
@@ -135,9 +138,9 @@ class GlobalSearchController extends Controller
         $accounts = collect();
         if ($isAdmin) {
             $accounts = User::query()
-                ->where(function ($query) use ($q) {
-                    $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%");
+                ->where(function ($query) use ($escapedQ) {
+                    $query->where('name', 'like', "%{$escapedQ}%")
+                        ->orWhere('email', 'like', "%{$escapedQ}%");
                 })
                 ->limit(4)
                 ->get(['id', 'name', 'email', 'role'])
@@ -152,9 +155,9 @@ class GlobalSearchController extends Controller
             $accounts = User::query()
                 ->where('role', User::ROLE_PIC)
                 ->when($user, fn ($query) => $query->where('id', '!=', $user->id))
-                ->where(function ($query) use ($q) {
-                    $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%");
+                ->where(function ($query) use ($escapedQ) {
+                    $query->where('name', 'like', "%{$escapedQ}%")
+                        ->orWhere('email', 'like', "%{$escapedQ}%");
                 })
                 ->limit(4)
                 ->get(['id', 'name', 'email', 'role'])

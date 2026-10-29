@@ -15,7 +15,7 @@ x-simasadi-environment: &simasadi-env
   SESSION_DRIVER: "${SESSION_DRIVER:-file}"
   SESSION_LIFETIME: 120
   CACHE_STORE: "${CACHE_STORE:-file}"
-  QUEUE_CONNECTION: "${QUEUE_CONNECTION:-database}"
+  QUEUE_CONNECTION: "${QUEUE_CONNECTION:-sync}"
 
   LOG_CHANNEL: stderr
   LOG_LEVEL: "${LOG_LEVEL:-warning}"

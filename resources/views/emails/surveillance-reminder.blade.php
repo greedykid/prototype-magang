@@ -226,7 +226,7 @@
             <!-- Petunjuk Tindak Lanjut untuk PIC BSN -->
             <h4 style="margin: 20px 0 10px 0; font-size: 14px; color: #0f172a;">Instruksi Tindak Lanjut Petugas / PIC:</h4>
             <ol class="instructions-list" style="font-size: 13.5px; color: #475569; padding-left: 20px; margin: 0 0 22px 0; word-break: break-word;">
-                <li style="margin-bottom: 8px;">Menelaah arsip berkas mutu, laporan audit internal, dan rekaman uji profisiensi laboratorium di Google Drive / SIMASADI.</li>
+                <li style="margin-bottom: 8px;">Menelaah arsip berkas mutu, laporan audit internal, dan rekaman uji profisiensi laboratorium di SIMASADI.</li>
                 <li style="margin-bottom: 8px;">Menghubungi narahubung laboratorium terkait guna mengonfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan.</li>
                 <li style="margin-bottom: 8px;">Menyusun rencana penugasan Tim Asesor KAN (Asesor Kepala &amp; Asesor Teknis) serta menjadwalkan agenda resmi pada SIMASADI.</li>
             </ol>
@@ -249,19 +249,11 @@
                     </tr>
                 </table>
 
-                <!-- Baris 2: Tombol Aksi Cepat Pendukung (Drive Berkas & Kontak Lab) -->
+                <!-- Baris 2: Tombol Aksi Cepat Pendukung (Kontak Lab) -->
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="btn-group-table">
                     <tr>
-                        @if($lpk->drive_url && str_starts_with($lpk->drive_url, 'http'))
-                        <td class="btn-col" style="padding: 0 4px 6px 0; vertical-align: top;">
-                            <a href="{{ $lpk->drive_url }}" class="btn-sub-action" target="_blank" rel="noopener noreferrer" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
-                                Buka Berkas Google Drive LPK
-                            </a>
-                        </td>
-                        @endif
-
                         @if($lpk->email)
-                        <td class="btn-col" style="padding: 0 4px 6px 4px; vertical-align: top;">
+                        <td class="btn-col" style="padding: 0 4px 6px 0; vertical-align: top;">
                             <a href="mailto:{{ $lpk->email }}?subject={{ rawurlencode('[Pemberitahuan KAN] Persiapan ' . $alert['name'] . ' - ' . $lpk->registration_number) }}&body={{ rawurlencode("Yth. Pimpinan / Manajemen Mutu " . $lpk->name . ",\n\nSehubungan dengan siklus pemeliharaan akreditasi KAN, laboratorium Saudara telah memasuki periode pelaksanaan " . $alert['name'] . ".\n\nMohon menyampaikan konfirmasi kesiapan dan usulan tanggal pelaksanaan asesmen penilikan kepada Sekretariat KAN.\n\nTerima kasih.\n\nTim Akreditasi Laboratorium BSN / KAN") }}" class="btn-sub-action" style="display: block; background-color: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b !important; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-sizing: border-box; min-height: 40px; line-height: 18px; word-break: break-word;">
                                 Kirim Email Pemanggilan ke Lab
                             </a>

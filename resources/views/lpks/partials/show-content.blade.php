@@ -4,7 +4,7 @@
         @if(isset($owner))
             <a href="{{ route('account-links.show', [$owner, 'tab' => 'lpks']) }}" class="lpk-back-btn" title="Kembali ke Daftar Laboratorium Akun Tertaut">
                 <x-icon name="chevron-left" size="16" />
-                <span>Daftar Laboratorium Akun: {{ $owner->name }}</span>
+                <span>Daftar LPK Akun: {{ $owner->name }}</span>
             </a>
         @elseif(auth()->check() && $lpk->pic_id && auth()->user()->isViewerFor($lpk->pic_id))
             <a href="{{ route('account-links.show', $lpk->pic_id) }}" class="lpk-back-btn" title="Kembali ke Daftar Laboratorium Akun Tertaut">
@@ -49,7 +49,7 @@
                     <x-status :value="$lpk->dynamic_status" />
                     @if(isset($owner))
                         <span class="badge badge-pic-viewer">
-                            Mode Pemantauan (Viewer): {{ $owner->name }}
+                            Mode Pemantauan (Viewer) - Milik Akun: {{ $owner->name }}
                         </span>
                     @elseif(auth()->check() && $lpk->pic_id && auth()->user()->isViewerFor($lpk->pic_id))
                         <span class="badge badge-pic-viewer">
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            @if(!isset($owner) && (auth()->user()?->isAdmin() || (auth()->user()?->isPic() && $lpk->isManagedBy(auth()->user()))))
+            @if(!isset($owner) && (auth()->user()?->isAdmin() || (auth()->user()?->isPic() && $lpk->canManage(auth()->user()))))
                 <div class="lpk-header-actions">
                     <a class="button secondary button-sm" href="{{ route('lpks.edit', $lpk) }}">
                         <x-icon name="edit" size="14" />
@@ -190,7 +190,7 @@
                         return [
                             'card_class' => 'is-jt is-overdue',
                             'badge_class' => 'status-jt status-danger',
-                            'badge_label' => 'Lewat Jadwal',
+                            'badge_label' => 'Lewat Jatuh Tempo',
                         ];
                     }
                     return [
@@ -200,6 +200,40 @@
                     ];
                 }
                 if ($linked->status === 'PLANNED') {
+                    if ($typeCode === 'RA' && (($milestone['status'] ?? null) === 'REVOKED' || $lpk->isRevocationOverdue() || $lpk->dynamic_status === 'REVOKED')) {
+                        return [
+                            'card_class' => 'is-jt is-overdue',
+                            'badge_class' => 'status-jt status-danger',
+                            'badge_label' => 'Dicabut',
+                        ];
+                    }
+                    if (($milestone['status'] ?? null) === 'OVERDUE') {
+                        return [
+                            'card_class' => 'is-jt is-overdue',
+                            'badge_class' => 'status-jt status-danger',
+                            'badge_label' => 'Lewat Jatuh Tempo',
+                        ];
+                    }
+                    if (($milestone['status'] ?? null) === 'EXPIRED') {
+                        return [
+                            'card_class' => 'is-jt is-overdue',
+                            'badge_class' => 'status-jt status-danger',
+                            'badge_label' => 'Kedaluwarsa',
+                        ];
+                    }
+                    if (($milestone['status'] ?? null) === 'DUE') {
+                        $lbl = match ($typeCode) {
+                            'S1' => 'Reminder S1',
+                            'S2' => 'Reminder S2',
+                            default => 'Reminder RA',
+                        };
+                        return [
+                            'card_class' => 'is-reminder is-due',
+                            'badge_class' => 'status-reminder status-warn',
+                            'badge_label' => $lbl,
+                        ];
+                    }
+
                     return [
                         'card_class' => 'is-upcoming',
                         'badge_class' => 'status-planned',
@@ -220,7 +254,7 @@
                 return [
                     'card_class' => 'is-jt is-overdue',
                     'badge_class' => 'status-jt status-danger',
-                    'badge_label' => 'Lewat Jadwal',
+                    'badge_label' => 'Lewat Jatuh Tempo',
                 ];
             }
             if (($milestone['status'] ?? null) === 'EXPIRED') {
@@ -320,8 +354,8 @@
                 </div>
             @endif
         </div>
-    @elseif($lpk->isRevocationOverdue())
-        <div class="lpk-alert-callout">
+    @elseif($isRevoked)
+        <div class="lpk-alert-callout is-revoked">
             <div class="lpk-alert-callout-content">
                 <div class="lpk-alert-callout-head">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -348,7 +382,7 @@
 
     @php
         $filteredActiveAlerts = collect($activeAlerts)->filter(function ($a) use ($lpk, $isRevoked) {
-            // Jika LPK dicabut, alert pengawasan siklus lama (RA/S1/S2) tidak berlaku
+            // Jika LPK dicabut, pengawasan aktif tidak lagi berlaku (sudah ditangani banner pencabutan di atas)
             if ($isRevoked) {
                 return false;
             }
@@ -364,13 +398,14 @@
     @if(!empty($filteredActiveAlerts))
         @php
             $isSuspended = $lpk->dynamic_status === 'SUSPENDED';
+            $isOverdueSurv = $lpk->dynamic_status === 'SURVEILLANCE_OVERDUE';
             $multiAuditAlert = $lpk->isMultilocation() ? $lpk->multilocationAuditSummary() : null;
         @endphp
-        <div class="lpk-alert-callout {{ $isSuspended ? 'is-suspended' : 'is-due' }}">
+        <div class="lpk-alert-callout {{ $isSuspended ? 'is-suspended' : ($isOverdueSurv ? 'is-warning is-overdue' : 'is-due') }}">
             <div class="lpk-alert-callout-content">
                 <div class="lpk-alert-callout-head">
                     <x-icon name="{{ $isSuspended ? 'alert-circle' : 'alert-triangle' }}" size="18" class="lpk-alert-callout-icon" />
-                    <strong>{{ $isSuspended ? 'Status Akreditasi Laboratorium Dibekukan' : 'Masa Pengawasan KAN Jatuh Tempo' }}</strong>
+                    <strong>{{ $isSuspended ? 'Peringatan: Status Akreditasi Laboratorium Dibekukan' : ($isOverdueSurv ? 'Peringatan Kritis: LPK Lewat Jatuh Tempo Pengawasan KAN (Terancam Dibekukan)' : 'Peringatan Persisten: LPK Memasuki Masa Jatuh Tempo Pengawasan KAN') }}</strong>
                 </div>
                 <p class="lpk-alert-callout-desc">
                     @if($isSuspended)
@@ -383,6 +418,20 @@
                             <span class="lpk-alert-tag">{{ $cleanAlertName }}{{ $targetDateFormatted ? " (Batas: {$targetDateFormatted})" : '' }}</span>@if(!$loop->last), @endif
                         @endforeach
                         sesuai regulasi KAN U-01. Segera jadwalkan agenda kunjungan asesmen untuk memulihkan status akreditasi aktif.
+                    @elseif($isOverdueSurv)
+                        Batas waktu standar pengawasan KAN telah terlampaui untuk
+                        @foreach($filteredActiveAlerts as $a)
+                            @php
+                                $targetDateFormatted = !empty($a['target_date']) ? \Illuminate\Support\Carbon::parse($a['target_date'])->format('d M Y') : null;
+                                $cleanAlertName = str_replace([' (Akreditasi Ulang)', ' (RA)'], '', $a['name']);
+                            @endphp
+                            <span class="lpk-alert-tag">{{ $cleanAlertName }}{{ $targetDateFormatted ? " (Jatuh Tempo: {$targetDateFormatted})" : '' }}</span>@if(!$loop->last), @endif
+                        @endforeach.
+                        @php
+                            $firstTolerance = collect($filteredActiveAlerts)->first()['tolerance_date'] ?? null;
+                            $toleranceFormatted = $firstTolerance ? \Illuminate\Support\Carbon::parse($firstTolerance)->format('d M Y') : null;
+                        @endphp
+                        Segera jadwalkan agenda kunjungan asesmen sebelum batas toleransi maksimal berakhir{{ $toleranceFormatted ? " ({$toleranceFormatted})" : '' }} untuk mencegah sanksi Pembekuan Akreditasi KAN.
                     @else
                         Masa pengawasan aktif untuk 
                         @foreach($filteredActiveAlerts as $a)
@@ -474,7 +523,7 @@
                         @csrf
                         <button type="submit" class="button secondary button-sm lpk-alert-action-btn" title="Kirim notifikasi email pengingat pengawasan ke PIC Lab">
                             <x-icon name="mail" size="14" />
-                            <span>Kirim Pengingat Email</span>
+                            <span>Kirim Notifikasi Email PIC Lab</span>
                         </button>
                     </form>
                 @endif
@@ -545,7 +594,7 @@
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
                         <div class="lpk-milestone-heading-left">
-                            <h3 class="lpk-milestone-title">{{ $s1['name'] }}</h3>
+                            <h3 class="lpk-milestone-title">{{ $s1['name'] }} (S1)</h3>
                         </div>
                         <div class="lpk-milestone-badges">
                             @if($currentFocusCode === 'S1')
@@ -637,7 +686,7 @@
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
                         <div class="lpk-milestone-heading-left">
-                            <h3 class="lpk-milestone-title">{{ $s2['name'] }}</h3>
+                            <h3 class="lpk-milestone-title">{{ $s2['name'] }} (S2)</h3>
                         </div>
                         <div class="lpk-milestone-badges">
                             @if($currentFocusCode === 'S2')
@@ -723,7 +772,7 @@
                 <div class="lpk-milestone-card-top">
                     <div class="lpk-milestone-header">
                         <div class="lpk-milestone-heading-left">
-                            <h3 class="lpk-milestone-title">Re-Akreditasi</h3>
+                            <h3 class="lpk-milestone-title">Re-Akreditasi (RA)</h3>
                         </div>
                         <div class="lpk-milestone-badges">
                             @if($currentFocusCode === 'RA')
@@ -830,7 +879,7 @@
                         <div class="lpk-milestone-footer-actions">
                             <a href="{{ route('assessments.create', ['lpk_id' => $lpk->id, 'alert_code' => 'RA', 'target_date' => $ra['target_date']?->format('Y-m-d')]) }}" class="button {{ $currentFocusCode === 'RA' ? 'primary' : 'secondary' }} button-sm lpk-primary-action-btn">
                                 <x-icon name="plus" size="13" />
-                                <span>Jadwalkan Re-asesmen</span>
+                                <span>Jadwalkan Re-Akreditasi</span>
                             </a>
                         </div>
                     @endif
@@ -912,18 +961,7 @@
                         </div>
                     </div>
 
-                    @if($lpk->drive_url)
-                        <div class="lpk-meta-item full-width">
-                            <span class="lpk-meta-label">Dokumen Akreditasi (Google Drive)</span>
-                            <div class="lpk-meta-value" style="display: flex; align-items: center; gap: 8px;">
-                                <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="button button-drive button-xs" style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-                                    <span>Buka Berkas di Google Drive</span>
-                                </a>
-                                <span style="color: var(--muted); font-size: 12px;">(Sertifikat Akreditasi, Amandemen &amp; Lampiran)</span>
-                            </div>
-                        </div>
-                    @endif
+
                 </div>
             </div>
 
@@ -1215,7 +1253,7 @@
                         </div>
                         <div class="lpk-card-header-text" style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                <h2 style="font-size: 15.5px; margin: 0; color: var(--ink);">Riwayat &amp; Agenda Asesmen</h2>
+                                <h2 style="font-size: 15.5px; margin: 0; color: var(--ink);">Daftar Asesmen Surveilen</h2>
                                 @if(isset($owner))
                                     <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments', 'search' => $lpk->registration_number]) }}" style="font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">
                                         <span>Semua asesmen</span>
@@ -1271,7 +1309,7 @@
                                             <span class="assessment-sk-tag">
                                                 <span>SK KAN: <strong>{{ $item->sk_number }}</strong> @if($item->sk_date)({{ $item->sk_date->format('d/m/Y') }})@endif</span>
                                                 @if($item->sk_lead_time_days !== null)
-                                                    &bull; <strong class="assessment-duration-lead">{{ $item->sk_lead_time_days }} hari</strong>
+                                                    &bull; <strong class="assessment-duration-lead">Durasi: {{ $item->sk_lead_time_days }} hari</strong>
                                                 @endif
                                             </span>
                                         @endif

@@ -4,8 +4,8 @@
 
 @section('content')
 <x-page-header
-    title="Kalender kegiatan"
-    subtitle="Atur jadwal asesmen lapangan dan agenda kegiatan KAN dalam tata letak Google Calendar."
+    title="Kalender Pengawasan & Asesmen"
+    subtitle="Pantau jadwal asesmen lapangan, batas waktu tindakan perbaikan (TP), dan siklus pengawasan akreditasi LPK."
 />
 
 {{-- Google Calendar Main Shell --}}

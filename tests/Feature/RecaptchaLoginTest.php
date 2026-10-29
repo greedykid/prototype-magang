@@ -119,4 +119,22 @@ class RecaptchaLoginTest extends TestCase
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
     }
+
+    public function test_login_fails_when_recaptcha_enabled_but_secret_key_missing(): void
+    {
+        config([
+            'services.recaptcha.enabled' => true,
+            'services.recaptcha.site_key' => 'test_site_key',
+            'services.recaptcha.secret_key' => '',
+        ]);
+
+        $response = $this->post(route('login.store'), [
+            'email' => 'admin@simasadi.local',
+            'password' => 'password',
+            'g-recaptcha-response' => 'any_token',
+        ]);
+
+        $response->assertSessionHasErrors('g-recaptcha-response');
+        $this->assertGuest();
+    }
 }

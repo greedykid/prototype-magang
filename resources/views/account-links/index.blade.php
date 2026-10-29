@@ -112,11 +112,11 @@
             @empty
                 <div style="padding: 24px 20px; background: var(--surface-subtle, var(--surface)); border: 1px dashed var(--line); border-radius: var(--radius-xl, 16px); display: flex; flex-direction: column; align-items: stretch; gap: 14px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--radius-pill, 9999px); background: #eff6ff; color: var(--primary, #1972f5); border: 1px solid rgba(25, 114, 245, 0.25); flex-shrink: 0;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--radius-pill, 9999px); background: #eff6ff; color: var(--primary, #1972f5); border: 1px solid rgba(25, 114, 245, 0.25); flex-shrink: 0;">
                             <x-icon name="link" size="20" />
                         </div>
                         <div>
-                            <div style="font-size: 13.5px; font-weight: 700; color: var(--ink);">Belum Ada Kolaborasi Akun Tertaut</div>
+                            <div style="font-size: 13.5px; font-weight: 700; color: var(--ink);">Belum Ada Akun Viewer Tertaut</div>
                             <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0; line-height: 1.4;">
                                 Beri izin pantau ke rekan PIC agar dapat melihat data pengawasan tanpa mengubah isi data.
                             </p>

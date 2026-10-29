@@ -74,36 +74,43 @@ class AssessmentTpService
     }
 
     /**
-     * Batas waktu efektif TP & VTP.
+     * Selesaikan tanggal batas waktu efektif berdasarkan parameter input atau model.
      * Mengakomodasi perpanjangan masa perbaikan maksimal 1 bulan jika ada surat permohonan resmi.
      */
-    public function calculateEffectiveTpDueDate(Assessment $assessment): ?Carbon
+    public function resolveEffectiveTpDueDate(?Carbon $rawDueDate, bool $hasExtension = false, int $extensionMonths = 0, ?Carbon $defaultBaseDate = null): ?Carbon
     {
-        $baseDate = $assessment->tp_due_date ?: $this->calculateDefaultTpDueDate($assessment);
+        $baseDate = $rawDueDate ?: $defaultBaseDate;
 
         if (! $baseDate) {
             return null;
         }
 
-        if ($assessment->tp_has_extension && $assessment->tp_extension_months > 0) {
-            $extensionMonths = min(1, max(1, (int) $assessment->tp_extension_months));
+        if ($hasExtension && $extensionMonths > 0) {
+            $extMonths = min(1, max(1, $extensionMonths));
 
-            // Jika ada tanggal perpanjangan spesifik yang lebih besar dari baseDate, gunakan tanggal tersebut
-            if ($assessment->tp_extension_date && $assessment->tp_extension_date->gt($baseDate)) {
-                return $assessment->tp_extension_date->copy()->startOfDay();
+            // Jika baseDate sudah memuat perpanjangan (misal form menyimpan base + 1 bulan ke tp_due_date), hindari penambahan ganda.
+            if ($defaultBaseDate && $rawDueDate && $rawDueDate->toDateString() === $defaultBaseDate->copy()->addMonthsNoOverflow($extMonths)->toDateString()) {
+                return $rawDueDate->copy()->startOfDay();
             }
 
-            // Jika baseDate sama dengan defaultBase + extensionMonths (misal karena form sebelumnya sudah menambahkan +1 bulan),
-            // dan tidak ada tp_extension_date spesifik, maka baseDate tersebut adalah tanggal perpanjangannya.
-            $defaultBase = $this->calculateDefaultTpDueDate($assessment);
-            if ($defaultBase && $assessment->tp_due_date && ! $assessment->tp_extension_date && $assessment->tp_due_date->toDateString() === $defaultBase->copy()->addMonthsNoOverflow($extensionMonths)->toDateString()) {
-                return $assessment->tp_due_date->copy()->startOfDay();
-            }
-
-            return $baseDate->copy()->addMonthsNoOverflow($extensionMonths)->startOfDay();
+            return $baseDate->copy()->addMonthsNoOverflow($extMonths)->startOfDay();
         }
 
         return $baseDate->copy()->startOfDay();
+    }
+
+    /**
+     * Batas waktu efektif TP & VTP.
+     * Mengakomodasi perpanjangan masa perbaikan maksimal 1 bulan jika ada surat permohonan resmi.
+     */
+    public function calculateEffectiveTpDueDate(Assessment $assessment): ?Carbon
+    {
+        return $this->resolveEffectiveTpDueDate(
+            $assessment->tp_due_date,
+            (bool) $assessment->tp_has_extension,
+            (int) $assessment->tp_extension_months,
+            $this->calculateDefaultTpDueDate($assessment)
+        );
     }
 
     /**
@@ -125,7 +132,7 @@ class AssessmentTpService
      */
     public function isTpOverdue(Assessment $assessment): bool
     {
-        if ($assessment->tp_status === Assessment::TP_STATUS_NONE || $assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
+        if ($assessment->tp_status === Assessment::TP_STATUS_SATISFIED || ! empty($assessment->tp_satisfied_at)) {
             return false;
         }
 
@@ -298,6 +305,10 @@ class AssessmentTpService
         }
         if ($diff->d > 0) {
             $parts[] = $diff->d . ' hari';
+        }
+
+        if ($diff->y === 0 && $diff->m === 0) {
+            return "{$days} hari";
         }
 
         $humanFormatted = ! empty($parts) ? implode(' ', $parts) : "{$days} hari";

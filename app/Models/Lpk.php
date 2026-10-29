@@ -139,28 +139,6 @@ class Lpk extends Model
         });
     }
 
-    public static function generateNextNoReg(): string
-    {
-        return \Illuminate\Support\Facades\Cache::lock('lpk_generate_next_no_reg', 10)->block(5, function () {
-            $driver = \Illuminate\Support\Facades\DB::getDriverName();
-            $dbQuery = \Illuminate\Support\Facades\DB::table('lpks');
-            if ($driver === 'sqlite') {
-                $maxNoReg = $dbQuery->whereRaw('no_reg GLOB "[0-9]*"')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS INTEGER)'));
-            } elseif ($driver === 'pgsql') {
-                $maxNoReg = $dbQuery->whereRaw('no_reg ~ \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(NULLIF(regexp_replace(no_reg, \'[^0-9].*$\', \'\'), \'\') AS INTEGER)'));
-            } else {
-                $maxNoReg = $dbQuery->whereRaw('no_reg REGEXP \'^[0-9]\'')->max(\Illuminate\Support\Facades\DB::raw('CAST(no_reg AS UNSIGNED)'));
-            }
-
-            $candidate = (int) ($maxNoReg ? $maxNoReg + 1 : 3340);
-            while (\Illuminate\Support\Facades\DB::table('lpks')->where('no_reg', (string) $candidate)->exists()) {
-                $candidate++;
-            }
-
-            return (string) $candidate;
-        });
-    }
-
     /**
      * Label masa akreditasi (format awal - akhir sertifikat atau tanda -).
      */
@@ -277,7 +255,7 @@ class Lpk extends Model
 
     public function isExpired(): bool
     {
-        return $this->expired_at && $this->expired_at->isPast();
+        return $this->expired_at && $this->expired_at->copy()->endOfDay()->isPast();
     }
 
     /**
@@ -287,13 +265,24 @@ class Lpk extends Model
     public function hasReaccreditationInFlight(): bool
     {
         $assessments = $this->relationLoaded('assessments') ? $this->assessments : $this->assessments()->get();
+        $cycleStart = $this->certificate_date ?: ($this->expired_at ? $this->expired_at->copy()->subYears(5) : null);
 
-        return $assessments->contains(function (Assessment $a) {
+        return $assessments->contains(function (Assessment $a) use ($cycleStart) {
             $isRa = in_array($a->assessment_type, [Assessment::TYPE_RE_AKREDITASI, 'RA', 'Re-Akreditasi', 'Re-Akreditasi (RA)', 'REAKREDITASI', 'REASSESSMENT', 'Re-asesmen', 'Akreditasi Ulang'], true)
                 || str_contains(strtolower($a->title ?: ''), 're-akreditasi')
                 || str_contains(strtolower($a->title ?: ''), 'reakreditasi');
 
             if (! $isRa) {
+                return false;
+            }
+
+            // Asesmen harus berada di dalam siklus berjalan
+            if ($cycleStart && $a->start_at && $a->start_at->lt($cycleStart->copy()->subMonths(6))) {
+                return false;
+            }
+
+            // Jika SK Akreditasi baru sudah terbit, maka asesmen sudah tuntas dan bukan lagi in-flight
+            if (! empty($a->sk_number)) {
                 return false;
             }
 
@@ -478,6 +467,21 @@ class Lpk extends Model
         return $this;
     }
 
+    public function refresh()
+    {
+        $this->memoizedMilestones = null;
+        return parent::refresh();
+    }
+
+    public function unsetRelation($relation)
+    {
+        if ($relation === 'assessments') {
+            $this->memoizedMilestones = null;
+        }
+
+        return parent::unsetRelation($relation);
+    }
+
     public function getActiveSurveillanceAlerts(): array
     {
         return app(LpkSurveillanceService::class)->getActiveAlerts($this);
@@ -579,6 +583,7 @@ class Lpk extends Model
     {
         return $this->canManage($user);
     }
+
 
     public function canView(?User $user): bool
     {
@@ -717,8 +722,9 @@ class Lpk extends Model
             ->with(['assessments' => function ($q) {
                 $q->select([
                     'id', 'lpk_id', 'title', 'assessment_type', 'start_at', 'end_at',
-                    'status', 'tp_status', 'tp_satisfied_at', 'submission_due_date',
-                    'report_date', 'eha_date', 'sk_number', 'created_at',
+                    'status', 'tp_status', 'tp_due_date', 'tp_has_extension', 'tp_extension_months',
+                    'tp_extension_date', 'tp_satisfied_at', 'submission_due_date',
+                    'report_date', 'eha_date', 'eha_status', 'sk_number', 'sk_date', 'created_at',
                 ]);
             }]);
 
@@ -904,10 +910,5 @@ class Lpk extends Model
     public function renewAccreditationCycleFromAssessment(Assessment $assessment): bool
     {
         return app(LpkSurveillanceService::class)->renewAccreditationCycle($this, $assessment);
-    }
-
-    public function syncAccreditationCycleWithCompletedReAccreditation(): bool
-    {
-        return app(LpkSurveillanceService::class)->syncAccreditationCycle($this);
     }
 }

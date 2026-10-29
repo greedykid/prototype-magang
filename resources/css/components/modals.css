@@ -849,6 +849,157 @@ html[data-theme="dark"] .tp-modal-tab-btn:hover {
     color: var(--ink);
 }
 
+/* ==========================================================================
+   Smart Assist Workflow Cards & Alerts
+   ========================================================================== */
+.smart-assist-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-lg, 12px);
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 4px;
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.smart-assist-card.emerald {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.smart-assist-card .smart-assist-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #10b981;
+}
+
+.smart-assist-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.smart-assist-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 3px;
+}
+
+.smart-assist-desc {
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 0 0 8px 0;
+    opacity: 0.9;
+}
+
+.smart-assist-btn {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 5px 12px !important;
+    height: auto !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    background: #ffffff !important;
+    border: 1px solid #10b981 !important;
+    color: #047857 !important;
+    box-shadow: 0 1px 2px rgba(16, 185, 129, 0.15) !important;
+    transition: all 120ms ease !important;
+}
+
+.smart-assist-btn:hover {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.smart-assist-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-lg, 12px);
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 8px;
+    animation: assist-enter 160ms ease forwards;
+}
+
+.smart-assist-alert.amber {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+
+.smart-assist-alert .smart-assist-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #d97706;
+}
+
+.smart-assist-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.smart-assist-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #065f46;
+    margin-bottom: 6px;
+    animation: assist-enter 160ms ease forwards;
+}
+
+@keyframes assist-enter {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode for Smart Assist */
+html[data-theme="dark"] .smart-assist-card.emerald {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #a7f3d0;
+}
+html[data-theme="dark"] .smart-assist-card .smart-assist-icon {
+    color: #34d399;
+}
+html[data-theme="dark"] .smart-assist-btn {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    color: #d1fae5 !important;
+}
+html[data-theme="dark"] .smart-assist-btn:hover {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+html[data-theme="dark"] .smart-assist-alert.amber {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.35);
+    color: #fde68a;
+}
+html[data-theme="dark"] .smart-assist-alert .smart-assist-icon {
+    color: #fbbf24;
+}
+html[data-theme="dark"] .smart-assist-success {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #a7f3d0;
+}
+
 html[data-theme="dark"] .tp-modal-tab-btn.is-active {
     background: var(--surface);
     border-color: var(--line);

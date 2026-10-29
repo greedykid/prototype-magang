@@ -27,7 +27,7 @@ class StoreLpkRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             'status' => ['required', 'in:ACTIVE,INACTIVE,SUSPENDED'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'expired_at' => ['nullable', 'date'],
+            'expired_at' => ['nullable', 'date', 'after_or_equal:certificate_date'],
             'drive_url' => ['nullable', 'url', 'max:1000'],
             'pic_id' => ['nullable', 'exists:users,id'],
         ];
@@ -38,10 +38,10 @@ class StoreLpkRequest extends FormRequest
         return [
             'no_reg.unique' => 'Nomor registrasi sudah terdaftar atau sudah digunakan.',
             'registration_number.unique' => 'Nomor registrasi sudah terdaftar atau sudah digunakan.',
+            'expired_at.after_or_equal' => 'Tanggal kedaluwarsa harus sama atau setelah tanggal sertifikat.',
             'name.required' => 'Nama LPK wajib diisi.',
             'status.required' => 'Status operasional LPK wajib dipilih.',
             'email.email' => 'Format alamat email tidak valid.',
-            'drive_url.url' => 'Format tautan Google Drive tidak valid.',
             'certificate_date.date' => 'Format tanggal sertifikat tidak valid.',
             'expired_at.date' => 'Format tanggal masa berlaku tidak valid.',
         ];
@@ -68,7 +68,7 @@ class StoreLpkRequest extends FormRequest
         }
 
         if (! empty($data['certificate_date']) && empty($data['expired_at'])) {
-            $data['expired_at'] = Carbon::parse($data['certificate_date'])->addYears(5)->toDateString();
+            $data['expired_at'] = Carbon::parse($data['certificate_date'])->addYearsNoOverflow(5)->toDateString();
         } elseif (empty($data['certificate_date']) && ! empty($data['expired_at'])) {
             $data['certificate_date'] = Carbon::parse($data['expired_at'])->subYears(5)->toDateString();
         }

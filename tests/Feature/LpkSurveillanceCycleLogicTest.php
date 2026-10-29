@@ -87,7 +87,8 @@ class LpkSurveillanceCycleLogicTest extends TestCase
         // RA Masa Berlaku Habis (Bulan 60) -> 1 Juli 2031
         $this->assertEquals('2031-07-01', $milestones['ra']['tolerance_date']->toDateString());
 
-        // Pastikan agenda asesmen otomatis yang dibuat juga berada di rentang 2026 - 2031:
+        // Pastikan agenda asesmen yang dibuat secara manual berada di rentang 2026 - 2031:
+        $lpk->generateSurveillanceAssessments();
         $assessments = $lpk->assessments()->orderBy('start_at')->get();
         $this->assertCount(3, $assessments);
 

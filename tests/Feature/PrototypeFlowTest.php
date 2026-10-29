@@ -204,6 +204,39 @@ class PrototypeFlowTest extends TestCase
         $this->assertEquals('OVERDUE', $inactiveMilestones['s2']['status']);
     }
 
+    public function test_imported_legacy_active_lpk_without_past_assessments_has_clean_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // LPK lama terbit 28 bulan lalu (sudah lewat batas toleransi S1 bulan 24, S2 belum waktu notifikasi)
+        $legacyLpk = Lpk::create([
+            'registration_number' => 'LP-LEGACY-01',
+            'name' => 'Lab Impor Lama',
+            'status' => 'ACTIVE',
+            'certificate_date' => now()->subMonths(28)->toDateString(),
+            'expired_at' => now()->subMonths(28)->addYears(5)->toDateString(),
+            'email' => 'lab.legacy@example.com',
+        ]);
+
+        // S1 otomatis terealisasi karena LPK aktif dan masa toleransi lampau
+        $milestones = $legacyLpk->surveillance_milestones;
+        $this->assertEquals('COMPLETED_OR_SCHEDULED', $milestones['s1']['status']);
+
+        // S2 berstatus UPCOMING / PENDING
+        $this->assertContains($milestones['s2']['status'], ['PENDING', 'UPCOMING']);
+
+        // Status LPK tetap AKTIF murni tanpa peringatan jatuh tempo/overdue
+        $this->assertSame('ACTIVE', $legacyLpk->dynamic_status);
+        $this->assertSame('Aktif', $legacyLpk->dynamic_status_label);
+        $this->assertEmpty($legacyLpk->getActiveSurveillanceAlerts());
+
+        // Halaman detail LPK menampilkan 'Terealisasi (Data Historis)' untuk S1
+        $response = $this->actingAs($admin)->get(route('lpks.show', $legacyLpk));
+        $response->assertOk()
+            ->assertSee('Terealisasi (Data Historis)')
+            ->assertDontSee('Peringatan: Status Akreditasi Laboratorium Dibekukan');
+    }
+
     public function test_surveillance_reminder_email_can_be_sent_to_lab_pic(): void
     {
         \Illuminate\Support\Facades\Mail::fake();
@@ -215,6 +248,7 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-MAIL-01',
             'name' => 'Lab Uji Mailtrap',
             'status' => 'ACTIVE',
+            'pic_id' => $picUser->id,
             'certificate_date' => now()->subMonths(14)->toDateString(),
             'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
             'email' => 'lab.external@mailtrap-test.id',
@@ -223,7 +257,7 @@ class PrototypeFlowTest extends TestCase
         $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk));
         $response->assertRedirect()->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
             return $mail->hasTo($picUser->email)
                 && $mail->lpk->id === $lpk->id
                 && $mail->alert['code'] === 'S1';
@@ -244,6 +278,7 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-SIM-01',
             'name' => 'Lab Simulasi Mailtrap',
             'status' => 'ACTIVE',
+            'pic_id' => $picUser->id,
             'certificate_date' => now()->toDateString(),
             'expired_at' => now()->addYears(5)->toDateString(),
             'email' => 'lab.sim.external@mailtrap-test.id',
@@ -258,7 +293,7 @@ class PrototypeFlowTest extends TestCase
 
         $response->assertRedirect()->assertSessionHas('success');
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
             return $mail->hasTo($picUser->email)
                 && $mail->lpk->id === $lpk->id
                 && $mail->alert['code'] === 'S2';
@@ -276,8 +311,8 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-BANNER-01',
             'name' => 'Lab Banner Test',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
             'email' => 'pic.banner@test.id',
         ]);
 
@@ -308,8 +343,9 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-CMD-01',
             'name' => 'Lab Artisan Command Test',
             'status' => 'ACTIVE',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'pic_id' => $picUser->id,
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->subMonths(14)->addYears(5)->toDateString(),
             'email' => 'lab.external@test.id',
         ]);
 
@@ -318,7 +354,7 @@ class PrototypeFlowTest extends TestCase
             ->expectsOutputToContain('Email pengingat internal berhasil dikirim ke PIC')
             ->assertExitCode(0);
 
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($picUser) {
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($picUser) {
             return $mail->hasTo($picUser->email);
         });
     }
@@ -556,9 +592,10 @@ class PrototypeFlowTest extends TestCase
             'registration_number' => 'LP-EMAIL-TEST',
             'name' => 'Lab Pengujian Simulasi Email',
             'status' => 'ACTIVE',
+            'pic_id' => $picUser->id,
             'email' => 'lab.external@example.com',
-            'certificate_date' => now()->subYears(5)->subMonths(14)->toDateString(),
-            'expired_at' => now()->subMonths(14)->toDateString(),
+            'certificate_date' => now()->subMonths(14)->toDateString(),
+            'expired_at' => now()->addMonths(46)->toDateString(),
         ]);
 
         $response = $this->actingAs($admin)->post(route('lpks.surveillance.remind', $lpk), [
@@ -567,7 +604,7 @@ class PrototypeFlowTest extends TestCase
         ]);
 
         $response->assertSessionHas('success');
-        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\SurveillanceReminderMail::class, function ($mail) use ($lpk, $picUser) {
             return $mail->hasTo($picUser->email) && $mail->lpk->id === $lpk->id;
         });
     }
@@ -583,7 +620,7 @@ class PrototypeFlowTest extends TestCase
             'expired_at' => now()->subMonths(19)->addYears(5)->toDateString(),
         ]);
         $this->assertSame('SURVEILLANCE_OVERDUE', $overdueLpk->dynamic_status);
-        $this->assertSame('Lewat Jadwal Surveilen', $overdueLpk->dynamic_status_label);
+        $this->assertSame('Lewat Jatuh Tempo Surveilen', $overdueLpk->dynamic_status_label);
 
         // 2. LPK with S1 assessment scheduled/completed -> ACTIVE
         Assessment::factory()->create([
@@ -684,13 +721,13 @@ class PrototypeFlowTest extends TestCase
         // Check index page renders dynamic status badge
         $indexResponse = $this->actingAs($admin)->get('/lpks');
         $indexResponse->assertOk();
-        $indexResponse->assertSee('Lewat Jadwal Surveilen');
+        $indexResponse->assertSee('Lewat Jatuh Tempo Surveilen');
         $indexResponse->assertSee('status-surveillance_overdue');
 
         // Check show page renders dynamic status badge
         $showResponse = $this->actingAs($admin)->get(route('lpks.show', $overdueLpk));
         $showResponse->assertOk();
-        $showResponse->assertSee('Lewat Jadwal Surveilen');
+        $showResponse->assertSee('Lewat Jatuh Tempo Surveilen');
 
         // Test filtering by SURVEILLANCE_OVERDUE
         $filteredResponse = $this->actingAs($admin)->get('/lpks?status=SURVEILLANCE_OVERDUE');
@@ -699,62 +736,42 @@ class PrototypeFlowTest extends TestCase
         $filteredResponse->assertDontSee('Lab Badge Aktif Sejati');
     }
 
-    public function test_lpk_automatically_generates_surveillance_and_reaccreditation_assessments_on_creation(): void
+    public function test_lpk_does_not_automatically_generate_assessments_and_supports_manual_creation(): void
     {
         $admin = User::factory()->admin()->create();
 
         $certDate = now()->toDateString();
         $lpk = Lpk::create([
-            'registration_number' => 'LP-AUTO-ASSESS-01',
-            'name' => 'Lab Otomatis Asesmen',
+            'registration_number' => 'LP-MANUAL-ASSESS-01',
+            'name' => 'Lab Manual Asesmen',
             'status' => 'ACTIVE',
             'certificate_date' => $certDate,
             'expired_at' => now()->addYears(5)->toDateString(),
             'address' => 'Jl. Pengujian No. 99, Jakarta',
         ]);
 
-        // Pastikan 3 agenda asesmen otomatis terbuat
-        $assessments = $lpk->assessments()->orderBy('start_at')->get();
-        $this->assertCount(3, $assessments);
+        // Pastikan TIDAK ADA agenda asesmen yang otomatis terbuat
+        $this->assertCount(0, $lpk->assessments);
 
-        // 1. Asesmen Surveilen 1 (S1) - Bulan 15
-        $s1 = $assessments[0];
-        $this->assertStringContainsString('Surveilen 1', $s1->title);
-        $this->assertEquals(Assessment::TYPE_SURVEILEN_1, $s1->assessment_type);
-        $this->assertEquals('PLANNED', $s1->status);
-        $this->assertEquals($lpk->certificate_date->copy()->addMonths(15)->format('Y-m'), $s1->start_at->format('Y-m'));
+        // Pengguna membuat agenda asesmen secara manual
+        $response = $this->actingAs($admin)->post(route('assessments.store'), [
+            'lpk_id' => $lpk->id,
+            'title' => 'Asesmen Surveilen 1 (S1)',
+            'assessment_type' => Assessment::TYPE_SURVEILEN_1,
+            'start_date' => now()->addMonths(15)->format('Y-m-d'),
+            'start_time' => '09:00',
+            'end_date' => now()->addMonths(15)->addDays(2)->format('Y-m-d'),
+            'end_time' => '17:00',
+            'location' => 'Kantor LPK',
+        ]);
+        $response->assertRedirect(route('assessments.index'));
 
-        // 2. Asesmen Surveilen 2 (S2) - Bulan 36
-        $s2 = $assessments[1];
-        $this->assertStringContainsString('Surveilen 2', $s2->title);
-        $this->assertEquals(Assessment::TYPE_SURVEILEN_2, $s2->assessment_type);
-        $this->assertEquals('PLANNED', $s2->status);
-        $this->assertEquals($lpk->certificate_date->copy()->addMonths(36)->format('Y-m'), $s2->start_at->format('Y-m'));
-
-        // 3. Asesmen Re-Akreditasi (RA) - Bulan 54
-        $ra = $assessments[2];
-        $this->assertStringContainsString('Re-Akreditasi', $ra->title);
-        $this->assertEquals(Assessment::TYPE_RE_AKREDITASI, $ra->assessment_type);
-        $this->assertEquals('PLANNED', $ra->status);
-        $this->assertEquals($lpk->certificate_date->copy()->addMonths(54)->format('Y-m'), $ra->start_at->format('Y-m'));
-
-        // Pastikan muncul pada halaman daftar asesmen
+        // Pastikan agenda asesmen manual tersimpan dan muncul pada daftar asesmen
+        $this->assertCount(1, $lpk->fresh()->assessments);
         $this->actingAs($admin)->get(route('assessments.index', ['lpk_id' => $lpk->id]))
             ->assertOk()
             ->assertSee('Asesmen Surveilen 1 (S1)')
-            ->assertSee('Asesmen Surveilen 2 (S2)')
-            ->assertSee('Asesmen Re-Akreditasi (RA)')
-            ->assertSee('Lab Otomatis Asesmen');
-
-        // Pastikan muncul pada halaman detail LPK
-        $this->actingAs($admin)->get(route('lpks.show', $lpk))
-            ->assertOk()
-            ->assertSee('Daftar Asesmen Surveilen')
-            ->assertSee('Asesmen Surveilen 1 (S1)');
-
-        // Pastikan update tanggal sertifikat tidak membuat duplikat
-        $lpk->update(['name' => 'Lab Otomatis Asesmen Updated']);
-        $this->assertEquals(3, $lpk->assessments()->count());
+            ->assertSee('Lab Manual Asesmen');
     }
 
     public function test_user_can_input_sk_number_and_date_when_tp_completed(): void
@@ -851,12 +868,15 @@ class PrototypeFlowTest extends TestCase
             'expired_at' => now()->addMonths(50)->toDateString(),
         ]);
 
-        $s1 = $lpk->assessments()->where('assessment_type', Assessment::TYPE_SURVEILEN_1)->first();
-        $this->assertNotNull($s1);
-
-        // Update status S1 menjadi SUSPENDED (Dibekukan)
-        $s1->update([
+        $s1 = Assessment::create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $admin->id,
+            'title' => 'Asesmen Surveilen 1 (S1)',
+            'assessment_type' => Assessment::TYPE_SURVEILEN_1,
+            'start_at' => now()->subMonths(2),
+            'end_at' => now()->subMonths(2)->addDays(2),
             'status' => 'SUSPENDED',
+            'location' => 'Jakarta',
         ]);
 
         $lpk->refresh();

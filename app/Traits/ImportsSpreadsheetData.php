@@ -77,7 +77,7 @@ trait ImportsSpreadsheetData
     protected function parseXlsxFile(string $filePath): array
     {
         $reader = IOFactory::createReaderForFile($filePath);
-        $reader->setReadDataOnly(false);
+        $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($filePath);
         \PhpOffice\PhpSpreadsheet\Calculation\Calculation::getInstance($spreadsheet)->disableCalculationCache();
         $worksheet = $spreadsheet->getActiveSheet();
@@ -174,6 +174,59 @@ trait ImportsSpreadsheetData
             }
 
             return "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
+        }
+
+        return null;
+    }
+
+    /**
+     * Parsing tanggal spreadsheet ke format Y-m-d.
+     * Mendukung Excel serial number, d/m/Y, teks bulan Indonesia & Inggris.
+     */
+    protected function parseSpreadsheetDate(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        // Jika angka murni (serial number Excel)
+        if (is_numeric($trimmed)) {
+            $num = (float) $trimmed;
+            if ($num > 30000 && $num < 70000) {
+                try {
+                    $dt = ExcelDate::excelToDateTimeObject($num);
+                    return ((int) $dt->format('His') > 0) ? $dt->format('Y-m-d H:i:s') : $dt->format('Y-m-d');
+                } catch (\Throwable) {
+                    // fallback
+                }
+            }
+        }
+
+        $dateLower = strtolower($trimmed);
+
+        // Kamus bulan bahasa Indonesia ke bahasa Inggris
+        $idMonths = [
+            'januari' => 'january', 'februari' => 'february', 'pebruari' => 'february',
+            'maret' => 'march', 'mei' => 'may', 'juni' => 'june', 'juli' => 'july',
+            'agustus' => 'august', 'september' => 'september', 'oktober' => 'october',
+            'desember' => 'december', 'nopember' => 'november',
+            'agu' => 'aug', 'okt' => 'oct', 'des' => 'dec',
+        ];
+
+        foreach ($idMonths as $id => $en) {
+            $dateLower = str_replace($id, $en, $dateLower);
+        }
+
+        // Ganti '/' dengan '-' agar strtotime mengenali pola hari-bulan-tahun
+        $dateNormalized = str_replace('/', '-', $dateLower);
+
+        $timestamp = strtotime($dateNormalized);
+        if ($timestamp !== false && $timestamp > 0) {
+            $hasTime = preg_match('/\b\d{1,2}:\d{2}(:\d{2})?\b/', $trimmed)
+                || date('H:i:s', $timestamp) !== '00:00:00';
+            return $hasTime ? date('Y-m-d H:i:s', $timestamp) : date('Y-m-d', $timestamp);
         }
 
         return null;

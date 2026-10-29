@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -181,6 +182,22 @@ class UserController extends Controller
 
         if (! empty($validated['password'])) {
             $payload['password'] = $validated['password'];
+        }
+
+        if ($request->boolean('transfer_admin') && $request->user()->isAdmin() && $request->user()->id !== $user->id && $validated['role'] === User::ROLE_ADMIN) {
+            DB::transaction(function () use ($request, $user, $payload) {
+                $request->user()->update(['role' => User::ROLE_PIC]);
+                $user->update($payload);
+            });
+
+            Log::info('Admin leadership transferred', [
+                'from_user_id' => $request->user()->id,
+                'to_user_id' => $user->id,
+                'ip_address' => $request->ip(),
+            ]);
+
+            return redirect()->route('users.index')
+                ->with('success', 'Peran Ketua Tim berhasil dialihkan kepada ' . $user->name . '. Akun Anda kini berperan sebagai PIC.');
         }
 
         $user->update($payload);

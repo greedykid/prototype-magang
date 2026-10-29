@@ -106,6 +106,16 @@
     color: #b45309;
 }
 
+.lpk-alert-callout.is-overdue {
+    background: #fff8f6;
+    border-color: rgba(234, 88, 12, 0.3);
+    border-left-color: #ea580c;
+}
+
+.lpk-alert-callout.is-overdue .lpk-alert-callout-head {
+    color: #c2410c;
+}
+
 .lpk-alert-callout.is-revoked {
     background: #fffaf9;
     border-color: rgba(220, 38, 38, 0.25);

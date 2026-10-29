@@ -45,7 +45,7 @@
         @endif
 
         <div class="lpk-form-layout">
-            {{-- KOLOM KIRI (Primary Data, Scope & Berkas Drive) --}}
+            {{-- KOLOM KIRI (Primary Data & Scope) --}}
             <div class="lpk-form-column">
                 {{-- KARTU 1: Identitas & Legalitas Laboratorium --}}
                 <div class="lpk-form-card">
@@ -180,40 +180,7 @@
                     </div>
                 </div>
 
-                {{-- KARTU 3: Berkas Digital & Google Drive --}}
-                <div class="lpk-form-card">
-                    <div class="lpk-form-card-header">
-                        <div class="lpk-card-icon-wrap">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                                <line x1="12" y1="11" x2="12" y2="17"/>
-                                <line x1="9" y1="14" x2="15" y2="14"/>
-                            </svg>
-                        </div>
-                        <div class="lpk-card-header-text">
-                            <h2>Berkas &amp; Tautan Digital Terpadu</h2>
-                            <p>Tautan Google Drive penyimpanan berkas sertifikat, lampiran amandemen, dan dokumen mutu.</p>
-                        </div>
-                    </div>
 
-                    <div class="lpk-field">
-                        <label class="lpk-label" for="lpk-drive-url">
-                            <span>Tautan Google Drive Dokumen</span>
-                        </label>
-                        <div class="lpk-drive-input-wrap">
-                            <input id="lpk-drive-url" type="url" name="drive_url" value="{{ old('drive_url', $lpk->drive_url) }}" maxlength="1000" placeholder="https://drive.google.com/... (Tautan berkas atau folder Google Drive)" class="@error('drive_url') is-invalid @enderror">
-                            @if($lpk->drive_url)
-                                <a href="{{ $lpk->drive_url }}" target="_blank" rel="noopener noreferrer" class="lpk-drive-preview-btn" title="Buka tautan Google Drive di tab baru">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                                    <span>Buka</span>
-                                </a>
-                            @endif
-                        </div>
-                        @error('drive_url')
-                            <span class="field-error-text">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
             </div>
 
             {{-- KOLOM KANAN (Masa Berlaku, Jadwal KAN & Kontak Lokasi) --}}

@@ -53,13 +53,13 @@ class LpkController extends Controller
             ));
         // Filter Masa Berlaku Sertifikat Akreditasi
         if ($expiry === 'EXPIRED') {
-            $query->whereNotNull('expired_at')->where('expired_at', '<', now()->startOfDay());
+            $query->whereNotNull('expired_at')->where('expired_at', '<', now()->toDateString());
         } elseif ($expiry === 'EXPIRING_SOON') {
             $query->whereNotNull('expired_at')
-                ->where('expired_at', '>=', now()->startOfDay())
-                ->where('expired_at', '<=', now()->addDays(90)->endOfDay());
+                ->where('expired_at', '>=', now()->toDateString())
+                ->where('expired_at', '<=', now()->addDays(90)->toDateString());
         } elseif ($expiry === 'VALID') {
-            $query->whereNotNull('expired_at')->where('expired_at', '>', now()->addDays(90)->endOfDay());
+            $query->whereNotNull('expired_at')->where('expired_at', '>', now()->addDays(90)->toDateString());
         }
 
         if ($status === 'INACTIVE') {
@@ -272,11 +272,19 @@ class LpkController extends Controller
     public function sendSurveillanceReminder(Lpk $lpk, Request $request): RedirectResponse
     {
         try {
+            if ($lpk->dynamic_status === 'REVOKED' || $lpk->isRevocationOverdue()) {
+                return back()->with('error', 'Status akreditasi LPK telah dicabut. Notifikasi pengawasan berkala tidak dapat dikirim.');
+            }
+
             $alerts = $lpk->getActiveSurveillanceAlerts();
             $isSimulation = $request->boolean('is_simulation') || $request->input('simulasi') == 1;
 
             if (empty($alerts) && ! $isSimulation) {
                 return back()->with('error', 'Tidak ada jadwal notifikasi pengawasan (S1, S2, atau Re-Akreditasi) yang sedang aktif untuk LPK ini.');
+            }
+
+            if (! $request->boolean('force') && ! $isSimulation && $lpk->last_surveillance_notified_at?->isToday()) {
+                return back()->with('info', 'Pengingat surveilen untuk LPK ini sudah dikirim hari ini.');
             }
 
             // Alur Opsi 2: Prioritaskan pengiriman notifikasi kerja ke PIC penanggung jawab LPK ini
@@ -293,15 +301,10 @@ class LpkController extends Controller
 
             $assignedEmails = array_values(array_unique(array_filter(array_merge($assignedEmails, $leadMemberEmails))));
 
-            // Fallback: Jika LPK belum memiliki PIC yang ditugaskan, kirim ke seluruh PIC unit atau Admin
+            // Fallback: Jika LPK belum memiliki PIC yang ditugaskan, kirim ke Admin atau user yang sedang login
             if (! empty($assignedEmails)) {
                 $picEmails = $assignedEmails;
             } else {
-                $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_PIC)->pluck('email')->filter()->values()->all();
-            }
-
-            // Jika belum ada pengguna ber-peran PIC, fallback ke admin sistem atau user yang sedang login
-            if (empty($picEmails)) {
                 $picEmails = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->pluck('email')->filter()->values()->all();
             }
 
@@ -353,7 +356,7 @@ class LpkController extends Controller
                 ];
             }
 
-            \Illuminate\Support\Facades\Mail::to($recipientEmails)->queue(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
+            \Illuminate\Support\Facades\Mail::to($recipientEmails)->send(new \App\Mail\SurveillanceReminderMail($lpk, $targetAlert));
 
             $lpk->update(['last_surveillance_notified_at' => now()]);
 

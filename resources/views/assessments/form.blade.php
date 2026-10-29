@@ -82,7 +82,7 @@
             : 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'SCHEDULED' => 'Otomatis: Tanggal pelaksanaan di masa mendatang (menunggu pelaksanaan).',
         'IN_PROGRESS' => 'Otomatis: Saat ini dalam periode pelaksanaan atau tindak lanjut asesmen.',
-        'SUSPENDED' => 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.',
+        'SUSPENDED' => 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.',
         'COMPLETED' => 'Otomatis: Tindakan perbaikan memenuhi atau SK KAN telah terbit.',
         'CANCELLED' => 'Asesmen dibatalkan.',
     ];
@@ -489,26 +489,270 @@
                         </span>
                     </div>
 
-                    <div class="lpk-field">
-                        <label class="lpk-label" for="assessment-lpk-location-id">
+                    <style>
+                    .lpk-location-radio-grid {
+                        display: grid !important;
+                        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                        gap: 12px !important;
+                        margin-top: 8px !important;
+                        margin-bottom: 6px !important;
+                    }
+                    @media (max-width: 640px) {
+                        .lpk-location-radio-grid {
+                            grid-template-columns: 1fr !important;
+                        }
+                    }
+                    .lpk-location-card {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        align-items: flex-start !important;
+                        gap: 12px !important;
+                        padding: 14px 16px !important;
+                        background: var(--surface, #ffffff) !important;
+                        border: 1.5px solid var(--line, #e2e8f0) !important;
+                        border-radius: var(--radius-lg, 12px) !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        user-select: none !important;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+                        transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease !important;
+                    }
+                    .lpk-location-card:hover {
+                        border-color: #94a3b8 !important;
+                        background: rgba(25, 114, 245, 0.02) !important;
+                    }
+                    .lpk-location-card.is-selected,
+                    .lpk-location-card:has(.lpk-location-radio:checked) {
+                        border-color: var(--primary, #1972f5) !important;
+                        background: rgba(25, 114, 245, 0.05) !important;
+                        box-shadow: 0 0 0 1px var(--primary, #1972f5), 0 2px 6px rgba(25, 114, 245, 0.08) !important;
+                    }
+                    .lpk-location-radio {
+                        margin: 3px 0 0 0 !important;
+                        width: 18px !important;
+                        height: 18px !important;
+                        flex-shrink: 0 !important;
+                        accent-color: var(--primary, #1972f5) !important;
+                        cursor: pointer !important;
+                    }
+                    .lpk-location-content {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 5px !important;
+                        flex: 1 !important;
+                        min-width: 0 !important;
+                    }
+                    .lpk-location-title-row {
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 10px !important;
+                    }
+                    .lpk-location-icon-wrap {
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        width: 32px !important;
+                        height: 32px !important;
+                        border-radius: 8px !important;
+                        flex-shrink: 0 !important;
+                        background: rgba(25, 114, 245, 0.1) !important;
+                        color: var(--primary, #1972f5) !important;
+                    }
+                    .lpk-location-icon-wrap.icon-branch {
+                        background: rgba(2, 132, 199, 0.1) !important;
+                        color: #0284c7 !important;
+                    }
+                    .lpk-location-text {
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 8px !important;
+                        flex-wrap: wrap !important;
+                    }
+                    .lpk-location-title {
+                        font-size: 13.5px !important;
+                        font-weight: 600 !important;
+                        color: var(--ink, #0f172a) !important;
+                        line-height: 1.25 !important;
+                    }
+                    .lpk-location-badge {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        font-size: 11px !important;
+                        font-weight: 600 !important;
+                        padding: 1.5px 8px !important;
+                        border-radius: 9999px !important;
+                        background: rgba(25, 114, 245, 0.1) !important;
+                        color: var(--primary, #1972f5) !important;
+                        border: 1px solid rgba(25, 114, 245, 0.2) !important;
+                        line-height: 1.2 !important;
+                    }
+                    .lpk-location-badge.badge-branch {
+                        background: rgba(2, 132, 199, 0.1) !important;
+                        color: #0284c7 !important;
+                        border-color: rgba(2, 132, 199, 0.25) !important;
+                    }
+                    .lpk-location-desc {
+                        margin: 0 !important;
+                        font-size: 12px !important;
+                        color: var(--muted, #64748b) !important;
+                        line-height: 1.45 !important;
+                        word-break: break-word !important;
+                    }
+                    .branch-select-wrapper {
+                        margin-top: 10px !important;
+                        padding: 14px 16px !important;
+                        background: var(--surface-subtle, #f8fafc) !important;
+                        border: 1px solid var(--line, #e2e8f0) !important;
+                        border-radius: var(--radius-lg, 12px) !important;
+                        transition: all 160ms ease !important;
+                    }
+                    .branch-picker-select {
+                        width: 100% !important;
+                        padding: 9px 12px !important;
+                        font-size: 13.5px !important;
+                        border: 1px solid var(--line, #cbd5e1) !important;
+                        border-radius: var(--radius-md, 8px) !important;
+                        background: var(--surface, #ffffff) !important;
+                        color: var(--ink, #0f172a) !important;
+                        outline: none !important;
+                        box-sizing: border-box !important;
+                        transition: border-color 140ms ease, box-shadow 140ms ease !important;
+                    }
+                    .branch-picker-select:focus {
+                        border-color: var(--primary, #1972f5) !important;
+                        box-shadow: 0 0 0 2px rgba(25, 114, 245, 0.15) !important;
+                    }
+                    .lpk-empty-branch-notice {
+                        display: flex !important;
+                        align-items: flex-start !important;
+                        gap: 10px !important;
+                        padding: 12px 14px !important;
+                        background: rgba(245, 158, 11, 0.08) !important;
+                        border: 1px solid rgba(245, 158, 11, 0.28) !important;
+                        border-radius: var(--radius-md, 8px) !important;
+                        color: #92400e !important;
+                        font-size: 12.5px !important;
+                        line-height: 1.45 !important;
+                    }
+                    .lpk-empty-branch-notice svg {
+                        color: #b45309 !important;
+                        margin-top: 2px !important;
+                        flex-shrink: 0 !important;
+                    }
+                    .lpk-empty-branch-text {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 2px !important;
+                    }
+                    .lpk-empty-branch-text strong {
+                        font-size: 12.5px !important;
+                        color: #b45309 !important;
+                        font-weight: 600 !important;
+                    }
+                    .lpk-empty-branch-text span {
+                        font-size: 12px !important;
+                        color: #78350f !important;
+                    }
+                    html[data-theme="dark"] .lpk-location-card {
+                        background: rgba(255, 255, 255, 0.02) !important;
+                        border-color: var(--line, #334155) !important;
+                    }
+                    html[data-theme="dark"] .lpk-location-card:hover {
+                        border-color: #475569 !important;
+                        background: rgba(255, 255, 255, 0.04) !important;
+                    }
+                    html[data-theme="dark"] .lpk-location-card.is-selected,
+                    html[data-theme="dark"] .lpk-location-card:has(.lpk-location-radio:checked) {
+                        background: rgba(25, 114, 245, 0.12) !important;
+                        border-color: var(--primary, #1972f5) !important;
+                        box-shadow: 0 0 0 1px var(--primary, #1972f5), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+                    }
+                    html[data-theme="dark"] .branch-select-wrapper {
+                        background: rgba(255, 255, 255, 0.02) !important;
+                        border-color: var(--line, #334155) !important;
+                    }
+                    html[data-theme="dark"] .branch-picker-select {
+                        background: var(--input-bg, #1e293b) !important;
+                        border-color: var(--input-border, #334155) !important;
+                        color: var(--ink, #f1f5f9) !important;
+                    }
+                    html[data-theme="dark"] .lpk-empty-branch-notice {
+                        background: rgba(245, 158, 11, 0.1) !important;
+                        border-color: rgba(245, 158, 11, 0.25) !important;
+                        color: #fde68a !important;
+                    }
+                    html[data-theme="dark"] .lpk-empty-branch-text strong {
+                        color: #fcd34d !important;
+                    }
+                    html[data-theme="dark"] .lpk-empty-branch-text span {
+                        color: #fef3c7 !important;
+                    }
+                    </style>
+
+                    <div class="lpk-field" id="location-target-section">
+                        <label class="lpk-label">
                             <span>Target Lokasi / Cabang Fasilitas</span>
                         </label>
-                        <select id="assessment-lpk-location-id" name="lpk_location_id" class="@error('lpk_location_id') is-invalid @enderror">
-                            <option value="">Pilih Target Cabang / Lokasi</option>
-                            @foreach($lpks as $lpkItem)
-                                @foreach($lpkItem->locations as $locItem)
-                                    <option value="{{ $locItem->id }}"
-                                        data-lpk-id="{{ $locItem->lpk_id }}"
-                                        data-address="{{ $locItem->address }}"
-                                        @selected(old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id')) == $locItem->id)>
-                                        {{ $locItem->name }} ({{ $locItem->location_type_label }})
-                                    </option>
-                                @endforeach
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="lpk_location_id" id="assessment-lpk-location-id" value="{{ old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id')) }}">
+
+                        <div class="lpk-location-radio-grid" role="radiogroup" aria-label="Target Lokasi / Cabang Fasilitas">
+                            <label class="lpk-location-card is-selected" id="card-location-main" for="loc_type_main">
+                                <input type="radio" name="location_category" id="loc_type_main" value="main" class="lpk-location-radio" checked>
+                                <div class="lpk-location-content">
+                                    <div class="lpk-location-title-row">
+                                        <div class="lpk-location-icon-wrap icon-main">
+                                            <x-icon name="building" size="16" />
+                                        </div>
+                                        <div class="lpk-location-text">
+                                            <strong class="lpk-location-title">Laboratorium Utama</strong>
+                                            <span class="lpk-location-badge">Kantor Pusat</span>
+                                        </div>
+                                    </div>
+                                    <p class="lpk-location-desc" id="main-location-name-preview">Kantor / Fasilitas Pusat LPK</p>
+                                </div>
+                            </label>
+
+                            <label class="lpk-location-card" id="card-location-branch" for="loc_type_branch">
+                                <input type="radio" name="location_category" id="loc_type_branch" value="branch" class="lpk-location-radio">
+                                <div class="lpk-location-content">
+                                    <div class="lpk-location-title-row">
+                                        <div class="lpk-location-icon-wrap icon-branch">
+                                            <x-icon name="map-pin" size="16" />
+                                        </div>
+                                        <div class="lpk-location-text">
+                                            <strong class="lpk-location-title">Laboratorium Cabang</strong>
+                                            <span class="lpk-location-badge badge-branch">Fasilitas Cabang</span>
+                                        </div>
+                                    </div>
+                                    <p class="lpk-location-desc" id="branch-location-summary-preview">Audit fasilitas cabang (Sistem Multilokasi KAN U-05)</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div id="branch-select-wrapper" class="branch-select-wrapper" style="display: none;">
+                            <div id="branch-picker-box" style="display: none;">
+                                <label class="lpk-sublabel" for="branch-location-select" style="font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 6px; display: block;">
+                                    Pilih Laboratorium Cabang Sasaran:
+                                </label>
+                                <select id="branch-location-select" class="branch-picker-select">
+                                    <option value="">Pilih Laboratorium Cabang...</option>
+                                </select>
+                            </div>
+                            <div id="no-branch-notice" class="lpk-empty-branch-notice" style="display: none;">
+                                <x-icon name="alert-circle" size="16" style="flex-shrink: 0;" />
+                                <div class="lpk-empty-branch-text">
+                                    <strong>Tidak ada cabang terdaftar</strong>
+                                    <span>LPK ini belum memiliki fasilitas cabang di sistem. Pengaturan cabang dapat dikelola melalui menu Fasilitas &amp; Daftar Cabang di detail LPK.</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <span class="lpk-field-hint">
                             Pilih cabang atau fasilitas pengujian yang diaudit pada agenda ini (Sistem Multilokasi KAN U-05).
                         </span>
+                        @error('lpk_location_id')
+                            <span class="lpk-field-error" style="color: var(--danger); font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <div class="lpk-field">
@@ -638,12 +882,22 @@
                                 <span>Dinyatakan Memenuhi</span>
                             </label>
                             <input id="assessment-tp-satisfied-at" type="date" name="tp_satisfied_at" value="{{ old('tp_satisfied_at', $assessment->tp_satisfied_at?->format('Y-m-d')) }}">
+                            <div id="form-tp-satisfied-error" style="display: none; margin-top: 6px; padding: 7px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 11.5px; line-height: 1.4;">
+                                <strong>Peringatan KAN U-01 Rev.3 (Klausul 2.11.12):</strong>
+                                <span style="display: block; margin-top: 2px;">Tanggal memenuhi melewati batas waktu tindakan perbaikan. Penyelesaian melewati batas waktu tidak dapat dinyatakan memenuhi dan berakibat pembekuan akreditasi LPK.</span>
+                            </div>
+                            @error('tp_satisfied_at')
+                                <div style="margin-top: 6px; padding: 7px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 11.5px; line-height: 1.4;">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- Kotak Perpanjangan Masa Perbaikan --}}
                     <div class="lpk-checkbox-card" style="margin-bottom: 18px;">
                         <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.4;">
+                            <input type="hidden" name="tp_has_extension" value="0">
                             <input type="checkbox" name="tp_has_extension" id="input_tp_has_extension" value="1" @checked($tpHasExtVal) style="width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px; margin-top: 1px; cursor: pointer; flex-shrink: 0; accent-color: var(--maroon, #e11d48);">
                             <span>LPK Mengajukan Perpanjangan Masa Perbaikan (+1 Bulan Sesuai Regulasi KAN)</span>
                         </label>
@@ -657,7 +911,7 @@
                                     <span>Nomor Surat Resmi LPK</span>
                                     <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" maxlength="80" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @endif>
+                                <input id="assessment-ext-letter-no" type="text" name="tp_extension_letter_no" maxlength="80" placeholder="Contoh: 104/LPK-LAB/EXT/IX/2026" value="{{ old('tp_extension_letter_no', $assessment->tp_extension_letter_no) }}" @if($tpHasExtVal) required @else disabled @endif>
                             </div>
 
                             <div class="lpk-field">
@@ -665,14 +919,14 @@
                                     <span>Tanggal Surat</span>
                                     <span class="lpk-required-dot form-ext-req-dot" style="display: {{ $tpHasExtVal ? 'inline' : 'none' }}; color: #ef4444;">*</span>
                                 </label>
-                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" @if($tpHasExtVal) required @endif>
+                                <input id="assessment-ext-date" type="date" name="tp_extension_date" value="{{ old('tp_extension_date', $assessment->tp_extension_date?->format('Y-m-d')) }}" @if($tpHasExtVal) required @else disabled @endif>
                             </div>
 
                             <div class="lpk-field" style="grid-column: 1 / -1;">
                                 <label class="lpk-label" for="assessment-ext-notes">
                                     <span>Alasan Permohonan Perpanjangan</span>
                                 </label>
-                                <input id="assessment-ext-notes" type="text" name="tp_extension_notes" maxlength="1000" placeholder="Contoh: Menunggu pengiriman kalibrator eksternal dan uji profisiensi perbaikan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}">
+                                <input id="assessment-ext-notes" type="text" name="tp_extension_notes" maxlength="1000" placeholder="Contoh: Menunggu pengiriman kalibrator eksternal dan uji profisiensi perbaikan." value="{{ old('tp_extension_notes', $assessment->tp_extension_notes) }}" @if(!$tpHasExtVal) disabled @endif>
                             </div>
                         </div>
                     </div>
@@ -1151,9 +1405,15 @@
 
             if (tpExtLetterNoInput) {
                 tpExtLetterNoInput.required = shouldExtend;
+                tpExtLetterNoInput.disabled = !shouldExtend;
             }
             if (tpExtDateInput) {
                 tpExtDateInput.required = shouldExtend;
+                tpExtDateInput.disabled = !shouldExtend;
+            }
+            const tpExtNotesInput = document.getElementById('assessment-ext-notes');
+            if (tpExtNotesInput) {
+                tpExtNotesInput.disabled = !shouldExtend;
             }
             formExtReqDots.forEach(function(dot) {
                 dot.style.display = shouldExtend ? 'inline' : 'none';
@@ -1251,6 +1511,7 @@
             'Surveilen 1', 'Surveilen 2', 'Surveilen Tidak Terjadwal (STT)', 'Surveilen Tidak Terjadwal',
             'Perluasan Ruang Lingkup (PRL)', 'Perluasan Ruang Lingkup', 'PRL', 'STT', 'S1', 'S2', 'RA',
             'Re-Akreditasi (Akreditasi Ulang)', 'Re-Akreditasi', 'Re-asesmen', 'Akreditasi Ulang',
+            'Surveilen 1 Siklus KAN', 'Surveilen 2 Siklus KAN', 'Re-asesmen Siklus KAN', 'Re-Akreditasi Siklus KAN',
             'Asesmen Surveilen 1 (S1)', 'Asesmen Surveilen 2 (S2)', 'Asesmen Re-Akreditasi (RA)', 'Asesmen Akreditasi Awal'
         ];
 
@@ -1263,6 +1524,9 @@
                 const opt = assessmentTypeSelect.options[assessmentTypeSelect.selectedIndex];
                 if (opt && opt.value) {
                     typeLabel = opt.textContent.trim();
+                    if (typeLabel === 'Re-Akreditasi (Akreditasi Ulang)') {
+                        typeLabel = 'Re-Akreditasi';
+                    }
                 }
             }
 
@@ -1345,7 +1609,23 @@
             }
 
             const isSlaPassed = effectiveDueDate && now > effectiveDueDate;
-            const isTpSatisfied = tpSatisfiedVal !== '';
+            const isTpSatisfiedVal = tpSatisfiedVal !== '';
+            let isTpSatisfiedPastDue = false;
+            if (tpSatisfiedVal && effectiveDueDate) {
+                const satisfiedDate = new Date(tpSatisfiedVal + 'T00:00:00');
+                if (satisfiedDate > effectiveDueDate) {
+                    isTpSatisfiedPastDue = true;
+                }
+            }
+            const formTpErrorBox = document.getElementById('form-tp-satisfied-error');
+            if (formTpErrorBox) {
+                formTpErrorBox.style.display = isTpSatisfiedPastDue ? 'block' : 'none';
+            }
+            if (tpSatisfiedInput) {
+                tpSatisfiedInput.style.borderColor = isTpSatisfiedPastDue ? '#ef4444' : '';
+            }
+
+            const isTpSatisfied = isTpSatisfiedVal && !isTpSatisfiedPastDue;
             const hasExecutionProof = reportDateVal !== '' || ehaDateVal !== '';
             const ehaStatusSelect = document.getElementById('assessment-eha-status');
             const ehaStatusVal = ehaStatusSelect ? ehaStatusSelect.value : '';
@@ -1372,16 +1652,18 @@
                 tpLabel = 'Dinyatakan Memenuhi (Selesai)';
                 tpBadgeClass = 'status-completed';
                 tpDescription = 'Otomatis: Tindakan perbaikan telah dinyatakan memenuhi.';
+            } else if (isTpSatisfiedPastDue || isSlaPassed) {
+                tpStatus = 'IN_PROGRESS';
+                tpLabel = 'Dibekukan (Lewat Batas Waktu)';
+                tpBadgeClass = 'status-suspended';
+                tpDescription = isTpSatisfiedPastDue
+                    ? 'Otomatis: Tanggal memenuhi melewati tenggat waktu perbaikan sehingga status dibekukan (Klausul 2.11.12 KAN U-01 Rev.3).'
+                    : 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
             } else if (isOverdueWithoutAction && !tpDueDateVal) {
                 tpStatus = 'NONE';
                 tpLabel = 'Menunggu Pelaksanaan';
                 tpBadgeClass = 'status-planned';
                 tpDescription = 'Otomatis: Kunjungan asesmen belum terlaksana / belum ada temuan tindakan perbaikan.';
-            } else if (isSlaPassed) {
-                tpStatus = 'IN_PROGRESS';
-                tpLabel = 'Dibekukan (Lewat Batas Waktu)';
-                tpBadgeClass = 'status-suspended';
-                tpDescription = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
             } else if (hasActiveTpRecord || (isVisitFinished && !isOverdueWithoutAction) || hasExecutionProof || (tpDueDateVal && isVisitFinished)) {
                 tpStatus = 'IN_PROGRESS';
                 tpLabel = 'Sedang Berlangsung';
@@ -1433,11 +1715,13 @@
                 description = 'Otomatis: Tanggal pelaksanaan telah lewat namun belum ada tindakan/pelaporan asesmen (Lewat Jadwal).';
             }
             // c. Jika melewati tenggat waktu TP belum ada yang dinyatakan memenuhi -> DIBEKUKAN
-            else if (isSlaPassed) {
+            else if (isTpSatisfiedPastDue || isSlaPassed) {
                 status = 'SUSPENDED';
                 label = 'Dibekukan';
                 badgeClass = 'status-suspended';
-                description = 'Otomatis: Melewati tenggat waktu TP belum dinyatakan memenuhi sehingga status dibekukan.';
+                description = isTpSatisfiedPastDue
+                    ? 'Otomatis: Tanggal memenuhi melewati tenggat waktu perbaikan sehingga status dibekukan (Klausul 2.11.12 KAN U-01 Rev.3).'
+                    : 'Otomatis: Melewati batas waktu awal belum dinyatakan memenuhi sehingga status dibekukan.';
             }
             // d. Jika kunjungan sedang berlangsung di lapangan saat ini
             else if (isVisitInProgress) {
@@ -1608,70 +1892,199 @@
             });
         }
 
-        const lpkLocationSelect = document.getElementById('assessment-lpk-location-id');
-        const assessmentLocationInput = document.getElementById('assessment-location');
-
-        function syncLocationOptions(preferredLocationId = null) {
-            if (!lpkSelect || !lpkLocationSelect) return;
-            const selectedLpkId = lpkSelect.value;
-            const options = Array.from(lpkLocationSelect.options);
-            let hasSelected = false;
-
-            const targetLocId = preferredLocationId || lpkLocationSelect.value || "{{ old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id', '')) }}";
-
-            options.forEach(function(opt) {
-                if (!opt.value) return;
-                const optLpkId = opt.getAttribute('data-lpk-id');
-                const matches = (String(optLpkId) === String(selectedLpkId));
-                opt.style.display = matches ? '' : 'none';
-                opt.disabled = !matches;
-                opt.hidden = !matches;
-                if (matches && targetLocId && String(opt.value) === String(targetLocId)) {
-                    opt.selected = true;
-                    hasSelected = true;
-                } else if (!matches) {
-                    opt.selected = false;
-                }
+        @php
+            $locationsMap = $lpks->mapWithKeys(function ($lpk) {
+                return [$lpk->id => $lpk->locations->map(function ($loc) {
+                    return [
+                        'id' => $loc->id,
+                        'name' => $loc->name,
+                        'is_main' => (bool) $loc->is_main,
+                        'location_type' => $loc->location_type,
+                        'location_type_label' => $loc->location_type_label,
+                        'address' => $loc->address,
+                    ];
+                })];
             });
+        @endphp
+        const lpkLocationsData = {!! json_encode($locationsMap) !!};
 
-            if (!hasSelected && selectedLpkId) {
-                let targetOpt = null;
-                if (targetLocId) {
-                    targetOpt = options.find(function(opt) {
-                        return String(opt.value) === String(targetLocId) && String(opt.getAttribute('data-lpk-id')) === String(selectedLpkId);
-                    });
-                }
-                if (!targetOpt) {
-                    targetOpt = options.find(function(opt) {
-                        return String(opt.getAttribute('data-lpk-id')) === String(selectedLpkId) && opt.value;
-                    });
-                }
-                if (targetOpt) {
-                    targetOpt.selected = true;
-                    if (assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.value.trim() === '')) {
-                        assessmentLocationInput.value = targetOpt.getAttribute('data-address') || '';
-                    }
-                } else {
-                    lpkLocationSelect.value = '';
-                }
-            } else if (!selectedLpkId) {
-                lpkLocationSelect.value = '';
+        const lpkLocationHidden = document.getElementById('assessment-lpk-location-id');
+        const assessmentLocationInput = document.getElementById('assessment-location');
+        const radioMainLoc = document.getElementById('loc_type_main');
+        const radioBranchLoc = document.getElementById('loc_type_branch');
+        const cardLocationMain = document.getElementById('card-location-main');
+        const cardLocationBranch = document.getElementById('card-location-branch');
+        const branchSelectWrapper = document.getElementById('branch-select-wrapper');
+        const branchPickerBox = document.getElementById('branch-picker-box');
+        const branchLocationSelect = document.getElementById('branch-location-select');
+        const noBranchNotice = document.getElementById('no-branch-notice');
+        const mainLocPreview = document.getElementById('main-location-name-preview');
+        const branchLocPreview = document.getElementById('branch-location-summary-preview');
+
+        function updateLocationCardStyles() {
+            if (cardLocationMain && radioMainLoc) {
+                cardLocationMain.classList.toggle('is-selected', radioMainLoc.checked);
             }
-
-            const activeSel = lpkLocationSelect.selectedOptions[0];
-            if (activeSel && activeSel.getAttribute('data-address') && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.value.trim() === '')) {
-                assessmentLocationInput.value = activeSel.getAttribute('data-address');
+            if (cardLocationBranch && radioBranchLoc) {
+                cardLocationBranch.classList.toggle('is-selected', radioBranchLoc.checked);
             }
-
-            lpkLocationSelect.dispatchEvent(new CustomEvent('custom-select:rebuild'));
         }
 
-        if (lpkLocationSelect) {
-            lpkLocationSelect.addEventListener('change', function() {
-                const sel = lpkLocationSelect.selectedOptions[0];
-                if (sel && sel.getAttribute('data-address') && assessmentLocationInput) {
-                    assessmentLocationInput.value = sel.getAttribute('data-address');
+        function syncLocationOptions(preferredLocationId = null) {
+            if (!lpkSelect) return;
+            const selectedLpkId = lpkSelect.value;
+            const locations = (selectedLpkId && lpkLocationsData[selectedLpkId]) ? lpkLocationsData[selectedLpkId] : [];
+
+            const mainLoc = locations.find(function(loc) { return loc.is_main; }) || locations[0] || null;
+            const branchLocs = locations.filter(function(loc) { return !loc.is_main; });
+
+            if (mainLocPreview) {
+                mainLocPreview.textContent = mainLoc
+                    ? `${mainLoc.name}${mainLoc.address ? ' — ' + mainLoc.address : ''}`
+                    : 'Fasilitas / Kantor Pusat LPK';
+            }
+            if (branchLocPreview) {
+                branchLocPreview.textContent = branchLocs.length
+                    ? `${branchLocs.length} fasilitas cabang terdaftar (Sistem Multilokasi KAN U-05)`
+                    : 'Belum ada data laboratorium cabang terdaftar';
+            }
+
+            if (branchLocationSelect) {
+                branchLocationSelect.innerHTML = '<option value="">Pilih Laboratorium Cabang...</option>';
+                branchLocs.forEach(function(bLoc) {
+                    const opt = document.createElement('option');
+                    opt.value = bLoc.id;
+                    opt.textContent = `${bLoc.name} (${bLoc.address || 'Cabang Terdaftar'})`;
+                    opt.setAttribute('data-address', bLoc.address || '');
+                    branchLocationSelect.appendChild(opt);
+                });
+            }
+
+            if (branchLocs.length > 0) {
+                if (branchPickerBox) branchPickerBox.style.display = 'block';
+                if (noBranchNotice) noBranchNotice.style.display = 'none';
+                if (branchLocationSelect) {
+                    branchLocationSelect.dispatchEvent(new CustomEvent('custom-select:rebuild'));
                 }
+            } else {
+                if (branchPickerBox) branchPickerBox.style.display = 'none';
+                if (noBranchNotice) noBranchNotice.style.display = 'flex';
+            }
+
+            const targetLocId = preferredLocationId !== null
+                ? preferredLocationId
+                : (lpkLocationHidden ? lpkLocationHidden.value : "{{ old('lpk_location_id', $assessment->lpk_location_id ?: request('lpk_location_id', '')) }}");
+
+            const matchingBranch = branchLocs.find(function(b) {
+                return String(b.id) === String(targetLocId);
+            });
+
+            if (matchingBranch) {
+                if (radioBranchLoc) radioBranchLoc.checked = true;
+                if (radioMainLoc) radioMainLoc.checked = false;
+                if (branchSelectWrapper) branchSelectWrapper.style.display = 'block';
+                if (branchLocationSelect) {
+                    branchLocationSelect.value = String(matchingBranch.id);
+                }
+                if (lpkLocationHidden) lpkLocationHidden.value = matchingBranch.id;
+
+                if (assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.dataset.autoFilled === 'true')) {
+                    assessmentLocationInput.value = matchingBranch.address || '';
+                    assessmentLocationInput.dataset.autoFilled = 'true';
+                }
+            } else {
+                if (radioMainLoc) radioMainLoc.checked = true;
+                if (radioBranchLoc) radioBranchLoc.checked = false;
+                if (branchSelectWrapper) branchSelectWrapper.style.display = 'none';
+                if (lpkLocationHidden) {
+                    lpkLocationHidden.value = mainLoc ? mainLoc.id : '';
+                }
+
+                if (mainLoc && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.dataset.autoFilled === 'true')) {
+                    assessmentLocationInput.value = mainLoc.address || '';
+                    assessmentLocationInput.dataset.autoFilled = 'true';
+                }
+            }
+
+            updateLocationCardStyles();
+        }
+
+        if (radioMainLoc) {
+            radioMainLoc.addEventListener('change', function() {
+                if (radioMainLoc.checked) {
+                    if (branchSelectWrapper) branchSelectWrapper.style.display = 'none';
+                    const selectedLpkId = lpkSelect ? lpkSelect.value : '';
+                    const locations = (selectedLpkId && lpkLocationsData[selectedLpkId]) ? lpkLocationsData[selectedLpkId] : [];
+                    const mainLoc = locations.find(function(loc) { return loc.is_main; }) || locations[0] || null;
+
+                    if (lpkLocationHidden) {
+                        lpkLocationHidden.value = mainLoc ? mainLoc.id : '';
+                    }
+
+                    if (mainLoc && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.dataset.autoFilled === 'true')) {
+                        assessmentLocationInput.value = mainLoc.address || '';
+                        assessmentLocationInput.dataset.autoFilled = 'true';
+                    }
+                    updateLocationCardStyles();
+                }
+            });
+        }
+
+        if (radioBranchLoc) {
+            radioBranchLoc.addEventListener('change', function() {
+                if (radioBranchLoc.checked) {
+                    if (branchSelectWrapper) branchSelectWrapper.style.display = 'block';
+                    const selectedLpkId = lpkSelect ? lpkSelect.value : '';
+                    const locations = (selectedLpkId && lpkLocationsData[selectedLpkId]) ? lpkLocationsData[selectedLpkId] : [];
+                    const branchLocs = locations.filter(function(loc) { return !loc.is_main; });
+
+                    if (branchLocs.length > 0) {
+                        if (branchPickerBox) branchPickerBox.style.display = 'block';
+                        if (noBranchNotice) noBranchNotice.style.display = 'none';
+                        if (branchLocationSelect && !branchLocationSelect.value) {
+                            branchLocationSelect.value = branchLocs[0].id;
+                        }
+                        const activeBranchId = branchLocationSelect ? branchLocationSelect.value : branchLocs[0].id;
+                        const activeBranch = branchLocs.find(function(b) { return String(b.id) === String(activeBranchId); }) || branchLocs[0];
+
+                        if (lpkLocationHidden) {
+                            lpkLocationHidden.value = activeBranch ? activeBranch.id : '';
+                        }
+                        if (activeBranch && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.dataset.autoFilled === 'true')) {
+                            assessmentLocationInput.value = activeBranch.address || '';
+                            assessmentLocationInput.dataset.autoFilled = 'true';
+                        }
+                    } else {
+                        if (branchPickerBox) branchPickerBox.style.display = 'none';
+                        if (noBranchNotice) noBranchNotice.style.display = 'flex';
+                        if (lpkLocationHidden) {
+                            lpkLocationHidden.value = '';
+                        }
+                    }
+                    updateLocationCardStyles();
+                }
+            });
+        }
+
+        if (branchLocationSelect) {
+            branchLocationSelect.addEventListener('change', function() {
+                const selId = branchLocationSelect.value;
+                if (lpkLocationHidden) {
+                    lpkLocationHidden.value = selId || '';
+                }
+                const selectedLpkId = lpkSelect ? lpkSelect.value : '';
+                const locations = (selectedLpkId && lpkLocationsData[selectedLpkId]) ? lpkLocationsData[selectedLpkId] : [];
+                const matchedBranch = locations.find(function(l) { return String(l.id) === String(selId); });
+                if (matchedBranch && assessmentLocationInput && (!assessmentLocationInput.value || assessmentLocationInput.dataset.autoFilled === 'true')) {
+                    assessmentLocationInput.value = matchedBranch.address || '';
+                    assessmentLocationInput.dataset.autoFilled = 'true';
+                }
+            });
+        }
+
+        if (assessmentLocationInput) {
+            assessmentLocationInput.addEventListener('input', function() {
+                delete assessmentLocationInput.dataset.autoFilled;
             });
         }
 
@@ -1731,6 +2144,25 @@
             }
         });
 
+        if (ehaDateInput) {
+            const ehaStatusSelect = document.getElementById('assessment-eha-status');
+            const syncEhaStatus = function() {
+                if (ehaDateInput.value) {
+                    if (ehaStatusSelect && (ehaStatusSelect.value === 'BELUM_EHA' || !ehaStatusSelect.value)) {
+                        ehaStatusSelect.value = 'DIREKOMENDASIKAN';
+                        ehaStatusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                } else {
+                    if (ehaStatusSelect && ehaStatusSelect.value === 'DIREKOMENDASIKAN') {
+                        ehaStatusSelect.value = 'BELUM_EHA';
+                        ehaStatusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            };
+            ehaDateInput.addEventListener('input', syncEhaStatus);
+            ehaDateInput.addEventListener('change', syncEhaStatus);
+        }
+
         if (submissionDueDateInput && !submissionDueDateInput.value) {
             syncSubmissionDueDate(false);
         }
@@ -1746,6 +2178,27 @@
         updateStatus();
 
         // Auto-scroll dan fokus langsung ke pengisian SK jika diakses dari notifikasi SK
+        const mainForm = document.getElementById('assessment-main-form');
+        if (mainForm) {
+            mainForm.addEventListener('submit', function(e) {
+                const satisfiedVal = tpSatisfiedInput ? tpSatisfiedInput.value : '';
+                const dueVal = tpDueDateInput ? tpDueDateInput.value : '';
+                if (satisfiedVal && dueVal && satisfiedVal > dueVal) {
+                    e.preventDefault();
+                    const formTpErrorBox = document.getElementById('form-tp-satisfied-error');
+                    if (formTpErrorBox) {
+                        formTpErrorBox.style.display = 'block';
+                        formTpErrorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    if (tpSatisfiedInput) {
+                        tpSatisfiedInput.style.borderColor = '#ef4444';
+                        tpSatisfiedInput.focus();
+                    }
+                    return false;
+                }
+            });
+        }
+
         function checkAndScrollToSk() {
             const currentHash = window.location.hash;
             const focusParam = new URLSearchParams(window.location.search).get('focus');

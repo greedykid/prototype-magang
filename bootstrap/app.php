@@ -12,13 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->authenticateSessions();
         $trustedProxies = env('TRUSTED_PROXIES');
-        if (! empty($trustedProxies)) {
-            $proxies = array_values(array_filter(array_map('trim', explode(',', (string) $trustedProxies))));
-            $middleware->trustProxies(at: $proxies);
-        } else {
-            $middleware->trustProxies(at: '*');
-        }
+        $proxies = ! empty($trustedProxies)
+            ? array_values(array_filter(array_map('trim', explode(',', (string) $trustedProxies))))
+            : ['127.0.0.1', '172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/16'];
+        $middleware->trustProxies(at: $proxies);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,

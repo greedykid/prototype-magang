@@ -44,7 +44,7 @@
                                 <span class="badge badge-viewer" title="Akses Viewer: Hanya Lihat">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 2px;" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Viewer
                                 </span>
-                                @if(!empty($lpkAlerts))
+                                @if(!empty($lpkAlerts) && $lpk->dynamic_status !== 'REVOKED')
                                     @php
                                         $firstUrgent = collect($lpkAlerts)->firstWhere('is_urgent', true) ?? $lpkAlerts[0];
                                         $extraAlertsCount = count($lpkAlerts) - 1;

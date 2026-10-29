@@ -17,7 +17,7 @@ class CalendarEventTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get('/calendar')->assertOk()->assertSee('Kalender kegiatan');
+        $this->actingAs($user)->get('/calendar')->assertOk()->assertSee('Kalender Pengawasan & Asesmen');
     }
 
     public function test_authenticated_user_can_create_calendar_event(): void
@@ -522,5 +522,24 @@ class CalendarEventTest extends TestCase
         $response->assertSee('LP-999-IDN');
         $response->assertSee('data-badge="LP-999-IDN"', false);
         $response->assertSee('Laboratorium Uji Presisi Utama');
+    }
+
+    public function test_calendar_clamps_extreme_multiday_ranges_without_timeout(): void
+    {
+        $user = User::factory()->create();
+        $lpk = Lpk::factory()->create(['pic_id' => $user->id]);
+
+        // Event spanning 3 years into the future
+        CalendarEvent::factory()->create([
+            'lpk_id' => $lpk->id,
+            'created_by' => $user->id,
+            'title' => 'Agenda Multi Tahun Ekstrem',
+            'start_at' => now()->startOfMonth(),
+            'end_at' => now()->startOfMonth()->addYears(3),
+        ]);
+
+        $response = $this->actingAs($user)->get('/calendar');
+        $response->assertOk();
+        $response->assertSee('Agenda Multi Tahun Ekstrem');
     }
 }

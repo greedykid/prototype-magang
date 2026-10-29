@@ -117,10 +117,10 @@ html[data-theme="dark"] .priority-low { color: var(--success-text); }
 
 /* Badges Batas Waktu Tindakan Perbaikan (TP & VTP) KAN */
 .badge-tp-neutral { background: var(--neutral-chip-bg); border-color: var(--neutral-chip-border); color: var(--neutral-chip-text); }
-.badge-tp-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+.badge-tp-success, .badge-tp-satisfied { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
 .badge-tp-info { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
-.badge-tp-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
-.badge-tp-danger, .badge-tp-revoked { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.badge-tp-warning, .badge-tp-inprogress { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+.badge-tp-danger, .badge-tp-revoked, .badge-tp-overdue { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
 .badge-tp-suspended { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); font-weight: 600; }
 
 /* Alert & Surveillance Badges (LPK Tables & Dashboards) */
@@ -250,11 +250,14 @@ html[data-theme="dark"] .badge-role-assessor { background: rgba(98, 174, 240, 0.
 html[data-theme="dark"] .badge-role-staff { background: rgba(173, 109, 237, 0.18); border-color: rgba(173, 109, 237, 0.25); color: var(--color-purple-400, #ad6ded); }
 
 html[data-theme="dark"] .badge-tp-neutral { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.085); color: var(--color-gray-400, #a39e98); }
-html[data-theme="dark"] .badge-tp-success { background: rgba(104, 206, 126, 0.18); border-color: rgba(104, 206, 126, 0.25); color: var(--color-green-400, #68ce7e); }
+html[data-theme="dark"] .badge-tp-success,
+html[data-theme="dark"] .badge-tp-satisfied { background: rgba(104, 206, 126, 0.18); border-color: rgba(104, 206, 126, 0.25); color: var(--color-green-400, #68ce7e); }
 html[data-theme="dark"] .badge-tp-info { background: rgba(98, 174, 240, 0.18); border-color: rgba(98, 174, 240, 0.25); color: var(--color-blue-400, #62aef0); }
-html[data-theme="dark"] .badge-tp-warning { background: rgba(255, 201, 94, 0.18); border-color: rgba(255, 201, 94, 0.25); color: var(--color-yellow-400, #ffc95e); }
+html[data-theme="dark"] .badge-tp-warning,
+html[data-theme="dark"] .badge-tp-inprogress { background: rgba(255, 201, 94, 0.18); border-color: rgba(255, 201, 94, 0.25); color: var(--color-yellow-400, #ffc95e); }
 html[data-theme="dark"] .badge-tp-danger,
-html[data-theme="dark"] .badge-tp-revoked { background: rgba(247, 116, 99, 0.18); border-color: rgba(247, 116, 99, 0.25); color: var(--color-red-400, #f77463); }
+html[data-theme="dark"] .badge-tp-revoked,
+html[data-theme="dark"] .badge-tp-overdue { background: rgba(247, 116, 99, 0.18); border-color: rgba(247, 116, 99, 0.25); color: var(--color-red-400, #f77463); }
 html[data-theme="dark"] .badge-tp-suspended { background: rgba(98, 174, 240, 0.18); border-color: rgba(98, 174, 240, 0.25); color: var(--color-blue-400, #62aef0); }
 
 html[data-theme="dark"] .lpk-alert-badge.is-urgent { background-color: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }

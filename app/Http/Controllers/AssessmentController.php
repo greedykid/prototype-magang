@@ -125,7 +125,16 @@ class AssessmentController extends Controller
                     );
                 }
                 $assessment->assessment_type = $normalizedType;
-                $assessment->title = ($normalizedType ?: 'Asesmen') . ' - ' . $lpk->name;
+                if ($alertCode === 'S1') {
+                    $assessment->title = 'Surveilen 1 - ' . $lpk->name;
+                } elseif ($alertCode === 'S2') {
+                    $assessment->title = 'Surveilen 2 - ' . $lpk->name;
+                } elseif ($alertCode === 'RA') {
+                    $assessment->title = 'Re-Akreditasi - ' . $lpk->name;
+                } else {
+                    $titlePrefix = ($normalizedType === Assessment::TYPE_RE_AKREDITASI) ? 'Re-Akreditasi' : ($normalizedType ?: 'Asesmen');
+                    $assessment->title = $titlePrefix . ' - ' . $lpk->name;
+                }
 
                 $isTargetPast = false;
                 $targetDate = $targetDateStr ? rescue(fn () => Carbon::parse($targetDateStr), null, false) : null;
@@ -289,7 +298,10 @@ class AssessmentController extends Controller
         }
 
         $validated = $request->normalizedData($assessment);
-        DB::transaction(fn () => $assessment->update($validated));
+        DB::transaction(function () use ($assessment, $validated) {
+            $lockedAssessment = Assessment::where('id', $assessment->id)->lockForUpdate()->firstOrFail();
+            $lockedAssessment->update($validated);
+        });
 
         return back()->with('success', 'Pembaruan tindak lanjut asesmen berhasil disimpan.');
     }

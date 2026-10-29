@@ -662,6 +662,21 @@ html[data-theme="dark"] .lpk-alert-callout.is-warning .lpk-alert-tag {
     color: #fcd34d;
 }
 
+html[data-theme="dark"] .lpk-alert-callout.is-overdue {
+    background: rgba(234, 88, 12, 0.1);
+    border-color: rgba(234, 88, 12, 0.3);
+    border-left-color: #fb923c;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-overdue .lpk-alert-callout-head {
+    color: #fdba74;
+}
+
+html[data-theme="dark"] .lpk-alert-callout.is-overdue .lpk-alert-tag {
+    background: rgba(234, 88, 12, 0.2);
+    color: #fdba74;
+}
+
 html[data-theme="dark"] .lpk-alert-callout.is-suspended {
     background: rgba(37, 99, 235, 0.08);
     border-color: rgba(37, 99, 235, 0.25);

@@ -137,7 +137,7 @@ class LpkLocationController extends Controller
             return back()->with('error', 'Tidak dapat menghapus satu-satunya lokasi yang terdaftar pada LPK ini.');
         }
 
-        if ($location->assessments()->exists()) {
+        if (! $location->is_main && $location->assessments()->exists()) {
             return back()->with('error', "Lokasi \"{$location->name}\" memiliki riwayat asesmen terkait. Silakan alihkan data asesmen terlebih dahulu.");
         }
 
@@ -145,15 +145,19 @@ class LpkLocationController extends Controller
         $wasMain = $location->is_main;
 
         DB::transaction(function () use ($lpk, $location, $wasMain) {
-            $location->delete();
-
-            // Jika lokasi utama yang dihapus, alihkan status utama ke lokasi tersisa pertama
+            // Jika lokasi utama yang dihapus, alihkan status utama & asesmen ke lokasi tersisa pertama
             if ($wasMain) {
-                $next = $lpk->locations()->first();
+                $next = $lpk->locations()->where('id', '!=', $location->id)->first();
                 if ($next) {
-                    $next->update(['is_main' => true]);
+                    $next->update([
+                        'is_main' => true,
+                        'location_type' => LpkLocation::TYPE_HEAD_OFFICE,
+                    ]);
+                    $location->assessments()->update(['lpk_location_id' => $next->id]);
                 }
             }
+
+            $location->delete();
         });
 
         return back()->with('success', "Lokasi fasilitas \"{$locName}\" berhasil dihapus.");

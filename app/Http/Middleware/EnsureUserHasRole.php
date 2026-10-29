@@ -26,7 +26,15 @@ class EnsureUserHasRole
             return $next($request);
         }
 
-        if (! in_array($user->role, $roles, true)) {
+        $hasRole = in_array($user->role, $roles, true);
+        if (! $hasRole && in_array('admin', $roles, true) && $user->isAdmin()) {
+            $hasRole = true;
+        }
+        if (! $hasRole && in_array('pic', $roles, true) && $user->isPic()) {
+            $hasRole = true;
+        }
+
+        if (! $hasRole) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Akses ditolak. Peran pengguna (' . $user->role_label . ') tidak memiliki izin untuk fitur ini.',

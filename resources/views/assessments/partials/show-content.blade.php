@@ -4,7 +4,7 @@
         @if(isset($owner))
             <a href="{{ route('account-links.show', [$owner, 'tab' => 'assessments']) }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen Akun Tertaut">
                 <x-icon name="chevron-left" size="16" />
-                <span>Daftar Asesmen Akun: {{ $owner->name }}</span>
+                <span>Program Asesmen Akun: {{ $owner->name }}</span>
             </a>
         @else
             <a href="{{ route('assessments.index') }}" class="lpk-back-btn" title="Kembali ke Daftar Asesmen">
@@ -81,7 +81,7 @@
                     @if(isset($owner))
                         <span class="meta-dot">&bull;</span>
                         <span class="badge" style="background: var(--mint, #d1fae5); color: var(--green, #047857); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: var(--radius-pill, 9999px);">
-                            Viewer: {{ $owner->name }}
+                            Mode Pemantauan (Viewer) - Milik Akun: {{ $owner->name }}
                         </span>
                     @endif
                 </div>
@@ -104,7 +104,7 @@
 
     {{-- Banner Notifikasi Status Pembekuan / Pencabutan --}}
     @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
-        <div class="lpk-alert-callout">
+        <div class="lpk-alert-callout is-revoked">
             <div class="lpk-alert-callout-content">
                 <div class="lpk-alert-callout-head">
                     <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -150,14 +150,12 @@
                 <div class="lpk-alert-callout-actions">
                     <button type="button" class="button primary button-sm lpk-alert-action-btn lpk-alert-action-btn-suspended" onclick="window.openModal('modal-tp-tracking', '{{ $assessment->is_submission_overdue ? 'sk' : 'tp' }}')" title="Buka modal pembaruan tindak lanjut untuk verifikasi TP, rapat panitia teknis, atau nomor SK KAN">
                         <x-icon name="check-circle" size="14" />
-                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen & Input SK' : 'Tindak Lanjut Asesmen' }}</span>
+                        <span>{{ $assessment->is_submission_overdue ? 'Tuntaskan Asesmen' : 'Tindak Lanjut Asesmen' }}</span>
                     </button>
-                    @if(!$assessment->is_submission_overdue && ($assessment->tp_status === \App\Models\Assessment::TP_STATUS_SATISFIED || !empty($assessment->tp_satisfied_at)))
-                        <button type="button" class="button secondary button-sm lpk-alert-action-btn" onclick="window.openModal('modal-tp-tracking', 'sk')" title="Buka tab Surat Keputusan (SK) KAN pada modal tindak lanjut">
-                            <x-icon name="accreditations" size="14" />
-                            <span>Input SK KAN</span>
-                        </button>
-                    @endif
+                    <a href="{{ route('assessments.edit', $assessment) }}#form-sk-block" class="button secondary button-sm lpk-alert-action-btn" title="Langsung menuju blok pengisian Surat Keputusan (SK) KAN di formulir ubah">
+                        <x-icon name="accreditations" size="14" />
+                        <span>Input SK KAN</span>
+                    </a>
                     <a href="{{ route('assessments.edit', $assessment) }}" class="button secondary button-sm lpk-alert-action-btn" title="Ubah tanggal pelaksanaan atau rincian agenda asesmen">
                         <x-icon name="edit" size="14" />
                         <span>Perbarui Asesmen</span>
@@ -410,7 +408,7 @@
                     <x-icon name="check" size="16" />
                 </div>
                 <div class="assessment-stepper-cta-text">
-                    <span class="assessment-stepper-cta-title">Siklus Asesmen KAN U-01 Telah Tuntas</span>
+                    <span class="assessment-stepper-cta-title">Siklus Asesmen Telah Tuntas</span>
                     <span class="assessment-stepper-cta-desc">{{ $assessment->sk_number ? 'Surat Keputusan (SK) resmi telah terbit: ' . $assessment->sk_number . ($assessment->sk_date ? ' (' . $assessment->sk_date->format('d M Y') . ')' : '') : 'Seluruh tahapan asesmen telah terlaksana dan dinyatakan selesai.' }}</span>
                 </div>
             </div>
@@ -548,62 +546,179 @@
                     </div>
                 </div>
 
-                <div class="lpk-meta-grid">
-                    <div class="lpk-meta-item full-width">
-                        <span class="lpk-meta-label">Tanggal Kunjungan Lapangan</span>
-                        <div class="lpk-meta-value" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                            <div style="font-weight: 600; font-size: 13.5px; color: var(--ink); display: flex; align-items: center; gap: 6px;">
-                                <x-icon name="clock" size="15" style="color: var(--primary);" />
-                                <span>
-                                    @if($assessment->start_at && $assessment->end_at)
-                                        {{ $assessment->start_at->translatedFormat('d M Y') }} - {{ $assessment->end_at->translatedFormat('d M Y') }}
-                                    @elseif($assessment->start_at)
-                                        {{ $assessment->start_at->translatedFormat('d M Y') }}
-                                    @else
-                                        Tanggal belum ditentukan
-                                    @endif
-                                </span>
+                <div class="assessment-milestones-list">
+                    {{-- Item 1: Jadwal Kunjungan Lapangan --}}
+                    <div class="assessment-milestone-item">
+                        <div class="milestone-item-header">
+                            <div style="display: flex; align-items: center; gap: 7px;">
+                                <x-icon name="clock" size="14" style="color: var(--primary);" />
+                                <span class="milestone-item-label">Jadwal Kunjungan Lapangan</span>
                             </div>
                             <span class="badge-tp badge-tp-{{ $assessment->status === 'COMPLETED' ? 'satisfied' : ($assessment->status === 'IN_PROGRESS' ? 'warning' : 'neutral') }}">
                                 {{ $assessment->status_label }}
                             </span>
                         </div>
-                    </div>
-
-                    <div class="lpk-meta-item full-width">
-                        <span class="lpk-meta-label">Tim Asesmen</span>
-                        <div class="lpk-meta-value" style="display: flex; align-items: center; gap: 6px;">
-                            <x-icon name="users" size="15" style="color: var(--muted); flex-shrink: 0;" />
-                            <span>{{ $assessment->assessment_team ?: $assessment->lead_assessor ?: 'Belum diisi' }}</span>
+                        <div class="milestone-item-value">
+                            @if($assessment->start_at && $assessment->end_at)
+                                @php
+                                    $sDate = $assessment->start_at->copy()->startOfDay();
+                                    $eDate = $assessment->end_at->copy()->startOfDay();
+                                    $fieldDays = (int) $sDate->diffInDays($eDate) + 1;
+                                @endphp
+                                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                    <strong style="color: var(--ink); font-size: 13.5px;">
+                                        {{ $assessment->start_at->translatedFormat('d M Y') }} &ndash; {{ $assessment->end_at->translatedFormat('d M Y') }}
+                                    </strong>
+                                    <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">
+                                        {{ $fieldDays }} Hari Kalender
+                                    </span>
+                                </div>
+                                @if($assessment->status === 'COMPLETED')
+                                    <div style="font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-top: 2px;">
+                                        <x-icon name="check" size="13" style="color: var(--green);" />
+                                        <span>Pelaksanaan audit lapangan telah tuntas dilaksanakan.</span>
+                                    </div>
+                                @elseif($assessment->status === 'IN_PROGRESS')
+                                    <div style="font-size: 12px; color: var(--terracotta, #c084fc); display: flex; align-items: center; gap: 5px; margin-top: 2px;">
+                                        <x-icon name="clock" size="13" />
+                                        <span>Asesmen lapangan saat ini dalam periode pelaksanaan.</span>
+                                    </div>
+                                @else
+                                    <div style="font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-top: 2px;">
+                                        <x-icon name="clock" size="13" />
+                                        <span>
+                                            @php $daysRemaining = (int) now()->startOfDay()->diffInDays($sDate, false); @endphp
+                                            @if($daysRemaining > 0)
+                                                Dimulai dalam {{ $daysRemaining }} hari ke depan.
+                                            @elseif($daysRemaining === 0)
+                                                Pelaksanaan dimulai hari ini.
+                                            @else
+                                                Jadwal kunjungan telah lewat.
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
+                            @elseif($assessment->start_at)
+                                <strong style="color: var(--ink); font-size: 13.5px;">
+                                    {{ $assessment->start_at->translatedFormat('d M Y') }}
+                                </strong>
+                            @else
+                                <span style="color: var(--muted); font-size: 12px;">Tanggal kunjungan lapangan belum ditentukan.</span>
+                            @endif
                         </div>
                     </div>
 
-                    @if($assessment->submission_due_date && $assessment->status !== 'COMPLETED')
-                        <div class="lpk-meta-item full-width">
-                            <span class="lpk-meta-label">Toleransi Pengisian Siklus</span>
-                            <div class="lpk-meta-value">
-                                <strong>Maksimal {{ $assessment->submission_due_date->translatedFormat('d M Y') }}</strong>
-                                <span style="color: var(--muted); font-size: 12px; margin-left: 4px;">({{ $assessment->submission_cycle_hint }})</span>
+                    {{-- Item 2: Tim Asesmen & Asesor --}}
+                    <div class="assessment-milestone-item">
+                        <div class="milestone-item-header">
+                            <div style="display: flex; align-items: center; gap: 7px;">
+                                <x-icon name="users" size="14" style="color: var(--muted);" />
+                                <span class="milestone-item-label">Tim Asesmen &amp; Asesor</span>
+                            </div>
+                            @if($assessment->lead_assessor || $assessment->assessment_team)
+                                <span class="badge-tp badge-tp-satisfied" style="font-size: 11px;">Tim Ditetapkan</span>
+                            @else
+                                <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">Belum Ditugaskan</span>
+                            @endif
+                        </div>
+                        <div class="milestone-item-value">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 2px;">
+                                <div>
+                                    <span style="font-size: 10.5px; color: var(--muted); display: block; text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em;">Asesor Kepala (Lead)</span>
+                                    <span style="font-size: 12.5px; color: var(--ink); font-weight: 500;">
+                                        {{ $assessment->lead_assessor ?: 'Belum ditugaskan' }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; color: var(--muted); display: block; text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em;">Anggota Tim Asesor</span>
+                                    <span style="font-size: 12.5px; color: var(--ink); font-weight: 500;">
+                                        {{ $assessment->assessment_team ?: 'Belum diisi' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Item 3: Ketentuan Siklus & Toleransi Regulasi KAN U-01 --}}
+                    <div class="assessment-milestone-item">
+                        <div class="milestone-item-header">
+                            <div style="display: flex; align-items: center; gap: 7px;">
+                                <x-icon name="shield-check" size="14" style="color: var(--primary);" />
+                                <span class="milestone-item-label">Ketentuan Siklus &amp; Toleransi</span>
+                            </div>
+                            <span class="badge-tp badge-tp-neutral" style="font-size: 11px;">Regulasi KAN</span>
+                        </div>
+                        <div class="milestone-item-value">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                                    <span style="font-size: 12.5px; color: var(--ink);">
+                                        Jenis: <strong>{{ $assessment->assessment_type_label }}</strong>
+                                    </span>
+                                    @if($assessment->submission_due_date)
+                                        <span style="font-size: 11.5px; color: var(--muted);">
+                                            Batas Siklus: <strong style="color: var(--ink);">{{ $assessment->submission_due_date->translatedFormat('d M Y') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+
                                 @if($assessment->status === 'REVOKED' || $assessment->is_suspension_expired)
                                     <div style="margin-top: 4px; font-size: 12px; color: var(--danger-text, #ef4444); font-weight: 600;">
-                                        &bull; Batas 1 tahun kesempatan pembekuan ({{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }}) telah berakhir: Akreditasi dicabut.
+                                        &bull; Batas 1 tahun pembekuan ({{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }}) telah berakhir: Akreditasi dicabut.
                                     </div>
                                 @elseif($assessment->is_submission_overdue || $assessment->status === 'SUSPENDED')
                                     <div style="margin-top: 4px; font-size: 12px; color: var(--terracotta, #c084fc); font-weight: 600;">
-                                        &bull; Kesempatan penyelesaian pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
+                                        &bull; Masa toleransi pembekuan: 1 tahun s/d {{ $assessment->suspension_resolution_deadline?->translatedFormat('d M Y') }} (sisa {{ $assessment->days_remaining_suspension }} hari).
+                                    </div>
+                                @elseif($assessment->status === 'COMPLETED')
+                                    <div style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">
+                                        Pelaksanaan asesmen tuntas sesuai ketentuan siklus akreditasi KAN.
+                                    </div>
+                                @else
+                                    <div style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">
+                                        Wajib diselesaikan dalam toleransi siklus akreditasi KAN untuk mencegah sanksi pembekuan.
                                     </div>
                                 @endif
                             </div>
                         </div>
-                    @endif
+                    </div>
 
+                    {{-- Item 4: Catatan Pelaksanaan (jika ada) --}}
                     @if($assessment->notes)
-                        <div class="lpk-meta-item full-width">
-                            <span class="lpk-meta-label">Catatan Pelaksanaan</span>
-                            <div class="assessment-notes-box">
-                                {{ $assessment->notes }}
+                        <div class="assessment-milestone-item">
+                            <div class="milestone-item-header">
+                                <div style="display: flex; align-items: center; gap: 7px;">
+                                    <x-icon name="file-text" size="14" style="color: var(--muted);" />
+                                    <span class="milestone-item-label">Catatan Pelaksanaan</span>
+                                </div>
+                            </div>
+                            <div class="milestone-item-value">
+                                <div class="milestone-notes-callout" style="margin-top: 0;">
+                                    <x-icon name="info" size="13" class="notes-callout-icon" />
+                                    <span>{{ $assessment->notes }}</span>
+                                </div>
                             </div>
                         </div>
+                    @endif
+                </div>
+
+                {{-- Action Footer Symmetrical to Right Card --}}
+                @php
+                    $canManage = !isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user()));
+                @endphp
+                <div class="compliance-action-row milestone-actions-equal {{ $canManage ? '' : 'single-action' }}">
+                    <a href="{{ route('calendar.index', ['view' => 'month', 'date' => ($assessment->start_at ?: now())->toDateString(), 'highlight' => $assessment->id]) }}"
+                       class="button secondary button-sm"
+                       title="Buka agenda asesmen ini di Kalender Pengawasan">
+                        <x-icon name="calendar" size="13" />
+                        <span>Buka Kalender</span>
+                    </a>
+                    @if($canManage)
+                        <a href="{{ route('assessments.edit', $assessment) }}"
+                           class="button secondary button-sm"
+                           title="Ubah rincian tanggal pelaksanaan atau tim asesor">
+                            <x-icon name="edit" size="13" />
+                            <span>Perbarui Agenda</span>
+                        </a>
                     @endif
                 </div>
             </div>
