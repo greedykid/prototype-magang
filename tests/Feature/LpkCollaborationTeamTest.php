@@ -243,4 +243,33 @@ class LpkCollaborationTeamTest extends TestCase
         $response2->assertRedirect();
         $response2->assertSessionHas('error');
     }
+
+    public function test_tim_pic_card_renders_modal_trigger_and_modal_team_pic_in_lpk_detail(): void
+    {
+        $leadPic = User::factory()->pic()->create(['name' => 'PIC Utama Laboratorium']);
+        $viewerPic = User::factory()->pic()->create(['name' => 'Staf Viewer Kolaborasi']);
+        $lpk = Lpk::factory()->create([
+            'name' => 'Laboratorium Kalibrasi Uji Mutu',
+            'registration_number' => 'LP-MODAL-001',
+            'pic_id' => $leadPic->id,
+            'status' => 'ACTIVE',
+            'expired_at' => now()->addYears(2),
+        ]);
+
+        $lpk->members()->attach($viewerPic->id, ['role' => 'viewer']);
+
+        $response = $this->actingAs($leadPic)->get(route('lpks.show', $lpk));
+
+        $response->assertOk();
+        // Verifikasi pemicu modal pada tombol Kelola
+        $response->assertSee("openModal('modal-manage-team-pic')", false);
+        // Verifikasi elemen modal kelola tim PIC
+        $response->assertSee('id="modal-manage-team-pic"', false);
+        $response->assertSee('Kelola Tim PIC Laboratorium');
+        $response->assertSee('PIC Penanggung Jawab Utama');
+        $response->assertSee('PIC Utama Laboratorium');
+        $response->assertSee('Staf Viewer Kolaborasi');
+        // Verifikasi teks "Status pengawasan KAN" sudah dihapus
+        $response->assertDontSee('Status pengawasan KAN');
+    }
 }

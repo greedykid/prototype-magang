@@ -57,7 +57,7 @@
                                 @endif
                             </div>
                         </td>
-                        <td style="white-space: nowrap;">{{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}</td>
+                        <td style="white-space: nowrap;">{{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->translatedFormat('d M Y') : $assessment->start_at->translatedFormat('d M Y') . ' - ' . $assessment->end_at->translatedFormat('d M Y') }}</td>
                         <td>
                             @php
                                 $badge = $assessment->tp_sla_badge;

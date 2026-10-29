@@ -244,5 +244,11 @@ class AssessmentSeeder extends Seeder
                 ]
             );
         }
+
+        // Pastikan seluruh LPK aktif memiliki agenda siklus pengawasan KAN (S1, S2, RA)
+        $surveillanceService = app(\App\Services\LpkSurveillanceService::class);
+        foreach (Lpk::all() as $seededLpk) {
+            $surveillanceService->generateAssessments($seededLpk, $adminId);
+        }
     }
 }

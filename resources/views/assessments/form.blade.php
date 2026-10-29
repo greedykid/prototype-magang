@@ -1051,7 +1051,7 @@
                     @if($assessment->sk_lead_time_label)
                         <div class="lpk-sk-lead-time-box">
                             <strong>Rentang Proses:</strong> {{ $assessment->sk_lead_time_label }}
-                            (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->format('d M Y') }} s/d SK {{ $assessment->sk_date->format('d M Y') }})
+                            (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->translatedFormat('d M Y') }} s/d SK {{ $assessment->sk_date->translatedFormat('d M Y') }})
                         </div>
                     @endif
                 </div> {{-- /#section-sk --}}

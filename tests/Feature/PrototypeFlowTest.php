@@ -89,7 +89,7 @@ class PrototypeFlowTest extends TestCase
         $showResponse = $this->actingAs($user)->get(route('lpks.show', $lpk));
         $showResponse->assertOk()
             ->assertSee('Pengujian Mikrobiologi dan Toksikologi')
-            ->assertSee('15 Oct 2028');
+            ->assertSee('15 Okt 2028');
     }
 
     public function test_lpk_scope_can_be_searched_and_exported_to_csv(): void

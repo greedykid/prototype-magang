@@ -54,9 +54,9 @@
                         <x-icon name="calendar" size="14" />
                         <span>
                             @if($assessment->start_at->isSameDay($assessment->end_at))
-                                {{ $assessment->start_at->format('d M Y') }}
+                                {{ $assessment->start_at->translatedFormat('d M Y') }}
                             @else
-                                {{ $assessment->start_at->format('d M') }} - {{ $assessment->end_at->format('d M Y') }}
+                                {{ $assessment->start_at->translatedFormat('d M') }} - {{ $assessment->end_at->translatedFormat('d M Y') }}
                             @endif
                         </span>
                     </span>
@@ -113,7 +113,7 @@
                     <strong>Perhatian: Status Akreditasi Dicabut</strong>
                 </div>
                 <p class="lpk-alert-callout-desc">
-                    Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>) tanpa penyelesaian.
+                    Telah melewati batas waktu 1 tahun kesempatan penyelesaian masa pembekuan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->translatedFormat('d M Y') : '-' }}</strong>) tanpa penyelesaian.
                 </p>
             </div>
             @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))
@@ -140,9 +140,9 @@
                 </div>
                 <p class="lpk-alert-callout-desc">
                     @if($assessment->is_submission_overdue)
-                        Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->format('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->format('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
+                        Toleransi pengisian dokumen surveilen ({{ $assessment->submission_due_date ? $assessment->submission_due_date->translatedFormat('d M Y') : '-' }}) telah terlampaui. Laboratorium diberikan masa tenggang toleransi 1 tahun untuk menuntaskan surveilen (batas akhir: <strong>{{ $assessment->suspension_resolution_deadline ? $assessment->suspension_resolution_deadline->translatedFormat('d M Y') : '-' }}</strong>, sisa <strong>{{ $assessment->days_remaining_suspension }} hari</strong>). Apabila kewajiban tidak dipenuhi dalam 1 tahun, status akreditasi resmi dicabut.
                     @else
-                        Tenggat waktu tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->format('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
+                        Tenggat waktu tindakan perbaikan ({{ $assessment->effective_tp_due_date ? $assessment->effective_tp_due_date->translatedFormat('d M Y') : '-' }}) telah terlampaui dan belum dinyatakan memenuhi. Laboratorium wajib segera menindaklanjuti temuan atau mengajukan permohonan perpanjangan waktu (+1 bulan) bersyarat ada progres perbaikan nyata.
                     @endif
                 </p>
             </div>
@@ -214,11 +214,11 @@
                 <strong class="lpk-step-name">Asesmen Lapangan</strong>
                 <span class="lpk-step-timing">
                     @if($isFieldDone)
-                        {{ $assessment->end_at ? $assessment->end_at->format('d M Y') : 'Selesai' }}
+                        {{ $assessment->end_at ? $assessment->end_at->translatedFormat('d M Y') : 'Selesai' }}
                     @elseif($isFieldInProgress)
                         Sedang Berlangsung
                     @elseif($assessment->start_at)
-                        {{ $assessment->start_at->format('d M Y') }}
+                        {{ $assessment->start_at->translatedFormat('d M Y') }}
                     @else
                         Terjadwal
                     @endif
@@ -332,10 +332,10 @@
                     @if(!$isFieldDone)
                         @if($isFieldInProgress)
                             <span class="assessment-stepper-cta-title">Fase Berjalan: Pelaksanaan Asesmen Lapangan Sedang Berlangsung</span>
-                            <span class="assessment-stepper-cta-desc">Kunjungan asesmen lapangan sedang berlangsung di lokasi laboratorium ({{ $assessment->start_at?->format('d M') }} - {{ $assessment->end_at?->format('d M Y') }}).</span>
+                            <span class="assessment-stepper-cta-desc">Kunjungan asesmen lapangan sedang berlangsung di lokasi laboratorium ({{ $assessment->start_at?->translatedFormat('d M') }} - {{ $assessment->end_at?->translatedFormat('d M Y') }}).</span>
                         @else
                             <span class="assessment-stepper-cta-title">Fase Berjalan: Menunggu Pelaksanaan Kunjungan Lapangan</span>
-                            <span class="assessment-stepper-cta-desc">Jadwal kunjungan lapangan direncanakan pada {{ $assessment->start_at ? $assessment->start_at->format('d M Y') : 'jadwal yang telah ditentukan' }}. Pastikan tim asesor dan dokumen telah siap.</span>
+                            <span class="assessment-stepper-cta-desc">Jadwal kunjungan lapangan direncanakan pada {{ $assessment->start_at ? $assessment->start_at->translatedFormat('d M Y') : 'jadwal yang telah ditentukan' }}. Pastikan tim asesor dan dokumen telah siap.</span>
                         @endif
                     @elseif(!$isTpSatisfied)
                         @if($isSkDraftRewound)
@@ -343,7 +343,7 @@
                             <span class="assessment-stepper-cta-desc">Nomor SK KAN telah tersimpan di sistem, namun status kelulusan belum dapat disahkan karena Tindakan Perbaikan (Tahap 2) sedang aktif atau memerlukan verifikasi tindak lanjut.</span>
                         @else
                             <span class="assessment-stepper-cta-title">Fase Berjalan: Tindak Lanjut Perbaikan (TP/VTP)</span>
-                            <span class="assessment-stepper-cta-desc">{{ $assessment->effective_tp_due_date ? 'Batas waktu perbaikan s/d ' . $assessment->effective_tp_due_date->format('d M Y') . ($assessment->tp_days_remaining !== null ? ' (' . $assessment->tp_days_remaining . ' hari lagi)' : '') : 'Menunggu penyelesaian dan verifikasi bukti perbaikan temuan asesmen.' }}</span>
+                            <span class="assessment-stepper-cta-desc">{{ $assessment->effective_tp_due_date ? 'Batas waktu perbaikan s/d ' . $assessment->effective_tp_due_date->translatedFormat('d M Y') . ($assessment->tp_days_remaining !== null ? ' (' . $assessment->tp_days_remaining . ' hari lagi)' : '') : 'Menunggu penyelesaian dan verifikasi bukti perbaikan temuan asesmen.' }}</span>
                         @endif
                     @elseif($isEhaNeedsVerification)
                         <span class="assessment-stepper-cta-title">Fase Berjalan: Verifikasi Panitia Teknis Lanjutan</span>
@@ -409,7 +409,7 @@
                 </div>
                 <div class="assessment-stepper-cta-text">
                     <span class="assessment-stepper-cta-title">Siklus Asesmen Telah Tuntas</span>
-                    <span class="assessment-stepper-cta-desc">{{ $assessment->sk_number ? 'Surat Keputusan (SK) resmi telah terbit: ' . $assessment->sk_number . ($assessment->sk_date ? ' (' . $assessment->sk_date->format('d M Y') . ')' : '') : 'Seluruh tahapan asesmen telah terlaksana dan dinyatakan selesai.' }}</span>
+                    <span class="assessment-stepper-cta-desc">{{ $assessment->sk_number ? 'Surat Keputusan (SK) resmi telah terbit: ' . $assessment->sk_number . ($assessment->sk_date ? ' (' . $assessment->sk_date->translatedFormat('d M Y') . ')' : '') : 'Seluruh tahapan asesmen telah terlaksana dan dinyatakan selesai.' }}</span>
                 </div>
             </div>
             @if(!isset($owner) && (! $assessment->lpk || $assessment->lpk->canManage(auth()->user())))

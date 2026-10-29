@@ -27,6 +27,10 @@ function isEligibleField(el) {
     return !isNaN(max) && max > 0;
 }
 
+function formatCharNum(val) {
+    return val >= 1000 ? new Intl.NumberFormat('id-ID').format(val) : String(val);
+}
+
 function attachCounter(field) {
     if (field._charCounter && field._charCounter.isConnected) {
         return field._charCounter;
@@ -47,7 +51,7 @@ function attachCounter(field) {
     counter.className = 'field-char-counter';
     counter.setAttribute('aria-live', 'polite');
     counter.setAttribute('aria-atomic', 'true');
-    counter.innerHTML = `<span class="char-count-current">0</span><span class="char-count-divider">/</span><span class="char-count-max">${max}</span>`;
+    counter.innerHTML = `<span class="char-count-current">0</span><span class="char-count-divider">/</span><span class="char-count-max">${formatCharNum(max)}</span><span class="char-count-unit"> karakter</span>`;
 
     targetElement.insertAdjacentElement('afterend', counter);
     field._charCounter = counter;
@@ -86,8 +90,8 @@ export function updateCounter(field) {
     const currentSpan = counter.querySelector('.char-count-current');
     const maxSpan = counter.querySelector('.char-count-max');
 
-    if (currentSpan) currentSpan.textContent = len;
-    if (maxSpan) maxSpan.textContent = max;
+    if (currentSpan) currentSpan.textContent = formatCharNum(len);
+    if (maxSpan) maxSpan.textContent = formatCharNum(max);
 
     const ratio = len / max;
     if (ratio >= 1) {

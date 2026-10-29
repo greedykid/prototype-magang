@@ -122,12 +122,20 @@ class LpkController extends Controller
             abort(403, 'Anda tidak memiliki hak untuk melihat rincian LPK ini.');
         }
 
-        $lpk->load(['assessments.lpkLocation', 'pic.linkedViewers', 'locations.assessments']);
+        $lpk->load(['assessments.lpkLocation', 'pic.linkedViewers', 'locations.assessments', 'members']);
         foreach ($lpk->assessments as $assessment) {
             $assessment->setRelation('lpk', $lpk);
         }
 
-        return view('lpks.show', ['lpk' => $lpk]);
+        $availablePics = $user && $lpk->canManage($user)
+            ? User::where('role', User::ROLE_PIC)
+                ->where('id', '!=', $lpk->pic_id)
+                ->whereNotIn('id', $lpk->members->pluck('id'))
+                ->orderBy('name')
+                ->get()
+            : collect();
+
+        return view('lpks.show', ['lpk' => $lpk, 'availablePics' => $availablePics]);
     }
 
     public function edit(Lpk $lpk, Request $request): View
@@ -138,6 +146,7 @@ class LpkController extends Controller
         }
 
         $pics = $user && $user->isAdmin() ? User::where('role', User::ROLE_PIC)->orderBy('name')->get() : collect();
+        $lpk->loadMissing(['pic', 'assessments']);
 
         return view('lpks.form', ['lpk' => $lpk, 'formTitle' => 'Ubah Data LPK', 'pics' => $pics]);
     }

@@ -279,7 +279,7 @@ class AccountLinkController extends Controller
 
         $owner = $user;
         $lpk->load([
-            'pic',
+            'pic.linkedViewers',
             'assessments' => fn ($q) => $q->with('lpkLocation')->orderBy('start_at', 'desc'),
             'members',
             'locations.assessments',

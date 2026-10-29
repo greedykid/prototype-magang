@@ -72,7 +72,7 @@
     </div>
     <div>
         <dt>Waktu</dt>
-        <dd>{{ $event->start_at->format('d M Y, H:i') }} sampai {{ $event->end_at->format('d M Y, H:i') }} WIB</dd>
+        <dd>{{ $event->start_at->translatedFormat('d M Y, H:i') }} sampai {{ $event->end_at->translatedFormat('d M Y, H:i') }} WIB</dd>
     </div>
     <div>
         <dt>Lokasi</dt>

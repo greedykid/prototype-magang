@@ -537,6 +537,50 @@ export const initClickableRows = () => {
 };
 
 // ==========================================================================
+// LPK Detail Assessment Tabs Filter
+// ==========================================================================
+export const initLpkAssessmentTabs = () => {
+    document.addEventListener('click', (event) => {
+        if (!event.target || typeof event.target.closest !== 'function') return;
+        const tabBtn = event.target.closest('.lpk-v2-tab-btn');
+        if (!tabBtn) return;
+
+        const tabsContainer = tabBtn.closest('.lpk-v2-tabs');
+        const table = document.getElementById('table-assessments-v2');
+        if (!tabsContainer || !table) return;
+
+        event.preventDefault();
+
+        tabsContainer.querySelectorAll('.lpk-v2-tab-btn').forEach(b => b.classList.remove('is-active'));
+        tabBtn.classList.add('is-active');
+
+        const filter = tabBtn.getAttribute('data-filter') || 'all';
+        const rows = table.querySelectorAll('tbody tr[data-filter-type]');
+        if (rows.length === 0) return;
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowType = row.getAttribute('data-filter-type');
+            let shouldShow = false;
+            if (filter === 'all') {
+                shouldShow = true;
+            } else if (filter === 'completed') {
+                shouldShow = (rowType === 'completed');
+            } else if (filter === 'scheduled') {
+                shouldShow = (rowType === 'scheduled');
+            }
+            row.style.display = shouldShow ? '' : 'none';
+            if (shouldShow) visibleCount++;
+        });
+
+        const emptyRow = document.getElementById('lpk-v2-empty-filter-row');
+        if (emptyRow) {
+            emptyRow.style.display = (visibleCount === 0) ? '' : 'none';
+        }
+    });
+};
+
+// ==========================================================================
 // Application Bootstrap
 // ==========================================================================
 initMobileDrawer();
@@ -546,6 +590,7 @@ initButtonLoader();
 initAuthTransitions();
 initConfirmations();
 initClickableRows();
+initLpkAssessmentTabs();
 initLiveFilters();
 initTheme();
 initPasswordToggles();

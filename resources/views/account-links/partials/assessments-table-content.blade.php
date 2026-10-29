@@ -60,7 +60,7 @@
                             </div>
                         </td>
                         <td style="font-size: 12.5px; color: var(--ink);">
-                            {{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->format('d M Y') : $assessment->start_at->format('d M Y') . ' - ' . $assessment->end_at->format('d M Y') }}
+                            {{ $assessment->start_at->isSameDay($assessment->end_at) ? $assessment->start_at->translatedFormat('d M Y') : $assessment->start_at->translatedFormat('d M Y') . ' - ' . $assessment->end_at->translatedFormat('d M Y') }}
                         </td>
                         <td>
                             @php

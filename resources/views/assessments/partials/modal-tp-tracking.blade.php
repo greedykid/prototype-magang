@@ -321,7 +321,7 @@
                         @if($assessment->sk_lead_time_label)
                             <div style="font-size: 11.5px; color: var(--green, #10b981); background: rgba(16, 185, 129, 0.16); padding: 5px 10px; border-radius: var(--radius-pill, 9999px); word-break: break-word;">
                                 <strong>Rentang Waktu Proses:</strong> {{ $assessment->sk_lead_time_label }}
-                                (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->format('d M Y') }} s/d SK {{ $assessment->sk_date->format('d M Y') }})
+                                (dari pelaksanaan {{ ($assessment->end_at ?? $assessment->start_at)->translatedFormat('d M Y') }} s/d SK {{ $assessment->sk_date->translatedFormat('d M Y') }})
                             </div>
                         @endif
                     </div>
